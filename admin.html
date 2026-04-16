@@ -4,14 +4,99 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: url("anhnen.jpg") no-repeat center/cover;
+    min-height: 100vh;
+    color: white;
+}
+
+/* LOGIN */
+.login-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.6);
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+/* ADMIN */
+.admin-panel {
+    display: none;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+/* KHUNG CHÍNH */
+.container {
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+    border-radius: 15px;
+    width: 350px;
+    text-align: center;
+
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* INPUT */
+input {
+    display: block;
+    margin: 10px auto;
+    padding: 10px;
+    width: 200px;
+    border-radius: 8px;
+    border: none;
+}
+
+/* BUTTON */
+button {
+    padding: 8px 12px;
+    margin: 5px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+/* USER ITEM */
+.user {
+    background: rgba(255,255,255,0.1);
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 10px;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Danh sách đăng ký</h2>
-<button onclick="loadData()">Tải dữ liệu</button>
+<!-- LOGIN -->
+<div class="login-box" id="loginBox">
+    <h3>🔐 Admin Login</h3>
+    <input type="text" id="user" placeholder="Tài khoản">
+    <input type="password" id="pass" placeholder="Mật khẩu">
+    <button onclick="login()">Đăng nhập</button>
+</div>
 
-<div id="list"></div>
+<!-- ADMIN -->
+<div class="admin-panel" id="adminPanel">
+    <div class="container">
+        <h2>📋 Danh sách đăng ký</h2>
+
+        <button onclick="loadData()">🔄 Tải lại</button>
+        <button onclick="clearAll()">🧨 Xóa tất cả</button>
+        <button onclick="logout()">🚪 Đăng xuất</button>
+
+        <div id="list"></div>
+    </div>
+</div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -27,17 +112,90 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// LOGIN
+function login() {
+    let user = document.getElementById("user").value;
+    let pass = document.getElementById("pass").value;
+
+    if (user === "admin" && pass === "123") {
+        document.getElementById("loginBox").style.display = "none";
+
+        let panel = document.getElementById("adminPanel");
+        panel.style.display = "flex"; // ✅ bật đúng chỗ
+
+        loadData();
+    } else {
+        alert("Sai tài khoản!");
+    }
+}
+
+// LOGOUT
+function logout() {
+    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("adminPanel").style.display = "none";
+}
+
+// FORMAT TIME
+function formatTime(timestamp) {
+    let d = timestamp.toDate();
+    return d.toLocaleString();
+}
+
+// LOAD DATA
 function loadData() {
     let list = document.getElementById("list");
-    list.innerHTML = "Đang tải...";
+    list.innerHTML = "⏳ Đang tải...";
 
-    db.collection("users").get().then((snapshot) => {
+    db.collection("users").orderBy("time", "desc").get()
+    .then((snapshot) => {
         list.innerHTML = "";
 
-        snapshot.forEach((doc, i) => {
+        if (snapshot.empty) {
+            list.innerHTML = "<p>Chưa có dữ liệu</p>";
+            alert("📭 Không có dữ liệu");
+            return;
+        }
+
+        let i = 1;
+        snapshot.forEach((doc) => {
             let u = doc.data();
-            list.innerHTML += `<p>${i+1}. ${u.name} - ${u.gameId}</p>`;
+
+            list.innerHTML += `
+            <div class="user">
+                <b>${i}. ${u.name}</b><br>
+                ID: ${u.gameId}<br>
+                ⏰ ${u.time ? formatTime(u.time) : "Không có"}<br>
+                <button onclick="deleteUser('${doc.id}')">❌ Xóa</button>
+            </div>
+            `;
+            i++;
         });
+
+        alert("✅ Tải dữ liệu thành công!");
+    });
+}
+
+// XÓA 1
+function deleteUser(id) {
+    if (confirm("Xóa người này?")) {
+        db.collection("users").doc(id).delete().then(() => {
+            alert("🗑️ Đã xóa!");
+            loadData();
+        });
+    }
+}
+
+// XÓA TẤT CẢ
+function clearAll() {
+    if (!confirm("Xóa toàn bộ dữ liệu?")) return;
+
+    db.collection("users").get().then(snapshot => {
+        snapshot.forEach(doc => {
+            db.collection("users").doc(doc.id).delete();
+        });
+
+        alert("🧨 Đã xóa tất cả!");
+        loadData();
     });
 }
 </script>
