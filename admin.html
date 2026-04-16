@@ -1,3 +1,17 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin</title>
+</head>
+
+<body>
+
+<h2>Danh sách đăng ký</h2>
+<button onclick="loadData()">Tải dữ liệu</button>
+
+<div id="list"></div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -8,10 +22,6 @@ const firebaseConfig = {
   apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
   authDomain: "web-dangky-123.firebaseapp.com",
   projectId: "web-dangky-123",
-  storageBucket: "web-dangky-123.firebasestorage.app",
-  messagingSenderId: "765241326376",
-  appId: "1:765241326376:web:60dd5ea4c4a33349a9ee1d",
-  measurementId: "G-4ESXBRCM01"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -21,8 +31,7 @@ function loadData() {
     let list = document.getElementById("list");
     list.innerHTML = "Đang tải...";
 
-    db.collection("users").orderBy("time", "desc").get()
-    .then((snapshot) => {
+    db.collection("users").get().then((snapshot) => {
         list.innerHTML = "";
 
         snapshot.forEach((doc, i) => {
@@ -32,3 +41,6 @@ function loadData() {
     });
 }
 </script>
+
+</body>
+</html>
