@@ -43,19 +43,49 @@ body {
     align-items: center;
 }
 
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(10px);
+
+    display: flex;
+    justify-content: center; /* căn ngang */
+    align-items: center;     /* căn dọc */
+}
+
 .form-box {
     background: rgba(255,255,255,0.2);
-    padding: 20px;
+    padding: 25px;
     border-radius: 15px;
     backdrop-filter: blur(15px);
     color: white;
+
+    width: 280px;
+    text-align: center;
+}
+
+.form-box h3 {
+    margin-bottom: 15px;
 }
 
 input {
-    display: block;
-    margin: 10px 0;
-    padding: 8px;
-    width: 200px;
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 8px;
+}
+
+/* Nút */
+.form-box button {
+    margin: 8px 5px 0;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
 }
 </style>
 </head>
