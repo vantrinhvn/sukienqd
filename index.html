@@ -1,3 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng ký</title>
+
+<style>
+body {
+    margin: 0;
+    background: url('anhnen.jpg') no-repeat center/cover;
+    height: 100vh;
+    font-family: Arial;
+}
+
+/* Nút đăng ký */
+.register-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* Form */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    backdrop-filter: blur(10px);
+    justify-content: center;
+    align-items: center;
+}
+
+.form-box {
+    background: rgba(255,255,255,0.2);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(15px);
+    color: white;
+}
+
+input {
+    display: block;
+    margin: 10px 0;
+    padding: 8px;
+    width: 200px;
+}
+</style>
+</head>
+
+<body>
+
+<button class="register-btn" onclick="openForm()">Đăng ký</button>
+
+<div class="modal" id="modal">
+    <div class="form-box">
+        <h3>Đăng ký</h3>
+        <input id="name" placeholder="Họ tên">
+        <input id="gameId" placeholder="ID Game">
+        <button onclick="register()">Xác nhận</button>
+        <button onclick="closeForm()">Đóng</button>
+    </div>
+</div>
+
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -9,14 +79,20 @@ const firebaseConfig = {
   projectId: "web-dangky-123",
 };
 
-// Khởi tạo Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Hàm đăng ký (PHẢI CÓ)
+function openForm() {
+    document.getElementById('modal').style.display = 'flex';
+}
+
+function closeForm() {
+    document.getElementById('modal').style.display = 'none';
+}
+
 function register() {
-    let name = document.getElementById('name')?.value;
-    let gameId = document.getElementById('gameId')?.value;
+    let name = document.getElementById('name').value;
+    let gameId = document.getElementById('gameId').value;
 
     if (!name || !gameId) {
         alert("Nhập đầy đủ!");
@@ -30,12 +106,14 @@ function register() {
     })
     .then(() => {
         alert("Đăng ký thành công!");
-        document.getElementById('name').value = "";
-        document.getElementById('gameId').value = "";
+        closeForm();
     })
-    .catch((err) => {
+    .catch(err => {
         console.error(err);
         alert("Lỗi Firebase!");
     });
 }
 </script>
+
+</body>
+</html>
