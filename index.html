@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Đăng ký</title>
+
+<title>Sự kiện QD</title>
+
+<meta property="og:title" content="Sự kiện QD - Đăng ký ngay">
+<meta property="og:description" content="Tham gia sự kiện và đăng ký nhanh chóng">
+<meta property="og:image" content="https://vantrinhvn.github.io/sukienqd/anhnen.jpg">
+<meta property="og:url" content="https://vantrinhvn.github.io/sukienqd/">
+<meta property="og:type" content="website">
 
 <style>
 body {
@@ -13,6 +20,7 @@ body {
     font-family: Arial;
 }
 
+/* Nút đăng ký */
 .register-btn {
     position: fixed;
     bottom: 20px;
@@ -22,24 +30,45 @@ body {
     color: white;
     border: none;
     border-radius: 10px;
+    cursor: pointer;
 }
 
+/* Form */
 .modal {
     display: none;
     position: fixed;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     backdrop-filter: blur(10px);
     justify-content: center;
     align-items: center;
 }
 
 .form-box {
-    background: rgba(255,255,255,0.2);
-    padding: 20px;
+    background: rgba(0,0,0,0.6);
+    padding: 25px;
     border-radius: 15px;
+    backdrop-filter: blur(15px);
     color: white;
+    text-align: center;
+    width: 260px;
+}
+
+input {
+    display: block;
+    margin: 10px auto;
+    padding: 10px;
+    width: 100%;
+    border-radius: 8px;
+    border: none;
+}
+
+.form-box button {
+    margin: 8px 5px 0;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
 }
 </style>
 </head>
@@ -51,14 +80,15 @@ body {
 <div class="modal" id="modal">
     <div class="form-box">
         <h3>Đăng ký</h3>
-        <input id="name" placeholder="Họ tên"><br>
-        <input id="gameId" placeholder="ID Game"><br>
-        <button onclick="register()">Xác nhận</button>
+        <input id="name" placeholder="Họ tên">
+        <input id="gameId" placeholder="ID Game">
+
+        <button id="submitBtn" onclick="register()">Xác nhận</button>
         <button onclick="closeForm()">Đóng</button>
     </div>
 </div>
 
-<!-- Firebase chuẩn -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
@@ -83,24 +113,72 @@ function closeForm() {
 function register() {
     let name = document.getElementById('name').value;
     let gameId = document.getElementById('gameId').value;
+    let btn = document.getElementById("submitBtn");
 
     if (!name || !gameId) {
         alert("Nhập đầy đủ!");
         return;
     }
 
-    db.collection("users").add({
-        name: name,
-        gameId: gameId,
-        time: new Date()
-    })
-    .then(() => {
-        alert("Đăng ký thành công!");
-        closeForm();
-    })
-    .catch(err => {
-        alert("Lỗi Firebase!");
-        console.log(err);
+    let savedId = localStorage.getItem("gameId");
+
+    // 🔒 kiểm tra thiết bị đã đăng ký chưa
+    if (savedId) {
+        db.collection("users")
+        .where("gameId", "==", savedId)
+        .get()
+        .then((snapshot) => {
+
+            if (!snapshot.empty) {
+                alert("❌ Bạn đã đăng ký rồi!");
+                return;
+            } else {
+                // admin đã xóa → reset
+                localStorage.removeItem("gameId");
+                register();
+            }
+        });
+
+        return;
+    }
+
+    // 🔍 kiểm tra trùng ID
+    db.collection("users")
+    .where("gameId", "==", gameId)
+    .get()
+    .then((snapshot) => {
+
+        if (!snapshot.empty) {
+            alert("❌ ID này đã tồn tại!");
+            return;
+        }
+
+        // khóa nút
+        btn.disabled = true;
+        btn.innerText = "Đang xử lý...";
+
+        // delay 5s
+        setTimeout(() => {
+            db.collection("users").add({
+                name: name,
+                gameId: gameId,
+                time: new Date()
+            })
+            .then(() => {
+                localStorage.setItem("gameId", gameId);
+                alert("✅ Đăng ký thành công!");
+                closeForm();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi Firebase!");
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = "Xác nhận";
+            });
+        }, 5000);
+
     });
 }
 </script>
