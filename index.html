@@ -1,62 +1,45 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    
-    <!-- Quan trọng cho mobile -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Firebase (bản compat cho GitHub) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-    <title>Web của tôi</title>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
+  authDomain: "web-dangky-123.firebaseapp.com",
+  projectId: "web-dangky-123",
+  storageBucket: "web-dangky-123.firebasestorage.app",
+  messagingSenderId: "765241326376",
+  appId: "1:765241326376:web:60dd5ea4c4a33349a9ee1d",
+  measurementId: "G-4ESXBRCM01"
+};
 
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
+// Khởi tạo Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-            /* Ảnh nền chuẩn mobile */
-            background-image: url('anhnen.jpg');
-            background-size: cover;        /* phủ full màn */
-            background-position: center;   /* căn giữa */
-            background-repeat: no-repeat;
-            background-attachment: fixed;  /* mượt hơn */
+// Hàm đăng ký
+function register() {
+    let name = document.getElementById('name').value;
+    let gameId = document.getElementById('gameId').value;
 
-            height: 100vh;
-            font-family: Arial, sans-serif;
-        }
+    if (!name || !gameId) {
+        alert("Nhập đầy đủ!");
+        return;
+    }
 
-        /* Nút đăng ký */
-        .register-btn {
-            position: fixed;
-    bottom: 20px;   /* xuống dưới */
-    right: 20px;    /* vẫn bên phải */
-
-    padding: 10px 18px;
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-
-    cursor: pointer;
-
-        }
-
-        .register-btn:hover {
-            background-color: #e60000;
-        }
-
-        /* Responsive cho màn nhỏ */
-        @media (max-width: 600px) {
-            .register-btn {
-                font-size: 13px;
-                padding: 8px 14px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <button class="register-btn">Đăng ký</button>
-
-</body>
-</html>
+    db.collection("users").add({
+        name: name,
+        gameId: gameId,
+        time: new Date()
+    })
+    .then(() => {
+        alert("Đăng ký thành công!");
+        document.getElementById('name').value = "";
+        document.getElementById('gameId').value = "";
+        closeForm();
+    })
+    .catch((error) => {
+        alert("Lỗi: " + error);
+    });
+}
+</script>
