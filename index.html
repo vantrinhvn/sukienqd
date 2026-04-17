@@ -3,253 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sự kiện QD - Gaming Event</title>
+    <title>QD Portal - Future Experience</title>
 
     <style>
         :root {
-            --primary-neon: #00f2fe;
-            --secondary-neon: #4facfe;
-            --accent: #f093fb;
-            --glass: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --secondary: #a855f7;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
         }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #0f172a; /* Màu nền dự phòng */
+            color: var(--text-main);
             overflow: hidden;
-            color: white;
         }
 
-        /* BACKGROUND WITH OVERLAY */
-        .bg-overlay {
+        /* Hình nền động nhẹ */
+        .stars {
             position: fixed;
             inset: 0;
-            background: url("anhnen.jpg") no-repeat center/cover;
-            z-index: -2;
-        }
-
-        body::after {
-            content: "";
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(circle, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
             z-index: -1;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png');
+            opacity: 0.3;
         }
 
-        /* TITLE AREA */
-        .header-content {
-            position: fixed;
-            top: 15%;
+        .main-container {
             text-align: center;
+            z-index: 10;
+            padding: 20px;
             width: 100%;
+            max-width: 500px;
         }
 
-        .header-content h1 {
-            font-size: 3rem;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            margin: 0;
-            background: linear-gradient(to right, var(--primary-neon), var(--accent));
+        .brand-logo {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            filter: drop-shadow(0 0 15px var(--primary-glow));
+            letter-spacing: -2px;
         }
 
-        /* ===== BUTTON AREA ===== */
-        .button-area {
-            position: relative;
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-            justify-content: center;
-            z-index: 10;
-        }
-
-        .btn {
-            position: relative;
-            padding: 18px 35px;
-            border: none;
-            border-radius: 50px; /* Nút hình oval hiện đại */
-            cursor: pointer;
-            font-weight: 800;
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            min-width: 180px;
-            font-size: 15px;
+            letter-spacing: 4px;
+            margin-bottom: 3rem;
+        }
+
+        /* Nút bấm thiết kế mới */
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-modern {
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
             overflow: hidden;
         }
 
-        .register-btn {
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-            color: #06213c;
-            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
-        }
-
-        .login-btn {
-            background: rgba(255, 255, 255, 0.1);
+        .btn-primary {
+            background: var(--primary);
             color: white;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 20px var(--primary-glow);
         }
 
-        .btn:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+            filter: brightness(1.1);
         }
 
-        .register-btn:hover {
-            box-shadow: 0 0 40px rgba(0, 242, 254, 0.6);
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.03);
+            color: white;
+            backdrop-filter: blur(10px);
         }
 
-        .login-btn:hover {
-            background: white;
-            color: black;
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
         }
 
-        /* ===== MODAL & FORM ===== */
+        /* Modal Overlay */
         .modal {
             display: none;
             position: fixed;
             inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 100;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(15px);
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
+            padding: 20px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; } to { opacity: 1; }
-        }
-
-        .form-box {
-            width: 380px;
+        .modal-content {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 400px;
             padding: 40px;
-            border-radius: 30px;
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            text-align: center;
-            transform: scale(1);
-            animation: slideUp 0.4s ease;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        h3 {
-            font-size: 24px;
-            margin-bottom: 25px;
-            color: var(--primary-neon);
+        h3 { margin-top: 0; font-size: 1.5rem; margin-bottom: 1.5rem; text-align: left; }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
         }
 
         input {
             width: 100%;
-            padding: 15px;
-            margin: 12px 0;
-            border: 1px solid var(--glass-border);
-            border-radius: 15px;
-            outline: none;
-            background: rgba(255,255,255,0.05);
+            padding: 14px 18px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
             color: white;
             box-sizing: border-box;
+            font-size: 1rem;
             transition: 0.3s;
         }
 
         input:focus {
-            border-color: var(--primary-neon);
-            background: rgba(255,255,255,0.1);
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(15, 23, 42, 0.9);
         }
 
-        .btn-group {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
         }
 
-        .form-box button {
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
+        .modal-footer button {
+            flex: 1;
         }
 
-        .confirm {
-            background: var(--primary-neon);
-            color: #06213c;
-        }
-
-        .close {
+        .btn-close {
             background: transparent;
-            color: #ff4d4d;
-            border: 1px solid #ff4d4d !important;
+            color: #94a3b8;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
         }
 
-        .close:hover {
-            background: #ff4d4d;
-            color: white;
-        }
+        .btn-close:hover { color: var(--accent-red); }
 
-        /* MOBILE OPTIMIZATION */
-        @media (max-width: 480px) {
-            .header-content h1 { font-size: 2rem; }
-            .button-area { flex-direction: column; gap: 15px; }
-            .form-box { width: 85%; padding: 25px; }
+        @media (min-width: 640px) {
+            .action-group { flex-direction: row; }
+            .btn-modern { flex: 1; }
         }
     </style>
 </head>
-
 <body>
 
-<div class="bg-overlay"></div>
+<div class="stars"></div>
 
-<div class="header-content">
-    <h1>SỰ KIỆN QD</h1>
-    <p style="color: #cbd5e1; letter-spacing: 2px;">JOIN THE LEGEND</p>
+<div class="main-container">
+    <div class="brand-logo">QD EVENT</div>
+    <div class="subtitle">Next-Gen Gaming Portal</div>
+
+    <div class="action-group">
+        <button class="btn-modern btn-primary" onclick="openForm('register')">Đăng ký tham gia</button>
+        <button class="btn-modern btn-outline" onclick="openForm('login')">Đăng nhập</button>
+    </div>
 </div>
 
-<div class="button-area">
-    <button class="btn register-btn" onclick="openForm()">Đăng ký ngay</button>
-    <button class="btn login-btn" onclick="openLogin()">Đăng nhập</button>
-</div>
-
-<div class="modal" id="modal">
-    <div class="form-box">
-        <h3>🔥 ĐĂNG KÝ</h3>
-        <input id="name" placeholder="Họ và tên của bạn">
-        <input id="gameId" type="text" inputmode="numeric" 
-               placeholder="Nhập ID Game (Số)" 
-               oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-        
-        <div class="btn-group">
-            <button class="confirm" onclick="register()">XÁC NHẬN</button>
-            <button class="close" onclick="closeForm()">ĐÓNG</button>
+<div class="modal" id="registerModal">
+    <div class="modal-content">
+        <h3>🚀 Đăng ký thành viên</h3>
+        <div class="input-group">
+            <input id="regName" placeholder="Tên hiển thị">
+        </div>
+        <div class="input-group">
+            <input id="regGameId" type="text" inputmode="numeric" placeholder="ID Nhân vật (Chỉ nhập số)" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+        <div class="modal-footer">
+            <button class="btn-close" onclick="closeForm('register')">HỦY BỎ</button>
+            <button class="btn-modern btn-primary" id="regBtn" onclick="register()">XÁC NHẬN</button>
         </div>
     </div>
 </div>
 
 <div class="modal" id="loginModal">
-    <div class="form-box">
-        <h3>🔐 ĐĂNG NHẬP</h3>
-        <input id="loginUser" placeholder="Tên tài khoản">
-        <input id="loginPass" type="password" placeholder="Mật khẩu">
-
-        <div class="btn-group">
-            <button class="confirm" onclick="login()">VÀO CỔNG</button>
-            <button class="close" onclick="closeLogin()">ĐÓNG</button>
+    <div class="modal-content">
+        <h3>🔐 Truy cập hệ thống</h3>
+        <div class="input-group">
+            <input id="loginUser" placeholder="Tên đăng nhập">
+        </div>
+        <div class="input-group">
+            <input id="loginPass" type="password" placeholder="Mật khẩu">
+        </div>
+        <div class="modal-footer">
+            <button class="btn-close" onclick="closeForm('login')">HỦY BỎ</button>
+            <button class="btn-modern btn-primary" onclick="login()">VÀO CỔNG</button>
         </div>
     </div>
 </div>
@@ -258,45 +240,50 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-    // Giữ nguyên phần logic Firebase của bạn
-    firebase.initializeApp({
+    // 1. CẤU HÌNH FIREBASE
+    const firebaseConfig = {
         apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
         authDomain: "web-dangky-123.firebaseapp.com",
         projectId: "web-dangky-123",
-    });
-
+    };
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    function openForm(){ document.getElementById("modal").style.display="flex"; }
-    function closeForm(){ document.getElementById("modal").style.display="none"; }
-    function openLogin(){ document.getElementById("loginModal").style.display="flex"; }
-    function closeLogin(){ document.getElementById("loginModal").style.display="none"; }
+    // 2. ĐIỀU KHIỂN GIAO DIỆN
+    function openForm(type) {
+        document.getElementById(type === 'register' ? "registerModal" : "loginModal").style.display = "flex";
+    }
+    function closeForm(type) {
+        document.getElementById(type === 'register' ? "registerModal" : "loginModal").style.display = "none";
+    }
 
-    function register(){
-        let name = document.getElementById("name").value;
-        let gameId = document.getElementById("gameId").value;
-        let btn = document.querySelector("#modal .confirm");
+    // Đóng modal khi click ra ngoài
+    window.onclick = function(event) {
+        if (event.target.className === 'modal') {
+            event.target.style.display = "none";
+        }
+    }
+
+    // 3. LOGIC ĐĂNG KÝ
+    function register() {
+        let name = document.getElementById("regName").value.trim();
+        let gameId = document.getElementById("regGameId").value.trim();
+        let btn = document.getElementById("regBtn");
 
         let lastTime = localStorage.getItem("last_register_time");
-        let now = Date.now();
         let limit = 30 * 60 * 1000;
-
-        if(lastTime && (now - parseInt(lastTime)) < limit){
-            let remain = Math.ceil((limit - (now - parseInt(lastTime))) / 60000);
-            alert("⏳ Bạn đang trong thời gian chờ! Quay lại sau " + remain + " phút.");
-            return;
+        if(lastTime && (Date.now() - parseInt(lastTime)) < limit) {
+            let remain = Math.ceil((limit - (Date.now() - parseInt(lastTime))) / 60000);
+            return alert("⏳ Vui lòng đợi " + remain + " phút để tiếp tục!");
         }
 
-        if(!name || !gameId){
-            alert("❌ Vui lòng nhập đầy đủ thông tin!");
-            return;
-        }
+        if(!name || !gameId) return alert("❌ Vui lòng nhập đủ thông tin!");
 
         btn.disabled = true;
-        btn.innerText = "ĐANG LƯU...";
+        btn.innerText = "ĐANG XỬ LÝ...";
 
-        db.collection("users").where("gameId","==",gameId).get().then(snap => {
-            if(!snap.empty){
+        db.collection("users").where("gameId", "==", gameId).get().then(snap => {
+            if(!snap.empty) {
                 alert("❌ ID này đã được đăng ký trước đó!");
                 btn.disabled = false;
                 btn.innerText = "XÁC NHẬN";
@@ -304,36 +291,38 @@
             }
 
             db.collection("users").add({
-                name:name,
-                gameId:gameId,
-                time:new Date()
+                name: name,
+                gameId: gameId,
+                time: new Date()
             }).then(() => {
                 localStorage.setItem("last_register_time", Date.now());
                 alert("✅ Chúc mừng! Bạn đã đăng ký thành công.");
-                closeForm();
-                document.getElementById("name").value="";
-                document.getElementById("gameId").value="";
-            }).finally(()=>{
-                btn.disabled=false;
-                btn.innerText="XÁC NHẬN";
-            });
+                closeForm('register');
+            }).catch(e => alert("Lỗi: " + e));
         });
     }
 
-    function login(){
-        let u=document.getElementById("loginUser").value;
-        let p=document.getElementById("loginPass").value;
-        if(!u || !p) return alert("❌ Nhập tài khoản/mật khẩu!");
+    // 4. LOGIC ĐĂNG NHẬP
+    function login() {
+        let u = document.getElementById("loginUser").value.trim();
+        let p = document.getElementById("loginPass").value.trim();
+        
+        if(!u || !p) return alert("❌ Nhập tài khoản và mật khẩu!");
 
-        db.collection("accounts").where("user","==",u).where("pass","==",p).get().then(snap=>{
-            if(snap.empty){
-                alert("❌ Thông tin đăng nhập không chính xác!");
-                return;
-            }
-            let data=snap.docs[0].data();
+        db.collection("accounts").where("user", "==", u).where("pass", "==", p).get().then(snap => {
+            if(snap.empty) return alert("❌ Thông tin đăng nhập không chính xác!");
+
+            let data = snap.docs[0].data();
+            const sessionData = {
+                id: data.user,
+                name: data.user,
+                role: data.role || "user"
+            };
+            localStorage.setItem("chat_user", JSON.stringify(sessionData));
+
             alert("✅ Đăng nhập thành công!");
             window.location.href = (data.role === "admin") ? "admin.html" : "user.html";
-        });
+        }).catch(e => alert("Lỗi kết nối: " + e));
     }
 </script>
 
