@@ -41,15 +41,16 @@
         #adminPanel { display: none; padding: 100px 20px 40px; max-width: 1200px; margin: 0 auto; }
 
         /* STATS GRID */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 40px; }
-        .stat-card { background: var(--card); padding: 30px; border-radius: 24px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: var(--card); padding: 30px; border-radius: 24px; border: 1px solid var(--border); position: relative; cursor: pointer; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--primary); }
         .stat-card::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gradient); }
         .stat-card h3 { margin: 0; font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
         .stat-card .val { font-size: 38px; font-weight: 800; margin-top: 10px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         /* MODALS */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1500; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-box { background: var(--card); width: 100%; max-width: 900px; max-height: 85vh; border-radius: 32px; padding: 35px; overflow-y: auto; border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0, 242, 254, 0.1); }
+        .modal-box { background: var(--card); width: 100%; max-width: 800px; max-height: 85vh; border-radius: 32px; padding: 35px; overflow-y: auto; border: 1px solid var(--border); position: relative; }
         
         /* TABLES */
         .table-container { margin-top: 20px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
@@ -57,11 +58,14 @@
         th { background: rgba(255,255,255,0.05); text-align: left; padding: 16px; color: var(--secondary); font-size: 12px; text-transform: uppercase; }
         td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
 
-        /* BUTTONS */
+        /* INPUTS */
         input, textarea { 
             width: 100%; padding: 14px; margin: 10px 0; border-radius: 14px; 
-            border: 1px solid var(--border); background: rgba(0,0,0,0.3); color: white; outline: none;
+            border: 1px solid var(--border); background: rgba(0,0,0,0.3); color: white; outline: none; transition: 0.3s;
         }
+        input:focus, textarea:focus { border-color: var(--primary); }
+
+        /* BUTTONS */
         .btn { padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
         .btn-primary { background: var(--gradient); color: #000; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: white; }
@@ -73,12 +77,18 @@
         .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; min-width: 80px; text-align: center; }
         .badge-online { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
         .badge-offline { background: rgba(148, 163, 184, 0.1); color: var(--text-dim); border: 1px solid var(--text-dim); }
-        .badge-blocked { background: rgba(255, 77, 77, 0.2); color: var(--danger); border: 1px solid var(--danger); }
 
-        .news-item-row { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .item-row { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .item-content { flex: 1; cursor: pointer; }
+        
+        /* TOAST */
+        #toast { position: fixed; bottom: 30px; right: 30px; padding: 15px 25px; border-radius: 12px; background: var(--success); color: white; font-weight: 700; transform: translateY(100px); opacity: 0; transition: 0.4s; z-index: 3000; }
+        #toast.show { transform: translateY(0); opacity: 1; }
     </style>
 </head>
 <body>
+
+<div id="toast">Cập nhật thành công!</div>
 
 <div id="loginScreen">
     <div class="login-box">
@@ -93,37 +103,50 @@
     <div class="navbar">
         <div class="nav-logo">QD ADMIN</div>
         <div style="display: flex; gap: 8px;">
-            <button class="btn btn-primary" onclick="openModal('newsModal')">📰 Tin tức</button>
-            <button class="btn btn-outline" onclick="openModal('usersModal')">📋 Duyệt đơn</button>
-            <button class="btn btn-outline" onclick="openModal('accModal')">👤 Thành viên</button>
+            <button class="btn btn-outline" onclick="openModal('newsModal')">📰 Tin tức</button>
+            <button class="btn btn-outline" onclick="openModal('cmtModal')">💬 Bình luận</button>
             <button class="btn btn-danger" onclick="location.reload()">Thoát</button>
         </div>
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card"><h3>Thành viên</h3><div class="val" id="s-acc">0</div></div>
-        <div class="stat-card"><h3>Đơn chờ</h3><div class="val" id="s-users" style="color:var(--warning)">0</div></div>
-        <div class="stat-card"><h3>Bản tin</h3><div class="val" id="s-news">0</div></div>
+        <div class="stat-card" onclick="openModal('accModal')"><h3>Thành viên</h3><div class="val" id="s-acc">0</div></div>
+        <div class="stat-card" onclick="openModal('usersModal')"><h3>Đơn chờ</h3><div class="val" id="s-users" style="color:var(--warning)">0</div></div>
+        <div class="stat-card" onclick="openModal('newsModal')"><h3>Bản tin</h3><div class="val" id="s-news">0</div></div>
+        <div class="stat-card" onclick="openModal('cmtModal')"><h3>Bình luận</h3><div class="val" id="s-cmt" style="color:var(--secondary)">0</div></div>
+    </div>
+
+    <div class="modal" id="newsModal">
+        <div class="modal-box">
+            <h2 id="newsTitle">📰 Quản lý bản tin</h2>
+            <div id="newsForm">
+                <input type="hidden" id="editNewsId">
+                <textarea id="newsContent" rows="3" placeholder="Nhập nội dung bản tin..."></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" id="btnSaveNews" onclick="saveNews()" style="flex: 1; justify-content: center;">ĐĂNG TIN MỚI</button>
+                    <button class="btn btn-outline" id="btnCancelEdit" onclick="cancelEditNews()" style="display: none;">HỦY SỬA</button>
+                </div>
+            </div>
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+            <div id="listNews"></div>
+            <button class="btn btn-outline" style="width:100%; margin-top:20px" onclick="closeModal()">ĐÓNG</button>
+        </div>
+    </div>
+
+    <div class="modal" id="cmtModal">
+        <div class="modal-box">
+            <h2>💬 Quản lý bình luận người dùng</h2>
+            <div id="listCmts"></div>
+            <button class="btn btn-outline" style="width:100%; margin-top:20px" onclick="closeModal()">ĐÓNG</button>
+        </div>
     </div>
 
     <div class="modal" id="accModal">
         <div class="modal-box">
-            <h2 style="margin-top:0">👤 Quản lý thành viên</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-bottom: 20px;">
-                <input id="inUser" placeholder="User mới" style="margin:0">
-                <input id="inPass" placeholder="Pass mới" style="margin:0">
-                <button class="btn btn-primary" onclick="addAcc()">TẠO TÀI KHOẢN</button>
-            </div>
+            <h2>👤 Thành viên</h2>
             <div class="table-container">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Tên tài khoản</th>
-                            <th>Mật khẩu</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>User</th><th>Pass</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
                     <tbody id="listAcc"></tbody>
                 </table>
             </div>
@@ -133,7 +156,7 @@
 
     <div class="modal" id="usersModal">
         <div class="modal-box">
-            <h2 style="margin-top:0">📋 Đơn đăng ký chờ</h2>
+            <h2>📋 Đơn đăng ký</h2>
             <div class="table-container">
                 <table>
                     <thead><tr><th>Tên NV</th><th>ID Game</th><th>Thao tác</th></tr></thead>
@@ -141,16 +164,6 @@
                 </table>
             </div>
             <button class="btn btn-outline" style="width:100%; margin-top:20px" onclick="closeModal()">ĐÓNG</button>
-        </div>
-    </div>
-
-    <div class="modal" id="newsModal">
-        <div class="modal-box" style="max-width: 500px;">
-            <h2 style="margin-top:0">📰 Đăng thông báo</h2>
-            <textarea id="newsContent" rows="4" placeholder="Nội dung..."></textarea>
-            <button class="btn btn-primary" style="width:100%" onclick="addNews()">ĐĂNG TIN</button>
-            <div id="listNews" style="margin-top:20px"></div>
-            <button class="btn btn-outline" style="width:100%; margin-top:10px" onclick="closeModal()">ĐÓNG</button>
         </div>
     </div>
 </div>
@@ -172,10 +185,17 @@
     }
 
     function openModal(id) { document.getElementById(id).style.display = "flex"; }
-    function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+    function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); cancelEditNews(); }
+
+    function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 3000);
+    }
 
     function initSystem() {
-        // Render tài khoản & Trạng thái hoạt động
+        // Tài khoản
         db.collection("accounts").onSnapshot(snap => {
             document.getElementById("s-acc").innerText = snap.size;
             const list = document.getElementById("listAcc");
@@ -183,25 +203,25 @@
             snap.forEach(doc => {
                 const d = doc.data();
                 const status = getStatus(d.lastActive);
-                const isBlocked = d.isBlocked || false;
-                
+                list.innerHTML += `<tr><td><b>${d.user}</b></td><td><code>${d.pass}</code></td><td><span class="badge ${status.class}">${status.text}</span></td><td><button class="btn btn-danger" onclick="deleteDoc('accounts', '${doc.id}')">Xóa</button></td></tr>`;
+            });
+        });
+
+        // Tin tức
+        db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
+            document.getElementById("s-news").innerText = snap.size;
+            const list = document.getElementById("listNews");
+            list.innerHTML = "";
+            snap.forEach(doc => {
+                const d = doc.data();
                 list.innerHTML += `
-                    <tr>
-                        <td><b style="${isBlocked ? 'text-decoration: line-through; color: gray;' : ''}">${d.user}</b></td>
-                        <td><code>${d.pass}</code></td>
-                        <td>
-                            ${isBlocked ? '<span class="badge badge-blocked">ĐÃ CHẶN</span>' : 
-                            `<span class="badge ${status.class}">${status.text}</span>`}
-                        </td>
-                        <td>
-                            <div style="display:flex; gap:5px">
-                                <button class="btn ${isBlocked ? 'btn-success' : 'btn-warning'}" onclick="toggleBlock('${doc.id}', ${isBlocked})">
-                                    ${isBlocked ? 'Mở' : 'Chặn'}
-                                </button>
-                                <button class="btn btn-danger" onclick="deleteDoc('accounts', '${doc.id}')">Xóa</button>
-                            </div>
-                        </td>
-                    </tr>`;
+                    <div class="item-row">
+                        <div class="item-content" onclick="editNews('${doc.id}', '${d.content.replace(/'/g, "\\'")}')">
+                            <div style="font-size:14px">${d.content}</div>
+                            <small style="color:var(--text-dim)">${new Date(d.time).toLocaleString('vi-VN')}</small>
+                        </div>
+                        <button class="btn btn-danger" onclick="deleteDoc('news', '${doc.id}')">Xóa</button>
+                    </div>`;
             });
         });
 
@@ -212,78 +232,83 @@
             list.innerHTML = "";
             snap.forEach(doc => {
                 const d = doc.data();
-                list.innerHTML += `<tr><td>${d.name}</td><td>${d.gameId}</td><td><button class="btn btn-primary" onclick="deleteDoc('users', '${doc.id}')">Xong</button></td></tr>`;
+                list.innerHTML += `<tr><td>${d.name}</td><td>${d.gameId}</td><td><button class="btn btn-success" onclick="deleteDoc('users', '${doc.id}')">Duyệt</button></td></tr>`;
             });
         });
 
-        // Tin tức
-        db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
-            document.getElementById("s-news").innerText = snap.size;
-            const list = document.getElementById("listNews");
+        // Bình luận (Giả định collection tên 'comments')
+        db.collection("comments").orderBy("time", "desc").onSnapshot(snap => {
+            document.getElementById("s-cmt").innerText = snap.size;
+            const list = document.getElementById("listCmts");
             list.innerHTML = "";
             snap.forEach(doc => {
-                list.innerHTML += `<div class="news-item-row"><span>${doc.data().content.substring(0,30)}...</span><button class="btn btn-danger" onclick="deleteDoc('news', '${doc.id}')">Xóa</button></div>`;
+                const d = doc.data();
+                list.innerHTML += `
+                    <div class="item-row">
+                        <div class="item-content">
+                            <b>${d.user || 'Ẩn danh'}:</b> <span>${d.text}</span>
+                        </div>
+                        <button class="btn btn-danger" onclick="deleteDoc('comments', '${doc.id}')">Xóa</button>
+                    </div>`;
             });
         });
     }
 
-    // HÀM TÍNH THỜI GIAN HOẠT ĐỘNG
-    function getStatus(ts) {
-        if (!ts || ts === 0) return { class: 'badge-offline', text: 'Ngoại tuyến' };
-
-        const diff = Math.floor((Date.now() - ts) / 1000); 
-        let timeText = "";
-
-        if (diff < 15) {
-            timeText = "Vừa xong";
-        } else if (diff < 60) {
-            timeText = `${diff} giây trước`;
-        } else if (diff < 3600) {
-            timeText = `${Math.floor(diff / 60)} phút trước`;
-        } else if (diff < 86400) {
-            timeText = `${Math.floor(diff / 3600)} giờ trước`;
-        } else {
-            timeText = `${Math.floor(diff / 86400)} ngày trước`;
-        }
-
-        // Nếu hoạt động trong vòng 2 phút (120s) thì coi là Online
-        const isOnline = diff < 120; 
-        return { 
-            class: isOnline ? 'badge-online' : 'badge-offline', 
-            text: isOnline ? 'Online' : timeText 
-        };
+    // XỬ LÝ TIN TỨC
+    function editNews(id, content) {
+        document.getElementById("editNewsId").value = id;
+        document.getElementById("newsContent").value = content;
+        document.getElementById("btnSaveNews").innerText = "LƯU CẬP NHẬT";
+        document.getElementById("btnCancelEdit").style.display = "inline-flex";
+        document.getElementById("newsTitle").innerText = "✏️ Đang sửa bản tin";
+        document.getElementById("newsContent").focus();
     }
 
-    function toggleBlock(id, currentStatus) {
-        const action = currentStatus ? "Mở chặn" : "Chặn";
-        if(confirm(`Bạn muốn ${action} tài khoản này?`)) {
-            db.collection("accounts").doc(id).update({
-                isBlocked: !currentStatus
+    function cancelEditNews() {
+        document.getElementById("editNewsId").value = "";
+        document.getElementById("newsContent").value = "";
+        document.getElementById("btnSaveNews").innerText = "ĐĂNG TIN MỚI";
+        document.getElementById("btnCancelEdit").style.display = "none";
+        document.getElementById("newsTitle").innerText = "📰 Quản lý bản tin";
+    }
+
+    function saveNews() {
+        const id = document.getElementById("editNewsId").value;
+        const content = document.getElementById("newsContent").value;
+        if(!content) return;
+
+        if(id) {
+            // Cập nhật tin cũ
+            db.collection("news").doc(id).update({
+                content: content,
+                time: Date.now()
+            }).then(() => {
+                showToast("Cập nhật thành công!");
+                cancelEditNews();
+            });
+        } else {
+            // Thêm tin mới
+            db.collection("news").add({
+                content: content,
+                time: Date.now()
+            }).then(() => {
+                showToast("Đã đăng bản tin mới!");
+                cancelEditNews();
             });
         }
     }
 
-    function addAcc() {
-        const u = document.getElementById("inUser").value;
-        const p = document.getElementById("inPass").value;
-        if(u && p) db.collection("accounts").add({ user: u, pass: p, lastActive: 0, isBlocked: false });
-    }
-
-    function addNews() {
-        const c = document.getElementById("newsContent").value;
-        if(c) db.collection("news").add({ content: c, time: Date.now() });
+    // HELPER FUNCTIONS
+    function getStatus(ts) {
+        if(!ts) return { class: 'badge-offline', text: 'Ngoại tuyến' };
+        return (Date.now() - ts < 120000) ? { class: 'badge-online', text: 'Online' } : { class: 'badge-offline', text: 'Offline' };
     }
 
     function deleteDoc(col, id) {
-        if(confirm("Xác nhận xóa?")) db.collection(col).doc(id).delete();
-    }
-
-    // Tự động làm mới giao diện mỗi 30 giây để cập nhật số phút trước mà không cần tải lại trang
-    setInterval(() => {
-        if(document.getElementById("adminPanel").style.display === "block") {
-            // Chỉ cần cập nhật giao diện, Snapshot sẽ lo phần dữ liệu
+        if(confirm("Xác nhận xóa mục này?")) {
+            db.collection(col).doc(id).delete().then(() => showToast("Đã xóa xong!"));
         }
-    }, 30000);
+    }
 </script>
 </body>
 </html>
