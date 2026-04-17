@@ -1,313 +1,342 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard Pro</title>
 
-<style>
-body{
-    margin:0;
-    font-family:Arial;
-    color:white;
-    min-height:100vh;
-    overflow-x:hidden;
-}
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg-glass: rgba(255, 255, 255, 0.1);
+            --border-glass: rgba(255, 255, 255, 0.2);
+            --danger: #ff4d4d;
+        }
 
-/* ===== BACKGROUND MOBILE FRIENDLY ===== */
-body::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    background:url("anhnen.jpg") center/cover no-repeat;
-    transform:scale(1.05);
-    z-index:-2;
-}
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: #0f172a; /* Màu nền dự phòng */
+        }
 
-body::after{
-    content:"";
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.45);
-    z-index:-1;
-}
+        /* ===== BACKGROUND ===== */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: url("anhnen.jpg") center/cover no-repeat;
+            transform: scale(1.1);
+            z-index: -2;
+            filter: brightness(0.6);
+        }
 
-/* ===== LOGIN ===== */
-#loginScreen{
-    position:fixed;
-    inset:0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    backdrop-filter: blur(10px);
-}
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(79, 172, 254, 0.2), transparent);
+            z-index: -1;
+        }
 
-.login-box{
-    width:320px;
-    padding:25px;
-    border-radius:16px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.15);
-    text-align:center;
-}
+        /* ===== LOGIN SCREEN ===== */
+        #loginScreen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+        }
 
-.login-box input{
-    width:90%;
-    padding:12px;
-    margin:10px 0;
-    border:none;
-    border-radius:10px;
-    background:rgba(255,255,255,0.1);
-    color:white;
-}
+        .login-box {
+            width: 350px;
+            padding: 40px;
+            border-radius: 24px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
 
-.login-box button{
-    padding:10px 14px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    background:rgba(0,255,204,0.2);
-    color:white;
-}
+        .login-box h3 { margin-bottom: 30px; font-size: 24px; letter-spacing: 1px; }
 
-/* ===== ADMIN PANEL ===== */
-#adminPanel{
-    display:none;
-}
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
 
-/* NAVBAR */
-.navbar{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:70px;
-    background:rgba(0,0,0,0.35);
-    backdrop-filter: blur(15px);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:0 30px;
-    box-sizing:border-box;
-}
+        input:focus { border-color: var(--primary); background: rgba(0, 0, 0, 0.4); }
 
-.menu{
-    display:flex;
-    gap:25px;
-}
+        button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
 
-.navbar button{
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.15);
-    color:white;
-    padding:10px 16px;
-    border-radius:12px;
-    cursor:pointer;
-}
+        .btn-main {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000;
+            margin-top: 10px;
+        }
 
-/* MODAL */
-.modal{
-    display:none;
-    position:fixed;
-    inset:0;
-    justify-content:center;
-    align-items:center;
-    background:rgba(0,0,0,0.4);
-    backdrop-filter: blur(12px);
-}
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 242, 254, 0.3); }
 
-.box{
-    width:380px;
-    padding:22px;
-    border-radius:18px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.15);
-    text-align:center;
-}
+        /* ===== ADMIN PANEL ===== */
+        #adminPanel { display: none; padding-top: 100px; }
 
-input{
-    width:92%;
-    padding:12px;
-    margin:10px 0;
-    border:none;
-    border-radius:12px;
-    background:rgba(255,255,255,0.1);
-    color:white;
-}
+        .navbar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 99;
+        }
 
-.item{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:rgba(255,255,255,0.08);
-    padding:12px;
-    margin:10px 0;
-    border-radius:14px;
-}
+        .menu { display: flex; gap: 15px; }
 
-.del{
-    background:rgba(255,80,80,0.25);
-    border:none;
-    padding:6px 10px;
-    border-radius:10px;
-}
+        .navbar button {
+            background: transparent;
+            border: 1px solid transparent;
+            color: rgba(255,255,255,0.7);
+            padding: 10px 20px;
+            border-radius: 12px;
+        }
 
-/* ===== MOBILE ===== */
-@media (max-width:768px){
-    .box{
-        width:90%;
-    }
-    .menu{
-        gap:10px;
-        flex-wrap:wrap;
-    }
-}
-</style>
+        .navbar button:hover {
+            background: var(--bg-glass);
+            color: white;
+            border-color: var(--border-glass);
+        }
+
+        /* ===== MODALS & LISTS ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .box {
+            width: 450px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            border-radius: 24px;
+            background: #1e293b;
+            border: 1px solid var(--border-glass);
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            margin: 12px 0;
+            border-radius: 16px;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+
+        .item:hover { border-color: var(--secondary); background: rgba(255, 255, 255, 0.08); }
+
+        .item b { color: var(--primary); font-size: 1.1em; }
+
+        .del {
+            background: rgba(255, 77, 77, 0.15);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: var(--danger);
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .del:hover { background: var(--danger); color: white; }
+
+        .close-btn { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 10px; margin-top: 15px; width: 100%; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: 10px; }
+
+        @media (max-width: 768px) {
+            .box { width: 90%; }
+            .navbar { height: auto; padding: 10px; top: 10px; }
+            .menu { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div id="loginScreen">
     <div class="login-box">
-        <h3>🔐 Admin Login</h3>
-        <input id="adminUser" placeholder="Username">
-        <input id="adminPass" type="password" placeholder="Password">
-        <button onclick="login()">Login</button>
+        <h3>🔐 Admin Access</h3>
+        <input id="adminUser" placeholder="Tên đăng nhập">
+        <input id="adminPass" type="password" placeholder="Mật khẩu">
+        <button class="btn-main" onclick="login()">Đăng Nhập</button>
     </div>
 </div>
 
-<!-- ADMIN -->
 <div id="adminPanel">
+    <div class="navbar">
+        <div class="menu">
+            <button onclick="openCreate()">➕ Tạo mới</button>
+            <button onclick="openUsers()">📋 Đăng ký</button>
+            <button onclick="openAccounts()">👤 Tài khoản</button>
+        </div>
+    </div>
 
-<div class="navbar">
-    <div class="menu">
-        <button onclick="openCreate()">➕ Tạo tài khoản</button>
-        <button onclick="openUsers()">📋 Đăng ký</button>
-        <button onclick="openAccounts()">👤 Tài khoản</button>
+    <div class="modal" id="createModal">
+        <div class="box">
+            <h3 style="color: var(--primary)">Tạo tài khoản mới</h3>
+            <input id="newUser" placeholder="Username">
+            <input id="newPass" placeholder="Password">
+            <button class="btn-main" onclick="createAccount()">Xác nhận tạo</button>
+            <button class="close-btn" onclick="closeAll()">Hủy bỏ</button>
+        </div>
+    </div>
+
+    <div class="modal" id="usersModal">
+        <div class="box">
+            <h3 style="color: var(--primary)">Danh sách đăng ký</h3>
+            <div id="usersList"></div>
+            <button class="close-btn" onclick="closeAll()">Đóng</button>
+        </div>
+    </div>
+
+    <div class="modal" id="accountsModal">
+        <div class="box">
+            <h3 style="color: var(--primary)">Quản lý tài khoản</h3>
+            <div id="accountsList"></div>
+            <button class="close-btn" onclick="closeAll()">Đóng</button>
+        </div>
     </div>
 </div>
 
-<!-- CREATE -->
-<div class="modal" id="createModal">
-    <div class="box">
-        <h3>Tạo tài khoản</h3>
-        <input id="newUser" placeholder="Username">
-        <input id="newPass" placeholder="Password">
-        <button onclick="createAccount()">Tạo</button>
-        <button onclick="closeAll()">Đóng</button>
-    </div>
-</div>
-
-<!-- USERS -->
-<div class="modal" id="usersModal">
-    <div class="box">
-        <h3>Danh sách đăng ký</h3>
-        <button onclick="loadUsers()">Load</button>
-        <button onclick="closeAll()">Đóng</button>
-        <div id="usersList"></div>
-    </div>
-</div>
-
-<!-- ACCOUNTS -->
-<div class="modal" id="accountsModal">
-    <div class="box">
-        <h3>Tài khoản</h3>
-        <button onclick="loadAccounts()">Load</button>
-        <button onclick="closeAll()">Đóng</button>
-        <div id="accountsList"></div>
-    </div>
-</div>
-
-</div>
-
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-firebase.initializeApp({
-  apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
-  authDomain: "web-dangky-123.firebaseapp.com",
-  projectId: "web-dangky-123",
-});
+    firebase.initializeApp({
+        apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
+        authDomain: "web-dangky-123.firebaseapp.com",
+        projectId: "web-dangky-123",
+    });
 
-const db = firebase.firestore();
+    const db = firebase.firestore();
 
-/* LOGIN */
-function login(){
-    let u=document.getElementById("adminUser").value;
-    let p=document.getElementById("adminPass").value;
-
-    if(u==="admin" && p==="123"){
-        document.getElementById("loginScreen").style.display="none";
-        document.getElementById("adminPanel").style.display="block";
-    }else{
-        alert("Sai tài khoản admin!");
+    function login() {
+        let u = document.getElementById("adminUser").value;
+        let p = document.getElementById("adminPass").value;
+        if (u === "admin" && p === "123") {
+            document.getElementById("loginScreen").style.opacity = "0";
+            setTimeout(() => {
+                document.getElementById("loginScreen").style.display = "none";
+                document.getElementById("adminPanel").style.display = "block";
+            }, 300);
+        } else {
+            alert("Sai tài khoản hoặc mật khẩu!");
+        }
     }
-}
 
-/* MODAL */
-function openCreate(){ document.getElementById("createModal").style.display="flex"; }
-function openUsers(){ document.getElementById("usersModal").style.display="flex"; loadUsers(); }
-function openAccounts(){ document.getElementById("accountsModal").style.display="flex"; loadAccounts(); }
-function closeAll(){ document.querySelectorAll(".modal").forEach(m=>m.style.display="none"); }
+    function openCreate() { closeAll(); document.getElementById("createModal").style.display = "flex"; }
+    function openUsers() { closeAll(); document.getElementById("usersModal").style.display = "flex"; loadUsers(); }
+    function openAccounts() { closeAll(); document.getElementById("accountsModal").style.display = "flex"; loadAccounts(); }
+    function closeAll() { document.querySelectorAll(".modal").forEach(m => m.style.display = "none"); }
 
-/* USERS */
-function loadUsers(){
-    let box=document.getElementById("usersList");
-    box.innerHTML="";
-    db.collection("users").orderBy("time","desc").get().then(snap=>{
-        snap.forEach(doc=>{
-            let u=doc.data();
-            box.innerHTML+=`
-            <div class="item">
-                <div><b>${u.name}</b><br>ID: ${u.gameId}</div>
-                <button class="del" onclick="deleteUser('${doc.id}')">X</button>
-            </div>`;
+    function loadUsers() {
+        let box = document.getElementById("usersList");
+        box.innerHTML = "<p>Đang tải...</p>";
+        db.collection("users").orderBy("time", "desc").get().then(snap => {
+            box.innerHTML = "";
+            snap.forEach(doc => {
+                let u = doc.data();
+                box.innerHTML += `
+                <div class="item">
+                    <div><b>${u.name}</b><br><small style="color:rgba(255,255,255,0.5)">ID: ${u.gameId}</small></div>
+                    <button class="del" onclick="deleteUser('${doc.id}')">Xóa</button>
+                </div>`;
+            });
         });
-    });
-}
+    }
 
-function deleteUser(id){
-    db.collection("users").doc(id).delete().then(loadUsers);
-}
+    function deleteUser(id) {
+        if(confirm("Xác nhận xóa người dùng này?")) {
+            db.collection("users").doc(id).delete().then(loadUsers);
+        }
+    }
 
-/* ACCOUNTS */
-function loadAccounts(){
-    let box=document.getElementById("accountsList");
-    box.innerHTML="";
-    db.collection("accounts").orderBy("time","desc").get().then(snap=>{
-        snap.forEach(doc=>{
-            let a=doc.data();
-            box.innerHTML+=`
-            <div class="item">
-                <div><b>${a.user}</b><br>${a.pass}</div>
-                <button class="del" onclick="deleteAccount('${doc.id}')">X</button>
-            </div>`;
+    function loadAccounts() {
+        let box = document.getElementById("accountsList");
+        box.innerHTML = "<p>Đang tải...</p>";
+        db.collection("accounts").orderBy("time", "desc").get().then(snap => {
+            box.innerHTML = "";
+            snap.forEach(doc => {
+                let a = doc.data();
+                box.innerHTML += `
+                <div class="item">
+                    <div><b>${a.user}</b><br><small style="color:rgba(255,255,255,0.5)">PW: ${a.pass}</small></div>
+                    <button class="del" onclick="deleteAccount('${doc.id}')">Xóa</button>
+                </div>`;
+            });
         });
-    });
-}
+    }
 
-function deleteAccount(id){
-    db.collection("accounts").doc(id).delete().then(loadAccounts);
-}
+    function deleteAccount(id) {
+        if(confirm("Xác nhận xóa tài khoản này?")) {
+            db.collection("accounts").doc(id).delete().then(loadAccounts);
+        }
+    }
 
-/* CREATE */
-function createAccount(){
-    let u=document.getElementById("newUser").value;
-    let p=document.getElementById("newPass").value;
+    function createAccount() {
+        let u = document.getElementById("newUser").value;
+        let p = document.getElementById("newPass").value;
+        if(!u || !p) return alert("Vui lòng nhập đủ thông tin!");
 
-    db.collection("accounts").add({
-        user:u,
-        pass:p,
-        role:"user",
-        time:new Date()
-    }).then(()=>{
-        alert("Tạo thành công!");
-        closeAll();
-    });
-}
+        db.collection("accounts").add({
+            user: u,
+            pass: p,
+            role: "user",
+            time: new Date()
+        }).then(() => {
+            alert("Đã tạo tài khoản thành công!");
+            document.getElementById("newUser").value = "";
+            document.getElementById("newPass").value = "";
+            closeAll();
+        });
+    }
 </script>
 
 </body>
