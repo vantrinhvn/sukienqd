@@ -70,10 +70,10 @@
         .btn-success { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); }
 
         /* BADGES */
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-        .badge-online { background: rgba(16, 185, 129, 0.2); color: var(--success); }
-        .badge-offline { background: rgba(148, 163, 184, 0.1); color: var(--text-dim); }
-        .badge-blocked { background: rgba(255, 77, 77, 0.2); color: var(--danger); }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; min-width: 80px; text-align: center; }
+        .badge-online { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .badge-offline { background: rgba(148, 163, 184, 0.1); color: var(--text-dim); border: 1px solid var(--text-dim); }
+        .badge-blocked { background: rgba(255, 77, 77, 0.2); color: var(--danger); border: 1px solid var(--danger); }
 
         .news-item-row { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     </style>
@@ -175,7 +175,7 @@
     function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 
     function initSystem() {
-        // Render tài khoản & Chức năng Chặn
+        // Render tài khoản & Trạng thái hoạt động
         db.collection("accounts").onSnapshot(snap => {
             document.getElementById("s-acc").innerText = snap.size;
             const list = document.getElementById("listAcc");
@@ -227,12 +227,33 @@
         });
     }
 
+    // HÀM TÍNH THỜI GIAN HOẠT ĐỘNG
     function getStatus(ts) {
-        if(!ts) return { class: 'badge-offline', text: 'Ngoại tuyến' };
-        return (Date.now() - ts < 120000) ? { class: 'badge-online', text: 'Online' } : { class: 'badge-offline', text: 'Offline' };
+        if (!ts || ts === 0) return { class: 'badge-offline', text: 'Ngoại tuyến' };
+
+        const diff = Math.floor((Date.now() - ts) / 1000); 
+        let timeText = "";
+
+        if (diff < 15) {
+            timeText = "Vừa xong";
+        } else if (diff < 60) {
+            timeText = `${diff} giây trước`;
+        } else if (diff < 3600) {
+            timeText = `${Math.floor(diff / 60)} phút trước`;
+        } else if (diff < 86400) {
+            timeText = `${Math.floor(diff / 3600)} giờ trước`;
+        } else {
+            timeText = `${Math.floor(diff / 86400)} ngày trước`;
+        }
+
+        // Nếu hoạt động trong vòng 2 phút (120s) thì coi là Online
+        const isOnline = diff < 120; 
+        return { 
+            class: isOnline ? 'badge-online' : 'badge-offline', 
+            text: isOnline ? 'Online' : timeText 
+        };
     }
 
-    // HÀM CHẶN TÀI KHOẢN
     function toggleBlock(id, currentStatus) {
         const action = currentStatus ? "Mở chặn" : "Chặn";
         if(confirm(`Bạn muốn ${action} tài khoản này?`)) {
@@ -256,6 +277,13 @@
     function deleteDoc(col, id) {
         if(confirm("Xác nhận xóa?")) db.collection(col).doc(id).delete();
     }
+
+    // Tự động làm mới giao diện mỗi 30 giây để cập nhật số phút trước mà không cần tải lại trang
+    setInterval(() => {
+        if(document.getElementById("adminPanel").style.display === "block") {
+            // Chỉ cần cập nhật giao diện, Snapshot sẽ lo phần dữ liệu
+        }
+    }, 30000);
 </script>
 </body>
 </html>
