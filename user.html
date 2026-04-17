@@ -2,261 +2,311 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quân Đoàn - Khu Vực Thành Viên</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quân Đoàn QD - Thành Viên</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
         :root {
-            --primary: #00f2fe;
-            --secondary: #4facfe;
-            --accent: #f093fb;
-            --bg: #0f172a;
-            --glass: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
+            --bg: #f8fafc;
+            --navbar: rgba(255, 255, 255, 0.9);
+            --card: #ffffff;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --primary: #2563eb;
+            --secondary: #0ea5e9;
+            --border: #f1f5f9;
+            --border-strong: #e2e8f0;
+            --bubble-them: #f1f5f9;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+            --gradient: linear-gradient(135deg, #2563eb, #0ea5e9);
         }
+
+        [data-theme="dark"] {
+            --bg: #020617;
+            --navbar: rgba(15, 23, 42, 0.9);
+            --card: #1e293b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --primary: #38bdf8;
+            --secondary: #818cf8;
+            --border: #334155;
+            --border-strong: #475569;
+            --bubble-them: #334155;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+            --gradient: linear-gradient(135deg, #38bdf8, #818cf8);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            color: white;
-            height: 100vh;
-            overflow: hidden;
+            margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg); color: var(--text-main);
+            transition: background 0.3s, color 0.3s;
+            height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* Navbar */
+        /* NAVBAR */
         .navbar {
-            position: fixed;
-            top: 0; width: 100%; height: 70px;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(20px);
+            height: 70px; background: var(--navbar); backdrop-filter: blur(12px);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 25px; box-sizing: border-box;
-            z-index: 1000; border-bottom: 1px solid var(--glass-border);
+            padding: 0 16px; z-index: 1000; border-bottom: 1px solid var(--border);
         }
+        .nav-logo { font-weight: 800; font-size: 18px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .nav-menu { display: flex; gap: 4px; background: var(--border); padding: 4px; border-radius: 14px; }
+        .nav-btn {
+            background: transparent; border: none; color: var(--text-dim);
+            width: 44px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 18px;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .nav-btn.active { background: var(--card); color: var(--primary); box-shadow: var(--shadow-sm); }
 
-        .menu { display: flex; gap: 15px; }
-        .menu-btn {
-            background: none; border: none; color: #94a3b8;
-            font-weight: 600; cursor: pointer; transition: 0.3s;
-            padding: 10px 15px; border-radius: 12px;
+        .nav-right { display: flex; align-items: center; gap: 8px; }
+        .theme-toggle {
+            background: var(--border); border: none; width: 38px; height: 38px;
+            border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--text-main);
         }
-        .menu-btn:hover, .menu-btn.active {
-            color: var(--primary); background: rgba(0, 242, 254, 0.1);
-        }
-
         .logout-btn {
-            background: rgba(239, 68, 68, 0.1); color: #ef4444;
-            border: 1px solid #ef4444; padding: 8px 16px;
-            border-radius: 10px; font-weight: bold; cursor: pointer;
+            background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); 
+            color: #ef4444; padding: 0 12px; height: 38px; border-radius: 10px;
+            font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .logout-btn:active { transform: scale(0.95); background: #ef4444; color: white; }
+
+        /* CONTAINER */
+        .container { flex: 1; display: flex; justify-content: center; padding: 12px; overflow: hidden; }
+        .content-card {
+            background: var(--card); border-radius: 24px; width: 100%; max-width: 450px; height: 100%;
+            display: none; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+        }
+        .content-card.active { display: flex; animation: fadeUp 0.3s ease-out; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PROFILE TAB */
+        .profile-box { text-align: center; padding: 30px 20px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .avatar {
+            width: 90px; height: 90px; margin: 0 auto 15px; background: var(--gradient);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 36px; font-weight: 800; color: #fff; border: 4px solid var(--card);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
         }
 
-        /* Container */
-        .main-content {
-            height: 100vh; padding-top: 90px;
-            display: flex; justify-content: center; align-items: flex-start;
-        }
+        /* CHAT TAB */
+        .chat-contacts { padding: 10px; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .user-pill { padding: 8px 16px; background: var(--border); border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .user-pill.active { background: var(--gradient); color: white; }
+        
+        .chat-flow { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.4; }
+        .bubble.me { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
+        .bubble.them { align-self: flex-start; background: var(--bubble-them); color: var(--text-main); border-bottom-left-radius: 4px; }
 
-        .card {
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 25px;
-            width: 480px; max-width: 95%;
-            padding: 25px; display: none;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-        .card.active { display: block; animation: slideUp 0.4s ease; }
+        .chat-input { padding: 12px; display: flex; gap: 8px; border-top: 1px solid var(--border); background: var(--card); }
+        .chat-input input { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); outline: none; }
+        .btn-send { background: var(--primary); color: white; border: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* NEWS TAB */
+        .news-feed { padding: 15px; overflow-y: auto; flex: 1; }
+        .news-item { background: var(--card); border: 1px solid var(--border-strong); padding: 18px; border-radius: 20px; margin-bottom: 15px; box-shadow: var(--shadow-sm); }
+        .news-content { font-size: 15px; line-height: 1.5; margin-bottom: 12px; font-weight: 500; }
+        .cmt-box { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
+        .cmt-item { font-size: 13px; background: var(--bubble-them); padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; width: fit-content; max-width: 100%; }
+        .cmt-input { width: 100%; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); outline: none; margin-top: 8px; font-size: 13px; }
 
-        /* User Selection Cards */
-        .user-list-container {
-            display: flex; gap: 12px; overflow-x: auto;
-            padding: 10px 5px; margin-bottom: 15px;
-            scrollbar-width: none; /* Ẩn scrollbar cho gọn */
-        }
-        .user-list-container::-webkit-scrollbar { display: none; }
-
-        .user-card {
-            min-width: 85px; padding: 12px 5px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 18px; text-align: center;
-            cursor: pointer; transition: 0.3s;
-        }
-        .user-card:hover { transform: translateY(-3px); border-color: var(--primary); }
-        .user-card.selected {
-            background: var(--primary); color: #06213c;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
-        }
-
-        .user-avatar {
-            width: 35px; height: 35px; background: rgba(255,255,255,0.1);
-            border-radius: 50%; margin: 0 auto 8px;
-            display: flex; align-items: center; justify-content: center; font-weight: bold;
-        }
-        .user-card.selected .user-avatar { background: rgba(0,0,0,0.1); }
-
-        /* Chat Box */
-        .chat-box {
-            height: 350px; overflow-y: auto;
-            background: rgba(0,0,0,0.2); border-radius: 15px;
-            padding: 15px; display: flex; flex-direction: column; gap: 10px;
-            margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05);
-        }
-        .msg { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: 14px; word-wrap: break-word; }
-        .msg.me { align-self: flex-end; background: var(--primary); color: #06213c; border-bottom-right-radius: 2px; }
-        .msg.them { align-self: flex-start; background: rgba(255,255,255,0.1); border-bottom-left-radius: 2px; }
-
-        .input-area { display: flex; gap: 10px; }
-        .input-area input {
-            flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--glass-border);
-            background: rgba(0,0,0,0.3); color: white; outline: none;
-        }
-        .send-btn {
-            background: var(--primary); color: #06213c; border: none;
-            padding: 0 20px; border-radius: 12px; font-weight: bold; cursor: pointer;
-        }
-
-        h2 { margin: 0 0 15px 0; color: var(--primary); font-size: 22px; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
-    <nav class="navbar">
-        <div class="menu">
-            <button class="menu-btn active" onclick="showTab('home', this)">🏠 Chính</button>
-            <button class="menu-btn" onclick="showTab('chat', this)">💬 Chat</button>
-            <button class="menu-btn" onclick="showTab('news', this)">📝 Tin Tức</button>
-        </div>
-        <button class="logout-btn" onclick="logout()">Thoát</button>
-    </nav>
+<nav class="navbar">
+    <div class="nav-logo">QD T"L"Hedshot </div>
+    <div class="nav-menu">
+        <button class="nav-btn active" onclick="switchTab('home', this)">🏠</button>
+        <button class="nav-btn" onclick="switchTab('chat', this)">💬</button>
+        <button class="nav-btn" onclick="switchTab('news', this)">📰</button>
+    </div>
+    <div class="nav-right">
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">🌓</button>
+        <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+    </div>
+</nav>
 
-    <div class="main-content">
-        <div id="home" class="card active">
-            <h2>Hệ Thống Quân Đoàn</h2>
-            <div style="background: rgba(0,242,254,0.1); padding: 20px; border-radius: 20px; border: 1px solid var(--primary);">
-                <p style="margin: 0; font-size: 14px; color: var(--primary);">Xin chào chiến binh,</p>
-                <strong id="userName" style="font-size: 24px; text-shadow: 0 0 10px var(--primary);">...</strong>
-            </div>
-            <p style="color: #94a3b8; font-size: 14px; margin-top: 20px;">Chúc bạn có một ngày leo rank thành công!</p>
-        </div>
-
-        <div id="chat" class="card">
-            <h2>💬 Hội Quân</h2>
-            <div class="user-list-container" id="userCards">
+<div class="container">
+    <div id="home" class="content-card active">
+        <div class="profile-box">
+            <div class="avatar" id="avatarImg">?</div>
+            <h2 id="userName" style="margin: 0">Xin chào!</h2>
+            <p style="color: var(--text-dim); font-size: 14px;">Thành viên Quân Đoàn QD</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px;">
+                <div style="background: var(--border); padding: 15px; border-radius: 18px; border: 1px solid var(--border-strong);">
+                    <div id="statCount" style="font-size: 22px; font-weight: 800; color: var(--primary)">0</div>
+                    <div style="font-size: 10px; color: var(--text-dim); font-weight: 700; text-transform: uppercase;">Thông báo</div>
                 </div>
-            <div class="chat-box" id="chatBox">
-                <p style="text-align:center; color: #475569; margin-top:150px;">Chọn một đồng đội để bắt đầu</p>
-            </div>
-            <div class="input-area">
-                <input id="msgInput" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendMsg()">
-                <button class="send-btn" onclick="sendMsg()">GỬI</button>
-            </div>
-        </div>
-
-        <div id="news" class="card">
-            <h2>📝 Bản Tin Quân Đoàn</h2>
-            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; border-left: 4px solid var(--accent);">
-                <strong>Thông báo:</strong> Hiện tại chưa có bài viết mới.
+                <div style="background: var(--border); padding: 15px; border-radius: 18px; border: 1px solid var(--border-strong);">
+                    <div style="font-size: 14px; font-weight: 800; color: #10b981; height: 26px; display: flex; align-items: center; justify-content: center;">ONLINE</div>
+                    <div style="font-size: 10px; color: var(--text-dim); font-weight: 700; text-transform: uppercase;">Trạng thái</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <div id="chat" class="content-card">
+        <div class="chat-contacts" id="contactList"></div>
+        <div class="chat-flow" id="chatDisplay">
+            <div style="text-align:center; color:var(--text-dim); margin-top:40%; font-size:13px">Chọn một thành viên để nhắn tin</div>
+        </div>
+        <div class="chat-input" id="chatBar" style="display:none">
+            <input type="text" id="msgInput" placeholder="Nhập tin nhắn..." autocomplete="off" onkeypress="if(event.key==='Enter') sendMsg()">
+            <button class="btn-send" onclick="sendMsg()">➤</button>
+        </div>
+    </div>
 
-    <script>
-        // FIREBASE CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
-            authDomain: "web-dangky-123.firebaseapp.com",
-            projectId: "web-dangky-123",
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    <div id="news" class="content-card">
+        <div class="news-feed" id="newsFeed"></div>
+    </div>
+</div>
 
-        // CHUYÊN TRANG ĐĂNG NHẬP
-        const rawData = localStorage.getItem("chat_user");
-        if (!rawData) window.location.href = "index.html";
-        const currentUser = JSON.parse(rawData);
-        document.getElementById("userName").innerText = currentUser.name;
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-        let currentTarget = "";
-        let chatUnsubscribe = null;
+<script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", 
+        authDomain: "web-dangky-123.firebaseapp.com", 
+        projectId: "web-dangky-123" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-        function showTab(tabId, btn) {
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            btn.classList.add('active');
-            if(tabId === 'chat') loadUserCards();
-        }
+    const currentUser = JSON.parse(localStorage.getItem("chat_user"));
+    if (!currentUser) { window.location.href = "index.html"; }
 
-        // TẢI DANH SÁCH THÀNH VIÊN DẠNG THẺ
-        function loadUserCards() {
-            const container = document.getElementById("userCards");
-            db.collection("accounts").onSnapshot(snap => {
-                container.innerHTML = '';
-                snap.forEach(doc => {
-                    let u = doc.data().user;
-                    if (u !== currentUser.id) {
-                        const card = document.createElement("div");
-                        card.className = `user-card ${currentTarget === u ? 'selected' : ''}`;
-                        card.onclick = () => {
-                            currentTarget = u;
-                            loadUserCards(); // Để cập nhật trạng thái selected
-                            startChat();
-                        };
-                        card.innerHTML = `
-                            <div class="user-avatar">${u.charAt(0).toUpperCase()}</div>
-                            <div class="user-name" style="font-size:11px; font-weight:bold;">${u}</div>
-                        `;
-                        container.appendChild(card);
-                    }
-                });
+    document.getElementById("userName").innerText = "Chào, " + currentUser.name;
+    document.getElementById("avatarImg").innerText = currentUser.name.charAt(0).toUpperCase();
+
+    // Cập nhật trạng thái Online
+    function updateActiveStatus() {
+        db.collection("accounts").where("user", "==", currentUser.id).get()
+        .then(snap => {
+            snap.forEach(doc => {
+                db.collection("accounts").doc(doc.id).update({ lastActive: Date.now() });
             });
-        }
+        });
+    }
+    updateActiveStatus(); 
+    setInterval(updateActiveStatus, 60000);
 
-        // CHAT REAL-TIME
-        function startChat() {
-            const box = document.getElementById("chatBox");
-            if (chatUnsubscribe) chatUnsubscribe();
+    // Giao diện
+    function toggleTheme() {
+        const theme = document.body.getAttribute("data-theme") === "light" ? "dark" : "light";
+        document.body.setAttribute("data-theme", theme);
+        localStorage.setItem("theme", theme);
+    }
+    document.body.setAttribute("data-theme", localStorage.getItem("theme") || "light");
 
-            chatUnsubscribe = db.collection("messages")
-                .orderBy("time", "asc")
-                .onSnapshot(snap => {
-                    box.innerHTML = "";
-                    snap.forEach(doc => {
-                        let m = doc.data();
-                        if ((m.from === currentUser.id && m.to === currentTarget) || 
-                            (m.from === currentTarget && m.to === currentUser.id)) {
-                            let isMe = m.from === currentUser.id;
-                            box.innerHTML += `<div class="msg ${isMe ? 'me' : 'them'}">${m.text}</div>`;
-                        }
-                    });
-                    box.scrollTop = box.scrollHeight;
-                });
-        }
+    function switchTab(id, el) {
+        document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+        if(id === 'chat') loadContacts();
+        if(id === 'news') loadNews();
+    }
 
-        function sendMsg() {
-            let input = document.getElementById("msgInput");
-            let text = input.value.trim();
-            if (!text || !currentTarget) return;
+    // Chat
+    let selectedChat = "";
+    let chatSub = null;
 
-            db.collection("messages").add({
-                from: currentUser.id,
-                to: currentTarget,
-                text: text,
-                time: Date.now()
-            }).then(() => { input.value = ""; });
-        }
+    function loadContacts() {
+        db.collection("accounts").onSnapshot(snap => {
+            const list = document.getElementById("contactList");
+            list.innerHTML = "";
+            snap.forEach(doc => {
+                let u = doc.data().user;
+                if(u !== currentUser.id) {
+                    list.innerHTML += `<div class="user-pill ${selectedChat === u ? 'active' : ''}" onclick="startChat('${u}')">${u}</div>`;
+                }
+            });
+        });
+    }
 
-        function logout() {
+    function startChat(id) {
+        selectedChat = id;
+        document.getElementById("chatBar").style.display = "flex";
+        if(chatSub) chatSub();
+        const display = document.getElementById("chatDisplay");
+        chatSub = db.collection("messages").orderBy("time", "asc").onSnapshot(snap => {
+            display.innerHTML = "";
+            snap.forEach(doc => {
+                let m = doc.data();
+                if((m.from === currentUser.id && m.to === selectedChat) || (m.from === selectedChat && m.to === currentUser.id)) {
+                    display.innerHTML += `<div class="bubble ${m.from === currentUser.id ? 'me' : 'them'}">${m.text}</div>`;
+                }
+            });
+            display.scrollTop = display.scrollHeight;
+        });
+        loadContacts();
+    }
+
+    function sendMsg() {
+        const inp = document.getElementById("msgInput");
+        if(!inp.value.trim() || !selectedChat) return;
+        db.collection("messages").add({ from: currentUser.id, to: selectedChat, text: inp.value.trim(), time: Date.now() });
+        inp.value = "";
+    }
+
+    // Tin tức
+    function loadNews() {
+        db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
+            const feed = document.getElementById("newsFeed");
+            document.getElementById("statCount").innerText = snap.size;
+            feed.innerHTML = "";
+            snap.forEach(doc => {
+                let n = doc.data();
+                feed.innerHTML += `
+                    <div class="news-item">
+                        <div style="font-size:10px; font-weight:800; color:var(--primary); margin-bottom:8px; text-transform:uppercase"># Thông báo</div>
+                        <div class="news-content">${n.content}</div>
+                        <div class="cmt-box">
+                            <div id="cmts-${doc.id}"></div>
+                            <input class="cmt-input" placeholder="Viết bình luận..." onkeypress="if(event.key==='Enter') sendCmt('${doc.id}', this)">
+                        </div>
+                    </div>`;
+                loadCmts(doc.id);
+            });
+        });
+    }
+
+    function loadCmts(id) {
+        db.collection("news").doc(id).collection("comments").orderBy("time", "asc").onSnapshot(snap => {
+            const box = document.getElementById(`cmts-${id}`);
+            if(!box) return;
+            box.innerHTML = "";
+            snap.forEach(doc => {
+                let c = doc.data();
+                box.innerHTML += `<div class="cmt-item"><b style="color:var(--primary)">${c.name}:</b> ${c.text}</div>`;
+            });
+        });
+    }
+
+    function sendCmt(newsId, el) {
+        if(!el.value.trim()) return;
+        db.collection("news").doc(newsId).collection("comments").add({ name: currentUser.id, text: el.value.trim(), time: Date.now() });
+        el.value = "";
+    }
+
+    function logout() {
+        if(confirm("Bạn muốn đăng xuất?")) {
             localStorage.removeItem("chat_user");
             window.location.href = "index.html";
         }
-    </script>
+    }
+</script>
 </body>
 </html>
