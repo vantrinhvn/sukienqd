@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Page</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    height:100vh;
+    background: linear-gradient(135deg,#141e30,#243b55);
+    color:white;
+    overflow:hidden;
+}
+
+/* ===== NAVBAR ===== */
+.navbar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:60px;
+    background:rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 20px;
+    box-sizing:border-box;
+}
+
+/* menu */
+.menu{
+    display:flex;
+    gap:20px;
+}
+
+.menu button{
+    background:none;
+    border:none;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.menu button:hover{
+    color:#00ffcc;
+    transform:scale(1.1);
+}
+
+/* logout */
+.logout{
+    background:linear-gradient(45deg,#ff512f,#dd2476);
+    padding:8px 14px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    color:white;
+    font-weight:bold;
+}
+
+/* ===== CONTENT ===== */
+.container{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+}
+
+.card{
+    padding:40px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(12px);
+    box-shadow:0 0 30px rgba(0,0,0,0.4);
+    width:320px;
+}
+
+/* sections */
+.section{
+    display:none;
+}
+
+.active{
+    display:block;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<div class="navbar">
+    <div class="menu">
+        <button onclick="showTab('home')">🏠 Trang chính</button>
+        <button onclick="showTab('account')">👤 Tài khoản</button>
+        <button onclick="showTab('info')">ℹ Thông tin</button>
+        <button onclick="showTab('posts')">📝 Bài viết</button>
+    </div>
+
+    <button class="logout" onclick="logout()">Đăng xuất</button>
+</div>
+
+<!-- ===== CONTENT ===== -->
+<div class="container">
+
+    <!-- HOME -->
+    <div id="home" class="section active card">
+        <h1>👋 Xin chào!</h1>
+        <p>Chào mừng bạn đến hệ thống</p>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div id="account" class="section card">
+        <h2>👤 Tài khoản</h2>
+        <p>Tên: User Demo</p>
+        <p>ID: 123456</p>
+    </div>
+
+    <!-- INFO -->
+    <div id="info" class="section card">
+        <h2>ℹ Thông tin</h2>
+        <p>Hệ thống đăng ký sự kiện QD</p>
+        <p>Phiên bản: 1.0</p>
+    </div>
+
+    <!-- POSTS -->
+    <div id="posts" class="section card">
+        <h2>📝 Bài viết</h2>
+        <p>Chưa có bài viết nào</p>
+    </div>
+
+</div>
+
+<script>
+function showTab(tab){
+    let sections = document.querySelectorAll(".section");
+    sections.forEach(s => s.classList.remove("active"));
+
+    document.getElementById(tab).classList.add("active");
+}
+
+function logout(){
+    alert("Đã đăng xuất!");
+    window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
