@@ -1,159 +1,256 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sự kiện QD</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sự kiện QD - Gaming Event</title>
 
-<style>
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    height:100vh;
-    overflow:hidden;
-   background:url("anhnen.jpg") no-repeat center/cover;
-}
+    <style>
+        :root {
+            --primary-neon: #00f2fe;
+            --secondary-neon: #4facfe;
+            --accent: #f093fb;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
 
-/* background image */
-body::before{
-    content:"";
-    position:absolute;
-    inset:0;
-   
-    opacity:0.25;
-    z-index:-1;
-}
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0f172a; /* Màu nền dự phòng */
+            overflow: hidden;
+            color: white;
+        }
 
-/* ===== BUTTON AREA (TÁCH + DI CHUYỂN) ===== */
-.button-area{
-    position:fixed;
-    top:80%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    display:flex;
-    gap:80px; /* 👈 chỉnh khoảng cách 2 nút ở đây */
-}
+        /* BACKGROUND WITH OVERLAY */
+        .bg-overlay {
+            position: fixed;
+            inset: 0;
+            background: url("anhnen.jpg") no-repeat center/cover;
+            z-index: -2;
+        }
 
-/* BUTTON */
-.btn{
-    padding:16px 26px;
-    border:none;
-    border-radius:14px;
-    cursor:pointer;
-    font-weight:bold;
-    transition:0.3s;
-    min-width:170px;
-    font-size:16px;
-}
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+            z-index: -1;
+        }
 
-/* màu nút */
-.register-btn{
-    background:linear-gradient(45deg,#00ff99,#00d4ff);
-}
+        /* TITLE AREA */
+        .header-content {
+            position: fixed;
+            top: 15%;
+            text-align: center;
+            width: 100%;
+        }
 
-.login-btn{
-    background:linear-gradient(45deg,#ffffff, #c497ab);
-}
+        .header-content h1 {
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin: 0;
+            background: linear-gradient(to right, var(--primary-neon), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
 
-.btn:hover{
-    transform:scale(1.08);
-}
+        /* ===== BUTTON AREA ===== */
+        .button-area {
+            position: relative;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 10;
+        }
 
-/* MODAL */
-.modal{
-    display:none;
-    position:fixed;
-    inset:0;
-    justify-content:center;
-    align-items:center;
-    backdrop-filter: blur(10px);
-}
+        .btn {
+            position: relative;
+            padding: 18px 35px;
+            border: none;
+            border-radius: 50px; /* Nút hình oval hiện đại */
+            cursor: pointer;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 180px;
+            font-size: 15px;
+            overflow: hidden;
+        }
 
-/* FORM */
-.form-box{
-    width:340px;
-    padding:28px;
-    border-radius:18px;
-    background:rgba(255,255,255,0.12);
-    border:1px solid rgba(255,255,255,0.2);
-    box-shadow:0 0 25px rgba(0,0,0,0.4);
-    text-align:center;
-    color:white;
-}
+        .register-btn {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #06213c;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
 
-h3{
-    margin-bottom:15px;
-}
+        .login-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
+        }
 
-input{
-    width:92%;
-    padding:12px;
-    margin:10px 0;
-    border:none;
-    border-radius:10px;
-    outline:none;
-    background:rgba(255,255,255,0.2);
-    color:white;
-}
+        .btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        }
 
-input::placeholder{
-    color:#ddd;
-}
+        .register-btn:hover {
+            box-shadow: 0 0 40px rgba(0, 242, 254, 0.6);
+        }
 
-.form-box button{
-    margin:6px;
-    padding:10px 14px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:bold;
-}
+        .login-btn:hover {
+            background: white;
+            color: black;
+        }
 
-.confirm{
-    background:#00ff99;
-}
+        /* ===== MODAL & FORM ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
 
-.close{
-    background:#ff4d4d;
-    color:white;
-}
-</style>
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+
+        .form-box {
+            width: 380px;
+            padding: 40px;
+            border-radius: 30px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            transform: scale(1);
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        h3 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            color: var(--primary-neon);
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 12px 0;
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            outline: none;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary-neon);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+
+        .btn-group {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-box button {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .confirm {
+            background: var(--primary-neon);
+            color: #06213c;
+        }
+
+        .close {
+            background: transparent;
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d !important;
+        }
+
+        .close:hover {
+            background: #ff4d4d;
+            color: white;
+        }
+
+        /* MOBILE OPTIMIZATION */
+        @media (max-width: 480px) {
+            .header-content h1 { font-size: 2rem; }
+            .button-area { flex-direction: column; gap: 15px; }
+            .form-box { width: 85%; padding: 25px; }
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- ===== BUTTONS ===== -->
+<div class="bg-overlay"></div>
+
+<div class="header-content">
+    <h1>SỰ KIỆN QD</h1>
+    <p style="color: #cbd5e1; letter-spacing: 2px;">JOIN THE LEGEND</p>
+</div>
+
 <div class="button-area">
-    <button class="btn register-btn" onclick="openForm()">Đăng ký</button>
+    <button class="btn register-btn" onclick="openForm()">Đăng ký ngay</button>
     <button class="btn login-btn" onclick="openLogin()">Đăng nhập</button>
 </div>
 
-<!-- REGISTER -->
 <div class="modal" id="modal">
     <div class="form-box">
-        <h3>🔥 Đăng ký sự kiện</h3>
-
-        <input id="name" placeholder="Họ tên">
-
-        <input id="gameId" type="text" inputmode="numeric"
-        placeholder="ID Game"
-        oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-
-        <button class="confirm" onclick="register()">Xác nhận</button>
-        <button class="close" onclick="closeForm()">Đóng</button>
+        <h3>🔥 ĐĂNG KÝ</h3>
+        <input id="name" placeholder="Họ và tên của bạn">
+        <input id="gameId" type="text" inputmode="numeric" 
+               placeholder="Nhập ID Game (Số)" 
+               oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        
+        <div class="btn-group">
+            <button class="confirm" onclick="register()">XÁC NHẬN</button>
+            <button class="close" onclick="closeForm()">ĐÓNG</button>
+        </div>
     </div>
 </div>
 
-<!-- LOGIN -->
 <div class="modal" id="loginModal">
     <div class="form-box">
-        <h3>🔐 Đăng nhập</h3>
-
-        <input id="loginUser" placeholder="Tài khoản">
+        <h3>🔐 ĐĂNG NHẬP</h3>
+        <input id="loginUser" placeholder="Tên tài khoản">
         <input id="loginPass" type="password" placeholder="Mật khẩu">
 
-        <button class="confirm" onclick="login()">Đăng nhập</button>
-        <button class="close" onclick="closeLogin()">Đóng</button>
+        <div class="btn-group">
+            <button class="confirm" onclick="login()">VÀO CỔNG</button>
+            <button class="close" onclick="closeLogin()">ĐÓNG</button>
+        </div>
     </div>
 </div>
 
@@ -161,112 +258,83 @@ input::placeholder{
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-firebase.initializeApp({
-  apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
-  authDomain: "web-dangky-123.firebaseapp.com",
-  projectId: "web-dangky-123",
-});
+    // Giữ nguyên phần logic Firebase của bạn
+    firebase.initializeApp({
+        apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
+        authDomain: "web-dangky-123.firebaseapp.com",
+        projectId: "web-dangky-123",
+    });
 
-const db = firebase.firestore();
+    const db = firebase.firestore();
 
-/* ===== OPEN / CLOSE ===== */
-function openForm(){
-    document.getElementById("modal").style.display="flex";
-}
-function closeForm(){
-    document.getElementById("modal").style.display="none";
-}
-function openLogin(){
-    document.getElementById("loginModal").style.display="flex";
-}
-function closeLogin(){
-    document.getElementById("loginModal").style.display="none";
-}
+    function openForm(){ document.getElementById("modal").style.display="flex"; }
+    function closeForm(){ document.getElementById("modal").style.display="none"; }
+    function openLogin(){ document.getElementById("loginModal").style.display="flex"; }
+    function closeLogin(){ document.getElementById("loginModal").style.display="none"; }
 
-/* ===== REGISTER (30 phút cooldown) ===== */
-function register(){
-    let name = document.getElementById("name").value;
-    let gameId = document.getElementById("gameId").value;
-    let btn = document.querySelector("#modal .confirm");
+    function register(){
+        let name = document.getElementById("name").value;
+        let gameId = document.getElementById("gameId").value;
+        let btn = document.querySelector("#modal .confirm");
 
-    let lastTime = localStorage.getItem("last_register_time");
-    let now = Date.now();
-    let limit = 30 * 60 * 1000;
+        let lastTime = localStorage.getItem("last_register_time");
+        let now = Date.now();
+        let limit = 30 * 60 * 1000;
 
-    if(lastTime && (now - parseInt(lastTime)) < limit){
-        let remain = Math.ceil((limit - (now - parseInt(lastTime))) / 60000);
-        alert("⏳ Bạn phải chờ " + remain + " phút nữa!");
-        return;
-    }
-
-    if(!name || !gameId){
-        alert("❌ Nhập đầy đủ!");
-        return;
-    }
-
-    btn.disabled = true;
-    btn.innerText = "Đang xử lý...";
-
-    db.collection("users")
-    .where("gameId","==",gameId)
-    .get()
-    .then(snap => {
-
-        if(!snap.empty){
-            alert("❌ ID đã tồn tại!");
-            btn.disabled = false;
-            btn.innerText = "Xác nhận";
+        if(lastTime && (now - parseInt(lastTime)) < limit){
+            let remain = Math.ceil((limit - (now - parseInt(lastTime))) / 60000);
+            alert("⏳ Bạn đang trong thời gian chờ! Quay lại sau " + remain + " phút.");
             return;
         }
 
-        db.collection("users").add({
-            name:name,
-            gameId:gameId,
-            time:new Date()
-        })
-        .then(() => {
+        if(!name || !gameId){
+            alert("❌ Vui lòng nhập đầy đủ thông tin!");
+            return;
+        }
 
-            localStorage.setItem("last_register_time", Date.now());
+        btn.disabled = true;
+        btn.innerText = "ĐANG LƯU...";
 
-            alert("✅ Đăng ký thành công!");
-            closeForm();
+        db.collection("users").where("gameId","==",gameId).get().then(snap => {
+            if(!snap.empty){
+                alert("❌ ID này đã được đăng ký trước đó!");
+                btn.disabled = false;
+                btn.innerText = "XÁC NHẬN";
+                return;
+            }
 
-            document.getElementById("name").value="";
-            document.getElementById("gameId").value="";
-        })
-        .finally(()=>{
-            btn.disabled=false;
-            btn.innerText="Xác nhận";
+            db.collection("users").add({
+                name:name,
+                gameId:gameId,
+                time:new Date()
+            }).then(() => {
+                localStorage.setItem("last_register_time", Date.now());
+                alert("✅ Chúc mừng! Bạn đã đăng ký thành công.");
+                closeForm();
+                document.getElementById("name").value="";
+                document.getElementById("gameId").value="";
+            }).finally(()=>{
+                btn.disabled=false;
+                btn.innerText="XÁC NHẬN";
+            });
         });
-    });
-}
+    }
 
-/* ===== LOGIN ===== */
-function login(){
-    let u=document.getElementById("loginUser").value;
-    let p=document.getElementById("loginPass").value;
+    function login(){
+        let u=document.getElementById("loginUser").value;
+        let p=document.getElementById("loginPass").value;
+        if(!u || !p) return alert("❌ Nhập tài khoản/mật khẩu!");
 
-    db.collection("accounts")
-    .where("user","==",u)
-    .where("pass","==",p)
-    .get()
-    .then(snap=>{
-        if(snap.empty){
-            alert("❌ Sai tài khoản!");
-            return;
-        }
-
-        let data=snap.docs[0].data();
-
-        alert("✅ Đăng nhập thành công!");
-
-        if(data.role==="admin"){
-            window.location.href="admin.html";
-        }else{
-            window.location.href="user.html";
-        }
-    });
-}
+        db.collection("accounts").where("user","==",u).where("pass","==",p).get().then(snap=>{
+            if(snap.empty){
+                alert("❌ Thông tin đăng nhập không chính xác!");
+                return;
+            }
+            let data=snap.docs[0].data();
+            alert("✅ Đăng nhập thành công!");
+            window.location.href = (data.role === "admin") ? "admin.html" : "user.html";
+        });
+    }
 </script>
 
 </body>
