@@ -1,205 +1,342 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>User Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Chat System</title>
 
-<style>
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    height:100vh;
-    background: linear-gradient(135deg,#141e30,#243b55);
-    color:white;
-}
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #141e30, #243b55);
+            color: white;
+            overflow: hidden;
+        }
 
-/* NAVBAR */
-.navbar{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:60px;
-    background:rgba(0,0,0,0.3);
-    backdrop-filter: blur(10px);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:0 20px;
-}
+        /* NAVBAR */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-.menu{
-    display:flex;
-    gap:20px;
-}
+        .menu { display: flex; gap: 15px; }
 
-.menu button{
-    background:none;
-    border:none;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-}
+        .menu button {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
 
-.menu button:hover{
-    color:#00ffcc;
-}
+        .menu button:hover, .menu button.active-btn {
+            color: #00ffcc;
+            background: rgba(0, 255, 204, 0.1);
+        }
 
-/* logout */
-.logout{
-    background:linear-gradient(45deg,#ff512f,#dd2476);
-    padding:8px 14px;
-    border:none;
-    border-radius:10px;
-    color:white;
-}
+        .logout {
+            background: linear-gradient(45deg, #ff512f, #dd2476);
+            padding: 8px 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
 
-/* CONTENT */
-.container{
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
+        /* CONTAINER */
+        .container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 60px;
+            box-sizing: border-box;
+        }
 
-.card{
-    width:340px;
-    padding:30px;
-    border-radius:18px;
-    background:rgba(255,255,255,0.08);
-    backdrop-filter: blur(12px);
-    text-align:center;
-}
+        .card {
+            padding: 25px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            width: 380px;
+            max-width: 95%;
+            display: none;
+        }
 
-.section{ display:none; }
-.active{ display:block; }
+        .active { display: block; animation: fadeIn 0.4s ease; }
 
-/* INPUT */
-input{
-    width:90%;
-    padding:10px;
-    margin:8px 0;
-    border:none;
-    border-radius:10px;
-}
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-/* BUTTON */
-button.action{
-    padding:10px 14px;
-    border:none;
-    border-radius:10px;
-    background:#00ffcc;
-    cursor:pointer;
-}
-</style>
+        /* CHAT UI IMPROVED */
+        h3 { margin-top: 0; color: #00ffcc; text-align: center; }
+
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Scrollbar chat */
+        .chat-box::-webkit-scrollbar { width: 4px; }
+        .chat-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+
+        .msg-wrapper { display: flex; width: 100%; }
+        .msg-wrapper.me { justify-content: flex-end; }
+        .msg-wrapper.them { justify-content: flex-start; }
+
+        .msg-bubble {
+            max-width: 80%;
+            padding: 8px 14px;
+            border-radius: 18px;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+
+        .me .msg-bubble {
+            background: #00ffcc;
+            color: #141e30;
+            border-bottom-right-radius: 2px;
+            font-weight: 500;
+        }
+
+        .them .msg-bubble {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-bottom-left-radius: 2px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        select option { background: #141e30; color: white; }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button.send {
+            background: #00ffcc;
+            color: #141e30;
+            border: none;
+            padding: 0 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button.send:hover { background: #00ccaa; transform: scale(1.05); }
+
+    </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
 <div class="navbar">
     <div class="menu">
-        <button onclick="showTab('home')">🏠 Trang chính</button>
-        <button onclick="showTab('account')">👤 Tài khoản</button>
-        <button onclick="showTab('posts')">📝 Bài viết</button>
+        <button id="btn-home" onclick="showTab('home')" class="active-btn">🏠 Trang chính</button>
+        <button id="btn-chat" onclick="showTab('chat')">💬 Nhắn tin</button>
+        <button id="btn-posts" onclick="showTab('posts')">📝 Bài viết</button>
     </div>
-
     <button class="logout" onclick="logout()">Đăng xuất</button>
 </div>
 
-<!-- CONTENT -->
 <div class="container">
 
-    <!-- HOME -->
     <div id="home" class="section active card">
         <h1>👋 Xin chào!</h1>
-        <p>Chào mừng bạn</p>
+        <p id="welcomeName">Đang tải...</p>
+        <div style="margin-top:20px; padding:15px; background:rgba(255,255,255,0.05); border-radius:10px;">
+            <small>ID của bạn: <b id="myId" style="color:#00ffcc;">-</b></small>
+        </div>
     </div>
 
-    <!-- ACCOUNT -->
-    <div id="account" class="section card">
-        <h2>👤 Tài khoản</h2>
+    <div id="chat" class="section card">
+        <h3>💬 Trò chuyện</h3>
+        
+        <label style="font-size: 12px; color: #aaa; margin-left: 5px;">Chọn người nhận:</label>
+        <select id="userList" onchange="loadChat()">
+            <option value="">-- Đang tải danh sách... --</option>
+        </select>
 
-        <p><b>Tên tài khoản:</b> <span id="user"></span></p>
+        <div class="chat-box" id="chatBox">
+            <p style="text-align:center; color:#666; font-size:13px; margin-top:100px;">Chọn một người để bắt đầu chat</p>
+        </div>
 
-        <hr>
-
-        <input id="newPass" type="password" placeholder="Nhập mật khẩu mới">
-        <button class="action" onclick="changePass()">Đổi mật khẩu</button>
+        <div class="input-group">
+            <input id="msgInput" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <button class="send" onclick="sendMsg()">Gửi</button>
+        </div>
     </div>
 
-    <!-- POSTS -->
     <div id="posts" class="section card">
-        <h2>📝 Bài viết</h2>
-        <p>Chưa có bài viết</p>
+        <h3>📝 Bài viết</h3>
+        <p style="color:#aaa;">Chưa có bài viết nào từ hệ thống.</p>
     </div>
 
 </div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-firebase.initializeApp({
-  apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
-  authDomain: "web-dangky-123.firebaseapp.com",
-  projectId: "web-dangky-123",
-});
+// 1. CONFIG FIREBASE
+const firebaseConfig = {
+    apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
+    authDomain: "web-dangky-123.firebaseapp.com",
+    projectId: "web-dangky-123",
+};
 
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* GET USER FROM URL */
-let username = new URLSearchParams(location.search).get("user");
+// 2. LẤY THÔNG TIN USER ĐANG ĐĂNG NHẬP
+// Lưu ý: User này phải có 'id' khớp với 'gameId' trong collection 'users' của Admin
+let user = JSON.parse(localStorage.getItem("user")) || { id: "u1", name: "Người dùng" };
+document.getElementById("welcomeName").innerText = "Chào mừng, " + user.name;
+document.getElementById("myId").innerText = user.id;
 
-/* HIỂN THỊ USER NGAY */
-document.getElementById("user").innerText = username;
+let target = "";
+let chatListener = null; // Để hủy lắng nghe khi đổi người chat
 
-/* LOAD DATA */
-function loadUser(){
-    db.collection("accounts")
-    .where("user","==",username)
-    .get()
-    .then(snap=>{
-        if(snap.empty) return;
+// 3. CHUYỂN TAB
+function showTab(tabId) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active-btn"));
+    
+    document.getElementById(tabId).classList.add("active");
+    document.getElementById("btn-" + tabId).classList.add("active-btn");
 
-        let data = snap.docs[0].data();
+    if (tabId === 'chat') {
+        loadUserList();
+    }
+}
+
+// 4. LOAD DANH SÁCH NGƯỜI DÙNG (Lấy từ collection 'users' mà Admin thấy)
+function loadUserList() {
+    const sel = document.getElementById("userList");
+    
+    // Dùng onSnapshot để cập nhật danh sách ngay khi Admin thêm/xóa user
+    db.collection("users").onSnapshot(snap => {
+        sel.innerHTML = '<option value="">-- Chọn người muốn chat --</option>';
+        snap.forEach(doc => {
+            let u = doc.data();
+            // Không tự chat với chính mình (dựa trên gameId)
+            if (u.gameId !== user.id) {
+                sel.innerHTML += `<option value="${u.gameId}">${u.name} (${u.gameId})</option>`;
+            }
+        });
     });
 }
-loadUser();
 
-/* CHANGE PASSWORD */
-function changePass(){
-    let newPass = document.getElementById("newPass").value;
+// 5. LOAD TIN NHẮN THỜI GIAN THỰC
+function loadChat() {
+    target = document.getElementById("userList").value;
+    const box = document.getElementById("chatBox");
 
-    if(!newPass){
-        alert("Nhập mật khẩu mới!");
+    if (!target) {
+        box.innerHTML = '<p style="text-align:center; color:#666; font-size:13px; margin-top:100px;">Chọn một người để bắt đầu chat</p>';
         return;
     }
 
-    db.collection("accounts")
-    .where("user","==",username)
-    .get()
-    .then(snap=>{
-        snap.forEach(doc=>{
-            doc.ref.update({ pass: newPass });
-        });
+    // Xóa listener cũ để không bị lặp tin nhắn khi đổi người
+    if (chatListener) chatListener();
 
-        alert("Đổi mật khẩu thành công!");
-        document.getElementById("newPass").value="";
+    box.innerHTML = '<p style="text-align:center; font-size:12px; color:#aaa;">Đang tải hội thoại...</p>';
+
+    // Lắng nghe collection "messages"
+    chatListener = db.collection("messages")
+        .orderBy("time", "asc")
+        .onSnapshot(snap => {
+            box.innerHTML = "";
+            let hasMsg = false;
+
+            snap.forEach(doc => {
+                let m = doc.data();
+                // Lọc tin nhắn của cặp đôi đang chat
+                if ((m.from == user.id && m.to == target) || (m.from == target && m.to == user.id)) {
+                    hasMsg = true;
+                    let isMe = m.from === user.id;
+                    box.innerHTML += `
+                        <div class="msg-wrapper ${isMe ? 'me' : 'them'}">
+                            <div class="msg-bubble">${m.text}</div>
+                        </div>`;
+                }
+            });
+
+            if (!hasMsg) {
+                box.innerHTML = '<p style="text-align:center; color:#666; font-size:13px; margin-top:100px;">Chưa có tin nhắn. Hãy gửi gì đó!</p>';
+            }
+            
+            // Cuộn xuống cuối
+            box.scrollTop = box.scrollHeight;
+        });
+}
+
+// 6. GỬI TIN NHẮN
+function sendMsg() {
+    let input = document.getElementById("msgInput");
+    let text = input.value.trim();
+
+    if (!text || !target) return;
+
+    db.collection("messages").add({
+        from: user.id,
+        to: target,
+        text: text,
+        time: Date.now() // Sử dụng timestamp để sắp xếp
+    }).then(() => {
+        input.value = "";
+    }).catch(err => {
+        alert("Lỗi gửi tin: " + err);
     });
 }
 
-/* TABS */
-function showTab(tab){
-    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-    document.getElementById(tab).classList.add("active");
-}
-
-/* LOGOUT */
-function logout(){
-    window.location.href="index.html";
+function logout() {
+    if(confirm("Bạn muốn đăng xuất?")) {
+        localStorage.removeItem("user");
+        window.location.href = "index.html"; // Quay lại trang đăng nhập của bạn
+    }
 }
 </script>
 
