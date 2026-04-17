@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QD Portal - Future Experience</title>
+    <title>Quân Đoàn - Event Sinh Nhật 1-7</title>
 
     <style>
         :root {
@@ -32,7 +32,6 @@
             overflow: hidden;
         }
 
-        /* Hình nền động nhẹ */
         .stars {
             position: fixed;
             inset: 0;
@@ -68,7 +67,6 @@
             margin-bottom: 3rem;
         }
 
-        /* Nút bấm thiết kế mới */
         .action-group {
             display: flex;
             flex-direction: column;
@@ -110,7 +108,6 @@
             border-color: var(--primary);
         }
 
-        /* Modal Overlay */
         .modal {
             display: none;
             position: fixed;
@@ -170,16 +167,13 @@
             margin-top: 30px;
         }
 
-        .modal-footer button {
-            flex: 1;
-        }
-
         .btn-close {
             background: transparent;
             color: #94a3b8;
             border: none;
             cursor: pointer;
             font-weight: 500;
+            flex: 1;
         }
 
         .btn-close:hover { color: var(--accent-red); }
@@ -195,8 +189,8 @@
 <div class="stars"></div>
 
 <div class="main-container">
-    <div class="brand-logo">QD EVENT</div>
-    <div class="subtitle">Next-Gen Gaming Portal</div>
+    <div class="brand-logo">Quân Đoàn Event</div>
+    <div class="subtitle">T"L"Hedshot</div>
 
     <div class="action-group">
         <button class="btn-modern btn-primary" onclick="openForm('register')">Đăng ký tham gia</button>
@@ -211,7 +205,7 @@
             <input id="regName" placeholder="Tên hiển thị">
         </div>
         <div class="input-group">
-            <input id="regGameId" type="text" inputmode="numeric" placeholder="ID Nhân vật (Chỉ nhập số)" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <input id="regGameId" type="text" inputmode="numeric" placeholder="ID Nhân vật (Số)" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
         </div>
         <div class="modal-footer">
             <button class="btn-close" onclick="closeForm('register')">HỦY BỎ</button>
@@ -243,7 +237,6 @@
     // 1. CẤU HÌNH FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
-        authDomain: "web-dangky-123.firebaseapp.com",
         projectId: "web-dangky-123",
     };
     firebase.initializeApp(firebaseConfig);
@@ -257,7 +250,6 @@
         document.getElementById(type === 'register' ? "registerModal" : "loginModal").style.display = "none";
     }
 
-    // Đóng modal khi click ra ngoài
     window.onclick = function(event) {
         if (event.target.className === 'modal') {
             event.target.style.display = "none";
@@ -298,11 +290,17 @@
                 localStorage.setItem("last_register_time", Date.now());
                 alert("✅ Chúc mừng! Bạn đã đăng ký thành công.");
                 closeForm('register');
-            }).catch(e => alert("Lỗi: " + e));
+                btn.disabled = false;
+                btn.innerText = "XÁC NHẬN";
+            }).catch(e => {
+                alert("Lỗi: " + e);
+                btn.disabled = false;
+                btn.innerText = "XÁC NHẬN";
+            });
         });
     }
 
-    // 4. LOGIC ĐĂNG NHẬP
+    // 4. LOGIC ĐĂNG NHẬP (BẢN CẬP NHẬT CHẶN TÀI KHOẢN)
     function login() {
         let u = document.getElementById("loginUser").value.trim();
         let p = document.getElementById("loginPass").value.trim();
@@ -312,7 +310,19 @@
         db.collection("accounts").where("user", "==", u).where("pass", "==", p).get().then(snap => {
             if(snap.empty) return alert("❌ Thông tin đăng nhập không chính xác!");
 
-            let data = snap.docs[0].data();
+            let doc = snap.docs[0];
+            let data = doc.data();
+
+            // KIỂM TRA TÀI KHOẢN CÓ BỊ CHẶN KHÔNG
+            if(data.isBlocked === true) {
+                return alert("🚫 Tài khoản của bạn đã bị khóa bởi Quản Trị Viên!");
+            }
+
+            // Cập nhật trạng thái hoạt động (online)
+            db.collection("accounts").doc(doc.id).update({
+                lastActive: Date.now()
+            });
+
             const sessionData = {
                 id: data.user,
                 name: data.user,
@@ -321,7 +331,14 @@
             localStorage.setItem("chat_user", JSON.stringify(sessionData));
 
             alert("✅ Đăng nhập thành công!");
-            window.location.href = (data.role === "admin") ? "admin.html" : "user.html";
+            
+            // Chuyển hướng: Nếu role là admin thì vào trang admin, ngược lại vào trang user
+            if(data.role === "admin") {
+                window.location.href = "admin.html";
+            } else {
+                window.location.href = "user.html";
+            }
+            
         }).catch(e => alert("Lỗi kết nối: " + e));
     }
 </script>
