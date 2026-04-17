@@ -3,200 +3,295 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin</title>
+<title>Admin Panel</title>
 
 <style>
-body {
-    margin: 0;
-    font-family: Arial;
-    background: url("anhnen.jpg") no-repeat center/cover;
-    min-height: 100vh;
-    color: white;
+body{
+    margin:0;
+    font-family:Arial;
+    background:url("anhnen.jpg") no-repeat center/cover;
+    color:white;
 }
 
-/* LOGIN */
-.login-box {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.6);
-    padding: 25px;
-    border-radius: 15px;
-    text-align: center;
+/* ===== NAVBAR ===== */
+.navbar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:70px;
+    background:rgba(0,0,0,0.35);
+    backdrop-filter: blur(15px);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 30px;
+    box-sizing:border-box;
 }
 
-/* ADMIN */
-.admin-panel {
-    display: none;
-    min-height: 100vh;
-    justify-content: center;
-    align-items: center;
+/* MENU CENTER */
+.menu{
+    display:flex;
+    gap:25px;
 }
 
-/* KHUNG CHÍNH */
-.container {
-    background: rgba(0,0,0,0.6);
-    padding: 20px;
-    border-radius: 15px;
-    width: 350px;
-    text-align: center;
+/* ===== BUTTON GLASS STYLE ===== */
+.navbar button{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.15);
+    color:white;
+    padding:10px 16px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+    backdrop-filter: blur(10px);
+    transition:0.25s;
+}
 
-    max-height: 80vh;
-    overflow-y: auto;
+.navbar button:hover{
+    background:rgba(0,255,204,0.15);
+    transform:translateY(-2px);
+}
+
+/* LOGOUT */
+.logout{
+    background:rgba(255,80,120,0.2);
+    border:1px solid rgba(255,80,120,0.4);
+}
+
+/* ===== MODAL ===== */
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    justify-content:center;
+    align-items:center;
+    background:rgba(0,0,0,0.4);
+    backdrop-filter: blur(12px);
+}
+
+/* GLASS BOX */
+.box{
+    width:380px;
+    padding:22px;
+    border-radius:18px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(18px);
+    text-align:center;
 }
 
 /* INPUT */
-input {
-    display: block;
-    margin: 10px auto;
-    padding: 10px;
-    width: 200px;
-    border-radius: 8px;
-    border: none;
+input{
+    width:92%;
+    padding:12px;
+    margin:10px 0;
+    border:none;
+    border-radius:12px;
+    background:rgba(255,255,255,0.1);
+    color:white;
+    outline:none;
 }
 
-/* BUTTON */
-button {
-    padding: 8px 12px;
-    margin: 5px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
+/* BUTTON INSIDE BOX */
+.box button{
+    padding:10px 14px;
+    border-radius:12px;
+    border:none;
+    cursor:pointer;
+    margin:6px;
+    background:rgba(255,255,255,0.12);
+    color:white;
+    transition:0.2s;
 }
 
-/* USER ITEM */
-.user {
-    background: rgba(255,255,255,0.1);
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 10px;
+.box button:hover{
+    background:rgba(0,255,204,0.25);
+}
+
+/* LIST ITEM */
+.item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:rgba(255,255,255,0.08);
+    padding:12px;
+    margin:10px 0;
+    border-radius:14px;
+}
+
+/* DELETE BUTTON */
+.del{
+    background:rgba(255,80,80,0.25);
+    border:1px solid rgba(255,80,80,0.4);
+    padding:6px 10px;
+    border-radius:10px;
+}
+
+/* EYE BUTTON */
+.eye{
+    background:rgba(0,255,204,0.15);
+    border:1px solid rgba(0,255,204,0.3);
+    padding:6px 10px;
+    border-radius:10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div class="login-box" id="loginBox">
-    <h3>🔐 Admin Login</h3>
-    <input type="text" id="user" placeholder="Tài khoản">
-    <input type="password" id="pass" placeholder="Mật khẩu">
-    <button onclick="login()">Đăng nhập</button>
+<!-- NAVBAR -->
+<div class="navbar">
+    <div class="menu">
+        <button onclick="openCreate()">➕ Tạo tài khoản</button>
+        <button onclick="openUsers()">📋 Đăng ký</button>
+        <button onclick="openAccounts()">👤 Tài khoản</button>
+    </div>
+
+    <button class="logout" onclick="logout()">Logout</button>
 </div>
 
-<!-- ADMIN -->
-<div class="admin-panel" id="adminPanel">
-    <div class="container">
-        <h2>📋 Danh sách đăng ký</h2>
-
-        <button onclick="loadData()">🔄 Tải lại</button>
-        <button onclick="clearAll()">🧨 Xóa tất cả</button>
-        <button onclick="logout()">🚪 Đăng xuất</button>
-
-        <div id="list"></div>
+<!-- CREATE -->
+<div class="modal" id="createModal">
+    <div class="box">
+        <h3>Tạo tài khoản</h3>
+        <input id="newUser" placeholder="Username">
+        <input id="newPass" placeholder="Password">
+        <button onclick="createAccount()">Tạo</button>
+        <button onclick="closeAll()">Đóng</button>
     </div>
 </div>
 
-<!-- Firebase -->
+<!-- USERS -->
+<div class="modal" id="usersModal">
+    <div class="box">
+        <h3>Danh sách đăng ký</h3>
+        <button onclick="loadUsers()">Load</button>
+        <button onclick="closeAll()">Đóng</button>
+        <div id="usersList"></div>
+    </div>
+</div>
+
+<!-- ACCOUNTS -->
+<div class="modal" id="accountsModal">
+    <div class="box">
+        <h3>Tài khoản</h3>
+        <button onclick="loadAccounts()">Load</button>
+        <button onclick="closeAll()">Đóng</button>
+        <div id="accountsList"></div>
+    </div>
+</div>
+
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-const firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
   authDomain: "web-dangky-123.firebaseapp.com",
   projectId: "web-dangky-123",
-};
+});
 
-firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// LOGIN
-function login() {
-    let user = document.getElementById("user").value;
-    let pass = document.getElementById("pass").value;
+/* MODAL */
+function openCreate(){ document.getElementById("createModal").style.display="flex"; }
+function openUsers(){ document.getElementById("usersModal").style.display="flex"; loadUsers(); }
+function openAccounts(){ document.getElementById("accountsModal").style.display="flex"; loadAccounts(); }
+function closeAll(){ document.querySelectorAll(".modal").forEach(m=>m.style.display="none"); }
 
-    if (user === "admin" && pass === "123") {
-        document.getElementById("loginBox").style.display = "none";
+/* USERS */
+function loadUsers(){
+    let box=document.getElementById("usersList");
+    box.innerHTML="";
 
-        let panel = document.getElementById("adminPanel");
-        panel.style.display = "flex"; // ✅ bật đúng chỗ
+    db.collection("users").orderBy("time","desc").get()
+    .then(snap=>{
+        snap.forEach(doc=>{
+            let u=doc.data();
 
-        loadData();
-    } else {
-        alert("Sai tài khoản!");
-    }
-}
-
-// LOGOUT
-function logout() {
-    document.getElementById("loginBox").style.display = "block";
-    document.getElementById("adminPanel").style.display = "none";
-}
-
-// FORMAT TIME
-function formatTime(timestamp) {
-    let d = timestamp.toDate();
-    return d.toLocaleString();
-}
-
-// LOAD DATA
-function loadData() {
-    let list = document.getElementById("list");
-    list.innerHTML = "⏳ Đang tải...";
-
-    db.collection("users").orderBy("time", "desc").get()
-    .then((snapshot) => {
-        list.innerHTML = "";
-
-        if (snapshot.empty) {
-            list.innerHTML = "<p>Chưa có dữ liệu</p>";
-            alert("📭 Không có dữ liệu");
-            return;
-        }
-
-        let i = 1;
-        snapshot.forEach((doc) => {
-            let u = doc.data();
-
-            list.innerHTML += `
-            <div class="user">
-                <b>${i}. ${u.name}</b><br>
-                ID: ${u.gameId}<br>
-                ⏰ ${u.time ? formatTime(u.time) : "Không có"}<br>
-                <button onclick="deleteUser('${doc.id}')">❌ Xóa</button>
-            </div>
-            `;
-            i++;
+            box.innerHTML+=`
+            <div class="item">
+                <div>
+                    <b>${u.name}</b><br>
+                    ID: ${u.gameId}
+                </div>
+                <button class="del" onclick="deleteUser('${doc.id}')">X</button>
+            </div>`;
         });
-
-        alert("✅ Tải dữ liệu thành công!");
     });
 }
 
-// XÓA 1
-function deleteUser(id) {
-    if (confirm("Xóa người này?")) {
-        db.collection("users").doc(id).delete().then(() => {
-            alert("🗑️ Đã xóa!");
-            loadData();
+function deleteUser(id){
+    db.collection("users").doc(id).delete().then(loadUsers);
+}
+
+/* ACCOUNTS */
+function loadAccounts(){
+    let box=document.getElementById("accountsList");
+    box.innerHTML="";
+
+    db.collection("accounts").orderBy("time","desc").get()
+    .then(snap=>{
+        snap.forEach(doc=>{
+            let a=doc.data();
+
+            box.innerHTML+=`
+            <div class="item">
+                <div>
+                    <b>${a.user}</b><br>
+                    <span id="pw-${doc.id}" data-pw="${a.pass}">••••••••</span><br>
+                    <small>${a.role}</small>
+                </div>
+
+                <div>
+                    <button class="eye" onclick="togglePass('${doc.id}')">👁</button>
+                    <button class="del" onclick="deleteAccount('${doc.id}')">X</button>
+                </div>
+            </div>`;
         });
+    });
+}
+
+function togglePass(id){
+    let el=document.getElementById("pw-"+id);
+
+    if(el.innerText==="••••••••"){
+        el.innerText=el.getAttribute("data-pw");
+    }else{
+        el.innerText="••••••••";
     }
 }
 
-// XÓA TẤT CẢ
-function clearAll() {
-    if (!confirm("Xóa toàn bộ dữ liệu?")) return;
+function deleteAccount(id){
+    db.collection("accounts").doc(id).delete().then(loadAccounts);
+}
 
-    db.collection("users").get().then(snapshot => {
-        snapshot.forEach(doc => {
-            db.collection("users").doc(doc.id).delete();
-        });
+/* CREATE */
+function createAccount(){
+    let u=document.getElementById("newUser").value;
+    let p=document.getElementById("newPass").value;
 
-        alert("🧨 Đã xóa tất cả!");
-        loadData();
+    if(!u||!p){
+        alert("Nhập đủ!");
+        return;
+    }
+
+    db.collection("accounts").add({
+        user:u,
+        pass:p,
+        role:"user",
+        time:new Date()
+    }).then(()=>{
+        alert("Tạo thành công!");
+        closeAll();
     });
+}
+
+/* LOGOUT */
+function logout(){
+    window.location.href="index.html";
 }
 </script>
 
