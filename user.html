@@ -12,10 +12,9 @@ body{
     height:100vh;
     background: linear-gradient(135deg,#141e30,#243b55);
     color:white;
-    overflow:hidden;
 }
 
-/* ===== NAVBAR ===== */
+/* NAVBAR */
 .navbar{
     position:fixed;
     top:0;
@@ -28,10 +27,8 @@ body{
     align-items:center;
     justify-content:space-between;
     padding:0 20px;
-    box-sizing:border-box;
 }
 
-/* menu */
 .menu{
     display:flex;
     gap:20px;
@@ -43,12 +40,10 @@ body{
     color:white;
     font-weight:bold;
     cursor:pointer;
-    transition:0.3s;
 }
 
 .menu button:hover{
     color:#00ffcc;
-    transform:scale(1.1);
 }
 
 /* logout */
@@ -57,97 +52,154 @@ body{
     padding:8px 14px;
     border:none;
     border-radius:10px;
-    cursor:pointer;
     color:white;
-    font-weight:bold;
 }
 
-/* ===== CONTENT ===== */
+/* CONTENT */
 .container{
     height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
-    text-align:center;
 }
 
 .card{
-    padding:40px;
-    border-radius:20px;
+    width:340px;
+    padding:30px;
+    border-radius:18px;
     background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.2);
     backdrop-filter: blur(12px);
-    box-shadow:0 0 30px rgba(0,0,0,0.4);
-    width:320px;
+    text-align:center;
 }
 
-/* sections */
-.section{
-    display:none;
+.section{ display:none; }
+.active{ display:block; }
+
+/* INPUT */
+input{
+    width:90%;
+    padding:10px;
+    margin:8px 0;
+    border:none;
+    border-radius:10px;
 }
 
-.active{
-    display:block;
+/* BUTTON */
+button.action{
+    padding:10px 14px;
+    border:none;
+    border-radius:10px;
+    background:#00ffcc;
+    cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ===== NAVBAR ===== -->
+<!-- NAVBAR -->
 <div class="navbar">
     <div class="menu">
         <button onclick="showTab('home')">🏠 Trang chính</button>
         <button onclick="showTab('account')">👤 Tài khoản</button>
-        <button onclick="showTab('info')">ℹ Thông tin</button>
         <button onclick="showTab('posts')">📝 Bài viết</button>
     </div>
 
     <button class="logout" onclick="logout()">Đăng xuất</button>
 </div>
 
-<!-- ===== CONTENT ===== -->
+<!-- CONTENT -->
 <div class="container">
 
     <!-- HOME -->
     <div id="home" class="section active card">
         <h1>👋 Xin chào!</h1>
-        <p>Chào mừng bạn đến hệ thống</p>
+        <p>Chào mừng bạn</p>
     </div>
 
     <!-- ACCOUNT -->
     <div id="account" class="section card">
         <h2>👤 Tài khoản</h2>
-        <p>Tên: User Demo</p>
-        <p>ID: 123456</p>
-    </div>
 
-    <!-- INFO -->
-    <div id="info" class="section card">
-        <h2>ℹ Thông tin</h2>
-        <p>Hệ thống đăng ký sự kiện QD</p>
-        <p>Phiên bản: 1.0</p>
+        <p><b>Tên tài khoản:</b> <span id="user"></span></p>
+
+        <hr>
+
+        <input id="newPass" type="password" placeholder="Nhập mật khẩu mới">
+        <button class="action" onclick="changePass()">Đổi mật khẩu</button>
     </div>
 
     <!-- POSTS -->
     <div id="posts" class="section card">
         <h2>📝 Bài viết</h2>
-        <p>Chưa có bài viết nào</p>
+        <p>Chưa có bài viết</p>
     </div>
 
 </div>
 
-<script>
-function showTab(tab){
-    let sections = document.querySelectorAll(".section");
-    sections.forEach(s => s.classList.remove("active"));
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
+  authDomain: "web-dangky-123.firebaseapp.com",
+  projectId: "web-dangky-123",
+});
+
+const db = firebase.firestore();
+
+/* GET USER FROM URL */
+let username = new URLSearchParams(location.search).get("user");
+
+/* HIỂN THỊ USER NGAY */
+document.getElementById("user").innerText = username;
+
+/* LOAD DATA */
+function loadUser(){
+    db.collection("accounts")
+    .where("user","==",username)
+    .get()
+    .then(snap=>{
+        if(snap.empty) return;
+
+        let data = snap.docs[0].data();
+    });
+}
+loadUser();
+
+/* CHANGE PASSWORD */
+function changePass(){
+    let newPass = document.getElementById("newPass").value;
+
+    if(!newPass){
+        alert("Nhập mật khẩu mới!");
+        return;
+    }
+
+    db.collection("accounts")
+    .where("user","==",username)
+    .get()
+    .then(snap=>{
+        snap.forEach(doc=>{
+            doc.ref.update({ pass: newPass });
+        });
+
+        alert("Đổi mật khẩu thành công!");
+        document.getElementById("newPass").value="";
+    });
+}
+
+/* TABS */
+function showTab(tab){
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
     document.getElementById(tab).classList.add("active");
 }
 
+/* LOGOUT */
 function logout(){
-    alert("Đã đăng xuất!");
-    window.location.href = "index.html";
+    window.location.href="index.html";
 }
 </script>
 
