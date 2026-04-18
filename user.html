@@ -2,210 +2,193 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Quân Đoàn QD - Thành Viên</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>QD Mobile - Ultimate Version</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         :root {
             --bg: #f8fafc;
-            --navbar: rgba(255, 255, 255, 0.9);
-            --card: #ffffff;
+            --surface: #ffffff;
+            --primary: #4f46e5;
+            --primary-grad: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
             --text-main: #0f172a;
             --text-dim: #64748b;
-            --primary: #2563eb;
-            --secondary: #0ea5e9;
             --border: #f1f5f9;
-            --border-strong: #e2e8f0;
-            --bubble-them: #f1f5f9;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
-            --gradient: linear-gradient(135deg, #2563eb, #0ea5e9);
-            --accent-red: #ef4444;
+            --bubble-me: #4f46e5;
+            --bubble-them: #ffffff;
+            --safe-bottom: env(safe-area-inset-bottom);
         }
 
         [data-theme="dark"] {
             --bg: #020617;
-            --navbar: rgba(15, 23, 42, 0.9);
-            --card: #1e293b;
+            --surface: #0f172a;
             --text-main: #f8fafc;
             --text-dim: #94a3b8;
-            --primary: #38bdf8;
-            --secondary: #818cf8;
-            --border: #334155;
-            --border-strong: #475569;
-            --bubble-them: #334155;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
-            --gradient: linear-gradient(135deg, #38bdf8, #818cf8);
+            --border: #1e293b;
+            --bubble-me: #6366f1;
+            --bubble-them: #1e293b;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; transition: background 0.3s, color 0.3s; }
 
         body {
             margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
             background: var(--bg); color: var(--text-main);
-            transition: background 0.3s, color 0.3s;
             height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* TOAST NOTIFICATION */
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; pointer-events: none; }
-        .toast {
-            background: var(--card); color: var(--text-main); padding: 12px 20px; border-radius: 12px;
-            box-shadow: var(--shadow-lg); margin-bottom: 10px; display: flex; align-items: center; gap: 10px;
-            min-width: 200px; animation: slideIn 0.3s ease-out; border-left: 4px solid var(--primary);
-            pointer-events: auto; font-size: 13px; font-weight: 600;
+        /* MOBILE HEADER */
+        header {
+            padding: 50px 20px 20px; background: var(--surface);
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
         }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* NAVBAR */
-        .navbar {
-            height: 70px; background: var(--navbar); backdrop-filter: blur(12px);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 16px; z-index: 1000; border-bottom: 1px solid var(--border);
-        }
-        .nav-logo { font-weight: 800; font-size: 18px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .nav-menu { display: flex; gap: 4px; background: var(--border); padding: 4px; border-radius: 14px; }
-        .nav-btn {
-            background: transparent; border: none; color: var(--text-dim);
-            width: 44px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 18px;
-            display: flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
-        .nav-btn.active { background: var(--card); color: var(--primary); box-shadow: var(--shadow-sm); }
-
-        .nav-right { display: flex; align-items: center; gap: 8px; }
-        .theme-toggle {
-            background: var(--border); border: none; width: 38px; height: 38px;
-            border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--text-main);
-        }
-        .logout-btn {
-            background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); 
-            color: #ef4444; padding: 0 12px; height: 38px; border-radius: 10px;
-            font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;
-            text-transform: uppercase; letter-spacing: 0.5px;
+        .brand { font-size: 22px; font-weight: 800; letter-spacing: -1px; color: var(--primary); }
+        .header-actions { display: flex; gap: 12px; }
+        .icon-btn { 
+            background: var(--bg); border: none; width: 40px; height: 40px; 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 18px;
         }
 
-        /* CONTAINER */
-        .container { flex: 1; display: flex; justify-content: center; padding: 12px; overflow: hidden; }
-        .content-card {
-            background: var(--card); border-radius: 24px; width: 100%; max-width: 450px; height: 100%;
-            display: none; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--border);
-        }
-        .content-card.active { display: flex; animation: fadeUp 0.3s ease-out; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* MAIN CONTENT AREA */
+        main { flex: 1; overflow-y: auto; position: relative; }
+        .page { display: none; padding: 20px; height: 100%; animation: slideIn 0.3s ease-out; }
+        .page.active { display: block; }
 
-        /* PROFILE */
-        .profile-box { text-align: center; padding: 30px 20px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .avatar {
-            width: 90px; height: 90px; margin: 0 auto 15px; background: var(--gradient);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 36px; font-weight: 800; color: #fff; border: 4px solid var(--card);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* USER LIST STYLE */
+        .user-card {
+            background: var(--surface); padding: 16px; border-radius: 20px;
+            display: flex; align-items: center; gap: 15px; margin-bottom: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); cursor: pointer;
+        }
+        .user-card:active { transform: scale(0.98); }
+        .avatar-circle {
+            width: 50px; height: 50px; border-radius: 18px; background: var(--primary-grad);
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;
         }
 
-        /* CHAT */
-        .chat-contacts { padding: 10px; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-        .user-pill { padding: 8px 16px; background: var(--border); border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; color: var(--text-dim); }
-        .user-pill.active { background: var(--gradient); color: white; }
-        .chat-flow { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.4; }
-        .bubble.me { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
-        .bubble.them { align-self: flex-start; background: var(--bubble-them); color: var(--text-main); border-bottom-left-radius: 4px; }
-        .chat-input { padding: 12px; display: flex; gap: 8px; border-top: 1px solid var(--border); background: var(--card); }
-        .chat-input input { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); outline: none; }
-        .btn-send { background: var(--primary); color: white; border: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; }
+        /* CHAT INTERFACE FULL SCREEN */
+        #chat-window {
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: none; flex-direction: column;
+        }
+        #chat-window.active { display: flex; }
+        
+        .chat-header {
+            padding: 50px 20px 15px; background: var(--surface); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 15px;
+        }
+        .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; }
+        .msg.me { align-self: flex-end; background: var(--bubble-me); color: white; border-bottom-right-radius: 4px; }
+        .msg.them { align-self: flex-start; background: var(--bubble-them); color: var(--text-main); border-bottom-left-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        .msg-input-container {
+            padding: 15px 20px calc(15px + var(--safe-bottom)); background: var(--surface);
+            display: flex; gap: 12px; border-top: 1px solid var(--border);
+        }
+        .msg-input-container input {
+            flex: 1; background: var(--bg); border: 1px solid var(--border);
+            padding: 12px 20px; border-radius: 25px; color: var(--text-main);
+        }
+
+        /* BOTTOM TAB BAR */
+        .tab-bar {
+            background: var(--surface); height: calc(70px + var(--safe-bottom));
+            display: flex; justify-content: space-around; align-items: center;
+            padding-bottom: var(--safe-bottom); border-top: 1px solid var(--border);
+        }
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            color: var(--text-dim); font-size: 11px; font-weight: 600; width: 25%;
+        }
+        .tab-item.active { color: var(--primary); }
+        .tab-item span:first-child { font-size: 22px; }
+
+        /* WELCOME SECTION */
+        .hero { text-align: center; margin-top: 40px; }
+        .profile-badge { 
+            width: 100px; height: 100px; margin: 0 auto 20px; border-radius: 35px;
+            background: var(--primary-grad); display: flex; align-items: center; justify-content: center;
+            font-size: 40px; color: white; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+        }
 
         /* NEWS */
-        .news-feed { padding: 15px; overflow-y: auto; flex: 1; }
-        .news-item { background: var(--card); border: 1px solid var(--border-strong); padding: 18px; border-radius: 20px; margin-bottom: 15px; box-shadow: var(--shadow-sm); }
-        .news-content { font-size: 15px; line-height: 1.5; margin-bottom: 12px; font-weight: 500; }
-        .cmt-box { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
-        .cmt-item { font-size: 13px; background: var(--bubble-them); padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; width: fit-content; max-width: 100%; }
-        .cmt-input { width: 100%; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); outline: none; margin-top: 8px; font-size: 13px; }
+        .news-card { background: var(--surface); padding: 20px; border-radius: 24px; margin-bottom: 15px; }
 
-        /* CONFIRM MODAL */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-            display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;
+        #logoutModal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px;
         }
-        .confirm-modal {
-            background: var(--card); width: 100%; max-width: 320px; padding: 25px; border-radius: 24px; text-align: center;
-            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .confirm-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn-confirm { padding: 12px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; font-size: 13px; }
-        .btn-no { background: var(--border); color: var(--text-main); }
-        .btn-yes { background: var(--accent-red); color: white; }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
+        .modal-box { background: var(--surface); padding: 30px; border-radius: 30px; width: 100%; max-width: 300px; text-align: center; }
     </style>
 </head>
 <body data-theme="light">
 
-<div id="toast-container"></div>
+    <header id="main-header">
+        <div class="brand">QD MOBILE</div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="toggleTheme()">🌓</button>
+            <button class="icon-btn" onclick="openLogout()" style="color: #ef4444;">🔒</button>
+        </div>
+    </header>
 
-<div class="modal-overlay" id="logoutModal">
-    <div class="confirm-modal">
-        <div style="font-size: 40px; margin-bottom: 10px;">👋</div>
-        <h3 style="margin: 0 0 10px;">Đăng xuất?</h3>
-        <p style="color: var(--text-dim); font-size: 14px; margin: 0;">Bạn có chắc chắn muốn rời khỏi hệ thống không?</p>
-        <div class="confirm-btns">
-            <button class="btn-confirm btn-no" onclick="closeLogout()">HỦY</button>
-            <button class="btn-confirm btn-yes" onclick="confirmLogout()">RỜI ĐI</button>
+    <main>
+        <div id="home" class="page active">
+            <div class="hero">
+                <div class="profile-badge" id="avatarImg">?</div>
+                <h2 id="userName" style="margin: 0;">-</h2>
+                <p style="color: var(--text-dim); margin-top: 5px;">Hệ thống đã kết nối</p>
+            </div>
+            <div style="margin-top: 40px; background: var(--primary-grad); padding: 25px; border-radius: 30px; color: white;">
+                <h3 style="margin: 0 0 10px;">Xin chào!</h3>
+                <p style="margin: 0; opacity: 0.9; font-size: 14px;">Chúc bạn một ngày làm việc hiệu quả cùng Quân Đoàn.</p>
+            </div>
+        </div>
+
+        <div id="contacts" class="page">
+            <h3 style="margin-bottom: 20px;">Hội thoại</h3>
+            <div id="contactList"></div>
+        </div>
+
+        <div id="news" class="page">
+            <h3 style="margin-bottom: 20px;">Bản tin</h3>
+            <div id="newsFeed"></div>
+        </div>
+    </main>
+
+    <div id="chat-window">
+        <div class="chat-header">
+            <button class="icon-btn" onclick="closeChat()">◀</button>
+            <div style="font-weight: 700;" id="chattingWithText">Tên người dùng</div>
+        </div>
+        <div class="chat-body" id="chatDisplay"></div>
+        <div class="msg-input-container">
+            <input type="text" id="msgInput" placeholder="Aa..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <button onclick="sendMsg()" style="background: var(--primary-grad); border: none; width: 45px; height: 45px; border-radius: 15px; color: white;">➤</button>
         </div>
     </div>
-</div>
 
-<nav class="navbar">
-    <div class="nav-logo">QD T"L"Hedshot</div>
-    <div class="nav-menu">
-        <button class="nav-btn active" onclick="switchTab('home', this)">🏠</button>
-        <button class="nav-btn" onclick="switchTab('chat', this)">💬</button>
-        <button class="nav-btn" onclick="switchTab('news', this)">📰</button>
-    </div>
-    <div class="nav-right">
-        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">🌓</button>
-        <button class="logout-btn" onclick="openLogout()">Đăng Xuất</button>
-    </div>
-</nav>
+    <nav class="tab-bar">
+        <div class="tab-item active" onclick="switchTab('home', this)"><span>🏠</span><span>Chủ</span></div>
+        <div class="tab-item" onclick="switchTab('contacts', this)"><span>💬</span><span>Chat</span></div>
+        <div class="tab-item" onclick="switchTab('news', this)"><span>📰</span><span>Tin</span></div>
+    </nav>
 
-<div class="container">
-    <div id="home" class="content-card active">
-        <div class="profile-box">
-            <div class="avatar" id="avatarImg">?</div>
-            <h2 id="userName" style="margin: 0">Xin chào!</h2>
-            <p style="color: var(--text-dim); font-size: 14px;">Thành viên Quân Đoàn QD</p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px;">
-                <div style="background: var(--border); padding: 15px; border-radius: 18px; border: 1px solid var(--border-strong);">
-                    <div id="statCount" style="font-size: 22px; font-weight: 800; color: var(--primary)">0</div>
-                    <div style="font-size: 10px; color: var(--text-dim); font-weight: 700; text-transform: uppercase;">Thông báo</div>
-                </div>
-                <div style="background: var(--border); padding: 15px; border-radius: 18px; border: 1px solid var(--border-strong);">
-                    <div style="font-size: 14px; font-weight: 800; color: #10b981; height: 26px; display: flex; align-items: center; justify-content: center;">ONLINE</div>
-                    <div style="font-size: 10px; color: var(--text-dim); font-weight: 700; text-transform: uppercase;">Trạng thái</div>
-                </div>
+    <div id="logoutModal">
+        <div class="modal-box">
+            <h3 style="margin-top: 0;">Đăng xuất?</h3>
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
+                <button onclick="closeLogout()" style="flex: 1; padding: 14px; border-radius: 15px; border: 1px solid var(--border); background: none; color: var(--text-main); font-weight: 600;">Hủy</button>
+                <button onclick="confirmLogout()" style="flex: 1; padding: 14px; border-radius: 15px; border: none; background: #ef4444; color: white; font-weight: 700;">Thoát</button>
             </div>
         </div>
     </div>
-
-    <div id="chat" class="content-card">
-        <div class="chat-contacts" id="contactList"></div>
-        <div class="chat-flow" id="chatDisplay">
-            <div style="text-align:center; color:var(--text-dim); margin-top:40%; font-size:13px">Chọn một thành viên để nhắn tin</div>
-        </div>
-        <div class="chat-input" id="chatBar" style="display:none">
-            <input type="text" id="msgInput" placeholder="Nhập tin nhắn..." autocomplete="off" onkeypress="if(event.key==='Enter') sendMsg()">
-            <button class="btn-send" onclick="sendMsg()">➤</button>
-        </div>
-    </div>
-
-    <div id="news" class="content-card">
-        <div class="news-feed" id="newsFeed"></div>
-    </div>
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -222,42 +205,22 @@
     const currentUser = JSON.parse(localStorage.getItem("chat_user"));
     if (!currentUser) { window.location.href = "index.html"; }
 
-    document.getElementById("userName").innerText = "Chào, " + currentUser.name;
+    document.getElementById("userName").innerText = currentUser.name;
     document.getElementById("avatarImg").innerText = currentUser.name.charAt(0).toUpperCase();
 
-    // Hệ thống Toast Notification
-    function showNotify(msg, type = 'primary') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        if(type === 'error') toast.style.borderColor = 'var(--accent-red)';
-        toast.innerHTML = `<span>✨</span> <span>${msg}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    // Tab chuyển đổi
     function switchTab(id, el) {
-        document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         el.classList.add('active');
-        if(id === 'chat') { loadContacts(); showNotify("Đã mở tin nhắn"); }
-        if(id === 'news') { loadNews(); showNotify("Đã cập nhật bảng tin"); }
+        if(id === 'contacts') loadContacts();
+        if(id === 'news') loadNews();
     }
 
-    // Logout logic
     function openLogout() { document.getElementById("logoutModal").style.display = "flex"; }
     function closeLogout() { document.getElementById("logoutModal").style.display = "none"; }
-    function confirmLogout() {
-        localStorage.removeItem("chat_user");
-        window.location.href = "index.html";
-    }
+    function confirmLogout() { localStorage.removeItem("chat_user"); window.location.href = "index.html"; }
 
-    // Chat logic
     let selectedChat = "";
     let chatSub = null;
 
@@ -268,16 +231,24 @@
             snap.forEach(doc => {
                 let u = doc.data().user;
                 if(u !== currentUser.id) {
-                    list.innerHTML += `<div class="user-pill ${selectedChat === u ? 'active' : ''}" onclick="startChat('${u}')">${u}</div>`;
+                    list.innerHTML += `
+                    <div class="user-card" onclick="openChat('${u}')">
+                        <div class="avatar-circle">${u.charAt(0).toUpperCase()}</div>
+                        <div style="flex:1">
+                            <div style="font-weight:700">${u}</div>
+                            <div style="font-size:12px; color:var(--text-dim)">Nhấn để bắt đầu chat</div>
+                        </div>
+                    </div>`;
                 }
             });
         });
     }
 
-    function startChat(id) {
+    function openChat(id) {
         selectedChat = id;
-        document.getElementById("chatBar").style.display = "flex";
-        showNotify("Đang chat với " + id);
+        document.getElementById("chattingWithText").innerText = id;
+        document.getElementById("chat-window").classList.add("active");
+        
         if(chatSub) chatSub();
         const display = document.getElementById("chatDisplay");
         chatSub = db.collection("messages").orderBy("time", "asc").onSnapshot(snap => {
@@ -285,70 +256,41 @@
             snap.forEach(doc => {
                 let m = doc.data();
                 if((m.from === currentUser.id && m.to === selectedChat) || (m.from === selectedChat && m.to === currentUser.id)) {
-                    display.innerHTML += `<div class="bubble ${m.from === currentUser.id ? 'me' : 'them'}">${m.text}</div>`;
+                    display.innerHTML += `<div class="msg ${m.from === currentUser.id ? 'me' : 'them'}">${m.text}</div>`;
                 }
             });
             display.scrollTop = display.scrollHeight;
         });
-        loadContacts();
     }
+
+    function closeChat() { document.getElementById("chat-window").classList.remove("active"); }
 
     function sendMsg() {
         const inp = document.getElementById("msgInput");
         if(!inp.value.trim() || !selectedChat) return;
-        db.collection("messages").add({ from: currentUser.id, to: selectedChat, text: inp.value.trim(), time: Date.now() })
-        .then(() => {
-            // Hiệu ứng nhẹ khi gửi
-        });
+        db.collection("messages").add({ from: currentUser.id, to: selectedChat, text: inp.value.trim(), time: Date.now() });
         inp.value = "";
     }
 
-    // News logic
     function loadNews() {
         db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
             const feed = document.getElementById("newsFeed");
-            document.getElementById("statCount").innerText = snap.size;
             feed.innerHTML = "";
             snap.forEach(doc => {
                 let n = doc.data();
                 feed.innerHTML += `
-                    <div class="news-item">
-                        <div style="font-size:10px; font-weight:800; color:var(--primary); margin-bottom:8px; text-transform:uppercase"># Thông báo</div>
-                        <div class="news-content">${n.content}</div>
-                        <div class="cmt-box">
-                            <div id="cmts-${doc.id}"></div>
-                            <input class="cmt-input" placeholder="Viết bình luận..." onkeypress="if(event.key==='Enter') sendCmt('${doc.id}', this)">
-                        </div>
+                    <div class="news-card">
+                        <div style="font-size:11px; color:var(--primary); font-weight:800; margin-bottom:10px;">SYSTEM UPDATE</div>
+                        <div style="font-size:14px; line-height:1.6;">${n.content}</div>
                     </div>`;
-                loadCmts(doc.id);
             });
         });
-    }
-
-    function loadCmts(id) {
-        db.collection("news").doc(id).collection("comments").orderBy("time", "asc").onSnapshot(snap => {
-            const box = document.getElementById(`cmts-${id}`);
-            if(!box) return;
-            box.innerHTML = "";
-            snap.forEach(doc => {
-                let c = doc.data();
-                box.innerHTML += `<div class="cmt-item"><b style="color:var(--primary)">${c.name}:</b> ${c.text}</div>`;
-            });
-        });
-    }
-
-    function sendCmt(newsId, el) {
-        if(!el.value.trim()) return;
-        db.collection("news").doc(newsId).collection("comments").add({ name: currentUser.id, text: el.value.trim(), time: Date.now() })
-        .then(() => showNotify("Đã gửi bình luận"));
-        el.value = "";
     }
 
     function toggleTheme() {
         const theme = document.body.getAttribute("data-theme") === "light" ? "dark" : "light";
         document.body.setAttribute("data-theme", theme);
         localStorage.setItem("theme", theme);
-        showNotify("Đã đổi giao diện");
     }
     document.body.setAttribute("data-theme", localStorage.getItem("theme") || "light");
 </script>
