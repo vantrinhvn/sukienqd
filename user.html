@@ -46,10 +46,13 @@
         }
         .brand { font-size: 22px; font-weight: 800; letter-spacing: -1px; color: var(--primary); }
         .header-actions { display: flex; gap: 12px; }
+        
+        /* ĐÃ SỬA LỖI Ở ĐÂY */
         .icon-btn { 
-            background: var(--bg); border: none; width: 40px; height: 40px; 
+            background: var(--bg); border: none; min-width: 40px; height: 40px; padding: 0 12px;
             border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 18px;
+            cursor: pointer; font-size: 15px; font-weight: 600; font-family: inherit;
+            color: var(--text-main); /* Thêm dòng này để màu chữ tự đổi theo theme */
         }
 
         /* MAIN CONTENT AREA */
@@ -164,7 +167,7 @@
 
     <div id="chat-window">
         <div class="chat-header">
-            <button class="icon-btn" onclick="closeChat()">◀</button>
+            <button class="icon-btn" onclick="closeChat()">Trở lại</button>
             <div style="font-weight: 700;" id="chattingWithText">Tên người dùng</div>
         </div>
         <div class="chat-body" id="chatDisplay"></div>
