@@ -2,168 +2,239 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Trị Viên - QD Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QD Admin - Multi-Platform</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         :root {
             --primary: #00f2fe;
             --secondary: #4facfe;
-            --bg: #0b0f1a;
-            --card: #161e2d;
+            --bg: #030712;
+            --sidebar: #111827;
+            --card: #1f2937;
             --border: rgba(255, 255, 255, 0.08);
-            --danger: #ff4d4d;
+            --danger: #ef4444;
             --success: #10b981;
-            --warning: #fbbf24;
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --gradient: linear-gradient(135deg, #00f2fe, #4facfe);
+            --warning: #f59e0b;
+            --text: #f9fafb;
+            --text-dim: #9ca3af;
         }
 
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); line-height: 1.6; }
-
-        /* LOGIN SCREEN */
-        #loginScreen { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; background: var(--bg); z-index: 2000; }
-        .login-box { width: 90%; max-width: 400px; padding: 40px; background: var(--card); border-radius: 32px; border: 1px solid var(--border); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        
-        /* NAVBAR */
-        .navbar { 
-            position: fixed; top: 0; left: 0; right: 0; height: 70px; 
-            background: rgba(22, 30, 45, 0.8); backdrop-filter: blur(20px); 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 0 30px; z-index: 1000; border-bottom: 1px solid var(--border); 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { 
+            margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg); color: var(--text); line-height: 1.5;
         }
-        .nav-logo { font-size: 22px; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* MAIN LAYOUT */
-        #adminPanel { display: none; padding: 100px 20px 40px; max-width: 1200px; margin: 0 auto; }
-
-        /* STATS GRID */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px; }
-        .stat-card { background: var(--card); padding: 30px; border-radius: 24px; border: 1px solid var(--border); position: relative; cursor: pointer; transition: 0.3s; }
-        .stat-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .stat-card::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gradient); }
-        .stat-card h3 { margin: 0; font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-        .stat-card .val { font-size: 38px; font-weight: 800; margin-top: 10px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        /* MODALS */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1500; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-box { background: var(--card); width: 100%; max-width: 800px; max-height: 85vh; border-radius: 32px; padding: 35px; overflow-y: auto; border: 1px solid var(--border); position: relative; }
-        
-        /* TABLES */
-        .table-container { margin-top: 20px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.02); }
-        th { background: rgba(255,255,255,0.05); text-align: left; padding: 16px; color: var(--secondary); font-size: 12px; text-transform: uppercase; }
-        td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
-
-        /* INPUTS */
-        input, textarea { 
-            width: 100%; padding: 14px; margin: 10px 0; border-radius: 14px; 
-            border: 1px solid var(--border); background: rgba(0,0,0,0.3); color: white; outline: none; transition: 0.3s;
+        /* --- LOGIN --- */
+        #loginScreen {
+            position: fixed; inset: 0; z-index: 9999; background: var(--bg);
+            display: flex; align-items: center; justify-content: center; padding: 20px;
         }
-        input:focus, textarea:focus { border-color: var(--primary); }
+        .login-box {
+            width: 100%; max-width: 380px; padding: 40px; background: var(--card);
+            border-radius: 30px; border: 1px solid var(--border); text-align: center;
+        }
 
-        /* BUTTONS */
-        .btn { padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
-        .btn-primary { background: var(--gradient); color: #000; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: white; }
-        .btn-danger { background: rgba(255, 77, 77, 0.1); color: var(--danger); border: 1px solid var(--danger); }
-        .btn-warning { background: rgba(251, 191, 36, 0.1); color: var(--warning); border: 1px solid var(--warning); }
-        .btn-success { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); }
-
-        /* BADGES */
-        .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; min-width: 80px; text-align: center; }
-        .badge-online { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
-        .badge-offline { background: rgba(148, 163, 184, 0.1); color: var(--text-dim); border: 1px solid var(--text-dim); }
-
-        .item-row { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .item-content { flex: 1; cursor: pointer; }
+        /* --- LAYOUT --- */
+        #adminPanel { display: none; }
         
-        /* TOAST */
-        #toast { position: fixed; bottom: 30px; right: 30px; padding: 15px 25px; border-radius: 12px; background: var(--success); color: white; font-weight: 700; transform: translateY(100px); opacity: 0; transition: 0.4s; z-index: 3000; }
-        #toast.show { transform: translateY(0); opacity: 1; }
+        /* Sidebar cho Desktop */
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0; width: 260px;
+            background: var(--sidebar); border-right: 1px solid var(--border);
+            padding: 30px; z-index: 100;
+        }
+
+        /* Main Content */
+        .main-content { margin-left: 260px; padding: 40px; transition: 0.3s; }
+
+        /* Bottom Nav cho Mobile */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
+            background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border); display: none; justify-content: space-around;
+            align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* --- UI COMPONENTS --- */
+        .brand { 
+            font-size: 22px; font-weight: 800; margin-bottom: 40px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card {
+            background: var(--card); padding: 25px; border-radius: 20px;
+            border: 1px solid var(--border); transition: 0.3s; cursor: pointer;
+        }
+        .stat-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-val { font-size: 32px; font-weight: 800; margin-top: 5px; }
+
+        /* --- DATA PRESENTATION --- */
+        .section-card { background: var(--card); border-radius: 24px; border: 1px solid var(--border); padding: 25px; margin-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; color: var(--text-dim); font-size: 12px; border-bottom: 1px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
+
+        /* --- BUTTONS & INPUTS --- */
+        .btn {
+            padding: 10px 18px; border-radius: 12px; border: none; font-weight: 700;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 13px;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .btn-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: #fff; }
+        
+        input, textarea {
+            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 12px 15px; color: #fff; margin-bottom: 15px; font-family: inherit;
+        }
+
+        /* --- RESPONSIVE (MOBILE) --- */
+        @media (max-width: 992px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 20px; padding-bottom: 100px; }
+            .bottom-nav { display: flex; }
+            .desktop-only { display: none; }
+            
+            /* Biến bảng thành Card trên Mobile */
+            thead { display: none; }
+            tr { display: block; background: rgba(255,255,255,0.02); margin-bottom: 15px; border-radius: 15px; padding: 10px; border: 1px solid var(--border); }
+            td { display: flex; justify-content: space-between; border: none; padding: 8px 10px; }
+            td::before { content: attr(data-label); color: var(--text-dim); font-weight: 600; }
+        }
+
+        /* --- MODALS --- */
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-content { background: var(--sidebar); border: 1px solid var(--border); border-radius: 28px; width: 100%; max-width: 500px; padding: 30px; }
+
+        /* --- TOAST --- */
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: var(--success); color: #000; padding: 12px 25px; border-radius: 50px;
+            font-weight: 800; z-index: 9999; transition: 0.5s; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-<div id="toast">Cập nhật thành công!</div>
+<div id="toast">Thông báo!</div>
 
 <div id="loginScreen">
     <div class="login-box">
-        <h2 style="margin-bottom: 10px;">QD ADMIN</h2>
-        <input id="adminUser" placeholder="Tên đăng nhập">
-        <input id="adminPass" type="password" placeholder="Mật khẩu">
-        <button class="btn btn-primary" style="width: 100%; margin-top: 15px; justify-content: center;" onclick="login()">ĐĂNG NHẬP</button>
+        <div class="brand" style="font-size: 30px;">QD ADMIN</div>
+        <input id="adminUser" placeholder="Tên đăng nhập" value="admin">
+        <input id="adminPass" type="password" placeholder="Mật khẩu" value="123">
+        <button class="btn btn-primary" style="width: 100%; height: 50px; justify-content: center;" onclick="login()">ĐĂNG NHẬP</button>
     </div>
 </div>
 
 <div id="adminPanel">
-    <div class="navbar">
-        <div class="nav-logo">QD ADMIN</div>
-        <div style="display: flex; gap: 8px;">
-            <button class="btn btn-outline" onclick="openModal('newsModal')">📰 Tin tức</button>
-            <button class="btn btn-outline" onclick="openModal('cmtModal')">💬 Bình luận</button>
-            <button class="btn btn-danger" onclick="location.reload()">Thoát</button>
+    <div class="sidebar">
+        <div class="brand">QD ADMIN</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-outline" style="width: 100%" onclick="showSec('sec-acc')">👥 Thành viên</button>
+            <button class="btn btn-outline" style="width: 100%" onclick="showSec('sec-users')">📋 Đơn đăng kí</button>
+            <button class="btn btn-outline" style="width: 100%" onclick="showSec('sec-news')">📰 Bản tin</button>
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 10px 0;">
+            <button class="btn btn-primary" style="width: 100%" onclick="openModal('modal-create')">➕ Tạo tài khoản</button>
+            <button class="btn btn-danger" style="width: 100%; margin-top: 20px;" onclick="location.reload()">Thoát</button>
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card" onclick="openModal('accModal')"><h3>Thành viên</h3><div class="val" id="s-acc">0</div></div>
-        <div class="stat-card" onclick="openModal('usersModal')"><h3>Đơn chờ</h3><div class="val" id="s-users" style="color:var(--warning)">0</div></div>
-        <div class="stat-card" onclick="openModal('newsModal')"><h3>Bản tin</h3><div class="val" id="s-news">0</div></div>
-        <div class="stat-card" onclick="openModal('cmtModal')"><h3>Bình luận</h3><div class="val" id="s-cmt" style="color:var(--secondary)">0</div></div>
-    </div>
+    <div class="main-content">
+        <header style="margin-bottom: 30px;">
+            <h2 id="page-title">Tổng quan hệ thống</h2>
+        </header>
 
-    <div class="modal" id="newsModal">
-        <div class="modal-box">
-            <h2 id="newsTitle">📰 Quản lý bản tin</h2>
-            <div id="newsForm">
-                <input type="hidden" id="editNewsId">
-                <textarea id="newsContent" rows="3" placeholder="Nhập nội dung bản tin..."></textarea>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-primary" id="btnSaveNews" onclick="saveNews()" style="flex: 1; justify-content: center;">ĐĂNG TIN MỚI</button>
-                    <button class="btn btn-outline" id="btnCancelEdit" onclick="cancelEditNews()" style="display: none;">HỦY SỬA</button>
-                </div>
+        <div class="stats-grid">
+            <div class="stat-card" onclick="showSec('sec-acc')">
+                <div class="stat-label">Tổng thành viên</div>
+                <div class="stat-val" id="s-acc">0</div>
             </div>
-            <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
-            <div id="listNews"></div>
-            <button class="btn btn-outline" style="width:100%; margin-top:20px" onclick="closeModal()">ĐÓNG</button>
+            <div class="stat-card" onclick="showSec('sec-users')">
+                <div class="stat-label">Đơn đăng kí</div>
+                <div class="stat-val" id="s-users" style="color: var(--warning)">0</div>
+            </div>
+            <div class="stat-card" onclick="showSec('sec-news')">
+                <div class="stat-label">Bài đăng bản tin</div>
+                <div class="stat-val" id="s-news">0</div>
+            </div>
         </div>
-    </div>
 
-    <div class="modal" id="cmtModal">
-        <div class="modal-box">
-            <h2>💬 Quản lý bình luận người dùng</h2>
-            <div id="listCmts"></div>
-            <button class="btn btn-outline" style="width:100%; margin-top:20px" onclick="closeModal()">ĐÓNG</button>
-        </div>
-    </div>
-
-    <div class="modal" id="accModal">
-        <div class="modal-box">
-            <h2>👤 Thành viên</h2>
-            <div class="table-container">
+        <div id="sec-acc" class="section-card content-sec">
+            <h3>👥 Danh sách thành viên</h3>
+            <div style="overflow-x: auto;">
                 <table>
-                    <thead><tr><th>User</th><th>Pass</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                    <thead>
+                        <tr><th>Tài khoản</th><th>Mật khẩu</th><th>Trạng thái</th><th>Thao tác</th></tr>
+                    </thead>
                     <tbody id="listAcc"></tbody>
                 </table>
             </div>
-            <button class="btn btn-outline" style="width:100%; margin-top:20px" onclick="closeModal()">ĐÓNG</button>
+        </div>
+
+        <div id="sec-users" class="section-card content-sec" style="display:none">
+            <h3>📋 Đơn đăng ký </h3>
+            <table>
+                <thead>
+                    <tr><th>Tên nhân vật</th><th>ID Game</th><th>Thao tác</th></tr>
+                </thead>
+                <tbody id="listPending"></tbody>
+            </table>
+        </div>
+
+        <div id="sec-news" class="section-card content-sec" style="display:none">
+            <h3>📰 Quản lý bản tin</h3>
+            <div style="margin-bottom: 25px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 20px;">
+                <input type="hidden" id="editNewsId">
+                <textarea id="newsContent" rows="3" placeholder="Nội dung thông báo mới..."></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" id="btnSaveNews" onclick="askSaveNews()">LƯU BẢN TIN</button>
+                    <button class="btn btn-outline" id="btnCancelEdit" style="display:none" onclick="cancelEditNews()">HỦY</button>
+                </div>
+            </div>
+            <div id="listNews"></div>
         </div>
     </div>
 
-    <div class="modal" id="usersModal">
-        <div class="modal-box">
-            <h2>📋 Đơn đăng ký</h2>
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>Tên NV</th><th>ID Game</th><th>Thao tác</th></tr></thead>
-                    <tbody id="listPending"></tbody>
-                </table>
-            </div>
-            <button class="btn btn-outline" style="width:100%; margin-top:20px" onclick="closeModal()">ĐÓNG</button>
+    <div class="bottom-nav">
+        <div onclick="showSec('sec-acc')" style="text-align:center"><span>👥</span><div style="font-size:10px">Thành viên</div></div>
+        <div onclick="showSec('sec-users')" style="text-align:center"><span>📋</span><div style="font-size:10px">Đăng kí</div></div>
+        <div onclick="showSec('sec-news')" style="text-align:center"><span>📰</span><div style="font-size:10px">Bản tin</div></div>
+        <div onclick="openModal('modal-create')" style="text-align:center"><span>➕</span><div style="font-size:10px">Thêm</div></div>
+    </div>
+</div>
+
+<div class="modal" id="modal-create">
+    <div class="modal-content">
+        <h3 style="margin-top:0">Tạo tài khoản thành viên</h3>
+        <input id="newAccUser" placeholder="Tên đăng nhập">
+        <input id="newAccPass" placeholder="Mật khẩu">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <button class="btn btn-primary" style="justify-content: center" onclick="askCreateAccount()">TẠO NGAY</button>
+            <button class="btn btn-outline" style="justify-content: center" onclick="closeModal()">ĐÓNG</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="confirmModal" style="z-index: 9999;">
+    <div class="modal-content" style="max-width: 350px; text-align: center;">
+        <h3 id="confirmTitle" style="color: var(--warning)">Xác nhận?</h3>
+        <p id="confirmMsg" style="color: var(--text-dim); font-size: 14px;"></p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-outline" style="justify-content: center" onclick="closeConfirm()">HỦY</button>
+            <button class="btn btn-primary" id="confirmExecBtn" style="justify-content: center">ĐỒNG Ý</button>
         </div>
     </div>
 </div>
@@ -172,24 +243,44 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = { apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", projectId: "web-dangky-123" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+
+    // --- NAVIGATION ---
+    function showSec(id) {
+        document.querySelectorAll('.content-sec').forEach(s => s.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+        window.scrollTo(0,0);
+    }
+
+    // --- SYSTEM LOGIC ---
+    let confirmCallback = null;
+    function ask(title, msg, callback) {
+        document.getElementById("confirmTitle").innerText = title;
+        document.getElementById("confirmMsg").innerText = msg;
+        document.getElementById("confirmModal").style.display = "flex";
+        confirmCallback = callback;
+    }
+    function closeConfirm() { document.getElementById("confirmModal").style.display = "none"; }
+    document.getElementById("confirmExecBtn").onclick = () => { if(confirmCallback) confirmCallback(); closeConfirm(); };
 
     function login() {
         if(document.getElementById("adminUser").value === "admin" && document.getElementById("adminPass").value === "123") {
             document.getElementById("loginScreen").style.display = "none";
             document.getElementById("adminPanel").style.display = "block";
             initSystem();
-        } else alert("Sai thông tin!");
+        } else alert("Sai thông tin quản trị!");
     }
 
     function openModal(id) { document.getElementById(id).style.display = "flex"; }
-    function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); cancelEditNews(); }
+    function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 
-    function showToast(msg) {
+    function showToast(msg, type='success') {
         const t = document.getElementById("toast");
         t.innerText = msg;
+        t.style.background = type === 'danger' ? 'var(--danger)' : 'var(--success)';
         t.classList.add("show");
         setTimeout(() => t.classList.remove("show"), 3000);
     }
@@ -198,116 +289,110 @@
         // Tài khoản
         db.collection("accounts").onSnapshot(snap => {
             document.getElementById("s-acc").innerText = snap.size;
-            const list = document.getElementById("listAcc");
-            list.innerHTML = "";
+            const list = document.getElementById("listAcc"); list.innerHTML = "";
             snap.forEach(doc => {
                 const d = doc.data();
-                const status = getStatus(d.lastActive);
-                list.innerHTML += `<tr><td><b>${d.user}</b></td><td><code>${d.pass}</code></td><td><span class="badge ${status.class}">${status.text}</span></td><td><button class="btn btn-danger" onclick="deleteDoc('accounts', '${doc.id}')">Xóa</button></td></tr>`;
-            });
-        });
-
-        // Tin tức
-        db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
-            document.getElementById("s-news").innerText = snap.size;
-            const list = document.getElementById("listNews");
-            list.innerHTML = "";
-            snap.forEach(doc => {
-                const d = doc.data();
-                list.innerHTML += `
-                    <div class="item-row">
-                        <div class="item-content" onclick="editNews('${doc.id}', '${d.content.replace(/'/g, "\\'")}')">
-                            <div style="font-size:14px">${d.content}</div>
-                            <small style="color:var(--text-dim)">${new Date(d.time).toLocaleString('vi-VN')}</small>
+                const isOnline = d.lastActive && (Date.now() - d.lastActive < 120000);
+                const statusHtml = d.isBlocked ? `<span style="color:var(--danger)">BỊ CHẶN</span>` : (isOnline ? `<span style="color:var(--success)">ONLINE</span>` : `<span style="color:var(--text-dim)">OFFLINE</span>`);
+                
+                list.innerHTML += `<tr>
+                    <td data-label="Tài khoản"><b>${d.user}</b></td>
+                    <td data-label="Mật khẩu"><code>${d.pass}</code></td>
+                    <td data-label="Trạng thái">${statusHtml}</td>
+                    <td data-label="Thao tác">
+                        <div style="display:flex; gap:5px">
+                            <button class="btn btn-sm ${d.isBlocked ? 'btn-primary' : 'btn-warning'}" style="padding:5px 10px" onclick="toggleBlock('${doc.id}', ${d.isBlocked})">${d.isBlocked ? 'Mở' : 'Chặn'}</button>
+                            <button class="btn btn-sm btn-danger" style="padding:5px 10px" onclick="confirmAction('accounts', '${doc.id}')">Xóa</button>
                         </div>
-                        <button class="btn btn-danger" onclick="deleteDoc('news', '${doc.id}')">Xóa</button>
-                    </div>`;
+                    </td>
+                </tr>`;
             });
         });
 
-        // Đơn đăng ký
+        // Đơn chờ
         db.collection("users").onSnapshot(snap => {
             document.getElementById("s-users").innerText = snap.size;
-            const list = document.getElementById("listPending");
-            list.innerHTML = "";
+            const list = document.getElementById("listPending"); list.innerHTML = "";
             snap.forEach(doc => {
                 const d = doc.data();
-                list.innerHTML += `<tr><td>${d.name}</td><td>${d.gameId}</td><td><button class="btn btn-success" onclick="deleteDoc('users', '${doc.id}')">Duyệt</button></td></tr>`;
+                list.innerHTML += `<tr>
+                    <td data-label="Tên NV">${d.name}</td>
+                    <td data-label="ID Game">${d.gameId}</td>
+                    <td data-label="Thao tác"><button class="btn btn-primary" onclick="confirmAction('users', '${doc.id}', 'duyệt')">DUYỆT</button></td>
+                </tr>`;
             });
         });
 
-        // Bình luận (Giả định collection tên 'comments')
-        db.collection("comments").orderBy("time", "desc").onSnapshot(snap => {
-            document.getElementById("s-cmt").innerText = snap.size;
-            const list = document.getElementById("listCmts");
-            list.innerHTML = "";
+        // Bản tin
+        db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
+            document.getElementById("s-news").innerText = snap.size;
+            const list = document.getElementById("listNews"); list.innerHTML = "";
             snap.forEach(doc => {
                 const d = doc.data();
                 list.innerHTML += `
-                    <div class="item-row">
-                        <div class="item-content">
-                            <b>${d.user || 'Ẩn danh'}:</b> <span>${d.text}</span>
+                    <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:15px; margin-bottom:10px; border:1px solid var(--border)">
+                        <p style="margin:0 0 10px 0">${d.content}</p>
+                        <div style="display:flex; justify-content:space-between; align-items:center">
+                            <small style="color:var(--text-dim)">${new Date(d.time).toLocaleString('vi-VN')}</small>
+                            <div style="display:flex; gap:8px">
+                                <button class="btn btn-outline" style="padding:5px 12px" onclick="editNews('${doc.id}', '${d.content.replace(/'/g, "\\'")}')">Sửa</button>
+                                <button class="btn btn-danger" style="padding:5px 12px" onclick="confirmAction('news', '${doc.id}')">Xóa</button>
+                            </div>
                         </div>
-                        <button class="btn btn-danger" onclick="deleteDoc('comments', '${doc.id}')">Xóa</button>
                     </div>`;
             });
         });
     }
 
-    // XỬ LÝ TIN TỨC
+    function askCreateAccount() {
+        const user = document.getElementById("newAccUser").value.trim();
+        const pass = document.getElementById("newAccPass").value.trim();
+        if(!user || !pass) return showToast("Vui lòng nhập đủ!", "danger");
+        ask("Tạo tài khoản", `Xác nhận tạo người dùng "${user}"?`, () => {
+            db.collection("accounts").add({ user, pass, isBlocked: false, lastActive: null }).then(() => {
+                showToast("Đã tạo thành công!"); closeModal();
+                document.getElementById("newAccUser").value = ""; document.getElementById("newAccPass").value = "";
+            });
+        });
+    }
+
+    function toggleBlock(id, currentStatus) {
+        const action = currentStatus ? "Mở khóa" : "Chặn";
+        ask("Xác nhận", `Bạn muốn ${action.toLowerCase()} tài khoản này?`, () => {
+            db.collection("accounts").doc(id).update({ isBlocked: !currentStatus }).then(() => showToast("Đã cập nhật!"));
+        });
+    }
+
     function editNews(id, content) {
         document.getElementById("editNewsId").value = id;
         document.getElementById("newsContent").value = content;
-        document.getElementById("btnSaveNews").innerText = "LƯU CẬP NHẬT";
+        document.getElementById("btnSaveNews").innerText = "CẬP NHẬT";
         document.getElementById("btnCancelEdit").style.display = "inline-flex";
-        document.getElementById("newsTitle").innerText = "✏️ Đang sửa bản tin";
         document.getElementById("newsContent").focus();
     }
 
     function cancelEditNews() {
         document.getElementById("editNewsId").value = "";
         document.getElementById("newsContent").value = "";
-        document.getElementById("btnSaveNews").innerText = "ĐĂNG TIN MỚI";
+        document.getElementById("btnSaveNews").innerText = "LƯU BẢN TIN";
         document.getElementById("btnCancelEdit").style.display = "none";
-        document.getElementById("newsTitle").innerText = "📰 Quản lý bản tin";
     }
 
-    function saveNews() {
+    function askSaveNews() {
         const id = document.getElementById("editNewsId").value;
-        const content = document.getElementById("newsContent").value;
+        const content = document.getElementById("newsContent").value.trim();
         if(!content) return;
-
-        if(id) {
-            // Cập nhật tin cũ
-            db.collection("news").doc(id).update({
-                content: content,
-                time: Date.now()
-            }).then(() => {
-                showToast("Cập nhật thành công!");
-                cancelEditNews();
-            });
-        } else {
-            // Thêm tin mới
-            db.collection("news").add({
-                content: content,
-                time: Date.now()
-            }).then(() => {
-                showToast("Đã đăng bản tin mới!");
-                cancelEditNews();
-            });
-        }
+        ask("Bản tin", "Xác nhận đăng tin tức này?", () => {
+            const data = { content, time: Date.now() };
+            const action = id ? db.collection("news").doc(id).update(data) : db.collection("news").add(data);
+            action.then(() => { showToast("Thành công!"); cancelEditNews(); });
+        });
     }
 
-    // HELPER FUNCTIONS
-    function getStatus(ts) {
-        if(!ts) return { class: 'badge-offline', text: 'Ngoại tuyến' };
-        return (Date.now() - ts < 120000) ? { class: 'badge-online', text: 'Online' } : { class: 'badge-offline', text: 'Offline' };
-    }
-
-    function deleteDoc(col, id) {
-        if(confirm("Xác nhận xóa mục này?")) {
-            db.collection(col).doc(id).delete().then(() => showToast("Đã xóa xong!"));
-        }
+    function confirmAction(col, id, label = 'xóa') {
+        ask("Xác nhận", `Bạn có chắc muốn ${label} mục này?`, () => {
+            db.collection(col).doc(id).delete().then(() => showToast(`Đã ${label} xong!`));
+        });
     }
 </script>
 </body>
