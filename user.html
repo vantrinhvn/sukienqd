@@ -1,360 +1,1335 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>QD Mobile Ultimate v3</title>
+    <title>QD Elite - Premium Workspace v2.0</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
+        /* --- 1.1 Root Variables & Theming --- */
         :root {
-            --bg: #f8fafc;
-            --surface: #ffffff;
-            --primary: #6366f1;
-            --primary-grad: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            --text-main: #0f172a;
-            --text-dim: #64748b;
-            --border: #f1f5f9;
-            --chat-me: #6366f1;
-            --danger: #ff4757;
-            --safe-bottom: env(safe-area-inset-bottom);
+            /* Core Brand Colors */
+            --brand-primary: #4f46e5;
+            --brand-primary-hover: #4338ca;
+            --brand-primary-soft: rgba(79, 70, 229, 0.15);
+            --brand-glow: rgba(79, 70, 229, 0.3);
+
+            /* Semantic Colors */
+            --color-success: #10b981;
+            --color-success-bg: rgba(16, 185, 129, 0.1);
+            --color-danger: #ef4444;
+            --color-danger-bg: rgba(239, 68, 68, 0.1);
+            --color-warning: #f59e0b;
+            --color-warning-bg: rgba(245, 158, 11, 0.1);
+            --color-info: #0ea5e9;
+
+            /* Chat Bubble Defaults */
+            --chat-me-bg: #4f46e5;
+            --chat-me-text: #ffffff;
+
+            /* Spacing & Radii */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --radius-full: 9999px;
+
+            /* Transitions */
+            --trans-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --trans-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --trans-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Dark Theme Variables (Default) */
         [data-theme="dark"] {
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --border: #334155;
+            --bg-base: #09090b;
+            --bg-surface: #18181b;
+            --bg-elevated: #27272a;
+            --bg-hover: #3f3f46;
+            --text-strong: #fafafa;
+            --text-normal: #e4e4e7;
+            --text-muted: #a1a1aa;
+            --border-subtle: #27272a;
+            --border-strong: #3f3f46;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { 
-            margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--bg); color: var(--text-main); 
-            height: 100dvh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; 
+        /* Light Theme Variables */
+        [data-theme="light"] {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-elevated: #f1f5f9;
+            --bg-hover: #e2e8f0;
+            --text-strong: #0f172a;
+            --text-normal: #334155;
+            --text-muted: #64748b;
+            --border-subtle: #f1f5f9;
+            --border-strong: #e2e8f0;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
-        /* --- HEADER --- */
-        header { 
-            padding: 55px 20px 15px; background: var(--surface); 
-            display: flex; justify-content: space-between; align-items: center; 
-            border-bottom: 1px solid var(--border); z-index: 1000;
-        }
-        .brand { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
-        .header-actions { display: flex; gap: 10px; }
-        .icon-btn { 
-            background: var(--bg); border: 1px solid var(--border); 
-            width: 40px; height: 40px; border-radius: 12px; 
-            color: var(--text-main); cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; font-size: 18px; 
-        }
-
-        /* --- TRANG CHỦ & LỜI CHÀO --- */
-        main { flex: 1; overflow-y: auto; position: relative; }
-        .page { display: none; padding: 20px; height: 100%; animation: slideUp 0.4s ease; }
-        .page.active { display: block; }
+        /* --- 1.2 Resets & Base --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+        html { scroll-behavior: smooth; }
+        body { background-color: var(--bg-base); color: var(--text-normal); line-height: 1.6; font-size: 15px; transition: background-color var(--trans-normal), color var(--trans-normal); overflow-x: hidden; }
         
-        .welcome-card {
-            background: var(--surface); padding: 25px; border-radius: 30px;
-            text-align: center; border: 1px solid var(--border);
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 20px;
-        }
-        .greeting { font-size: 14px; font-weight: 600; color: var(--text-dim); margin-bottom: 5px; }
-        .user-name { font-size: 26px; font-weight: 800; margin: 0; background: var(--primary-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--radius-full); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-        /* --- CARDS --- */
-        .card { 
-            background: var(--surface); padding: 16px; border-radius: 22px; 
-            border: 1px solid var(--border); margin-bottom: 12px; 
-            display: flex; align-items: center; gap: 15px; transition: 0.2s;
-        }
-        .card:active { transform: scale(0.97); background: var(--bg); }
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 { color: var(--text-strong); font-weight: 700; line-height: 1.2; }
+        a { color: var(--brand-primary); text-decoration: none; transition: var(--trans-fast); }
+        a:hover { color: var(--brand-primary-hover); }
 
-        /* --- CHAT WINDOW --- */
-        #chat-window { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
-        #chat-window.active { display: flex; animation: slideInRight 0.3s ease; }
-        .chat-header { padding: 55px 15px 15px; background: var(--surface); border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 50px 1fr 50px; align-items: center; }
-        .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; }
-        .msg.me { align-self: flex-end; background: var(--chat-me); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px -3px var(--chat-me); }
-        .msg.them { align-self: flex-start; background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+        /* Utilities */
+        .flex { display: flex; }
+        .flex-col { display: flex; flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mt-1 { margin-top: 0.25rem; } .mt-2 { margin-top: 0.5rem; } .mt-4 { margin-top: 1rem; } .mt-6 { margin-top: 1.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; } .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; } .mb-8 { margin-bottom: 2rem; }
+        .gap-2 { gap: 0.5rem; } .gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; }
 
-        /* --- CHAT SETTINGS --- */
-        #chat-settings { 
-            position: absolute; top: 0; right: -100%; width: 100%; height: 100%; 
-            background: var(--surface); z-index: 2100; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
-            padding: 55px 25px 25px; 
-        }
-        #chat-settings.open { right: 0; }
-        .color-dot { width: 38px; height: 38px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
-        .color-dot.active { border-color: var(--text-main); transform: scale(1.15); }
+        /* Colors */
+        .text-primary { color: var(--brand-primary); }
+        .text-success { color: var(--color-success); }
+        .text-danger { color: var(--color-danger); }
+        .text-warning { color: var(--color-warning); }
+        .text-muted { color: var(--text-muted); }
 
-        /* --- MODAL --- */
-        #logout-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 5000;
-            display: none; align-items: center; justify-content: center; padding: 25px; backdrop-filter: blur(8px);
+        /* --- 1.3 Components: Buttons & Inputs --- */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border-radius: var(--radius-md); font-weight: 600; font-size: 15px;
+            border: none; cursor: pointer; transition: var(--trans-fast); white-space: nowrap; user-select: none;
         }
-        .modal-box {
-            background: var(--surface); width: 100%; max-width: 320px; border-radius: 30px;
-            padding: 30px; text-align: center; border: 1px solid var(--border);
-        }
-        .btn { padding: 15px; border-radius: 16px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; flex: 1; }
-        .btn-confirm { background: var(--danger); color: white; }
-        .btn-cancel { background: var(--bg); color: var(--text-main); }
+        .btn:active { transform: scale(0.96); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+        
+        .btn-primary { background-color: var(--brand-primary); color: #ffffff; box-shadow: 0 4px 14px var(--brand-glow); }
+        .btn-primary:hover:not(:disabled) { background-color: var(--brand-primary-hover); }
+        
+        .btn-outline { background-color: transparent; border: 1px solid var(--border-strong); color: var(--text-strong); }
+        .btn-outline:hover:not(:disabled) { background-color: var(--bg-hover); border-color: var(--text-muted); }
+        
+        .btn-danger { background-color: var(--color-danger-bg); color: var(--color-danger); }
+        .btn-danger:hover:not(:disabled) { background-color: var(--color-danger); color: #ffffff; }
+        
+        .btn-success { background-color: var(--color-success); color: #ffffff; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); }
 
-        /* --- TAB BAR --- */
-        .tab-bar { 
-            background: var(--surface); height: calc(70px + var(--safe-bottom)); 
-            display: flex; border-top: 1px solid var(--border); padding-bottom: var(--safe-bottom);
-        }
-        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--text-dim); font-size: 11px; font-weight: 700; }
-        .tab-item.active { color: var(--primary); }
-        .tab-item i { font-size: 20px; }
+        .btn-icon { width: 40px; height: 40px; padding: 0; border-radius: var(--radius-full); background-color: var(--bg-elevated); border: 1px solid var(--border-strong); color: var(--text-strong); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--trans-fast); }
+        .btn-icon:hover { background-color: var(--brand-primary); color: #ffffff; border-color: var(--brand-primary); }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-muted); }
+        .form-control {
+            width: 100%; padding: 14px 18px; background-color: var(--bg-base); border: 1px solid var(--border-strong);
+            border-radius: var(--radius-md); color: var(--text-strong); font-size: 15px; transition: var(--trans-fast);
+        }
+        .form-control:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 4px var(--brand-primary-soft); }
+        .form-control::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+        /* --- 1.4 Layout: App Shell --- */
+        #app-shell { display: none; min-height: 100vh; flex-direction: column; }
+        
+        .header {
+            position: sticky; top: 0; z-index: 100; padding: 16px 5%;
+            background-color: rgba(var(--bg-surface), 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-strong); display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; color: var(--text-strong); letter-spacing: -0.5px; }
+        .header-brand i { color: var(--brand-primary); font-size: 26px; }
+        .version-badge { font-size: 11px; padding: 2px 8px; background-color: var(--brand-primary-soft); color: var(--brand-primary); border-radius: var(--radius-full); font-weight: 700; margin-left: 5px; }
+
+        .app-container { max-width: 1440px; margin: 0 auto; padding: 30px 5%; width: 100%; display: grid; gap: 40px; flex: 1; }
+        
+        /* Sidebar (Desktop) */
+        .sidebar { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 100px; height: fit-content; }
+        .nav-item {
+            display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: var(--radius-md);
+            color: var(--text-muted); font-weight: 600; font-size: 15px; cursor: pointer; transition: var(--trans-fast);
+            border: 1px solid transparent; user-select: none;
+        }
+        .nav-item i { font-size: 20px; width: 24px; text-align: center; transition: transform var(--trans-fast); }
+        .nav-item:hover { background-color: var(--bg-elevated); color: var(--text-strong); }
+        .nav-item:hover i { transform: scale(1.1); }
+        .nav-item.active { background-color: var(--brand-primary); color: #ffffff; box-shadow: 0 4px 15px var(--brand-glow); }
+
+        /* Main Workspace */
+        .workspace { min-height: 500px; }
+        .view-section { display: none; animation: slideFadeUp 0.4s ease forwards; }
+        .view-section.active { display: block; }
+
+        /* Mobile Nav */
+        .mobile-nav {
+            display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+            background-color: var(--bg-surface); border-top: 1px solid var(--border-strong);
+            padding: 10px 15px; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            justify-content: space-around; box-shadow: 0 -10px 20px rgba(0,0,0,0.05);
+        }
+        .m-nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+            color: var(--text-muted); font-size: 10px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-md); transition: var(--trans-fast);
+        }
+        .m-nav-item i { font-size: 22px; }
+        .m-nav-item.active { color: var(--brand-primary); background-color: var(--brand-primary-soft); }
+
+        /* Responsive Breakpoints */
+        @media (min-width: 1024px) {
+            .app-container { grid-template-columns: 280px 1fr; }
+        }
+        @media (max-width: 1023px) {
+            .app-container { grid-template-columns: 1fr; padding-bottom: 120px; }
+            .sidebar { display: none; }
+            .mobile-nav { display: flex; }
+        }
+
+        /* --- 1.5 Cards & Common UI --- */
+        .card { background-color: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-xl); padding: 32px; margin-bottom: 30px; box-shadow: var(--shadow-sm); transition: var(--trans-normal); }
+        .card:hover { box-shadow: var(--shadow-lg); border-color: var(--border-strong); }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px; }
+        .card-title { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 12px; margin: 0; color: var(--text-strong); }
+        
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .badge-online { background-color: var(--color-success-bg); color: var(--color-success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-offline { background-color: var(--bg-elevated); color: var(--text-muted); border: 1px solid var(--border-strong); }
+        
+        .skeleton { background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%); background-size: 200% 100%; animation: skeletonLoading 1.5s infinite; border-radius: var(--radius-sm); }
+        
+        /* --- 1.6 Module: Private Chat (Complex Layout) --- */
+        .chat-module { display: flex; height: 75vh; min-height: 600px; background-color: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm); }
+        
+        /* Contact List (Left) */
+        .chat-sidebar { width: 340px; border-right: 1px solid var(--border-strong); display: flex; flex-direction: column; background-color: var(--bg-elevated); transition: transform var(--trans-normal); }
+        .chat-search-wrap { padding: 20px; border-bottom: 1px solid var(--border-strong); background-color: var(--bg-surface); }
+        .contact-list { flex: 1; overflow-y: auto; padding: 12px; }
+        
+        .contact-card { display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: var(--radius-md); cursor: pointer; transition: var(--trans-fast); border: 1px solid transparent; margin-bottom: 8px; }
+        .contact-card:hover { background-color: var(--bg-hover); }
+        .contact-card.active { background-color: var(--bg-surface); border-color: var(--brand-primary); box-shadow: inset 4px 0 0 var(--brand-primary); }
+        
+        .avatar-wrap { position: relative; }
+        .avatar { width: 48px; height: 48px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--brand-primary), #a855f7); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+        .status-indicator { position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; border-radius: var(--radius-full); border: 2.5px solid var(--bg-surface); }
+        .status-indicator.online { background-color: var(--color-success); }
+        .status-indicator.offline { background-color: var(--text-muted); }
+
+        .contact-info { flex: 1; min-width: 0; }
+        .contact-name { font-weight: 700; font-size: 15px; color: var(--text-strong); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contact-status { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Chat View (Right) */
+        .chat-main { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-base); position: relative; }
+        
+        .chat-empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-align: center; padding: 40px; }
+        .chat-empty-state i { font-size: 70px; margin-bottom: 24px; opacity: 0.1; }
+        
+        .chat-active-state { display: none; flex-direction: column; height: 100%; }
+        
+        .chat-header { padding: 16px 24px; background-color: var(--bg-surface); border-bottom: 1px solid var(--border-strong); display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); z-index: 10; }
+        .chat-target-profile { display: flex; align-items: center; gap: 16px; }
+        .btn-mobile-back { display: none; background: transparent; border: none; color: var(--text-strong); font-size: 22px; cursor: pointer; margin-right: 10px; }
+        
+        .chat-history { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; scroll-behavior: smooth; }
+        
+        .message-row { display: flex; flex-direction: column; max-width: 80%; animation: slideInUp 0.3s ease forwards; }
+        .message-row.me { align-self: flex-end; align-items: flex-end; }
+        .message-row.them { align-self: flex-start; align-items: flex-start; }
+        
+        .message-bubble { padding: 14px 20px; border-radius: 22px; font-size: 15px; line-height: 1.5; word-wrap: break-word; box-shadow: var(--shadow-sm); position: relative; }
+        .message-row.me .message-bubble { background-color: var(--chat-me-bg); color: var(--chat-me-text); border-bottom-right-radius: 4px; }
+        .message-row.them .message-bubble { background-color: var(--bg-elevated); color: var(--text-strong); border: 1px solid var(--border-strong); border-bottom-left-radius: 4px; }
+        
+        .message-meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+
+        .chat-input-wrapper { padding: 20px 30px; background-color: var(--bg-surface); border-top: 1px solid var(--border-strong); display: flex; gap: 16px; align-items: center; }
+        .chat-input-field { flex: 1; background-color: var(--bg-base); border: 1px solid var(--border-strong); border-radius: var(--radius-full); padding: 16px 24px; color: var(--text-strong); font-size: 15px; transition: var(--trans-fast); }
+        .chat-input-field:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 4px var(--brand-primary-soft); }
+        .chat-send-btn { width: 54px; height: 54px; border-radius: var(--radius-full); background-color: var(--brand-primary); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: var(--trans-fast); box-shadow: 0 4px 15px var(--brand-glow); flex-shrink: 0; }
+        .chat-send-btn:hover { background-color: var(--brand-primary-hover); transform: scale(1.05); }
+
+        /* Responsive Chat */
+        @media (max-width: 768px) {
+            .chat-module { height: calc(100vh - 160px); border-radius: var(--radius-md); }
+            .chat-sidebar { width: 100%; position: absolute; z-index: 20; height: 100%; transition: transform var(--trans-normal); }
+            .chat-sidebar.hidden { transform: translateX(-100%); }
+            .chat-main { width: 100%; }
+            .btn-mobile-back { display: block; }
+            .chat-history { padding: 20px 15px; }
+            .chat-input-wrapper { padding: 15px; }
+            .message-row { max-width: 90%; }
+        }
+
+        /* --- 1.7 Modals & Overlays --- */
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 99999; display: none; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity var(--trans-fast); }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content { background-color: var(--bg-surface); width: 100%; max-width: 440px; border-radius: var(--radius-xl); padding: 40px; border: 1px solid var(--border-strong); box-shadow: var(--shadow-modal); transform: scale(0.95); transition: transform var(--trans-fast); position: relative; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; transition: var(--trans-fast); }
+        .modal-close:hover { color: var(--color-danger); }
+
+        /* Auth Gate */
+        #auth-gate { position: fixed; inset: 0; z-index: 90000; background: radial-gradient(circle at top right, var(--bg-surface), var(--bg-base)); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-box { width: 100%; max-width: 440px; background-color: rgba(var(--bg-surface), 0.9); backdrop-filter: blur(20px); padding: 50px 40px; border-radius: var(--radius-xl); border: 1px solid var(--border-strong); text-align: center; box-shadow: var(--shadow-modal); }
+
+        /* Toasts */
+        #toast-container { position: fixed; top: 24px; right: 24px; z-index: 100000; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+        .toast { min-width: 300px; background-color: var(--bg-surface); border: 1px solid var(--border-strong); padding: 16px 24px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow-lg); transform: translateX(120%); transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); pointer-events: auto; }
+        .toast.show { transform: translateX(0); }
+        .toast-icon { font-size: 22px; }
+        .toast.success .toast-icon { color: var(--color-success); }
+        .toast.error .toast-icon { color: var(--color-danger); }
+        .toast.info .toast-icon { color: var(--color-info); }
+        .toast.warning .toast-icon { color: var(--color-warning); }
+        .toast-text { color: var(--text-strong); font-weight: 600; font-size: 14px; }
+
+        /* --- 1.8 Animations --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideFadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes skeletonLoading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="brand">QD MOBILE</div>
-        <div class="header-actions">
-            <button class="icon-btn" onclick="toggleTheme()">🌓</button>
-            <button class="icon-btn" style="color:var(--danger)" onclick="showLogout()">🔒</button>
-        </div>
-    </header>
+    <div id="toast-container"></div>
 
-    <main>
-        <div id="home" class="page active">
-            <div class="welcome-card">
-                <div id="avtHome" style="width:80px; height:80px; background:var(--primary-grad); border-radius:28px; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; color:white; font-size:32px; font-weight:800; box-shadow: 0 10px 20px rgba(99,102,241,0.3);">?</div>
-                <div class="greeting" id="txtGreeting">Chào bạn,</div>
-                <h2 class="user-name" id="txtName">Người dùng</h2>
+    <div class="modal-overlay" id="modal-logout">
+        <div class="modal-content text-center">
+            <button class="modal-close" onclick="UI.closeModal('modal-logout')"><i class="fa-solid fa-xmark"></i></button>
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-danger-bg); color: var(--color-danger); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 24px;">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </div>
+            <h2 class="mb-2">Đăng xuất hệ thống?</h2>
+            <p class="text-muted mb-8">Bạn có chắc chắn muốn kết thúc phiên làm việc hiện tại và đăng xuất không?</p>
+            <div class="flex gap-4">
+                <button class="btn btn-outline w-full" onclick="UI.closeModal('modal-logout')">Hủy bỏ</button>
+                <button class="btn btn-danger w-full" onclick="Auth.logout()">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-settings">
+        <div class="modal-content">
+            <button class="modal-close" onclick="UI.closeModal('modal-settings')"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="mb-6"><i class="fa-solid fa-sliders text-primary mr-2"></i> Cài đặt Giao diện</h2>
+            
+            <div class="form-group mb-6">
+                <label class="form-label">Màu sắc Bong bóng Chat</label>
+                <div class="flex gap-4 flex-wrap">
+                    <button style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--border-strong); background: #4f46e5; cursor: pointer; transition: 0.2s;" onclick="Theme.setChatColor('#4f46e5')" title="Indigo"></button>
+                    <button style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--border-strong); background: #10b981; cursor: pointer; transition: 0.2s;" onclick="Theme.setChatColor('#10b981')" title="Emerald"></button>
+                    <button style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--border-strong); background: #f59e0b; cursor: pointer; transition: 0.2s;" onclick="Theme.setChatColor('#f59e0b')" title="Amber"></button>
+                    <button style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--border-strong); background: #ef4444; cursor: pointer; transition: 0.2s;" onclick="Theme.setChatColor('#ef4444')" title="Red"></button>
+                    <button style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--border-strong); background: #ec4899; cursor: pointer; transition: 0.2s;" onclick="Theme.setChatColor('#ec4899')" title="Pink"></button>
+                </div>
+            </div>
+
+            <div class="form-group mb-6">
+                <label class="form-label">Chế độ Hiển thị</label>
+                <div class="flex justify-between items-center p-4 rounded" style="background-color: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-md);">
+                    <div class="flex items-center gap-2 font-semibold">
+                        <i class="fa-solid fa-moon text-primary"></i> <span id="theme-text">Giao diện Tối</span>
+                    </div>
+                    <button class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;" onclick="Theme.toggle()">
+                        <i class="fa-solid fa-rotate"></i> Chuyển đổi
+                    </button>
+                </div>
             </div>
             
-            <div class="card" style="background:var(--primary-grad); color:white; border:none; display:block">
-                <div style="font-weight:800; margin-bottom:4px">Hệ thống Quân Đoàn</div>
-                <div style="font-size:13px; opacity:0.9">Phiên bản v3.0 đã sẵn sàng. Chúc bạn có trải nghiệm tốt nhất!</div>
+            <button class="btn btn-outline w-full mt-4" onclick="UI.closeModal('modal-settings')">Đóng cài đặt</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-nickname">
+        <div class="modal-content text-center">
+            <button class="modal-close" onclick="UI.closeModal('modal-nickname')"><i class="fa-solid fa-xmark"></i></button>
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--color-warning-bg); color: var(--color-warning); display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
+                <i class="fa-solid fa-user-pen"></i>
             </div>
-        </div>
-
-        <div id="contacts" class="page">
-            <h3 style="margin:0 0 20px; font-weight:800; font-size:24px">Trò chuyện</h3>
-            <div id="contactList"></div>
-        </div>
-
-        <div id="news" class="page">
-            <h3 style="margin:0 0 20px; font-weight:800; font-size:24px">Bản tin</h3>
-            <div id="newsList"></div>
-        </div>
-    </main>
-
-    <div id="logout-modal">
-        <div class="modal-box">
-            <div style="font-size:45px; margin-bottom:15px">🚪</div>
-            <h3 style="margin:0">Đăng xuất?</h3>
-            <p style="color:var(--text-dim); font-size:14px; margin:10px 0 25px">Hành động này sẽ đưa bạn quay lại màn hình đăng nhập.</p>
-            <div style="display:flex; gap:12px">
-                <button class="btn btn-cancel" onclick="hideLogout()">Hủy</button>
-                <button class="btn btn-confirm" onclick="doLogout()">Đăng xuất</button>
+            <h2 class="mb-2">Chỉnh sửa Biệt danh</h2>
+            <p class="text-muted mb-6">Biệt danh chỉ hiển thị trên máy của bạn giúp dễ dàng ghi nhớ liên hệ.</p>
+            
+            <div class="form-group mb-6 text-left">
+                <input type="text" id="inp-nickname" class="form-control" placeholder="Nhập biệt danh mới (VD: Anh Trai, Sếp...)">
+            </div>
+            
+            <div class="flex gap-4">
+                <button class="btn btn-outline w-full" onclick="UI.closeModal('modal-nickname')">Hủy</button>
+                <button class="btn btn-primary w-full" onclick="Chat.saveNickname()">Lưu Biệt Danh</button>
             </div>
         </div>
     </div>
 
-    <div id="chat-window">
-        <div class="chat-header">
-            <button class="icon-btn" onclick="closeChat()">✕</button>
-            <div id="chatTitle" style="text-align:center; font-weight:800; font-size:17px">...</div>
-            <button class="icon-btn" onclick="openSettings()">⚙️</button>
-        </div>
-        <div class="chat-body" id="chatDisplay"></div>
-        <div style="padding:10px 15px; display:flex; gap:10px; background:var(--surface); border-top:1px solid var(--border); padding-bottom:calc(10px + var(--safe-bottom))">
-            <input type="text" id="msgInput" placeholder="Aa..." style="flex:1; padding:14px 20px; border-radius:30px; border:1px solid var(--border); background:var(--bg); color:var(--text-main); font-size:16px">
-            <button onclick="sendMsg()" style="width:48px; height:48px; border-radius:50%; background:var(--chat-me); color:white; border:none; font-size:20px">➤</button>
-        </div>
+    <div id="auth-gate">
+        <div class="auth-box">
+            <div class="flex-center mb-4" style="font-size: 42px; color: var(--brand-primary);">
+                <i class="fa-solid fa-atom"></i>
+            </div>
+            <h1 class="mb-2" style="font-size: 28px;">QD ELITE</h1>
+            <p class="text-muted mb-8">Premium Workspace Management v2.0</p>
 
-        <div id="chat-settings">
-            <div style="display:flex; align-items:center; gap:15px; margin-bottom:30px">
-                <button class="icon-btn" onclick="closeSettings()">←</button>
-                <h3 style="margin:0; font-weight:800">Tùy chỉnh chat</h3>
+            <div class="form-group">
+                <input type="text" id="login-usr" class="form-control" placeholder="Tên đăng nhập hệ thống" autocomplete="off" spellcheck="false">
             </div>
-            <div style="margin-bottom:25px">
-                <label style="display:block; font-size:11px; font-weight:800; color:var(--text-dim); margin-bottom:10px; letter-spacing:1px">BIỆT DANH</label>
-                <input type="text" id="nickInput" style="width:100%; padding:15px; border-radius:15px; border:1px solid var(--border); background:var(--bg); color:var(--text-main); font-size:16px">
+            <div class="form-group mb-8">
+                <input type="password" id="login-pwd" class="form-control" placeholder="Mật khẩu truy cập">
             </div>
-            <div>
-                <label style="display:block; font-size:11px; font-weight:800; color:var(--text-dim); margin-bottom:15px; letter-spacing:1px">MÀU CHỦ ĐỀ</label>
-                <div id="colorPicker" style="display:flex; gap:12px; flex-wrap:wrap"></div>
-            </div>
-            <button onclick="saveChatSettings()" style="width:100%; padding:18px; border-radius:20px; border:none; background:var(--primary-grad); color:white; font-weight:800; margin-top:40px; box-shadow: 0 10px 20px rgba(99,102,241,0.2)">Lưu thay đổi</button>
+
+            <button class="btn btn-primary w-full" style="padding: 18px; font-size: 16px;" id="btn-login" onclick="Auth.login()">
+                <i class="fa-solid fa-bolt"></i> ĐĂNG NHẬP HỆ THỐNG
+            </button>
         </div>
     </div>
 
-    <nav class="tab-bar">
-        <div class="tab-item active" onclick="switchTab('home', this)"><i>🏠</i><span>Trang chủ</span></div>
-        <div class="tab-item" onclick="switchTab('contacts', this)"><i>💬</i><span>Tin nhắn</span></div>
-        <div class="tab-item" onclick="switchTab('news', this)"><i>📰</i><span>Bản tin</span></div>
-    </nav>
+    <div id="app-shell">
+        
+        <header class="header">
+            <div class="header-brand">
+                <i class="fa-solid fa-atom"></i> QD PANEL
+                <span class="version-badge">v2.0 PRO</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden-mobile" id="header-user" style="display: none;">
+                    <h4 id="header-name" style="margin: 0; font-size: 15px;">Username</h4>
+                    <div class="flex items-center justify-end gap-2 text-success" style="font-size: 12px; font-weight: 700;">
+                        <i class="fa-solid fa-circle" style="font-size: 8px;"></i> Kết nối an toàn
+                    </div>
+                </div>
+                <div style="width: 1px; height: 30px; background: var(--border-strong); margin: 0 10px;"></div>
+                <button class="btn-icon" title="Cài đặt hệ thống" onclick="UI.openModal('modal-settings')">
+                    <i class="fa-solid fa-sliders"></i>
+                </button>
+                <button class="btn-icon" title="Đăng xuất" style="color: var(--color-danger); border-color: var(--color-danger-bg); background: var(--color-danger-bg);" onclick="UI.openModal('modal-logout')">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="app-container">
+            
+            <aside class="sidebar">
+                <div class="nav-item active" onclick="UI.navigate('dashboard', this)">
+                    <i class="fa-solid fa-border-all"></i> Bảng Điều Khiển
+                </div>
+                <div class="nav-item" onclick="UI.navigate('chat', this)">
+                    <i class="fa-solid fa-comments"></i> Kênh Trò Chuyện
+                </div>
+                <div class="nav-item" onclick="UI.navigate('attendance', this)">
+                    <i class="fa-solid fa-user-check"></i> Điểm Danh Ngày
+                </div>
+                <div class="nav-item" onclick="UI.navigate('registration', this)">
+                    <i class="fa-solid fa-address-card"></i> Khai Báo ID Game
+                </div>
+                <div class="nav-item" onclick="UI.navigate('news', this)">
+                    <i class="fa-solid fa-rectangle-list"></i> Bản Tin Hệ Thống
+                </div>
+            </aside>
+
+            <div class="workspace">
+
+                <section id="view-dashboard" class="view-section active">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Xin chào, <span class="text-primary" id="dash-greeting-name">User</span>!</h1>
+                            <p class="text-muted">Tổng quan dữ liệu hệ thống thời gian thực.</p>
+                        </div>
+                        <div style="background: var(--bg-surface); border: 1px solid var(--border-strong); padding: 10px 20px; border-radius: var(--radius-full); font-weight: 700; color: var(--brand-primary); font-family: monospace; font-size: 16px;">
+                            <i class="fa-regular fa-clock mr-2"></i> <span id="live-clock">00:00:00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-6">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-solid fa-bolt text-warning"></i> Thao Tác Nhanh</h3>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+                            <button class="btn btn-outline flex-col items-center justify-center gap-4" style="height: 120px;" onclick="UI.navigate('chat')">
+                                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(14, 165, 233, 0.1); color: var(--color-info); display: flex; align-items: center; justify-content: center; font-size: 22px;"><i class="fa-solid fa-message"></i></div>
+                                <span>Nhắn Tin Trực Tiếp</span>
+                            </button>
+                            <button class="btn btn-outline flex-col items-center justify-center gap-4" style="height: 120px;" onclick="UI.navigate('attendance')">
+                                <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--color-success-bg); color: var(--color-success); display: flex; align-items: center; justify-content: center; font-size: 22px;"><i class="fa-solid fa-calendar-check"></i></div>
+                                <span>Chốt Điểm Danh</span>
+                            </button>
+                            <button class="btn btn-outline flex-col items-center justify-center gap-4" style="height: 120px;" onclick="UI.navigate('registration')">
+                                <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--brand-primary-soft); color: var(--brand-primary); display: flex; align-items: center; justify-content: center; font-size: 22px;"><i class="fa-solid fa-id-badge"></i></div>
+                                <span>Cập Nhật ID Game</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-solid fa-rss text-primary"></i> Cập Nhật Gần Đây</h3>
+                        </div>
+                        <div id="dash-news-preview">
+                            <div class="skeleton" style="height: 60px; margin-bottom: 10px;"></div>
+                            <div class="skeleton" style="height: 60px;"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-chat" class="view-section">
+                    <div class="chat-module">
+                        <div class="chat-sidebar" id="chat-sidebar">
+                            <div class="chat-search-wrap">
+                                <h3 class="mb-4" style="font-size: 20px;">Trò chuyện</h3>
+                                <div style="position: relative;">
+                                    <i class="fa-solid fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                                    <input type="text" id="inp-search-contact" class="form-control" style="padding-left: 45px; border-radius: var(--radius-full);" placeholder="Tìm liên hệ..." onkeyup="Chat.filterContacts()">
+                                </div>
+                            </div>
+                            <div class="contact-list" id="contact-list-ui">
+                                <div class="contact-card"><div class="skeleton" style="width:48px; height:48px; border-radius:50%"></div><div class="flex-1"><div class="skeleton mb-2" style="height:15px; width:70%"></div><div class="skeleton" style="height:12px; width:40%"></div></div></div>
+                                <div class="contact-card"><div class="skeleton" style="width:48px; height:48px; border-radius:50%"></div><div class="flex-1"><div class="skeleton mb-2" style="height:15px; width:60%"></div><div class="skeleton" style="height:12px; width:50%"></div></div></div>
+                            </div>
+                        </div>
+
+                        <div class="chat-main" id="chat-main">
+                            
+                            <div class="chat-empty-state" id="chat-empty-ui">
+                                <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                                    <i class="fa-regular fa-paper-plane" style="font-size: 50px; color: var(--text-muted); opacity: 0.5; margin: 0;"></i>
+                                </div>
+                                <h2 class="mb-2">Kênh Trò Chuyện Kín</h2>
+                                <p>Mọi tin nhắn được bảo mật. Chọn một người dùng bên trái để bắt đầu nhắn tin.</p>
+                            </div>
+
+                            <div class="chat-active-state" id="chat-active-ui">
+                                <div class="chat-header">
+                                    <div class="chat-target-profile">
+                                        <button class="btn-mobile-back" onclick="Chat.toggleMobileSidebar()"><i class="fa-solid fa-arrow-left"></i></button>
+                                        <div class="avatar-wrap">
+                                            <div class="avatar" id="active-avt">?</div>
+                                        </div>
+                                        <div class="flex-col justify-center">
+                                            <h4 id="active-name" style="margin:0; font-size: 16px;">Target</h4>
+                                            <span id="active-status" style="font-size: 12px; color: var(--color-success); font-weight: 600;">Đang tải...</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-icon" title="Cài đặt biệt danh" onclick="Chat.openNicknameEditor()">
+                                        <i class="fa-solid fa-user-pen"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="chat-history" id="chat-history-ui">
+                                    </div>
+                                
+                                <div class="chat-input-wrapper">
+                                    <input type="text" id="inp-chat-msg" class="chat-input-field" placeholder="Nhập tin nhắn... (Enter để gửi)" onkeypress="if(event.key==='Enter') Chat.sendMsg()">
+                                    <button class="chat-send-btn" onclick="Chat.sendMsg()">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-attendance" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-solid fa-calendar-check text-success"></i> Quản Lý Chuyên Cần</h3>
+                            <span class="badge badge-online" id="att-badge-date">--/--/----</span>
+                        </div>
+                        
+                        <div class="text-center" style="padding: 40px 20px; border-bottom: 1px solid var(--border-strong); margin-bottom: 30px; background: var(--bg-elevated); border-radius: var(--radius-md);">
+                            <div id="att-status-icon" style="margin-bottom: 20px;">
+                                </div>
+                            <h2 class="mb-2" id="att-status-title">Đang kiểm tra dữ liệu...</h2>
+                            <p class="text-muted mb-6" id="att-status-desc">Vui lòng chờ trong giây lát.</p>
+                            
+                            <button class="btn btn-success" id="btn-do-att" style="padding: 18px 40px; font-size: 16px; border-radius: var(--radius-full);" onclick="App.doAttendance()" disabled>
+                                <i class="fa-solid fa-spinner fa-spin"></i> ĐANG TẢI...
+                            </button>
+                        </div>
+
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 style="font-size: 18px;">Lịch sử điểm danh toàn hệ thống</h3>
+                            <span class="text-muted" style="font-size: 13px;">Dữ liệu ngày hôm nay</span>
+                        </div>
+
+                        <div style="background: var(--bg-base); border: 1px solid var(--border-strong); border-radius: var(--radius-md); overflow: hidden;">
+                            <div id="att-history-list">
+                                <div style="padding: 20px; text-align: center; color: var(--text-muted);">Đang tải...</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-registration" class="view-section">
+                    <div class="card" style="max-width: 650px; margin: 0 auto;">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-solid fa-address-card text-primary"></i> Khai Báo Dữ Liệu Ingame</h3>
+                        </div>
+                        <div style="background: var(--color-danger-bg); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); padding: 16px; margin-bottom: 30px; display: flex; gap: 12px; align-items: flex-start;">
+                            <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size: 20px; margin-top: 2px;"></i>
+                            <div>
+                                <h4 class="text-danger mb-1" style="font-size: 15px;">Quy Định Nghiêm Ngặt</h4>
+                                <p class="text-danger" style="font-size: 13px; opacity: 0.9;">Trường ID Game là định danh duy nhất. Hệ thống chỉ chấp nhận <b>ký tự là CHỮ SỐ (0-9)</b>. Bất kỳ ký tự nào khác sẽ bị chặn và từ chối.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-6">
+                            <label class="form-label">Tên Nhân Vật Trưng Bày</label>
+                            <input type="text" id="reg-name" class="form-control" placeholder="Nhập chính xác tên nhân vật...">
+                        </div>
+                        
+                        <div class="form-group mb-8">
+                            <label class="form-label">Mã Định Danh (ID Game)</label>
+                            <input type="text" id="reg-id" class="form-control" placeholder="Chỉ nhập số (Ví dụ: 12345678)" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="font-family: monospace; font-size: 18px; letter-spacing: 2px;">
+                        </div>
+
+                        <button class="btn btn-primary w-full" style="padding: 16px; font-size: 16px;" onclick="App.sendRegistration()">
+                            <i class="fa-solid fa-paper-plane"></i> GỬI YÊU CẦU PHÊ DUYỆT
+                        </button>
+                    </div>
+                </section>
+
+                <section id="view-news" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-solid fa-bullhorn text-info"></i> Bản Tin Ban Quản Trị</h3>
+                        </div>
+                        <div class="flex-col gap-4" id="news-feed-list">
+                            <div class="skeleton" style="height: 120px; border-radius: var(--radius-md);"></div>
+                            <div class="skeleton" style="height: 120px; border-radius: var(--radius-md);"></div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <nav class="mobile-nav">
+            <div class="m-nav-item active" onclick="UI.navigate('dashboard', this, true)"><i class="fa-solid fa-border-all"></i> Trang chủ</div>
+            <div class="m-nav-item" onclick="UI.navigate('chat', this, true)"><i class="fa-solid fa-comments"></i> Tin nhắn</div>
+            <div class="m-nav-item" onclick="UI.navigate('attendance', this, true)"><i class="fa-solid fa-calendar-check"></i> Điểm danh</div>
+            <div class="m-nav-item" onclick="UI.navigate('registration', this, true)"><i class="fa-solid fa-id-badge"></i> ID Game</div>
+            <div class="m-nav-item" onclick="UI.navigate('news', this, true)"><i class="fa-solid fa-newspaper"></i> Bản tin</div>
+        </nav>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
     <script>
-        const firebaseConfig = { 
-            apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", 
-            authDomain: "web-dangky-123.firebaseapp.com", 
-            projectId: "web-dangky-123" 
+        /**
+         * -------------------------------------------------------------------
+         * 5.1 CORE CONFIGURATION & STATE MANAGEMENT
+         * -------------------------------------------------------------------
+         */
+        const firebaseConfig = {
+            apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
+            projectId: "web-dangky-123"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const currentUser = JSON.parse(localStorage.getItem("chat_user"));
-        if (!currentUser) window.location.href = "index.html";
-
-        // Logic Trang Chủ
-        function initHome() {
-            document.getElementById("txtName").innerText = currentUser.name;
-            document.getElementById("avtHome").innerText = currentUser.name.charAt(0).toUpperCase();
-            const h = new Date().getHours();
-            let g = h < 11 ? "Chào buổi sáng ☀️" : h < 18 ? "Chào buổi chiều 🌤️" : "Chào buổi tối 🌙";
-            document.getElementById("txtGreeting").innerText = g + ",";
-        }
-        initHome();
-
-        let selectedId = null;
-        let chatSnap = null;
-        let activeColor = "#6366f1";
-        const themeColors = ["#6366f1", "#ec4899", "#10b981", "#f59e0b", "#06b6d4", "#f43f5e", "#8b5cf6", "#1e293b"];
-
-        function switchTab(id, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            el.classList.add('active');
-            if(id === 'contacts') loadContacts();
-            if(id === 'news') loadNews();
-        }
-
-        function loadContacts() {
-            db.collection("accounts").get().then(snap => {
-                const list = document.getElementById("contactList");
-                const nicks = JSON.parse(localStorage.getItem("nicknames") || "{}");
-                list.innerHTML = "";
-                snap.forEach(doc => {
-                    const u = doc.data().user;
-                    if(u !== currentUser.id) {
-                        const name = nicks[u] || u;
-                        list.innerHTML += `
-                        <div class="card" onclick="openChat('${u}')">
-                            <div style="width:50px; height:50px; background:var(--primary-grad); border-radius:16px; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:20px">${name.charAt(0).toUpperCase()}</div>
-                            <div style="flex:1">
-                                <div style="font-weight:800; font-size:16px">${name}</div>
-                                <div style="font-size:12px; color:var(--text-dim)">Nhấn để bắt đầu chat</div>
-                            </div>
-                            <div style="color:var(--text-dim); font-size:18px">›</div>
-                        </div>`;
-                    }
-                });
-            });
-        }
-
-        function openChat(id) {
-            selectedId = id;
-            const nicks = JSON.parse(localStorage.getItem("nicknames") || "{}");
-            const themes = JSON.parse(localStorage.getItem("chat_themes") || "{}");
-            activeColor = themes[id] || "#6366f1";
+        // Application State Store
+        const State = {
+            currentUser: null,       // Username (String)
+            currentDocId: null,      // Document ID in 'accounts'
+            heartbeatInterval: null, // Timer for Online Presence
             
-            document.documentElement.style.setProperty('--chat-me', activeColor);
-            document.getElementById("chatTitle").innerText = nicks[id] || id;
-            document.getElementById("chat-window").classList.add("active");
-
-            if(chatSnap) chatSnap();
-            chatSnap = db.collection("messages").orderBy("time", "asc").onSnapshot(snap => {
-                const disp = document.getElementById("chatDisplay");
-                disp.innerHTML = "";
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    if((m.from === currentUser.id && m.to === id) || (m.from === id && m.to === currentUser.id)) {
-                        disp.innerHTML += `<div class="msg ${m.from === currentUser.id ? 'me' : 'them'}">${m.text}</div>`;
-                    }
-                });
-                disp.scrollTop = disp.scrollHeight;
-            });
-        }
-
-        function openSettings() {
-            const panel = document.getElementById("chat-settings");
-            panel.classList.add("open");
-            const nicks = JSON.parse(localStorage.getItem("nicknames") || "{}");
-            document.getElementById("nickInput").value = nicks[selectedId] || "";
+            chatTarget: null,        // Username of the person currently chatting with
+            usersCache: {},          // Cache {username: {lastActive, isBlocked}}
+            chatListener: null,      // Unsubscribe function for messages
             
-            const picker = document.getElementById("colorPicker");
-            picker.innerHTML = "";
-            themeColors.forEach(c => {
-                const dot = document.createElement("div");
-                dot.className = `color-dot ${c === activeColor ? 'active' : ''}`;
-                dot.style.backgroundColor = c;
-                dot.onclick = () => {
-                    activeColor = c;
-                    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-                    dot.classList.add('active');
-                };
-                picker.appendChild(dot);
-            });
-        }
+            nicknames: JSON.parse(localStorage.getItem('qd_elite_nicks') || '{}')
+        };
 
-        function saveChatSettings() {
-            const nick = document.getElementById("nickInput").value.trim();
-            const nicks = JSON.parse(localStorage.getItem("nicknames") || "{}");
-            const themes = JSON.parse(localStorage.getItem("chat_themes") || "{}");
-            
-            nicks[selectedId] = nick;
-            themes[selectedId] = activeColor;
-            
-            localStorage.setItem("nicknames", JSON.stringify(nicks));
-            localStorage.setItem("chat_themes", JSON.stringify(themes));
-            
-            document.documentElement.style.setProperty('--chat-me', activeColor);
-            document.getElementById("chatTitle").innerText = nick || selectedId;
-            closeSettings();
-            loadContacts();
-        }
+        /**
+         * -------------------------------------------------------------------
+         * 5.2 UTILITIES & HELPER FUNCTIONS
+         * -------------------------------------------------------------------
+         */
+        const Utils = {
+            /** * Toast Notification Engine (Stacks multiple toasts)
+             */
+            toast: (message, type = 'success') => {
+                const container = document.getElementById('toast-container');
+                const t = document.createElement('div');
+                t.className = `toast ${type}`;
+                
+                let iconStr = 'fa-circle-check';
+                if(type==='error') iconStr = 'fa-circle-xmark';
+                if(type==='warning') iconStr = 'fa-triangle-exclamation';
+                if(type==='info') iconStr = 'fa-circle-info';
 
-        function closeSettings() { document.getElementById("chat-settings").classList.remove("open"); }
-        function closeChat() { document.getElementById("chat-window").classList.remove("active"); if(chatSnap) chatSnap(); }
+                t.innerHTML = `
+                    <div style="flex-shrink:0"><i class="fa-solid ${iconStr} toast-icon"></i></div>
+                    <div class="toast-text">${message}</div>
+                `;
+                
+                container.appendChild(t);
+                
+                // Force reflow and trigger animation
+                setTimeout(() => t.classList.add('show'), 10);
+                
+                // Auto cleanup
+                setTimeout(() => {
+                    t.classList.remove('show');
+                    setTimeout(() => t.remove(), 400); // Wait for CSS transition
+                }, 3500);
+            },
 
-        function sendMsg() {
-            const input = document.getElementById("msgInput");
-            const txt = input.value.trim();
-            if(txt && selectedId) {
-                db.collection("messages").add({ from: currentUser.id, to: selectedId, text: txt, time: Date.now() });
-                input.value = "";
+            getTodayString: () => {
+                return new Date().toLocaleDateString('vi-VN');
+            },
+
+            // Creates a unique, consistent room ID for 1-1 chat
+            getRoomId: (userA, userB) => {
+                return [userA, userB].sort().join('_');
+            },
+
+            // Advanced Time Formatting
+            formatTimeAgo: (timestamp) => {
+                if (!timestamp || timestamp === 0) return "Chưa từng online";
+                const diffSeconds = Math.floor((Date.now() - timestamp) / 1000);
+                
+                // Threshold: 5 Minutes (300s) = Online
+                if (diffSeconds < 300) return "Đang Online";
+                
+                // Offline Formats - Yêu cầu hiển thị: Online X phút trước
+                if (diffSeconds < 3600) {
+                    const mins = Math.floor(diffSeconds/60);
+                    return `Online ${mins === 0 ? 1 : mins} phút trước`;
+                }
+                if (diffSeconds < 86400) return `Online ${Math.floor(diffSeconds/3600)} giờ trước`;
+                
+                const d = new Date(timestamp);
+                return `Online ${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
             }
-        }
+        };
 
-        function loadNews() {
-            db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
-                const list = document.getElementById("newsList");
-                list.innerHTML = "";
-                snap.forEach(doc => {
-                    const n = doc.data();
-                    list.innerHTML += `<div class="card" style="display:block; padding:20px"><div style="font-weight:800; margin-bottom:8px; font-size:17px">${n.title}</div><div style="font-size:14px; color:var(--text-dim); line-height:1.5">${n.content}</div></div>`;
+        /**
+         * -------------------------------------------------------------------
+         * 5.3 UI & THEME CONTROLLER
+         * -------------------------------------------------------------------
+         */
+        const Theme = {
+            init: () => {
+                // Restore Theme
+                const savedMode = localStorage.getItem('qd_theme_mode') || 'dark';
+                document.documentElement.setAttribute('data-theme', savedMode);
+                document.getElementById('theme-text').innerText = savedMode === 'dark' ? 'Giao diện Tối' : 'Giao diện Sáng';
+
+                // Restore Chat Color
+                const savedColor = localStorage.getItem('qd_chat_color');
+                if(savedColor) document.documentElement.style.setProperty('--chat-me-bg', savedColor);
+            },
+
+            toggle: () => {
+                const root = document.documentElement;
+                const current = root.getAttribute('data-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('qd_theme_mode', next);
+                document.getElementById('theme-text').innerText = next === 'dark' ? 'Giao diện Tối' : 'Giao diện Sáng';
+                
+                Utils.toast(`Đã áp dụng giao diện ${next === 'dark' ? 'Tối' : 'Sáng'}`, 'success');
+            },
+
+            setChatColor: (hexColor) => {
+                document.documentElement.style.setProperty('--chat-me-bg', hexColor);
+                localStorage.setItem('qd_chat_color', hexColor);
+                Utils.toast('Đã cập nhật màu sắc tin nhắn cá nhân.', 'success');
+            }
+        };
+
+        const UI = {
+            openModal: (modalId) => {
+                const modal = document.getElementById(modalId);
+                modal.style.display = 'flex';
+                // Trigger reflow for CSS transition
+                void modal.offsetWidth; 
+                modal.classList.add('active');
+            },
+            
+            closeModal: (modalId) => {
+                const modal = document.getElementById(modalId);
+                modal.classList.remove('active');
+                setTimeout(() => modal.style.display = 'none', 250); // Matches CSS duration
+            },
+
+            navigate: (viewId, element = null, isMobile = false) => {
+                // Hide all sections
+                document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+                
+                // Show target section
+                const targetView = document.getElementById(`view-${viewId}`);
+                if(targetView) targetView.classList.add('active');
+
+                // Handle Navigation active states
+                if (element) {
+                    const selectorClass = isMobile ? '.m-nav-item' : '.nav-item';
+                    document.querySelectorAll(selectorClass).forEach(n => n.classList.remove('active'));
+                    element.classList.add('active');
+
+                    // Synchronize Desktop <-> Mobile nav visually
+                    if(isMobile) {
+                        const desktopEq = document.querySelector(`.nav-item[onclick*="${viewId}"]`);
+                        if(desktopEq) {
+                            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                            desktopEq.classList.add('active');
+                        }
+                    } else {
+                        const mobileEq = document.querySelector(`.m-nav-item[onclick*="${viewId}"]`);
+                        if(mobileEq) {
+                            document.querySelectorAll('.m-nav-item').forEach(n => n.classList.remove('active'));
+                            mobileEq.classList.add('active');
+                        }
+                    }
+                } else {
+                    // Navigate via code (e.g. Quick Menu)
+                    document.querySelectorAll('.nav-item, .m-nav-item').forEach(n => n.classList.remove('active'));
+                    document.querySelector(`.nav-item[onclick*="${viewId}"]`)?.classList.add('active');
+                    document.querySelector(`.m-nav-item[onclick*="${viewId}"]`)?.classList.add('active');
+                }
+
+                // Specific View Behaviors
+                if(viewId === 'chat') {
+                    Chat.scrollToBottom();
+                    if(window.innerWidth <= 768) Chat.toggleMobileSidebar(true);
+                }
+            }
+        };
+
+        /**
+         * -------------------------------------------------------------------
+         * 5.4 AUTHENTICATION & PRESENCE
+         * -------------------------------------------------------------------
+         */
+        const Auth = {
+            login: () => {
+                const user = document.getElementById('login-usr').value.trim();
+                const pass = document.getElementById('login-pwd').value.trim();
+                const btn = document.getElementById('btn-login');
+
+                if(!user || !pass) return Utils.toast("Vui lòng điền đủ thông tin đăng nhập!", "warning");
+
+                // Loading State
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ĐANG KẾT NỐI MÁY CHỦ...`;
+                btn.disabled = true;
+
+                db.collection("accounts").where("user", "==", user).where("pass", "==", pass).get()
+                .then(snapshot => {
+                    if(snapshot.empty) {
+                        Utils.toast("Thông tin đăng nhập không chính xác!", "error");
+                        Auth.resetLoginBtn(btn);
+                    } else {
+                        const docData = snapshot.docs[0];
+                        if(docData.data().isBlocked) {
+                            Utils.toast("Tài khoản đã bị quản trị viên khóa!", "error");
+                            Auth.resetLoginBtn(btn);
+                            return;
+                        }
+
+                        // Set State
+                        State.currentUser = docData.data().user;
+                        State.currentDocId = docData.id;
+
+                        // Update Global UI
+                        document.getElementById('header-name').innerText = State.currentUser;
+                        document.getElementById('dash-greeting-name').innerText = State.currentUser;
+                        document.getElementById('header-user').style.display = 'block';
+
+                        // Transition to App
+                        document.getElementById('auth-gate').style.display = 'none';
+                        document.getElementById('app-shell').style.display = 'flex';
+                        
+                        Utils.toast(`Xác thực thành công. Xin chào ${State.currentUser}!`, "success");
+
+                        // Boot up systems
+                        Auth.startHeartbeat();
+                        App.init();
+                        Chat.init();
+                    }
+                }).catch(err => {
+                    Utils.toast("Mất kết nối CSDL!", "error");
+                    Auth.resetLoginBtn(btn);
+                    console.error("Auth Error:", err);
                 });
-            });
-        }
+            },
 
-        function showLogout() { document.getElementById("logout-modal").style.display = "flex"; }
-        function hideLogout() { document.getElementById("logout-modal").style.display = "none"; }
-        function doLogout() { localStorage.removeItem("chat_user"); window.location.href = "index.html"; }
-        function toggleTheme() {
-            const body = document.body;
-            const current = body.getAttribute("data-theme");
-            body.setAttribute("data-theme", current === "dark" ? "light" : "dark");
-        }
+            resetLoginBtn: (btn) => {
+                btn.innerHTML = `<i class="fa-solid fa-bolt"></i> ĐĂNG NHẬP HỆ THỐNG`;
+                btn.disabled = false;
+            },
 
-        document.getElementById("msgInput").onkeypress = (e) => { if(e.key === "Enter") sendMsg(); };
+            logout: () => {
+                if(State.heartbeatInterval) clearInterval(State.heartbeatInterval);
+                
+                // Attempt to set offline immediately before reload
+                if(State.currentDocId) {
+                    db.collection("accounts").doc(State.currentDocId).update({ lastActive: 0 })
+                    .finally(() => location.reload());
+                } else {
+                    location.reload();
+                }
+            },
+
+            startHeartbeat: () => {
+                const emitPresence = () => {
+                    if(State.currentDocId) {
+                        db.collection("accounts").doc(State.currentDocId).update({
+                            lastActive: Date.now()
+                        });
+                    }
+                };
+                emitPresence(); // First call
+                State.heartbeatInterval = setInterval(emitPresence, 60000); // 1-minute interval
+            }
+        };
+
+        /**
+         * -------------------------------------------------------------------
+         * 5.5 CHAT MODULE (1-1 REALTIME)
+         * -------------------------------------------------------------------
+         */
+        const Chat = {
+            init: () => {
+                // 1. Sync Contact List
+                db.collection("accounts").onSnapshot(snapshot => {
+                    const listContainer = document.getElementById('contact-list-ui');
+                    listContainer.innerHTML = "";
+                    State.usersCache = {}; // Clear Cache
+                    
+                    let count = 0;
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if(data.user !== State.currentUser) {
+                            count++;
+                            State.usersCache[data.user] = data.lastActive; // Cache for UI updates
+                            
+                            // Calculate UI
+                            const isOnline = (Date.now() - (data.lastActive || 0)) < 300000;
+                            const displayName = State.nicknames[data.user] || data.user;
+                            const isActive = State.chatTarget === data.user ? 'active' : '';
+
+                            listContainer.innerHTML += `
+                                <div class="contact-card ${isActive}" data-search="${displayName.toLowerCase()}" onclick="Chat.selectTarget('${data.user}')">
+                                    <div class="avatar-wrap">
+                                        <div class="avatar">${displayName.charAt(0).toUpperCase()}</div>
+                                        <div class="status-indicator ${isOnline ? 'online' : 'offline'}"></div>
+                                    </div>
+                                    <div class="contact-info">
+                                        <div class="contact-name">${displayName}</div>
+                                        <div class="contact-status">${Utils.formatTimeAgo(data.lastActive)}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    if(count === 0) listContainer.innerHTML = `<div class="text-center text-muted mt-4">Không có liên hệ.</div>`;
+                    
+                    // Update active chat header if open
+                    if(State.chatTarget) Chat.updateActiveHeaderUI();
+                });
+
+                // 2. Local Timer to update "X mins ago" strings without Firebase reads
+                setInterval(() => {
+                    if(State.chatTarget) Chat.updateActiveHeaderUI();
+                }, 30000);
+            },
+
+            filterContacts: () => {
+                const keyword = document.getElementById('inp-search-contact').value.toLowerCase();
+                document.querySelectorAll('.contact-card').forEach(el => {
+                    const targetName = el.getAttribute('data-search');
+                    el.style.display = targetName.includes(keyword) ? 'flex' : 'none';
+                });
+            },
+
+            selectTarget: (targetUsername) => {
+                State.chatTarget = targetUsername;
+                
+                // 1. UI Contact List Highlight
+                document.querySelectorAll('.contact-card').forEach(el => el.classList.remove('active'));
+                const displayName = State.nicknames[targetUsername] || targetUsername;
+                const targetCard = document.querySelector(`.contact-card[data-search="${displayName.toLowerCase()}"]`);
+                if(targetCard) targetCard.classList.add('active');
+
+                // 2. UI Switch Panels
+                document.getElementById('chat-empty-ui').style.display = 'none';
+                document.getElementById('chat-active-ui').style.display = 'flex';
+                
+                // Handle Mobile overlap
+                if(window.innerWidth <= 768) {
+                    Chat.toggleMobileSidebar(false);
+                }
+
+                // 3. Setup Header & Load DB
+                Chat.updateActiveHeaderUI();
+                Chat.loadConversation();
+            },
+
+            updateActiveHeaderUI: () => {
+                if(!State.chatTarget) return;
+                
+                const displayName = State.nicknames[State.chatTarget] || State.chatTarget;
+                const lastTimestamp = State.usersCache[State.chatTarget];
+                const isOnline = (Date.now() - (lastTimestamp || 0)) < 300000;
+
+                document.getElementById('active-name').innerText = displayName;
+                document.getElementById('active-avt').innerText = displayName.charAt(0).toUpperCase();
+                
+                const statusEl = document.getElementById('active-status');
+                statusEl.innerText = Utils.formatTimeAgo(lastTimestamp);
+                statusEl.style.color = isOnline ? 'var(--color-success)' : 'var(--text-muted)';
+            },
+
+            openNicknameEditor: () => {
+                if(!State.chatTarget) return;
+                document.getElementById('inp-nickname').value = State.nicknames[State.chatTarget] || '';
+                UI.openModal('modal-nickname');
+            },
+
+            saveNickname: () => {
+                const newVal = document.getElementById('inp-nickname').value.trim();
+                if(newVal) {
+                    State.nicknames[State.chatTarget] = newVal;
+                } else {
+                    delete State.nicknames[State.chatTarget]; // Remove if empty
+                }
+                
+                localStorage.setItem('qd_elite_nicks', JSON.stringify(State.nicknames));
+                UI.closeModal('modal-nickname');
+                Utils.toast("Đã lưu Biệt danh!", "success");
+                
+                // Re-init Contact list & Header to reflect changes
+                Chat.init(); 
+            },
+
+            loadConversation: () => {
+                // Cleanup previous listener
+                if(State.chatListener) State.chatListener();
+
+                const roomId = Utils.getRoomId(State.currentUser, State.chatTarget);
+                const historyBox = document.getElementById('chat-history-ui');
+                
+                // Loading state
+                historyBox.innerHTML = `
+                    <div class="flex-col items-center justify-center h-full text-muted gap-4">
+                        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 30px;"></i>
+                        <span>Đang đồng bộ tin nhắn...</span>
+                    </div>
+                `;
+
+                // Bản vá lỗi Firebase (Loại bỏ orderBy để tự sort bằng JS, tránh lỗi Requires Index)
+                State.chatListener = db.collection("private_chat")
+                    .where("conversationId", "==", roomId)
+                    .onSnapshot(snapshot => {
+                        historyBox.innerHTML = "";
+                        
+                        if(snapshot.empty) {
+                            historyBox.innerHTML = `
+                                <div class="flex-col items-center justify-center h-full text-muted gap-2">
+                                    <i class="fa-regular fa-comment-dots" style="font-size: 40px; opacity: 0.3;"></i>
+                                    <span>Cuộc trò chuyện mới. Hãy gửi lời chào!</span>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        // Sắp xếp tin nhắn bằng JS theo timestamp để hiển thị đúng thứ tự
+                        let messages = [];
+                        snapshot.forEach(doc => messages.push(doc.data()));
+                        messages.sort((a, b) => a.time - b.time);
+
+                        messages.forEach(data => {
+                            const isMe = data.from === State.currentUser;
+                            const timeFormatted = new Date(data.time).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+                            
+                            historyBox.innerHTML += `
+                                <div class="message-row ${isMe ? 'me' : 'them'}">
+                                    <div class="message-bubble">${data.text}</div>
+                                    <div class="message-meta">${timeFormatted}</div>
+                                </div>
+                            `;
+                        });
+                        
+                        Chat.scrollToBottom();
+                    }, error => {
+                        console.error("Lỗi đồng bộ tin nhắn:", error);
+                        historyBox.innerHTML = `<div class="text-danger text-center mt-4">Mất kết nối máy chủ chat. Vui lòng thử lại.</div>`;
+                    });
+            },
+
+            sendMsg: () => {
+                const inpField = document.getElementById('inp-chat-msg');
+                const content = inpField.value.trim();
+                
+                if(!content || !State.chatTarget) return;
+
+                // Optimistic UI clear
+                inpField.value = "";
+                
+                const roomId = Utils.getRoomId(State.currentUser, State.chatTarget);
+
+                db.collection("private_chat").add({
+                    conversationId: roomId,
+                    from: State.currentUser,
+                    to: State.chatTarget,
+                    text: content,
+                    time: Date.now()
+                }).catch(err => {
+                    Utils.toast("Tin nhắn gửi lỗi. Thử lại sau.", "error");
+                    console.error("Chat Error:", err);
+                });
+            },
+
+            scrollToBottom: () => {
+                const box = document.getElementById('chat-history-ui');
+                box.scrollTop = box.scrollHeight;
+            },
+
+            toggleMobileSidebar: (forceShow = false) => {
+                const sidebar = document.getElementById('chat-sidebar');
+                if(forceShow) {
+                    sidebar.classList.remove('hidden');
+                } else {
+                    sidebar.classList.toggle('hidden');
+                }
+            }
+        };
+
+        /**
+         * -------------------------------------------------------------------
+         * 5.6 APPLICATION BUSINESS LOGIC (App)
+         * Attendance, Registration, News
+         * -------------------------------------------------------------------
+         */
+        const App = {
+            hasCheckedInToday: false,
+
+            init: () => {
+                // Clock Engine
+                setInterval(() => {
+                    document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('vi-VN');
+                }, 1000);
+
+                // --- 1. ATTENDANCE SYSTEM ---
+                const todayStr = Utils.getTodayString();
+                document.getElementById('att-badge-date').innerText = todayStr;
+
+                // Sync Personal Attendance Status
+                db.collection("attendance")
+                    .where("date", "==", todayStr)
+                    .where("userName", "==", State.currentUser)
+                    .onSnapshot(snap => {
+                        App.hasCheckedInToday = !snap.empty;
+                        App.evaluateAttendanceState();
+                    });
+
+                // Routine Time Checker (Every second)
+                setInterval(App.evaluateAttendanceState, 1000);
+
+                // Sync Global Attendance List
+                db.collection("attendance")
+                    .where("date", "==", todayStr)
+                    .orderBy("timestamp", "desc")
+                    .onSnapshot(snap => {
+                        const listWrap = document.getElementById('att-history-list');
+                        listWrap.innerHTML = "";
+                        
+                        if(snap.empty) {
+                            listWrap.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--text-muted);">Hệ thống chưa ghi nhận ai điểm danh hôm nay.</div>`;
+                            return;
+                        }
+
+                        snap.forEach(doc => {
+                            const d = doc.data();
+                            listWrap.innerHTML += `
+                                <div class="flex justify-between items-center" style="padding: 16px 20px; border-bottom: 1px solid var(--border-strong);">
+                                    <div class="flex items-center gap-4">
+                                        <div style="width:36px; height:36px; border-radius:50%; background:var(--color-success-bg); color:var(--color-success); display:flex; align-items:center; justify-content:center; font-weight:700;">
+                                            ${d.userName.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span style="font-weight: 600; color: var(--text-strong);">${d.userName}</span>
+                                    </div>
+                                    <span class="badge badge-offline"><i class="fa-regular fa-clock"></i> ${d.time}</span>
+                                </div>
+                            `;
+                        });
+                    });
+
+                // --- 2. NEWS FEED SYSTEM ---
+                db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
+                    const fullList = document.getElementById('news-feed-list');
+                    const dashPreview = document.getElementById('dash-news-preview');
+                    
+                    fullList.innerHTML = "";
+                    
+                    if(snap.empty) {
+                        const emptyHtml = `<div class="text-center text-muted" style="padding: 40px; background: var(--bg-elevated); border-radius: var(--radius-md);">Chưa có bản tin nào được phát hành.</div>`;
+                        fullList.innerHTML = emptyHtml;
+                        dashPreview.innerHTML = emptyHtml;
+                        return;
+                    }
+
+                    let isFirst = true;
+
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        const dateObj = new Date(d.time);
+                        const timeStr = `${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')} - ${dateObj.toLocaleDateString('vi-VN')}`;
+                        
+                        // Full view render
+                        fullList.innerHTML += `
+                            <div style="background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 24px; border-left: 4px solid var(--color-info);">
+                                <div class="flex items-center gap-2 mb-4" style="font-size: 13px; color: var(--text-muted); font-weight: 600;">
+                                    <i class="fa-solid fa-bullhorn text-info"></i> BAN QUẢN TRỊ &bull; ${timeStr}
+                                </div>
+                                <div style="font-size: 15px; color: var(--text-strong); white-space: pre-wrap; line-height: 1.7;">${d.content}</div>
+                            </div>
+                        `;
+
+                        // Dashboard Preview Render
+                        if(isFirst) {
+                            dashPreview.innerHTML = `
+                                <div style="background: var(--color-info); color: #fff; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; display: inline-block; margin-bottom: 12px;">MỚI NHẤT</div>
+                                <div style="color: var(--text-strong); font-size: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px;">${d.content}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${timeStr}</div>
+                            `;
+                            isFirst = false;
+                        }
+                    });
+                });
+            },
+
+            /**
+             * Core Logic: Time-gated Attendance (09:00:00 - 09:59:59)
+             */
+            evaluateAttendanceState: () => {
+                const currentHour = new Date().getHours();
+                const isWithinWindow = (currentHour === 9); // strictly 9:xx
+
+                const btn = document.getElementById('btn-do-att');
+                const iconWrap = document.getElementById('att-status-icon');
+                const title = document.getElementById('att-status-title');
+                const desc = document.getElementById('att-status-desc');
+
+                // Case 1: Already Checked In
+                if (App.hasCheckedInToday) {
+                    btn.disabled = true;
+                    btn.className = 'btn btn-outline'; // Remove heavy colors
+                    btn.style.color = 'var(--color-success)';
+                    btn.style.borderColor = 'var(--color-success)';
+                    btn.innerHTML = `<i class="fa-solid fa-check-double"></i> ĐÃ HOÀN THÀNH`;
+                    
+                    iconWrap.innerHTML = `<i class="fa-solid fa-shield-check" style="font-size: 70px; color: var(--color-success);"></i>`;
+                    title.innerText = "Điểm danh hoàn tất";
+                    title.style.color = "var(--color-success)";
+                    desc.innerText = "Hệ thống đã ghi nhận sự có mặt của bạn. Xin cảm ơn!";
+                    return;
+                }
+
+                // Case 2: Time Window Closed (Missed or Too Early)
+                if (!isWithinWindow) {
+                    btn.disabled = true;
+                    btn.className = 'btn btn-danger';
+                    btn.innerHTML = `<i class="fa-solid fa-lock"></i> HỆ THỐNG ĐÃ ĐÓNG`;
+                    
+                    iconWrap.innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="font-size: 70px; color: var(--color-danger);"></i>`;
+                    title.innerText = "Chưa đến thời gian";
+                    title.style.color = "var(--color-danger)";
+                    desc.innerHTML = `Quy định: Chỉ được phép điểm danh trong khung giờ <strong style="color: var(--color-danger)">09:00 đến 10:00</strong> sáng.`;
+                    return;
+                }
+
+                // Case 3: Time Window Open & Not Checked In
+                btn.disabled = false;
+                btn.className = 'btn btn-success';
+                btn.style.animation = 'pulseAlert 2s infinite';
+                btn.innerHTML = `<i class="fa-solid fa-fingerprint"></i> THỰC HIỆN ĐIỂM DANH NGAY`;
+                
+                iconWrap.innerHTML = `<i class="fa-solid fa-fingerprint" style="font-size: 70px; color: var(--brand-primary);"></i>`;
+                title.innerText = "Hệ thống đang mở";
+                title.style.color = "var(--text-strong)";
+                desc.innerText = "Bạn chưa điểm danh. Hãy bấm nút bên dưới để xác nhận có mặt.";
+            },
+
+            doAttendance: () => {
+                // Secondary Backend-like check
+                if (new Date().getHours() !== 9) return Utils.toast("Lỗi thao tác: Ngoài khung giờ cho phép!", "error");
+
+                const btn = document.getElementById('btn-do-att');
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ĐANG GỬI DỮ LIỆU...`;
+                btn.style.animation = 'none';
+
+                db.collection("attendance").add({
+                    userId: State.currentDocId,
+                    userName: State.currentUser,
+                    time: new Date().toLocaleTimeString('vi-VN'),
+                    date: Utils.getTodayString(),
+                    timestamp: Date.now()
+                }).then(() => {
+                    Utils.toast("Xác nhận điểm danh thành công!", "success");
+                }).catch(err => {
+                    Utils.toast("Lỗi hệ thống CSDL.", "error");
+                    console.error("Attendance Error:", err);
+                    App.evaluateAttendanceState(); // Restore state
+                });
+            },
+
+            sendRegistration: () => {
+                const nameInp = document.getElementById('reg-name');
+                const idInp = document.getElementById('reg-id');
+                const name = nameInp.value.trim();
+                const gameId = idInp.value.trim();
+
+                if(!name || !gameId) return Utils.toast("Dữ liệu trống! Vui lòng điền đủ Form.", "warning");
+                
+                // Final Security Regex check for numbers only
+                if(!/^\d+$/.test(gameId)) {
+                    idInp.value = ""; // Clear malicious input
+                    return Utils.toast("CẢNH BÁO: ID Game bắt buộc phải là Số!", "error");
+                }
+
+                // Proceed with submission
+                db.collection("users").add({
+                    name: name,
+                    gameId: gameId,
+                    submitter: State.currentUser,
+                    timestamp: Date.now()
+                }).then(() => {
+                    Utils.toast("Hồ sơ đã được gửi chờ Ban Quản Trị duyệt!", "success");
+                    nameInp.value = "";
+                    idInp.value = "";
+                }).catch(err => {
+                    Utils.toast("Đường truyền không ổn định.", "error");
+                });
+            }
+        };
+
+        // --- 6.8 BOOTSTRAP APP ---
+        // Initialize Theme Configurations immediately
+        Theme.init();
+
     </script>
 </body>
 </html>
