@@ -2,8 +2,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>QD Mobile - Ultimate Version</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+    <title>QD Mobile - Pro Version</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -30,7 +30,7 @@
             --bubble-them: #1e293b;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; transition: background 0.3s, color 0.3s; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; transition: background 0.3s, color 0.2s; }
 
         body {
             margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
@@ -38,92 +38,85 @@
             height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* MOBILE HEADER */
+        /* HEADER */
         header {
             padding: 50px 20px 20px; background: var(--surface);
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border); flex-shrink: 0;
         }
         .brand { font-size: 22px; font-weight: 800; letter-spacing: -1px; color: var(--primary); }
         .header-actions { display: flex; gap: 12px; }
         
-        /* ĐÃ SỬA LỖI Ở ĐÂY */
         .icon-btn { 
             background: var(--bg); border: none; min-width: 40px; height: 40px; padding: 0 12px;
             border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 15px; font-weight: 600; font-family: inherit;
-            color: var(--text-main); /* Thêm dòng này để màu chữ tự đổi theo theme */
+            cursor: pointer; font-size: 15px; font-weight: 600; color: var(--text-main);
         }
 
-        /* MAIN CONTENT AREA */
+        /* MAIN AREA */
         main { flex: 1; overflow-y: auto; position: relative; }
-        .page { display: none; padding: 20px; height: 100%; animation: slideIn 0.3s ease-out; }
+        .page { display: none; padding: 20px; height: 100%; animation: slideIn 0.2s ease-out; }
         .page.active { display: block; }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* USER LIST STYLE */
+        /* CONTACTS */
         .user-card {
             background: var(--surface); padding: 16px; border-radius: 20px;
             display: flex; align-items: center; gap: 15px; margin-bottom: 12px;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); cursor: pointer;
         }
-        .user-card:active { transform: scale(0.98); }
         .avatar-circle {
             width: 50px; height: 50px; border-radius: 18px; background: var(--primary-grad);
             display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;
         }
 
-        /* CHAT INTERFACE FULL SCREEN */
+        /* CHAT WINDOW - FIX KEYBOARD ISSUE */
         #chat-window {
             position: fixed; inset: 0; background: var(--bg); z-index: 1000;
-            display: none; flex-direction: column;
+            display: none; flex-direction: column; height: 100dvh; /* Sử dụng dvh để co giãn theo bàn phím */
         }
         #chat-window.active { display: flex; }
         
         .chat-header {
             padding: 50px 20px 15px; background: var(--surface); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; gap: 15px;
+            display: flex; align-items: center; gap: 15px; flex-shrink: 0;
         }
-        .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
         
-        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; }
+        .chat-body { 
+            flex: 1; overflow-y: auto; padding: 20px; 
+            display: flex; flex-direction: column; gap: 10px;
+            scroll-behavior: smooth;
+        }
+        
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; }
         .msg.me { align-self: flex-end; background: var(--bubble-me); color: white; border-bottom-right-radius: 4px; }
-        .msg.them { align-self: flex-start; background: var(--bubble-them); color: var(--text-main); border-bottom-left-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .msg.them { align-self: flex-start; background: var(--bubble-them); color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
 
         .msg-input-container {
-            padding: 15px 20px calc(15px + var(--safe-bottom)); background: var(--surface);
+            padding: 10px 20px calc(15px + var(--safe-bottom)); 
+            background: var(--surface);
             display: flex; gap: 12px; border-top: 1px solid var(--border);
+            flex-shrink: 0; /* Không cho phép thanh input bị co mất */
         }
         .msg-input-container input {
             flex: 1; background: var(--bg); border: 1px solid var(--border);
-            padding: 12px 20px; border-radius: 25px; color: var(--text-main);
+            padding: 12px 20px; border-radius: 25px; color: var(--text-main); font-size: 16px; /* 16px ngăn iOS tự zoom */
         }
 
-        /* BOTTOM TAB BAR */
+        /* TAB BAR */
         .tab-bar {
             background: var(--surface); height: calc(70px + var(--safe-bottom));
             display: flex; justify-content: space-around; align-items: center;
-            padding-bottom: var(--safe-bottom); border-top: 1px solid var(--border);
+            padding-bottom: var(--safe-bottom); border-top: 1px solid var(--border); flex-shrink: 0;
         }
         .tab-item {
             display: flex; flex-direction: column; align-items: center; gap: 4px;
             color: var(--text-dim); font-size: 11px; font-weight: 600; width: 25%;
         }
         .tab-item.active { color: var(--primary); }
-        .tab-item span:first-child { font-size: 22px; }
 
-        /* WELCOME SECTION */
-        .hero { text-align: center; margin-top: 40px; }
-        .profile-badge { 
-            width: 100px; height: 100px; margin: 0 auto 20px; border-radius: 35px;
-            background: var(--primary-grad); display: flex; align-items: center; justify-content: center;
-            font-size: 40px; color: white; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
-        }
-
-        /* NEWS */
-        .news-card { background: var(--surface); padding: 20px; border-radius: 24px; margin-bottom: 15px; }
-
+        /* MODAL */
         #logoutModal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
             z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px;
@@ -143,37 +136,37 @@
 
     <main>
         <div id="home" class="page active">
-            <div class="hero">
-                <div class="profile-badge" id="avatarImg">?</div>
+            <div style="text-align: center; margin-top: 30px;">
+                <div class="avatar-circle" id="avatarImg" style="width: 80px; height: 80px; margin: 0 auto 15px; font-size: 30px; border-radius: 25px; box-shadow: 0 10px 20px rgba(79,70,229,0.3);">?</div>
                 <h2 id="userName" style="margin: 0;">-</h2>
-                <p style="color: var(--text-dim); margin-top: 5px;">Hệ thống đã kết nối</p>
+                <p style="color: var(--text-dim);">Phiên bản 2.0 đã sẵn sàng</p>
             </div>
-            <div style="margin-top: 40px; background: var(--primary-grad); padding: 25px; border-radius: 30px; color: white;">
+            <div style="margin-top: 30px; background: var(--primary-grad); padding: 25px; border-radius: 25px; color: white;">
                 <h3 style="margin: 0 0 10px;">Xin chào!</h3>
-                <p style="margin: 0; opacity: 0.9; font-size: 14px;">Chúc bạn một ngày làm việc hiệu quả cùng Quân Đoàn.</p>
+                <p style="margin: 0; opacity: 0.9; font-size: 14px;">Hệ thống tin nhắn quân đoàn đã được mã hóa bảo mật.</p>
             </div>
         </div>
 
         <div id="contacts" class="page">
-            <h3 style="margin-bottom: 20px;">Hội thoại</h3>
+            <h3 style="margin-bottom: 20px;">Tin nhắn</h3>
             <div id="contactList"></div>
         </div>
 
         <div id="news" class="page">
-            <h3 style="margin-bottom: 20px;">Bản tin</h3>
+            <h3 style="margin-bottom: 20px;">Thông báo</h3>
             <div id="newsFeed"></div>
         </div>
     </main>
 
     <div id="chat-window">
         <div class="chat-header">
-            <button class="icon-btn" onclick="closeChat()">Trở lại</button>
-            <div style="font-weight: 700;" id="chattingWithText">Tên người dùng</div>
+            <button class="icon-btn" onclick="closeChat()">✕</button>
+            <div style="font-weight: 700; font-size: 17px;" id="chattingWithText">Người dùng</div>
         </div>
         <div class="chat-body" id="chatDisplay"></div>
         <div class="msg-input-container">
-            <input type="text" id="msgInput" placeholder="Aa..." onkeypress="if(event.key==='Enter') sendMsg()">
-            <button onclick="sendMsg()" style="background: var(--primary-grad); border: none; width: 45px; height: 45px; border-radius: 15px; color: white;">➤</button>
+            <input type="text" id="msgInput" placeholder="Nhập tin nhắn..." autocomplete="off">
+            <button onclick="sendMsg()" style="background: var(--primary-grad); border: none; width: 48px; height: 48px; border-radius: 16px; color: white; flex-shrink: 0;">➤</button>
         </div>
     </div>
 
@@ -197,6 +190,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
+    // 1. Cấu hình Firebase
     const firebaseConfig = { 
         apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", 
         authDomain: "web-dangky-123.firebaseapp.com", 
@@ -205,12 +199,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // 2. Kiểm tra Đăng nhập
     const currentUser = JSON.parse(localStorage.getItem("chat_user"));
     if (!currentUser) { window.location.href = "index.html"; }
 
     document.getElementById("userName").innerText = currentUser.name;
     document.getElementById("avatarImg").innerText = currentUser.name.charAt(0).toUpperCase();
 
+    // 3. Chuyển Tab
     function switchTab(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
@@ -220,12 +216,23 @@
         if(id === 'news') loadNews();
     }
 
+    // 4. Quản lý Theme & Logout
+    function toggleTheme() {
+        const theme = document.body.getAttribute("data-theme") === "light" ? "dark" : "light";
+        document.body.setAttribute("data-theme", theme);
+        localStorage.setItem("theme", theme);
+    }
+    document.body.setAttribute("data-theme", localStorage.getItem("theme") || "light");
+
     function openLogout() { document.getElementById("logoutModal").style.display = "flex"; }
     function closeLogout() { document.getElementById("logoutModal").style.display = "none"; }
     function confirmLogout() { localStorage.removeItem("chat_user"); window.location.href = "index.html"; }
 
+    // 5. Xử lý Chat
     let selectedChat = "";
     let chatSub = null;
+    const chatDisplay = document.getElementById("chatDisplay");
+    const msgInput = document.getElementById("msgInput");
 
     function loadContacts() {
         db.collection("accounts").onSnapshot(snap => {
@@ -239,7 +246,7 @@
                         <div class="avatar-circle">${u.charAt(0).toUpperCase()}</div>
                         <div style="flex:1">
                             <div style="font-weight:700">${u}</div>
-                            <div style="font-size:12px; color:var(--text-dim)">Nhấn để bắt đầu chat</div>
+                            <div style="font-size:12px; color:var(--text-dim)">Nhấn để bắt đầu trò chuyện</div>
                         </div>
                     </div>`;
                 }
@@ -253,28 +260,55 @@
         document.getElementById("chat-window").classList.add("active");
         
         if(chatSub) chatSub();
-        const display = document.getElementById("chatDisplay");
         chatSub = db.collection("messages").orderBy("time", "asc").onSnapshot(snap => {
-            display.innerHTML = "";
+            chatDisplay.innerHTML = "";
             snap.forEach(doc => {
                 let m = doc.data();
                 if((m.from === currentUser.id && m.to === selectedChat) || (m.from === selectedChat && m.to === currentUser.id)) {
-                    display.innerHTML += `<div class="msg ${m.from === currentUser.id ? 'me' : 'them'}">${m.text}</div>`;
+                    chatDisplay.innerHTML += `<div class="msg ${m.from === currentUser.id ? 'me' : 'them'}">${m.text}</div>`;
                 }
             });
-            display.scrollTop = display.scrollHeight;
+            scrollToBottom();
         });
     }
 
-    function closeChat() { document.getElementById("chat-window").classList.remove("active"); }
-
-    function sendMsg() {
-        const inp = document.getElementById("msgInput");
-        if(!inp.value.trim() || !selectedChat) return;
-        db.collection("messages").add({ from: currentUser.id, to: selectedChat, text: inp.value.trim(), time: Date.now() });
-        inp.value = "";
+    function closeChat() { 
+        document.getElementById("chat-window").classList.remove("active"); 
+        if(chatSub) chatSub();
     }
 
+    function sendMsg() {
+        const val = msgInput.value.trim();
+        if(!val || !selectedChat) return;
+        
+        db.collection("messages").add({ 
+            from: currentUser.id, 
+            to: selectedChat, 
+            text: val, 
+            time: Date.now() 
+        });
+        
+        msgInput.value = "";
+        msgInput.focus();
+        scrollToBottom();
+    }
+
+    // Tự động cuộn xuống cuối
+    function scrollToBottom() {
+        chatDisplay.scrollTop = chatDisplay.scrollHeight;
+    }
+
+    // Xử lý sự kiện bàn phím
+    msgInput.addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') sendMsg();
+    });
+
+    // Quan trọng: Khi click vào ô input trên mobile, đợi bàn phím hiện lên rồi cuộn xuống
+    msgInput.addEventListener('focus', () => {
+        setTimeout(scrollToBottom, 300);
+    });
+
+    // 6. Tải Bản Tin
     function loadNews() {
         db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
             const feed = document.getElementById("newsFeed");
@@ -282,20 +316,13 @@
             snap.forEach(doc => {
                 let n = doc.data();
                 feed.innerHTML += `
-                    <div class="news-card">
-                        <div style="font-size:11px; color:var(--primary); font-weight:800; margin-bottom:10px;">SYSTEM UPDATE</div>
+                    <div style="background:var(--surface); padding:20px; border-radius:20px; margin-bottom:15px; border:1px solid var(--border);">
+                        <div style="font-size:11px; color:var(--primary); font-weight:800; margin-bottom:8px;">THÔNG BÁO HỆ THỐNG</div>
                         <div style="font-size:14px; line-height:1.6;">${n.content}</div>
                     </div>`;
             });
         });
     }
-
-    function toggleTheme() {
-        const theme = document.body.getAttribute("data-theme") === "light" ? "dark" : "light";
-        document.body.setAttribute("data-theme", theme);
-        localStorage.setItem("theme", theme);
-    }
-    document.body.setAttribute("data-theme", localStorage.getItem("theme") || "light");
 </script>
 </body>
 </html>
