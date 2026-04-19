@@ -3,415 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quân Đoàn - Event Sinh Nhật 1-7</title>
-
+    <title>Thông báo bảo trì</title>
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.5);
-            --secondary: #a855f7;
-            --bg-dark: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text-main: #f8fafc;
-            --accent-green: #22c55e;
-            --accent-red: #ef4444;
-            --warning: #fbbf24;
-        }
-
         body {
-            margin: 0;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
-            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: var(--text-main);
-            overflow: hidden;
-        }
-
-        .stars {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background: url('https://www.transparenttextures.com/patterns/stardust.png');
-            opacity: 0.3;
-        }
-
-        /* --- TOAST NOTIFICATION --- */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-
-        .toast {
-            background: var(--card-bg);
-            backdrop-filter: blur(15px);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 280px;
-            animation: slideIn 0.4s ease forwards;
-        }
-
-        .toast.success { border-left: 4px solid var(--accent-green); }
-        .toast.error { border-left: 4px solid var(--accent-red); }
-        .toast.warning { border-left: 4px solid var(--warning); }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(100%); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @keyframes fadeOut {
-            to { opacity: 0; transform: scale(0.95); visibility: hidden; }
-        }
-
-        /* --- UI COMPONENTS --- */
-        .main-container {
+            height: 100vh;
+            margin: 0;
+            color: #333;
             text-align: center;
-            z-index: 10;
-            padding: 20px;
-            width: 100%;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             max-width: 500px;
         }
-
-        .brand-logo {
-            font-size: 3.5rem;
-            font-weight: 900;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px var(--primary-glow));
-            letter-spacing: -2px;
+        h1 {
+            color: #e74c3c;
+            margin-bottom: 10px;
         }
-
-        .subtitle {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 3rem;
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
         }
-
-        .action-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .btn-modern {
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-            outline: none;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 20px var(--primary-glow);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--primary-glow);
-            filter: brightness(1.1);
-        }
-
-        .btn-outline {
-            background: rgba(255, 255, 255, 0.03);
-            color: white;
-            backdrop-filter: blur(10px);
-        }
-
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 400px;
-            padding: 40px;
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes modalPop {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        h3 { margin-top: 0; font-size: 1.5rem; margin-bottom: 1.5rem; text-align: left; }
-
-        .input-group {
+        .icon {
+            font-size: 50px;
             margin-bottom: 20px;
-            text-align: left;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px 18px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            box-sizing: border-box;
-            font-size: 1rem;
-            transition: 0.3s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: rgba(15, 23, 42, 0.9);
-        }
-
-        .modal-footer {
-            display: flex;
-            gap: 12px;
-            margin-top: 30px;
-        }
-
-        .btn-close {
-            background: transparent;
-            color: #94a3b8;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            flex: 1;
-        }
-
-        .btn-close:hover { color: var(--accent-red); }
-
-        @media (min-width: 640px) {
-            .action-group { flex-direction: row; }
-            .btn-modern { flex: 1; }
         }
     </style>
 </head>
 <body>
 
-<div id="toast-container"></div>
-<div class="stars"></div>
-
-<div class="main-container">
-    <div class="brand-logo">Quân Đoàn Event</div>
-    <div class="subtitle">T"L"Hedshot</div>
-
-    <div class="action-group">
-        <button class="btn-modern btn-primary" onclick="openForm('register')">Đăng ký tham gia</button>
-        <button class="btn-modern btn-outline" onclick="openForm('login')">Đăng nhập</button>
+    <div class="container">
+        <div class="icon">🛠️</div>
+        <h1>Hệ Thống Đang Bảo Trì</h1>
+        <p>Chúng tôi hiện đang nâng cấp hệ thống để mang lại trải nghiệm tốt hơn. Vui lòng quay lại sau ít phút.</p>
+        <p>Xin lỗi vì sự bất tiện này!</p>
     </div>
-</div>
-
-<div class="modal" id="registerModal">
-    <div class="modal-content">
-        <h3>🚀 Đăng ký thành viên</h3>
-        <div class="input-group">
-            <input id="regName" placeholder="Tên hiển thị">
-        </div>
-        <div class="input-group">
-            <input id="regGameId" type="text" inputmode="numeric" placeholder="ID Nhân vật (Số)" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-        </div>
-        <div class="modal-footer">
-            <button class="btn-close" onclick="closeForm('register')">HỦY BỎ</button>
-            <button class="btn-modern btn-primary" id="regBtn" onclick="register()">XÁC NHẬN</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal" id="loginModal">
-    <div class="modal-content">
-        <h3>🔐 Truy cập hệ thống</h3>
-        <div class="input-group">
-            <input id="loginUser" placeholder="Tên đăng nhập">
-        </div>
-        <div class="input-group">
-            <input id="loginPass" type="password" placeholder="Mật khẩu">
-        </div>
-        <div class="modal-footer">
-            <button class="btn-close" onclick="closeForm('login')">HỦY BỎ</button>
-            <button class="btn-modern btn-primary" id="loginBtn" onclick="login()">VÀO CỔNG</button>
-        </div>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
-<script>
-    // 1. CẤU HÌNH FIREBASE
-    const firebaseConfig = {
-        apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
-        projectId: "web-dangky-123",
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // HÀM HIỂN THỊ THÔNG BÁO (TOAST)
-    function showNotify(msg, type = 'success') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        
-        let icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : '⚠️');
-        
-        toast.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
-        container.appendChild(toast);
-
-        // Tự động xóa sau 3.5 giây
-        setTimeout(() => {
-            toast.style.animation = 'fadeOut 0.5s ease forwards';
-            setTimeout(() => toast.remove(), 500);
-        }, 3500);
-    }
-
-    // 2. ĐIỀU KHIỂN GIAO DIỆN
-    function openForm(type) {
-        document.getElementById(type === 'register' ? "registerModal" : "loginModal").style.display = "flex";
-    }
-    function closeForm(type) {
-        document.getElementById(type === 'register' ? "registerModal" : "loginModal").style.display = "none";
-    }
-
-    window.onclick = function(event) {
-        if (event.target.className === 'modal') {
-            event.target.style.display = "none";
-        }
-    }
-
-    // 3. LOGIC ĐĂNG KÝ
-    function register() {
-        let name = document.getElementById("regName").value.trim();
-        let gameId = document.getElementById("regGameId").value.trim();
-        let btn = document.getElementById("regBtn");
-
-        let lastTime = localStorage.getItem("last_register_time");
-        let limit = 30 * 60 * 1000;
-        
-        if(lastTime && (Date.now() - parseInt(lastTime)) < limit) {
-            let remain = Math.ceil((limit - (Date.now() - parseInt(lastTime))) / 60000);
-            return showNotify("Vui lòng đợi " + remain + " phút để tiếp tục!", "warning");
-        }
-
-        if(!name || !gameId) return showNotify("Vui lòng nhập đủ thông tin!", "error");
-
-        btn.disabled = true;
-        btn.innerText = "ĐANG XỬ LÝ...";
-
-        db.collection("users").where("gameId", "==", gameId).get().then(snap => {
-            if(!snap.empty) {
-                showNotify("ID này đã được đăng ký trước đó!", "error");
-                btn.disabled = false;
-                btn.innerText = "XÁC NHẬN";
-                return;
-            }
-
-            db.collection("users").add({
-                name: name,
-                gameId: gameId,
-                time: new Date()
-            }).then(() => {
-                localStorage.setItem("last_register_time", Date.now());
-                showNotify("Đăng ký thành công! Chúc mừng bạn.", "success");
-                closeForm('register');
-                btn.disabled = false;
-                btn.innerText = "XÁC NHẬN";
-            }).catch(e => {
-                showNotify("Lỗi: " + e, "error");
-                btn.disabled = false;
-                btn.innerText = "XÁC NHẬN";
-            });
-        });
-    }
-
-    // 4. LOGIC ĐĂNG NHẬP
-    function login() {
-        let u = document.getElementById("loginUser").value.trim();
-        let p = document.getElementById("loginPass").value.trim();
-        let btn = document.getElementById("loginBtn");
-        
-        if(!u || !p) return showNotify("Nhập tài khoản và mật khẩu!", "warning");
-
-        btn.disabled = true;
-        btn.innerText = "ĐANG VÀO...";
-
-        db.collection("accounts").where("user", "==", u).where("pass", "==", p).get().then(snap => {
-            if(snap.empty) {
-                showNotify("Thông tin đăng nhập không chính xác!", "error");
-                btn.disabled = false;
-                btn.innerText = "VÀO CỔNG";
-                return;
-            }
-
-            let doc = snap.docs[0];
-            let data = doc.data();
-
-            if(data.isBlocked === true) {
-                btn.disabled = false;
-                btn.innerText = "VÀO CỔNG";
-                return showNotify("Tài khoản đã bị khóa bởi Quản Trị Viên!", "error");
-            }
-
-            db.collection("accounts").doc(doc.id).update({
-                lastActive: Date.now()
-            });
-
-            const sessionData = {
-                id: data.user,
-                name: data.user,
-                role: data.role || "user"
-            };
-            localStorage.setItem("chat_user", JSON.stringify(sessionData));
-
-            showNotify("Đăng nhập thành công! Đang chuyển hướng...", "success");
-            
-            setTimeout(() => {
-                window.location.href = (data.role === "admin") ? "admin.html" : "user.html";
-            }, 1500);
-            
-        }).catch(e => {
-            showNotify("Lỗi kết nối: " + e, "error");
-            btn.disabled = false;
-            btn.innerText = "VÀO CỔNG";
-        });
-    }
-</script>
 
 </body>
 </html>
