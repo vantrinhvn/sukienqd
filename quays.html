@@ -1,1 +1,452 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QD Elite - Livestream Quay Số Trúng Thưởng</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 
+    <style>
+        /* CSS VARIABLES */
+        :root {
+            --bg-dark: #070913;
+            --primary-glow: #00f3ff;
+            --gold-light: #ffd700;
+            --gold-dark: #b8860b;
+            --danger: #ff0055;
+            --success: #00ff88;
+            --panel-bg: rgba(13, 17, 33, 0.7);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-dark);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.15), transparent 50%),
+                radial-gradient(circle at 50% 100%, rgba(255, 215, 0, 0.1), transparent 50%);
+        }
+
+        /* Vòng sáng nền trang trí */
+        .ambient-light {
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,243,255,0.1) 0%, transparent 70%);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            animation: pulseBg 4s infinite alternate;
+        }
+
+        @keyframes pulseBg {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        }
+
+        /* Header */
+        .header-title {
+            text-align: center;
+            margin-bottom: 40px;
+            z-index: 10;
+        }
+        .header-title h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 50px;
+            font-weight: 900;
+            background: linear-gradient(to right, var(--gold-light), #fff, var(--gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+        .header-title p {
+            color: var(--primary-glow);
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-top: 10px;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        /* Slot Machine Box */
+        .machine-container {
+            position: relative;
+            background: var(--panel-bg);
+            border: 2px solid rgba(0, 243, 255, 0.3);
+            border-radius: 30px;
+            padding: 40px 80px;
+            box-shadow: 
+                0 0 40px rgba(0, 243, 255, 0.2),
+                inset 0 0 30px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            margin-bottom: 50px;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        /* Đường viền chạy quanh viền */
+        .machine-container::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(transparent, rgba(0,243,255,0.8), transparent 30%);
+            animation: rotateBorder 4s linear infinite;
+            z-index: -1;
+        }
+        .machine-container::after {
+            content: ''; position: absolute; inset: 4px;
+            background: var(--bg-dark); border-radius: 26px; z-index: -1;
+        }
+
+        @keyframes rotateBorder {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Number Display */
+        .number-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 160px;
+            font-weight: 900;
+            line-height: 1;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            transition: transform 0.1s;
+        }
+
+        .number-display.rolling {
+            color: var(--gold-light);
+            filter: blur(2px);
+            transform: scale(1.05) translateY(random(-5px, 5px));
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        }
+
+        .number-display.win {
+            color: var(--success);
+            text-shadow: 0 0 50px var(--success), 0 0 100px rgba(0, 255, 136, 0.5);
+            transform: scale(1.2);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: winPulse 1s infinite alternate;
+        }
+
+        @keyframes winPulse {
+            0% { transform: scale(1.15); }
+            100% { transform: scale(1.25); }
+        }
+
+        /* Nút Bấm */
+        .btn-roll {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-light));
+            border: none;
+            padding: 20px 60px;
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 24px;
+            color: #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .btn-roll:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6);
+        }
+
+        .btn-roll:active:not(:disabled) { transform: translateY(2px) scale(0.98); }
+        .btn-roll:disabled { background: #333; color: #777; box-shadow: none; cursor: not-allowed; }
+
+        /* Modal Kết Quả */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9999; opacity: 0; transition: opacity 0.4s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-content {
+            background: linear-gradient(180deg, #1a1f35 0%, #0d1121 100%);
+            border: 2px solid var(--gold-light);
+            padding: 50px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(255, 215, 0, 0.3);
+            transform: scale(0.8) translateY(50px);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-width: 600px; width: 90%;
+            position: relative;
+        }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
+
+        .win-icon { font-size: 80px; color: var(--gold-light); margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+        .modal-title { font-size: 32px; font-weight: 900; color: #fff; margin-bottom: 10px; letter-spacing: 2px; }
+        
+        .win-number-box {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px dashed var(--gold-light);
+            border-radius: 20px; padding: 30px;
+            margin: 20px 0 30px 0;
+        }
+        .win-number-box h2 {
+            font-family: 'Orbitron', sans-serif; font-size: 80px; color: var(--gold-light);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6); margin: 0; line-height: 1;
+        }
+
+        .winners-container {
+            background: rgba(0,0,0,0.4); border-radius: 15px; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1); margin-bottom: 30px;
+            text-align: left;
+        }
+        .winners-container h4 { color: var(--primary-glow); font-size: 14px; margin-bottom: 15px; letter-spacing: 1px; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(0, 255, 136, 0.15); border: 1px solid var(--success); color: var(--success);
+            padding: 8px 16px; border-radius: 50px; font-weight: 700; margin: 4px; font-size: 15px;
+        }
+
+        .btn-close {
+            background: transparent; border: 2px solid var(--primary-glow); color: var(--primary-glow);
+            padding: 15px 40px; border-radius: 50px; font-weight: bold; font-size: 16px; cursor: pointer;
+            transition: 0.3s; width: 100%; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-close:hover { background: var(--primary-glow); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.5); }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-light"></div>
+
+    <div class="header-title">
+        <h1>VÒNG QUAY NHÂN PHẨM</h1>
+        <p><i class="fa-solid fa-satellite-dish mr-2"></i> Trực tiếp từ máy chủ QD Elite</p>
+    </div>
+
+    <div class="machine-container">
+        <div class="number-display" id="rolling-number">00</div>
+    </div>
+
+    <button id="btn-roll" class="btn-roll" onclick="Game.startRoll()">
+        <i class="fa-solid fa-play"></i> Bắt Đầu Quay Số
+    </button>
+
+    <div class="modal-overlay" id="modal-result">
+        <div class="modal-content">
+            <div class="win-icon"><i class="fa-solid fa-trophy"></i></div>
+            <div class="modal-title">KẾT QUẢ QUAY SỐ</div>
+            
+            <div class="win-number-box">
+                <h2 id="win-number-display">00</h2>
+            </div>
+
+            <div class="winners-container">
+                <h4><i class="fa-solid fa-users"></i> DANH SÁCH NGƯỜI DÙNG TRÚNG THƯỞNG:</h4>
+                <div id="winners-list" style="display: flex; flex-wrap: wrap; gap: 5px;"></div>
+            </div>
+
+            <button class="btn-close" onclick="Game.closeModal()">ĐÓNG THÔNG BÁO</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // FIREBASE CONFIG
+        const firebaseConfig = { apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", projectId: "web-dangky-123" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const State = {
+            globalWinningNumber: null,
+            isRolling: false,
+            playerNumbers: []
+        };
+
+        // HỆ THỐNG ÂM THANH NÂNG CẤP (SYNTHESIZER)
+        const Sound = {
+            ctx: null,
+            initCtx: () => {
+                if (!Sound.ctx) {
+                    Sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (Sound.ctx.state === 'suspended') Sound.ctx.resume();
+            },
+            playTick: () => {
+                try {
+                    Sound.initCtx();
+                    const osc = Sound.ctx.createOscillator();
+                    const gain = Sound.ctx.createGain();
+                    
+                    // Âm thanh cơ học (răng cưa)
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(150, Sound.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(40, Sound.ctx.currentTime + 0.05);
+                    
+                    gain.gain.setValueAtTime(0.3, Sound.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, Sound.ctx.currentTime + 0.05);
+                    
+                    osc.connect(gain); gain.connect(Sound.ctx.destination);
+                    osc.start(); osc.stop(Sound.ctx.currentTime + 0.05);
+                } catch(e) {}
+            },
+            playWin: () => {
+                try {
+                    Sound.initCtx();
+                    // Tiếng chuông Jackpot (Hợp âm C Major 7 rải nhanh)
+                    const notes = [523.25, 659.25, 783.99, 987.77, 1046.50]; 
+                    notes.forEach((freq, i) => {
+                        const osc = Sound.ctx.createOscillator();
+                        const gain = Sound.ctx.createGain();
+                        
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+                        
+                        gain.gain.setValueAtTime(0, Sound.ctx.currentTime + i * 0.1);
+                        gain.gain.linearRampToValueAtTime(0.5, Sound.ctx.currentTime + i * 0.1 + 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.01, Sound.ctx.currentTime + i * 0.1 + 1.5);
+                        
+                        osc.connect(gain); gain.connect(Sound.ctx.destination);
+                        osc.start(Sound.ctx.currentTime + i * 0.1);
+                        osc.stop(Sound.ctx.currentTime + i * 0.1 + 1.5);
+                    });
+                } catch(e) {}
+            }
+        };
+
+        const Game = {
+            init: () => {
+                // Fetch toàn bộ số dự đoán của tất cả Users
+                db.collection("lucky_numbers").onSnapshot(snap => {
+                    State.playerNumbers = [];
+                    snap.forEach(doc => {
+                        State.playerNumbers.push(doc.data());
+                    });
+                });
+
+                // Lắng nghe cài đặt Kết Quả ép buộc từ ADMIN
+                // Lưu vào biến ngầm, hoàn toàn không hiển thị ra màn hình cho đến khi quay xong
+                db.collection("settings").doc("lucky_number_result").onSnapshot(doc => {
+                    if(doc.exists && doc.data().number) {
+                        State.globalWinningNumber = parseInt(doc.data().number);
+                    } else {
+                        State.globalWinningNumber = null;
+                    }
+                });
+            },
+
+            startRoll: () => {
+                if(State.isRolling) return;
+                
+                Sound.initCtx(); // Khởi tạo Audio Context khi người dùng bấm nút
+                State.isRolling = true;
+                
+                const btn = document.getElementById('btn-roll');
+                const display = document.getElementById('rolling-number');
+                
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> HỆ THỐNG ĐANG XỬ LÝ...`;
+                display.className = "number-display rolling";
+
+                let rollCount = 0;
+                const totalRolls = 60; // Số vòng lặp
+                let currentInterval = 20; // Tốc độ ban đầu (rất nhanh)
+
+                const rollTick = () => {
+                    // Random số ảo để hiển thị hiệu ứng chạy (ảo, không phải kết quả)
+                    const randomNum = Math.floor(Math.random() * 100) + 1;
+                    display.innerText = randomNum.toString().padStart(2, '0');
+                    Sound.playTick();
+                    
+                    rollCount++;
+
+                    // Hiệu ứng phanh dần (chậm lại ở những nhịp cuối)
+                    if (rollCount < totalRolls) {
+                        if(rollCount > totalRolls - 20) currentInterval += 25; 
+                        setTimeout(rollTick, currentInterval);
+                    } else {
+                        Game.finishRoll();
+                    }
+                };
+
+                rollTick();
+            },
+
+            finishRoll: () => {
+                const display = document.getElementById('rolling-number');
+                const btn = document.getElementById('btn-roll');
+                
+                // KẾT QUẢ CUỐI CÙNG:
+                // Nếu Admin đã set số (globalWinningNumber != null) thì lấy số đó.
+                // Nếu Admin bấm "Random" thì biến đó chứa số Random và cũng lấy số đó.
+                // Nếu Admin "Hủy KQ" thì nó sẽ tự random cục bộ ở đây.
+                const finalResult = State.globalWinningNumber !== null 
+                    ? State.globalWinningNumber 
+                    : (Math.floor(Math.random() * 100) + 1);
+
+                // Chốt số và phát âm thanh trúng thưởng
+                display.innerText = finalResult.toString().padStart(2, '0');
+                display.className = "number-display win";
+                Sound.playWin();
+
+                // Lọc tìm những người chơi có số trùng khớp
+                const winners = State.playerNumbers.filter(p => parseInt(p.number) === finalResult);
+
+                // Cập nhật Modal Giao diện
+                document.getElementById('win-number-display').innerText = finalResult.toString().padStart(2, '0');
+                const winnersContainer = document.getElementById('winners-list');
+                
+                if(winners.length > 0) {
+                    winnersContainer.innerHTML = winners.map(w => `<span class="badge"><i class="fa-solid fa-check-circle"></i> ${w.user}</span>`).join('');
+                } else {
+                    winnersContainer.innerHTML = `<span style="color: #777; font-style: italic; font-size: 14px;">Rất tiếc, chưa có thành viên nào chọn con số này.</span>`;
+                }
+
+                // Hiện popup sau 1.2 giây để người xem nhìn rõ số trên màn hình trước
+                setTimeout(() => {
+                    const modal = document.getElementById('modal-result');
+                    modal.style.display = 'flex'; void modal.offsetWidth; modal.classList.add('active');
+                }, 1200);
+
+                // Reset nút bấm
+                setTimeout(() => {
+                    State.isRolling = false;
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-rotate-right"></i> Quay Phiên Mới`;
+                }, 2000);
+            },
+
+            closeModal: () => {
+                const modal = document.getElementById('modal-result');
+                modal.classList.remove('active'); 
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    document.getElementById('rolling-number').className = "number-display";
+                }, 400);
+            }
+        };
+
+        // Kích hoạt ngay khi tải trang
+        document.addEventListener("DOMContentLoaded", () => {
+            Game.init();
+        });
+    </script>
+</body>
+</html>
