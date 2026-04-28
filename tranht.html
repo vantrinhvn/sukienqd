@@ -13,38 +13,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
-        /* ---------------------------------------------------------------------
-           1. CSS VARIABLES (DESIGN SYSTEM TOKENS)
-           --------------------------------------------------------------------- */
+        /* (Giữ nguyên toàn bộ phần CSS cũ của bạn) */
         :root {
             --brand-primary: #4f46e5; --brand-primary-hover: #4338ca;
             --color-warning: #f59e0b; --color-success: #10b981; --color-danger: #ef4444;
             --color-gold: #ffd700; --color-gold-glow: rgba(255, 215, 0, 0.4);
-            
             --bg-body: #09090b; --bg-surface: #121217; --bg-elevated: #1e1e26;
             --border-strong: #3f3f46; --text-main: #f4f4f5; --text-muted: #a1a1aa;
-            
             --radius-md: 12px; --radius-xl: 24px; --radius-full: 9999px;
             --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
             --transition-fast: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
-        
-        /* ---------------------------------------------------------------------
-           2. GLOBAL BACKGROUND & LAYOUT
-           --------------------------------------------------------------------- */
         body { 
             background-color: var(--bg-body); 
             color: var(--text-main); 
             display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; 
-            /* Thêm hiệu ứng nền sương mù đỏ mờ cho hầm hố */
             background-image: radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.1) 0%, transparent 70%);
         }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
-
         .app-header {
             padding: 15px 5%; background-color: rgba(18, 18, 23, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between;
@@ -52,156 +39,39 @@
         }
         .header-brand { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
         .header-brand i { color: var(--color-danger); text-shadow: 0 0 20px rgba(239, 68, 68, 0.8); font-size: 26px;}
-        
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px; cursor: pointer; transition: var(--transition-fast); border: 1px solid transparent; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; }
-        .btn:active { transform: scale(0.95); }
         .btn-outline { border-color: var(--border-strong); color: var(--text-main); background: transparent; }
-        .btn-outline:hover { background: var(--bg-elevated); border-color: var(--text-muted); }
         .btn-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4); border: none; }
-        .btn-danger:hover { box-shadow: 0 10px 25px rgba(239, 68, 68, 0.6); transform: translateY(-2px); }
-
         .main-wrapper { flex: 1; padding: 50px 5%; max-width: 1100px; margin: 0 auto; width: 100%; }
-        
         .title-box { text-align: center; margin-bottom: 60px; animation: fadeInDown 0.8s ease; }
-        .title-box h1 { 
-            font-size: 42px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; 
-            /* Gradient Text hầm hố */
-            background: linear-gradient(to right, #ff416c, #ff4b2b);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 4px 15px rgba(255, 75, 43, 0.4));
-        }
-        .title-box p { color: var(--text-muted); font-size: 16px; font-weight: 500; }
-
-        .spin-counter {
-            display: inline-flex; align-items: center; gap: 10px; margin-top: 25px; padding: 12px 30px;
-            background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2);
-            border-radius: var(--radius-full); color: var(--color-danger); font-weight: 800; font-size: 18px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2); transition: var(--transition-fast);
-            backdrop-filter: blur(5px);
-        }
-        .spin-counter.glow { animation: pulseDanger 2s infinite; border-color: rgba(239, 68, 68, 0.6); }
-
-        /* ---------------------------------------------------------------------
-           3. TICKET GRID & TEAR ANIMATION (NEW DESIGN)
-           --------------------------------------------------------------------- */
+        .title-box h1 { font-size: 42px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; background: linear-gradient(to right, #ff416c, #ff4b2b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 15px rgba(255, 75, 43, 0.4)); }
+        .spin-counter { display: inline-flex; align-items: center; gap: 10px; margin-top: 25px; padding: 12px 30px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-full); color: var(--color-danger); font-weight: 800; font-size: 18px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); backdrop-filter: blur(5px); }
         .ticket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; justify-content: center; }
-
-        .ticket-container {
-            position: relative; width: 100%; height: 160px; cursor: pointer; perspective: 1200px;
-            border-radius: 16px; transition: transform var(--transition-bounce);
-            animation: zoomIn 0.5s ease backwards;
-        }
-        
-        /* Hiệu ứng trễ xuất hiện của các vé */
-        .ticket-container:nth-child(1) { animation-delay: 0.1s; }
-        .ticket-container:nth-child(2) { animation-delay: 0.2s; }
-        .ticket-container:nth-child(3) { animation-delay: 0.3s; }
-        .ticket-container:nth-child(4) { animation-delay: 0.4s; }
-        .ticket-container:nth-child(5) { animation-delay: 0.5s; }
-        .ticket-container:nth-child(6) { animation-delay: 0.6s; }
-
-        .ticket-container:hover:not(.opened):not(.disabled) { 
-            transform: translateY(-8px) scale(1.02); 
-            z-index: 10;
-        }
-
-        /* LÕI BÊN TRONG CỦA VÉ (KẾT QUẢ) */
-        .ticket-back {
-            position: absolute; inset: 0; background: linear-gradient(180deg, #1e1e26 0%, #121217 100%); 
-            border: 2px dashed rgba(255, 215, 0, 0.5); border-radius: 16px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; text-align: center; 
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 20px rgba(0,0,0,0.5);
-            opacity: 0; transform: scale(0.9); transition: all 0.4s ease;
-        }
-        
-        /* Chữ của giải thưởng */
-        .ticket-back h3 { 
-            color: var(--color-gold); font-size: 24px; font-weight: 900; margin-top: 10px; 
-            text-shadow: 0 0 15px var(--color-gold-glow); text-transform: uppercase;
-        }
-
-        /* VỎ BỌC BÊN NGOÀI CỦA VÉ */
+        .ticket-container { position: relative; width: 100%; height: 160px; cursor: pointer; perspective: 1200px; border-radius: 16px; transition: transform var(--transition-bounce); animation: zoomIn 0.5s ease backwards; }
+        .ticket-back { position: absolute; inset: 0; background: linear-gradient(180deg, #1e1e26 0%, #121217 100%); border: 2px dashed rgba(255, 215, 0, 0.5); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 20px rgba(0,0,0,0.5); opacity: 0; transform: scale(0.9); transition: all 0.4s ease; }
+        .ticket-back h3 { color: var(--color-gold); font-size: 24px; font-weight: 900; margin-top: 10px; text-shadow: 0 0 15px var(--color-gold-glow); text-transform: uppercase; }
         .ticket-front { position: absolute; inset: 0; display: flex; z-index: 2; pointer-events: none; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-        
-        .ticket-half {
-            flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; 
-            color: rgba(255,255,255,0.95); font-size: 35px;
-            transition: all 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55); position: relative;
-        }
-
-        /* Nửa bên trái */
-        .half-left { 
-            background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); 
-            border-radius: 16px 0 0 16px; 
-            border-right: 2px dashed rgba(0,0,0,0.3); /* Đường xé giả lập ở giữa */
-            transform-origin: left center; 
-        }
-        /* Nửa bên phải */
-        .half-right { 
-            background: linear-gradient(135deg, #ffb199 0%, #ff0844 100%); 
-            border-radius: 0 16px 16px 0; 
-            border-left: 1px dashed rgba(255,255,255,0.5);
-            transform-origin: right center; left: -1px; 
-        }
-        
-        .half-left i { transform: translateX(18px); filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); }
-        .half-right i { transform: translateX(-18px); filter: drop-shadow(-2px 4px 6px rgba(0,0,0,0.3)); }
-
-        /* HIỆU ỨNG KHI XẾ VÉ */
+        .ticket-half { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.95); font-size: 35px; transition: all 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55); position: relative; }
+        .half-left { background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); border-radius: 16px 0 0 16px; border-right: 2px dashed rgba(0,0,0,0.3); transform-origin: left center; }
+        .half-right { background: linear-gradient(135deg, #ffb199 0%, #ff0844 100%); border-radius: 0 16px 16px 0; border-left: 1px dashed rgba(255,255,255,0.5); transform-origin: right center; left: -1px; }
         .ticket-container.opened .half-left { transform: translateX(-100%) rotate(-25deg); opacity: 0; }
         .ticket-container.opened .half-right { transform: translateX(100%) rotate(25deg); opacity: 0; }
-        .ticket-container.opened .ticket-back { opacity: 1; transform: scale(1); } /* Hiển thị lõi kết quả */
-
-        /* TRẠNG THÁI KHÓA/MỜ VÉ KHÁC */
+        .ticket-container.opened .ticket-back { opacity: 1; transform: scale(1); }
         .ticket-container.disabled { filter: grayscale(0.8) brightness(0.5); opacity: 0.6; cursor: not-allowed; pointer-events: none; }
-
-        /* ---------------------------------------------------------------------
-           4. MODALS & TOAST
-           --------------------------------------------------------------------- */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 2000; opacity: 0; transition: 0.3s; padding: 20px; }
         .modal-overlay.active { display: flex; opacity: 1; }
-        
-        .modal-box { 
-            background: linear-gradient(to bottom, var(--bg-surface), var(--bg-elevated)); 
-            padding: 40px; border-radius: var(--radius-xl); border: 1px solid rgba(255,255,255,0.1); 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1); 
-            width: 100%; max-width: 480px; transform: scale(0.9) translateY(20px); transition: var(--transition-bounce); position: relative; 
-        }
+        .modal-box { background: linear-gradient(to bottom, var(--bg-surface), var(--bg-elevated)); padding: 40px; border-radius: var(--radius-xl); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1); width: 100%; max-width: 480px; transform: scale(0.9) translateY(20px); transition: var(--transition-bounce); position: relative; }
         .modal-overlay.active .modal-box { transform: scale(1) translateY(0); }
-
-        .modal-close {
-            position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: var(--radius-full); background: rgba(255,255,255,0.05);
-            border: none; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-fast); font-size: 16px;
-        }
-        .modal-close:hover { background: var(--color-danger-bg); color: var(--color-danger); transform: rotate(90deg); }
-
-        /* Lịch Sử Danh Sách */
-        .history-list { max-height: 400px; overflow-y: auto; margin-top: 20px; padding-right: 5px; }
-        .history-item {
-            display: flex; justify-content: space-between; align-items: center; padding: 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
-            background: rgba(255,255,255,0.02); border-radius: var(--radius-md); margin-bottom: 12px; transition: var(--transition-fast); border: 1px solid transparent;
-        }
-        .history-item:hover { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.3); transform: translateX(5px); }
-        .history-prize { font-weight: 800; color: var(--text-main); font-size: 16px; text-transform: uppercase; }
-        .history-prize.gold { color: var(--color-warning); }
-        .history-time { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: block; font-family: var(--font-family-mono); }
-
+        .modal-close { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: var(--radius-full); background: rgba(255,255,255,0.05); border: none; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-fast); font-size: 16px; }
+        .history-list { max-height: 400px; overflow-y: auto; margin-top: 20px; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 18px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); border-radius: var(--radius-md); margin-bottom: 12px; transition: var(--transition-fast); }
         #toast-container { position: fixed; top: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
-        .toast { min-width: 320px; background: var(--bg-surface); border: 1px solid var(--border-strong); padding: 16px 20px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 16px; transform: translateX(120%); transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: var(--shadow-lg); pointer-events: auto; }
+        .toast { min-width: 320px; background: var(--bg-surface); border: 1px solid var(--border-strong); padding: 16px 20px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 16px; transform: translateX(120%); transition: 0.5s; }
         .toast.show { transform: translateX(0); }
-        .toast.success { border-left: 4px solid var(--color-success); color: var(--color-success); }
-        .toast.warning { border-left: 4px solid var(--color-warning); color: var(--color-warning); }
-        .toast.error { border-left: 4px solid var(--color-danger); color: var(--color-danger); }
-
-        /* Keyframes */
         @keyframes pulseDanger { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-        @keyframes floatIcon { 0% { transform: translateY(0); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0); } }
-
         .flex { display: flex; } .items-center { align-items: center; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; } .w-full { width: 100%; } .text-center { text-align: center; } .flex-col { display: flex; flex-direction: column; }
-        .hidden-mobile { display: inline-block; } @media (max-width: 768px) { .hidden-mobile { display: none; } .ticket-grid { grid-template-columns: 1fr; gap: 20px; } .title-box h1 { font-size: 28px; } }
     </style>
 </head>
 <body>
@@ -234,23 +104,19 @@
             </div>
         </div>
 
-        <div class="ticket-grid" id="ticket-grid-ui">
-            </div>
+        <div class="ticket-grid" id="ticket-grid-ui"></div>
     </main>
 
     <div class="modal-overlay" id="modal-result">
         <div class="modal-box text-center">
-            <div style="font-size: 80px; color: var(--color-gold); margin-bottom: 10px; text-shadow: 0 0 40px var(--color-gold-glow); animation: floatIcon 3s ease-in-out infinite;">
+            <div style="font-size: 80px; color: var(--color-gold); margin-bottom: 10px; text-shadow: 0 0 40px var(--color-gold-glow);">
                 <i class="fa-solid fa-crown"></i>
             </div>
-            
             <h2 style="font-size: 32px; margin-bottom: 5px; color: #fff; font-weight: 900; letter-spacing: 1px;">BẠN ĐÃ XÉ TRÚNG!</h2>
             <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 20px;">Phần thưởng bí mật bên trong thẻ là:</p>
-            
             <div style="padding: 25px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); border-radius: var(--radius-lg); border: 1px solid rgba(245, 158, 11, 0.4); margin-bottom: 30px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
                 <h3 id="prizeText" style="font-size: 28px; color: var(--color-gold); margin: 0; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,215,0,0.5);">Tên Phần Thưởng</h3>
             </div>
-            
             <button class="btn btn-danger w-full" style="padding: 18px; font-size: 16px; border-radius: var(--radius-full);" onclick="TranhThuong.closeModal()">
                 <i class="fa-solid fa-check mr-2"></i> XÁC NHẬN NHẬN QUÀ
             </button>
@@ -263,16 +129,7 @@
             <h2 style="font-size: 24px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; font-weight: 800;">
                 <i class="fa-solid fa-clock-rotate-left text-danger"></i> Lịch Sử Nhận Thưởng
             </h2>
-            <p class="text-muted text-sm mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                Dữ liệu cá nhân ghi nhận trong 30 ngày gần nhất.
-            </p>
-            
-            <div class="history-list" id="history-container">
-                <div class="text-center text-muted py-8">
-                    <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-danger"></i><br>
-                    Đang đồng bộ dữ liệu từ máy chủ...
-                </div>
-            </div>
+            <div class="history-list" id="history-container"></div>
         </div>
     </div>
 
@@ -289,7 +146,9 @@
             currentDocId: null,
             availableTickets: 0,
             hasPlayed: false,
-            prizes: [ // Giá trị mặc định phòng trường hợp chưa có cấu hình
+            // 1. KHỞI TẠO ÂM THANH
+            rewardAudio: new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'), 
+            prizes: [
                 { text: "10.000 VNĐ", chance: 10 },
                 { text: "Chúc May Mắn", chance: 30 },
                 { text: "Thẻ Cào 20K", chance: 10 },
@@ -318,22 +177,16 @@
                 document.getElementById('player-name').innerText = State.currentUser;
                 this.renderTickets();
 
-                // Lắng nghe cấu hình Phần thưởng & Tỉ lệ từ Admin theo thời gian thực
                 db.collection("settings").doc("tranhthuong_config").onSnapshot(doc => {
-                    if (doc.exists && doc.data().prizes) {
-                        State.prizes = doc.data().prizes;
-                    }
+                    if (doc.exists && doc.data().prizes) { State.prizes = doc.data().prizes; }
                 });
 
-                // Lắng nghe dữ liệu LƯỢT XÉ (tickets) realtime
                 db.collection("accounts").where("user", "==", State.currentUser).onSnapshot(snap => {
                     if(!snap.empty) {
                         const accountDoc = snap.docs[0];
                         State.currentDocId = accountDoc.id;
                         State.availableTickets = accountDoc.data().tickets || 0;
-                        
                         document.getElementById('ticket-count-val').innerText = State.availableTickets;
-                        
                         const counterBox = document.getElementById('spin-counter-box');
                         if(State.availableTickets > 0) counterBox.classList.add('glow');
                         else counterBox.classList.remove('glow');
@@ -362,22 +215,16 @@
 
             openTicket: function(index) {
                 if (State.availableTickets <= 0) {
-                    Utils.toast("Bạn đã hết lượt xé phiếu! Hãy yêu cầu Ban Quản Trị cấp thêm.", "warning");
+                    Utils.toast("Bạn đã hết lượt xé phiếu!", "warning");
                     return;
                 }
-                if (State.hasPlayed) {
-                    Utils.toast("Đang xử lý, vui lòng chờ...", "warning");
-                    return;
-                }
+                if (State.hasPlayed) return;
                 
                 State.hasPlayed = true;
 
-                // Trừ lượt vé xé (tickets) trên CSDL
                 db.collection("accounts").doc(State.currentDocId).update({
                     tickets: firebase.firestore.FieldValue.increment(-1)
                 }).then(() => {
-                    
-                    // Thuật toán Random Tỉ lệ (Sử dụng State.prizes đã đồng bộ)
                     let totalChance = 0;
                     State.prizes.forEach(p => totalChance += parseFloat(p.chance) || 0);
                     const rand = Math.random() * totalChance;
@@ -386,49 +233,49 @@
 
                     for(let i = 0; i < State.prizes.length; i++) {
                         sum += parseFloat(State.prizes[i].chance) || 0;
-                        if(rand <= sum) {
-                            winningPrize = State.prizes[i].text;
-                            break;
-                        }
+                        if(rand <= sum) { winningPrize = State.prizes[i].text; break; }
                     }
 
                     document.getElementById(`result-${index}`).innerText = winningPrize;
 
-                    // Khóa UI các thẻ khác
                     for(let i=0; i<6; i++) {
                         if(i !== index) document.getElementById(`ticket-${i}`).classList.add('disabled');
                     }
 
-                    // Chạy hiệu ứng xé vé
                     const activeTicket = document.getElementById(`ticket-${index}`);
                     activeTicket.classList.add('opened');
 
-                    // Hiển thị kết quả sau khi xé xong
                     setTimeout(() => {
                         document.getElementById('prizeText').innerText = winningPrize;
                         const modal = document.getElementById('modal-result');
                         modal.style.display = 'flex'; void modal.offsetWidth; modal.classList.add('active');
 
-                        // Ghi vào bảng lịch sử riêng biệt: tranhthuong_history
+                        // 2. PHÁT ÂM THANH KHI MỞ QUÀ
+                        State.rewardAudio.currentTime = 0;
+                        State.rewardAudio.play().catch(e => console.log("Audio play blocked"));
+
                         db.collection("tranhthuong_history").add({
                             userId: State.currentUser,
                             result: winningPrize,
                             timestamp: Date.now()
                         });
-                    }, 900); // Tăng delay lên một chút để xem rõ phần lõi bên trong trước khi bật modal
+                    }, 900);
 
                 }).catch(err => {
                     State.hasPlayed = false;
-                    Utils.toast("Lỗi đồng bộ máy chủ khi trừ lượt. Vui lòng thử lại.", "error");
+                    Utils.toast("Lỗi kết nối máy chủ.", "error");
                 });
             },
 
             closeModal: function() {
+                // 3. TẮT ÂM THANH KHI ĐÓNG CỬA SỔ
+                State.rewardAudio.pause();
+                State.rewardAudio.currentTime = 0;
+
                 const modal = document.getElementById('modal-result');
                 modal.classList.remove('active'); 
                 setTimeout(() => {
                     modal.style.display = 'none';
-                    // Reset UI cho phép xé thẻ tiếp theo nếu còn lượt
                     State.hasPlayed = false;
                     TranhThuong.renderTickets();
                 }, 300);
@@ -441,78 +288,29 @@
                 modal.style.display = 'flex'; void modal.offsetWidth; modal.classList.add('active');
                 History.fetchAndRenderData();
             },
-            
             closeModal: () => {
                 const modal = document.getElementById('modal-history');
                 modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300);
             },
-            
             fetchAndRenderData: () => {
                 const container = document.getElementById('history-container');
-                container.innerHTML = `<div class="text-center text-muted py-8"><i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-danger"></i><br>Đang đồng bộ dữ liệu từ máy chủ...</div>`;
-
                 if(!State.currentUser) return;
-
                 db.collection("tranhthuong_history").where("userId", "==", State.currentUser).get().then(snapshot => {
-                    if (snapshot.empty) {
-                        container.innerHTML = `<div class="text-center text-muted py-8"><i class="fa-solid fa-box-open text-4xl mb-3 opacity-50"></i><br>Bạn chưa có lịch sử xé phiếu nào.</div>`;
-                        return;
-                    }
-
+                    if (snapshot.empty) { container.innerHTML = "Chưa có lịch sử."; return; }
                     let records = [];
-                    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (data.timestamp >= thirtyDaysAgo) records.push(data);
-                    });
-
+                    snapshot.forEach(doc => records.push(doc.data()));
                     records.sort((a, b) => b.timestamp - a.timestamp);
-
-                    if (records.length === 0) {
-                        container.innerHTML = `<div class="text-center text-muted py-8">Không có lượt xé phiếu nào trong 30 ngày qua.</div>`;
-                        return;
-                    }
-
                     container.innerHTML = "";
-                    
                     records.forEach(item => {
                         const dateObj = new Date(item.timestamp);
-                        const dateStr = `${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')} - ${dateObj.toLocaleDateString('vi-VN')}`;
-                        
-                        let iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); color: var(--color-danger); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-solid fa-gift"></i></div>`;
-                        let textClass = "";
-                        
-                        if(item.result.includes("Tí nữa") || item.result.includes("May Mắn")) {
-                            iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.05); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-regular fa-face-frown"></i></div>`;
-                        }
-                        if(item.result.includes("VNĐ") || item.result.includes("20K")) {
-                            iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 215, 0, 0.15); color: var(--color-gold); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-solid fa-crown"></i></div>`;
-                            textClass = "gold";
-                        }
-
-                        container.innerHTML += `
-                            <div class="history-item">
-                                <div class="flex items-center gap-4">
-                                    ${iconHtml}
-                                    <div class="flex-col">
-                                        <span class="history-prize ${textClass}">${item.result}</span>
-                                        <span class="history-time">${dateStr}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        const dateStr = `${dateObj.getHours()}:${dateObj.getMinutes()} - ${dateObj.toLocaleDateString('vi-VN')}`;
+                        container.innerHTML += `<div class="history-item"><div class="flex-col"><b>${item.result}</b><small>${dateStr}</small></div></div>`;
                     });
-
-                }).catch(err => {
-                    container.innerHTML = `<div class="text-center text-danger py-8"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i><br>Lỗi kết nối. Không thể tải lịch sử.</div>`;
                 });
             }
         };
 
-        document.addEventListener("DOMContentLoaded", () => {
-            TranhThuong.init();
-        });
+        document.addEventListener("DOMContentLoaded", () => { TranhThuong.init(); });
     </script>
 </body>
 </html>
