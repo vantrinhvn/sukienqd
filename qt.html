@@ -4,175 +4,175 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#f59e0b">
     <meta name="description" content="QD Elite - Vòng Quay May Mắn (Lucky Wheel System)">
     <meta name="robots" content="noindex, nofollow">
     
-    <title>QD Elite - Vòng Quay Thưởng v1.5</title>
+    <title>QD Elite - Vòng Quay Thưởng v2.0</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
 
     <style>
         /* ---------------------------------------------------------------------
-           1. CSS VARIABLES (DESIGN SYSTEM TOKENS)
+           1. CSS VARIABLES & BASE
            --------------------------------------------------------------------- */
         :root {
             --brand-primary: #4f46e5;
-            --brand-primary-hover: #4338ca;
-            --color-warning: #f59e0b;
+            --color-warning: #f59e0b; --color-warning-glow: rgba(245, 158, 11, 0.5);
             --color-success: #10b981;
             --color-danger: #ef4444;
-            --color-info: #0ea5e9;
-
-            --bg-body: #09090b;
-            --bg-surface: #121217;
-            --bg-elevated: #1e1e26;
-            --border-strong: #3f3f46;
+            --color-gold: #ffd700;
             
-            --text-main: #f4f4f5;
-            --text-muted: #a1a1aa;
+            --bg-body: #09090b; --bg-surface: #121217; --bg-elevated: #1e1e26;
+            --border-strong: #3f3f46; --text-main: #f4f4f5; --text-muted: #a1a1aa;
             
-            --radius-md: 12px;
-            --radius-xl: 24px;
-            --radius-full: 9999px;
+            --radius-md: 12px; --radius-xl: 24px; --radius-full: 9999px;
             --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
             
             --font-family-base: 'Plus Jakarta Sans', sans-serif;
-            
-            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        /* ---------------------------------------------------------------------
-           2. CSS RESET & NORMALIZE
-           --------------------------------------------------------------------- */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family-base); outline: none; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-body); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        
+        body { 
+            background-color: var(--bg-body); color: var(--text-main); 
+            display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; 
+            /* Hào quang ánh vàng phía sau */
+            background-image: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 60%);
+        }
+        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
 
         /* ---------------------------------------------------------------------
-           3. HEADER & NAVIGATION
+           2. HEADER & LAYOUT
            --------------------------------------------------------------------- */
         .app-header {
-            padding: 15px 5%; background-color: rgba(18, 18, 23, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-strong); display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 5%; background-color: rgba(18, 18, 23, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between;
             position: sticky; top: 0; z-index: 100;
         }
 
-        .header-brand { font-size: 22px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
-        .header-brand i { color: var(--color-warning); text-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
-        .version-badge { font-size: 11px; padding: 2px 8px; background: rgba(245, 158, 11, 0.15); color: var(--color-warning); border-radius: 10px; margin-left: 5px; font-weight: 800; }
-
-        /* ---------------------------------------------------------------------
-           4. COMPONENT: BUTTONS
-           --------------------------------------------------------------------- */
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 12px 20px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px;
-            cursor: pointer; transition: var(--transition-fast); border: 1px solid transparent; text-decoration: none; white-space: nowrap;
-        }
-        .btn:active:not(:disabled) { transform: scale(0.96); }
+        .header-brand { font-size: 22px; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
+        .header-brand i { color: var(--color-warning); text-shadow: 0 0 20px rgba(245, 158, 11, 0.8); font-size: 26px; }
+        
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: var(--radius-full); font-weight: 800; font-size: 14px; cursor: pointer; transition: var(--transition-fast); border: 1px solid transparent; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; }
+        .btn:active:not(:disabled) { transform: scale(0.95); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
         .btn-outline { background: transparent; border-color: var(--border-strong); color: var(--text-main); }
-        .btn-outline:hover:not(:disabled) { background: var(--bg-elevated); }
-        .btn-warning { background: var(--color-warning); color: #fff; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
-        .btn-warning:hover:not(:disabled) { background: #d97706; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5); }
-        .btn-primary { background: var(--brand-primary); color: #fff; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
+        .btn-outline:hover:not(:disabled) { background: var(--bg-elevated); border-color: var(--text-muted); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4); border: none; }
+        .btn-warning:hover:not(:disabled) { box-shadow: 0 10px 25px rgba(245, 158, 11, 0.6); transform: translateY(-2px); }
 
         /* ---------------------------------------------------------------------
-           5. WHEEL SYSTEM LAYOUT
+           3. WHEEL SYSTEM UI
            --------------------------------------------------------------------- */
         .wheel-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; position: relative; }
         
-        .title-box { text-align: center; margin-bottom: 30px; }
-        .title-box h1 { font-size: 36px; font-weight: 800; color: var(--color-warning); text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 20px rgba(245, 158, 11, 0.3); margin-bottom: 5px; }
-        .title-box p { color: var(--text-muted); font-size: 15px; }
+        .title-box { text-align: center; margin-bottom: 40px; animation: fadeInDown 0.8s ease; }
+        .title-box h1 { 
+            font-size: 42px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; 
+            /* Gradient Text */
+            background: linear-gradient(to right, #fde047, #f59e0b);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 15px rgba(245, 158, 11, 0.4));
+        }
+        .title-box p { color: var(--text-muted); font-size: 16px; font-weight: 500; }
         
         .spin-counter {
-            display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; padding: 10px 24px;
-            background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: var(--radius-full); color: var(--color-warning); font-weight: 800; font-size: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: var(--transition-fast);
+            display: inline-flex; align-items: center; gap: 10px; margin-top: 20px; padding: 12px 30px;
+            background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: var(--radius-full); color: var(--color-warning); font-weight: 800; font-size: 18px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2); transition: var(--transition-fast); backdrop-filter: blur(5px);
         }
-        .spin-counter.glow { animation: pulseWarning 1.5s infinite; }
+        .spin-counter.glow { animation: pulseWarning 2s infinite; border-color: rgba(245, 158, 11, 0.6); }
 
         .wheel-container {
-            position: relative; width: 380px; height: 380px; margin: 0 auto; border-radius: 50%; padding: 12px;
-            background: linear-gradient(135deg, #1e1e26, #09090b); box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 10px rgba(255,255,255,0.05);
-            border: 2px solid var(--border-strong);
+            position: relative; width: 400px; height: 400px; margin: 0 auto; border-radius: 50%; padding: 12px;
+            background: linear-gradient(135deg, #1e1e26, #09090b); 
+            border: 4px solid var(--border-strong);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        /* Hiệu ứng viền sáng khi có lượt */
+        .wheel-container.ready {
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 50px rgba(245, 158, 11, 0.3), inset 0 0 20px rgba(245, 158, 11, 0.1);
         }
 
         .wheel-pointer {
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 44px; height: 54px; z-index: 10;
-            background: var(--text-main); clip-path: polygon(50% 100%, 0 0, 100% 0); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 46px; height: 56px; z-index: 10;
+            background: linear-gradient(to bottom, #fde047, #f59e0b); 
+            clip-path: polygon(50% 100%, 0 0, 100% 0); 
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.6));
+        }
+        .wheel-pointer::after {
+            content: ''; position: absolute; top: 2px; left: 10%; right: 10%; bottom: 10px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent); clip-path: polygon(50% 100%, 0 0, 100% 0);
         }
 
         canvas {
             width: 100%; height: 100%; border-radius: 50%; transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
-            box-shadow: 0 0 20px rgba(0,0,0,0.5); display: block;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8); display: block; background: var(--bg-surface);
         }
 
         .btn-spin {
-            margin-top: 40px; padding: 20px 60px; border-radius: var(--radius-full); font-size: 18px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 2px; background: linear-gradient(45deg, var(--color-warning), #d97706);
-            color: #fff; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4); transition: var(--transition-normal);
+            margin-top: 50px; padding: 22px 70px; border-radius: var(--radius-full); font-size: 20px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 2px; background: linear-gradient(135deg, #f59e0b, #ea580c);
+            color: #fff; border: none; cursor: pointer; box-shadow: 0 10px 30px rgba(245, 158, 11, 0.5); transition: var(--transition-fast);
         }
-        .btn-spin:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(245, 158, 11, 0.6); }
+        .btn-spin:hover:not(:disabled) { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(245, 158, 11, 0.7); }
         .btn-spin:active:not(:disabled) { transform: translateY(2px); }
         .btn-spin:disabled { background: var(--bg-elevated); color: var(--text-muted); box-shadow: none; cursor: not-allowed; border: 1px solid var(--border-strong); }
 
         /* ---------------------------------------------------------------------
-           6. MODALS, OVERLAYS & TOASTS
+           4. MODALS & TOAST
            --------------------------------------------------------------------- */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            display: none; align-items: center; justify-content: center; z-index: 2000; opacity: 0; transition: opacity var(--transition-fast); padding: 20px;
-        }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 2000; opacity: 0; transition: opacity var(--transition-fast); padding: 20px; }
         .modal-overlay.active { display: flex; opacity: 1; }
         
-        .modal-box {
-            background: var(--bg-surface); padding: 40px; border-radius: var(--radius-xl); border: 1px solid var(--border-strong);
-            box-shadow: var(--shadow-lg); width: 100%; max-width: 480px; transform: scale(0.95); transition: transform var(--transition-fast); position: relative; display: flex; flex-direction: column;
+        .modal-box { 
+            background: linear-gradient(to bottom, var(--bg-surface), var(--bg-elevated)); 
+            padding: 40px; border-radius: var(--radius-xl); border: 1px solid rgba(255,255,255,0.1); 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1); 
+            width: 100%; max-width: 480px; transform: scale(0.9) translateY(20px); transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); position: relative; 
         }
-        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-overlay.active .modal-box { transform: scale(1) translateY(0); }
 
         .modal-close {
-            position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: var(--radius-full); background: var(--bg-elevated);
-            border: 1px solid var(--border-strong); color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-fast); font-size: 16px;
+            position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: var(--radius-full); background: rgba(255,255,255,0.05);
+            border: none; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-fast); font-size: 16px;
         }
-        .modal-close:hover { background: var(--color-danger-bg); color: var(--color-danger); border-color: var(--color-danger); transform: rotate(90deg); }
+        .modal-close:hover { background: var(--color-danger-bg); color: var(--color-danger); transform: rotate(90deg); }
 
-        /* History List inside Modal */
         .history-list { max-height: 400px; overflow-y: auto; margin-top: 20px; padding-right: 5px; }
         .history-item {
-            display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border-strong);
-            background: var(--bg-elevated); border-radius: var(--radius-md); margin-bottom: 12px; transition: var(--transition-fast);
+            display: flex; justify-content: space-between; align-items: center; padding: 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.02); border-radius: var(--radius-md); margin-bottom: 12px; transition: var(--transition-fast); border: 1px solid transparent;
         }
-        .history-item:hover { background: var(--bg-body); border-color: var(--brand-primary); }
-        .history-prize { font-weight: 800; color: var(--text-main); font-size: 16px; }
+        .history-item:hover { background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.3); transform: translateX(5px); }
+        .history-prize { font-weight: 800; color: var(--text-main); font-size: 16px; text-transform: uppercase; }
         .history-prize.gold { color: var(--color-warning); }
-        .history-time { font-size: 12px; color: var(--text-muted); margin-top: 4px; display: block; }
+        .history-time { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: block; font-family: var(--font-family-mono); }
 
-        /* Toast */
-        #toast-container { position: fixed; top: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 12px; }
-        .toast {
-            min-width: 320px; background: var(--bg-surface); border: 1px solid var(--border-strong); padding: 16px 20px; border-radius: var(--radius-md);
-            display: flex; align-items: center; gap: 16px; transform: translateX(120%); transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: var(--shadow-lg);
-        }
+        #toast-container { position: fixed; top: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+        .toast { min-width: 320px; background: var(--bg-surface); border: 1px solid var(--border-strong); padding: 16px 20px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 16px; transform: translateX(120%); transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: var(--shadow-lg); pointer-events: auto; }
         .toast.show { transform: translateX(0); }
         .toast.success { border-left: 4px solid var(--color-success); color: var(--color-success); }
-        .toast.error { border-left: 4px solid var(--color-danger); color: var(--color-danger); }
         .toast.warning { border-left: 4px solid var(--color-warning); color: var(--color-warning); }
+        .toast.error { border-left: 4px solid var(--color-danger); color: var(--color-danger); }
 
         /* Animations */
-        @keyframes pulseWarning { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+        @keyframes pulseWarning { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes floatIcon { 0% { transform: translateY(0); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0); } }
 
-        /* Responsive Breakpoints */
-        @media (max-width: 480px) { .wheel-container { width: 320px; height: 320px; } .title-box h1 { font-size: 26px; } .btn-spin { padding: 16px 40px; font-size: 16px; } }
+        .flex { display: flex; } .items-center { align-items: center; } .gap-3 { gap: 12px; } .w-full { width: 100%; } .text-center { text-align: center; } .flex-col { display: flex; flex-direction: column; }
+        @media (max-width: 480px) { .wheel-container { width: 320px; height: 320px; } .title-box h1 { font-size: 28px; } .btn-spin { padding: 18px 50px; font-size: 18px; } }
         .hidden-mobile { display: inline-block; } @media (max-width: 768px) { .hidden-mobile { display: none; } }
     </style>
 </head>
@@ -182,30 +182,31 @@
 
     <header class="app-header">
         <div class="header-brand">
-            <i class="fa-solid fa-dharmachakra"></i> QD QUAY THƯỞNG 
-            <span class="version-badge">v1.5</span>
+            <i class="fa-solid fa-dharmachakra"></i> VÒNG QUAY MAY MẮN 
         </div>
         <div class="flex gap-3">
-            <button class="btn btn-outline" onclick="History.openModal()">
-                <i class="fa-solid fa-clock-rotate-left"></i> <span class="hidden-mobile">Lịch Sử Cá Nhân</span>
+            <button class="btn btn-outline" onclick="History.openModal()" style="border-radius: var(--radius-full);">
+                <i class="fa-solid fa-clock-rotate-left"></i> <span class="hidden-mobile">Lịch Sử</span>
             </button>
-          
+            <button class="btn btn-outline" onclick="window.location.href='user.html'" style="border-radius: var(--radius-full); padding: 12px 16px;" title="Về trang chủ">
+                <i class="fa-solid fa-house"></i>
+            </button>
         </div>
     </header>
 
     <main class="wheel-wrapper">
         <div class="title-box">
             <h1>Thử Vận May Cùng QD</h1>
-            <p>Xin chào <b class="text-primary" id="player-name">User</b>! Vòng quay phần thưởng siêu cấp.</p>
+            <p>Xin chào <b class="text-warning" id="player-name">User</b>! Vòng quay siêu cấp đã sẵn sàng.</p>
             
             <div class="spin-counter" id="spin-counter-box">
-                <i class="fa-solid fa-ticket"></i> 
-                <span>Lượt quay của bạn:</span> 
-                <span id="spin-count-val"><i class="fa-solid fa-spinner fa-spin"></i></span>
+                <i class="fa-solid fa-bolt"></i> 
+                <span>Lượt quay khả dụng:</span> 
+                <span id="spin-count-val" style="font-size: 22px; margin-left: 5px;"><i class="fa-solid fa-spinner fa-spin"></i></span>
             </div>
         </div>
 
-        <div class="wheel-container">
+        <div class="wheel-container" id="wheel-container-ui">
             <div class="wheel-pointer"></div>
             <canvas id="wheelCanvas" width="500" height="500"></canvas>
         </div>
@@ -217,35 +218,36 @@
 
     <div class="modal-overlay" id="modal-result">
         <div class="modal-box text-center">
-            <div style="font-size: 70px; color: var(--color-warning); margin-bottom: 20px; text-shadow: 0 0 30px rgba(245, 158, 11, 0.4);">
+            <div style="font-size: 80px; color: var(--color-warning); margin-bottom: 10px; text-shadow: 0 0 40px var(--color-warning-glow); animation: floatIcon 3s ease-in-out infinite;">
                 <i class="fa-solid fa-trophy"></i>
             </div>
-            <h2 style="font-size: 26px; margin-bottom: 12px; color: var(--text-main);">Vòng quay kết thúc!</h2>
-            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 10px;">Phần thưởng bạn vừa nhận được là:</p>
             
-            <div style="padding: 20px; background: rgba(245, 158, 11, 0.1); border-radius: var(--radius-md); border: 1px solid rgba(245, 158, 11, 0.3); margin-bottom: 30px;">
-                <h3 id="prizeText" style="font-size: 26px; color: var(--color-warning); margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Tên Phần Thưởng</h3>
+            <h2 style="font-size: 32px; margin-bottom: 5px; color: #fff; font-weight: 900; letter-spacing: 1px;">XIN CHÚC MỪNG!</h2>
+            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 20px;">Bạn vừa quay trúng phần thưởng:</p>
+            
+            <div style="padding: 25px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05)); border-radius: var(--radius-lg); border: 1px solid rgba(245, 158, 11, 0.5); margin-bottom: 30px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
+                <h3 id="prizeText" style="font-size: 30px; color: var(--color-warning); margin: 0; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 15px rgba(245,158,11,0.5);">Tên Phần Thưởng</h3>
             </div>
             
-            <button class="btn btn-warning w-full" style="padding: 16px; font-size: 16px;" onclick="Wheel.closeResultModal()">
-                <i class="fa-solid fa-check mr-2"></i> XÁC NHẬN NHẬN THƯỞNG
+            <button class="btn btn-warning w-full" style="padding: 18px; font-size: 16px; border-radius: var(--radius-full);" onclick="Wheel.closeResultModal()">
+                <i class="fa-solid fa-check mr-2"></i> XÁC NHẬN NHẬN QUÀ
             </button>
         </div>
     </div>
 
     <div class="modal-overlay" id="modal-history">
-        <div class="modal-box" style="padding: 30px;">
+        <div class="modal-box" style="padding: 30px; text-align: left;">
             <button class="modal-close" onclick="History.closeModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h2 style="font-size: 22px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-clock-rotate-left text-primary"></i> Lịch Sử Nhận Thưởng
+            <h2 style="font-size: 24px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; font-weight: 800;">
+                <i class="fa-solid fa-clock-rotate-left text-warning"></i> Lịch Sử Quay Thưởng
             </h2>
-            <p class="text-muted text-sm mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);">
+            <p class="text-muted text-sm mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                 Dữ liệu cá nhân ghi nhận trong 30 ngày gần nhất.
             </p>
             
             <div class="history-list" id="history-container">
                 <div class="text-center text-muted py-8">
-                    <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-primary"></i><br>
+                    <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-warning"></i><br>
                     Đang đồng bộ dữ liệu từ máy chủ...
                 </div>
             </div>
@@ -256,11 +258,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
     <script>
-        /**
-         * ---------------------------------------------------------------------
-         * 1. FIREBASE CONFIGURATION
-         * ---------------------------------------------------------------------
-         */
+        /** 1. FIREBASE CONFIGURATION */
         const firebaseConfig = {
             apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ",
             projectId: "web-dangky-123"
@@ -268,11 +266,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        /**
-         * ---------------------------------------------------------------------
-         * 2. APPLICATION STATE MANAGEMENT
-         * ---------------------------------------------------------------------
-         */
+        /** 2. APPLICATION STATE MANAGEMENT */
         const State = {
             currentUser: localStorage.getItem('qd_current_username'),
             currentDocId: null,
@@ -289,17 +283,12 @@
             ]
         };
 
-        /**
-         * ---------------------------------------------------------------------
-         * 3. UTILITY HELPER FUNCTIONS
-         * ---------------------------------------------------------------------
-         */
+        /** 3. UTILITY HELPER FUNCTIONS */
         const Utils = {
             toast: (message, type = 'success') => {
                 const container = document.getElementById('toast-container');
                 const t = document.createElement('div');
                 t.className = `toast ${type} show`;
-                
                 let iconStr = 'fa-circle-check';
                 if(type === 'error') iconStr = 'fa-circle-xmark';
                 if(type === 'warning') iconStr = 'fa-triangle-exclamation';
@@ -316,17 +305,44 @@
             }
         };
 
-        /**
-         * ---------------------------------------------------------------------
-         * 4. WHEEL LOGIC & RENDERING ENGINE
-         * ---------------------------------------------------------------------
-         */
+        /** 4. AUDIO ENGINE (WEB AUDIO API) */
+        const Sound = {
+            ctx: new (window.AudioContext || window.webkitAudioContext)(),
+            playTick() {
+                if(this.ctx.state === 'suspended') this.ctx.resume();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+            },
+            playWin() {
+                if(this.ctx.state === 'suspended') this.ctx.resume();
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // Đô, Mi, Sol, Đố
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + i * 0.1 + 0.3);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + i * 0.1); osc.stop(this.ctx.currentTime + i * 0.1 + 0.3);
+                });
+            }
+        };
+
+        /** 5. WHEEL LOGIC & RENDERING ENGINE */
         const Wheel = {
             canvas: document.getElementById("wheelCanvas"),
             ctx: null,
             spinBtn: document.getElementById("spinBtn"),
             currentRotation: 0,
             isSpinning: false,
+            lastTickIndex: -1,
 
             init: function() {
                 this.ctx = this.canvas.getContext("2d");
@@ -335,6 +351,7 @@
 
             drawGraphics: function() {
                 const slices = State.prizes.length;
+                if(!slices) return;
                 const sliceAngle = (2 * Math.PI) / slices;
                 const centerX = this.canvas.width / 2;
                 const centerY = this.canvas.height / 2;
@@ -345,46 +362,49 @@
                 for (let i = 0; i < slices; i++) {
                     const startAngle = i * sliceAngle;
                     const endAngle = startAngle + sliceAngle;
-                    const sliceColor = i % 2 === 0 ? "#1e1e26" : "#27272a";
+                    
+                    // Chỉnh màu xen kẽ cho bánh xe (Tối bóng)
+                    const sliceColor = i % 2 === 0 ? "#18181b" : "#27272a";
 
-                    // Draw Slice Background
+                    // Vẽ nền ô
                     this.ctx.beginPath();
                     this.ctx.moveTo(centerX, centerY);
                     this.ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                     this.ctx.fillStyle = sliceColor;
                     this.ctx.fill();
                     
-                    // Draw Slice Border
-                    this.ctx.strokeStyle = "#3f3f46"; 
-                    this.ctx.lineWidth = 4;
+                    // Vẽ viền (Vàng rực)
+                    this.ctx.strokeStyle = "rgba(245, 158, 11, 0.4)"; 
+                    this.ctx.lineWidth = 3;
                     this.ctx.stroke();
 
-                    // Draw Text
+                    // Vẽ chữ
                     this.ctx.save();
                     this.ctx.translate(centerX, centerY);
                     this.ctx.rotate(startAngle + sliceAngle / 2);
                     this.ctx.textAlign = "right";
+                    this.ctx.textBaseline = "middle";
                     
                     const prizeText = State.prizes[i].text;
-                    const displayText = `${i + 1}. ${prizeText}`;
                     
+                    // Highlight phần thưởng lớn
                     if(prizeText.includes("VNĐ") || prizeText.includes("20K")) {
-                        this.ctx.fillStyle = "#f59e0b"; 
+                        this.ctx.fillStyle = "#fde047"; // Vàng sáng
                     } else {
-                        this.ctx.fillStyle = "#ffffff";
+                        this.ctx.fillStyle = "#f4f4f5"; // Trắng
                     }
                     
                     this.ctx.font = "bold 22px 'Plus Jakarta Sans'";
                     this.ctx.shadowColor = "rgba(0,0,0,0.8)";
                     this.ctx.shadowBlur = 6;
-                    this.ctx.fillText(displayText, radius - 35, 8);
+                    this.ctx.fillText(prizeText, radius - 35, 0);
                     this.ctx.restore();
                 }
                 
-                // Draw Center Hub
+                // Trục giữa (Hub)
                 this.ctx.beginPath();
                 this.ctx.arc(centerX, centerY, 35, 0, 2 * Math.PI);
-                this.ctx.fillStyle = "#4f46e5";
+                this.ctx.fillStyle = "#f59e0b"; // Cam vàng
                 this.ctx.fill();
                 this.ctx.strokeStyle = "#121217";
                 this.ctx.lineWidth = 6;
@@ -405,10 +425,14 @@
                     return;
                 }
 
+                // Mở khóa AudioContext
+                Sound.ctx.resume();
+
                 this.isSpinning = true;
                 this.spinBtn.disabled = true;
                 this.spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TÍNH TOÁN...`;
 
+                // Trừ lượt trên Firestore (spins)
                 db.collection("accounts").doc(State.currentDocId).update({
                     spins: firebase.firestore.FieldValue.increment(-1)
                 }).then(() => {
@@ -452,6 +476,25 @@
 
                     this.canvas.style.transform = `rotate(${this.currentRotation}deg)`;
 
+                    // Tick Sound Loop
+                    let start = null;
+                    const animateTick = (time) => {
+                        if (!start) start = time;
+                        const progress = time - start;
+                        
+                        const currentGoc = (progress / 5000) * rotateAmount; 
+                        const curIdx = Math.floor(currentGoc / sliceDeg);
+                        
+                        if(curIdx !== this.lastTickIndex) { 
+                            Sound.playTick(); 
+                            this.lastTickIndex = curIdx; 
+                        }
+                        
+                        if(progress < 5000) requestAnimationFrame(animateTick);
+                    };
+                    requestAnimationFrame(animateTick);
+
+                    // Hiển thị kết quả sau 5s
                     setTimeout(() => {
                         this.isSpinning = false;
                         this.spinBtn.disabled = false;
@@ -468,19 +511,22 @@
             },
 
             processResult: function(winIndex) {
-                const resultText = `[Ô ${winIndex + 1}] ${State.prizes[winIndex].text}`;
+                Sound.playWin();
 
+                const resultText = State.prizes[winIndex].text;
                 document.getElementById('prizeText').innerText = resultText;
+                
                 const modal = document.getElementById('modal-result');
                 modal.style.display = 'flex'; 
                 void modal.offsetWidth; 
                 modal.classList.add('active');
 
+                // Ghi vào Firestore (spin_history)
                 db.collection("spin_history").add({
                     userId: State.currentUser,
                     result: resultText,
                     timestamp: Date.now()
-                }).catch(err => console.error("Lỗi lưu lịch sử lên Database:", err));
+                }).catch(err => console.error("Lỗi lưu lịch sử:", err));
             },
 
             closeResultModal: function() {
@@ -490,11 +536,7 @@
             }
         };
 
-        /**
-         * ---------------------------------------------------------------------
-         * 5. HISTORY MODULE
-         * ---------------------------------------------------------------------
-         */
+        /** 6. HISTORY MODULE */
         const History = {
             openModal: () => {
                 const modal = document.getElementById('modal-history');
@@ -511,7 +553,7 @@
                 const container = document.getElementById('history-container');
                 container.innerHTML = `
                     <div class="text-center text-muted py-8">
-                        <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-primary"></i><br>
+                        <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-warning"></i><br>
                         Đang đồng bộ dữ liệu từ máy chủ...
                     </div>
                 `;
@@ -532,12 +574,13 @@
                             return;
                         }
 
+                        // Bộ lọc loại trừ kết quả [Tranh Thưởng]
                         let records = [];
                         const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
 
                         snapshot.forEach(doc => {
                             const data = doc.data();
-                            if (data.timestamp >= thirtyDaysAgo) {
+                            if (data.timestamp >= thirtyDaysAgo && data.result && !data.result.includes("[Tranh Thưởng]")) {
                                 records.push(data);
                             }
                         });
@@ -555,14 +598,14 @@
                             const dateObj = new Date(item.timestamp);
                             const dateStr = `${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')} - ${dateObj.toLocaleDateString('vi-VN')}`;
                             
-                            let iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(79, 70, 229, 0.15); color: var(--brand-primary); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-solid fa-gift"></i></div>`;
+                            let iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); color: var(--color-warning); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-solid fa-gift"></i></div>`;
                             let textClass = "";
                             
                             if(item.result.includes("Tí nữa") || item.result.includes("May Mắn")) {
-                                iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: var(--bg-body); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-regular fa-face-frown"></i></div>`;
+                                iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.05); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-regular fa-face-frown"></i></div>`;
                             }
                             if(item.result.includes("VNĐ") || item.result.includes("20K")) {
-                                iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); color: var(--color-success); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-solid fa-money-bill-wave"></i></div>`;
+                                iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 215, 0, 0.15); color: var(--color-gold); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-solid fa-crown"></i></div>`;
                                 textClass = "gold";
                             }
 
@@ -590,22 +633,18 @@
             }
         };
 
-        /**
-         * ---------------------------------------------------------------------
-         * 6. APPLICATION BOOTSTRAP (CORE INIT)
-         * ---------------------------------------------------------------------
-         */
+        /** 7. APPLICATION BOOTSTRAP */
         const AppCore = {
             init: () => {
-                
                 if (!State.currentUser) {
-                    alert("SECURITY ALERT: Không tìm thấy phiên đăng nhập hệ thống. Vui lòng quay lại trang chủ để xác thực bảo mật.");
+                    alert("SECURITY ALERT: Không tìm thấy phiên đăng nhập. Vui lòng quay lại trang chủ để xác thực bảo mật.");
                     window.location.href = "user.html";
                     return;
                 }
                 
                 document.getElementById('player-name').innerText = State.currentUser;
 
+                // Sync Cấu hình Wheel (Prizes)
                 db.collection("settings").doc("wheel_config").onSnapshot(doc => {
                     if(doc.exists && doc.data().prizes) {
                         State.prizes = doc.data().prizes;
@@ -615,6 +654,7 @@
                     }
                 });
 
+                // Sync Lượt quay realtime
                 db.collection("accounts").where("user", "==", State.currentUser).onSnapshot(snap => {
                     if(!snap.empty) {
                         const accountDoc = snap.docs[0];
@@ -624,10 +664,13 @@
                         document.getElementById('spin-count-val').innerText = State.availableSpins;
                         
                         const counterBox = document.getElementById('spin-counter-box');
+                        const wheelCont = document.getElementById('wheel-container-ui');
                         if(State.availableSpins > 0) {
                             counterBox.classList.add('glow');
+                            wheelCont.classList.add('ready');
                         } else {
                             counterBox.classList.remove('glow');
+                            wheelCont.classList.remove('ready');
                         }
                         
                         if(!Wheel.isSpinning) {
