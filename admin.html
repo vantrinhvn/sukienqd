@@ -161,6 +161,10 @@
         .toast-content { display: flex; flex-direction: column; gap: 4px; flex: 1; } .toast-title { color: var(--text-main); font-weight: 700; font-size: 15px; } .toast-message { color: var(--text-muted); font-size: 13px; line-height: 1.4; }
 
         @keyframes sectionEnter { to { opacity: 1; transform: translateY(0); } } @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } } @keyframes toastProgress { from { width: 100%; } to { width: 0%; } } @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* SCROLL BAR FOR CHECKBOX LIST */
+        #tour-group-checkbox-list::-webkit-scrollbar { width: 4px; }
+        #tour-group-checkbox-list::-webkit-scrollbar-thumb { background: var(--brand-primary); border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -202,6 +206,61 @@
             <div class="flex gap-4">
                 <button class="btn btn-outline w-full" onclick="UI.closeModal('modal-add-user')">Đóng</button>
                 <button class="btn btn-primary w-full" onclick="AdminActions.createAccount()"><i class="fa-solid fa-plus mr-2"></i> Khởi tạo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM NGƯỜI CHƠI (TỪ DANH SÁCH ĐĂNG KÝ) -->
+    <div class="modal-overlay" id="modal-add-participant">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="UI.closeModal('modal-add-participant')"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-3 mb-6 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);">
+                <div class="flex-center rounded-md bg-primary" style="width: 40px; height: 40px; color: white; background: var(--brand-primary); display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-user-plus text-lg"></i>
+                </div>
+                <h2 class="text-xl m-0">Thêm Người Tham Gia</h2>
+            </div>
+            <div class="form-group mb-8">
+                <label class="form-label">Chọn từ Danh sách Khai Báo ID</label>
+                <select id="tour-participant-select" class="form-control" style="cursor: pointer; appearance: auto;">
+                    <option value="">-- Đang tải danh sách... --</option>
+                </select>
+                <p class="text-xs text-muted mt-2">Dữ liệu được lấy tự động từ các đơn khai báo ID Game.</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="btn btn-outline w-full" onclick="UI.closeModal('modal-add-participant')">Đóng</button>
+                <button class="btn btn-primary w-full" onclick="AdminActions.addTournamentParticipant()"><i class="fa-solid fa-check mr-2"></i> Thêm Vào Giải</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GỘP ĐỘI THI ĐẤU -->
+    <div class="modal-overlay" id="modal-group-team">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close-btn" onclick="UI.closeModal('modal-group-team')"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-3 mb-6 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);">
+                <div class="flex-center rounded-md bg-warning" style="width: 40px; height: 40px; color: white; background: var(--color-warning); display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-users text-lg"></i>
+                </div>
+                <h2 class="text-xl m-0">Gộp Đội Thi Đấu</h2>
+            </div>
+            
+            <div class="form-group mb-4">
+                <label class="form-label">Tên Đội thi đấu <span class="text-danger">*</span></label>
+                <input type="text" id="tour-group-name" class="form-control" placeholder="Ví dụ: Team Flash, Đội 1, Dự Bị..." autocomplete="off">
+            </div>
+
+            <div class="form-group mb-8">
+                <label class="form-label">Chọn thành viên để gộp (Từ danh sách giải đấu)</label>
+                <div id="tour-group-checkbox-list" class="form-control" style="max-height: 250px; overflow-y: auto; background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border-strong);">
+                    <div class="text-center text-muted p-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải danh sách...</div>
+                </div>
+                <p class="text-xs text-muted mt-2">Đánh dấu (tick) vào những tài khoản bạn muốn gộp chung vào đội này.</p>
+            </div>
+
+            <div class="flex gap-4">
+                <button class="btn btn-outline w-full" onclick="UI.closeModal('modal-group-team')">Đóng</button>
+                <button class="btn btn-warning w-full" onclick="AdminActions.groupTournamentTeam()"><i class="fa-solid fa-object-group mr-2"></i> Xác Nhận Gộp</button>
             </div>
         </div>
     </div>
@@ -347,6 +406,9 @@
                 <div class="nav-item" onclick="UI.navigate('attendance', this)"><i class="fa-solid fa-calendar-check"></i> <span>Quản Lý Điểm Danh</span></div>
                 <div class="nav-item" onclick="UI.navigate('registration', this)"><i class="fa-solid fa-file-signature"></i> <span>Danh Sách Đăng Ký</span></div>
                 
+                <div class="nav-label mt-4">Hệ Thống Giải Đấu</div>
+                <div class="nav-item" onclick="UI.navigate('tournament', this)"><i class="fa-solid fa-trophy"></i> <span>Quản Lý Giải Đấu</span></div>
+
                 <div class="nav-label mt-4">Hệ Thống Giải Trí</div>
                 <div class="nav-item" onclick="UI.navigate('luckynumber', this)"><i class="fa-solid fa-gem"></i> <span>Quản Lý Số Quay Thưởng</span></div>
                 <div class="nav-item" onclick="UI.navigate('wheel', this)"><i class="fa-solid fa-dharmachakra"></i> <span>Quản Lý Vòng Quay</span></div>
@@ -476,6 +538,44 @@
                                 </thead>
                                 <tbody id="tb-reg-list">
                                     <tr><td colspan="4" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW QUẢN LÝ GIẢI ĐẤU MỚI -->
+                <section id="view-tournament" class="view-section">
+                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Quản Lý Giải Đấu</h1>
+                            <p class="text-muted">Phân chia đội hình và quản lý thành viên thi đấu.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-primary" onclick="UI.openModal('modal-add-participant')">
+                                <i class="fa-solid fa-user-plus mr-2"></i> Thêm Người Chơi
+                            </button>
+                            <button class="btn btn-warning" onclick="UI.openModal('modal-group-team')">
+                                <i class="fa-solid fa-users mr-2"></i> Gộp Đội
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden">
+                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Tài Khoản</th>
+                                        <th>Tên Ingame</th>
+                                        <th>Mã ID Game</th>
+                                        <th>Tên Đội</th>
+                                        <th>Thời Gian Thêm</th>
+                                        <th class="text-right">Hành Động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tb-tournament-list">
+                                    <tr><td colspan="6" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -824,7 +924,7 @@
             <div class="m-nav-item" onclick="UI.navigate('luckynumber', this, true)"><i class="fa-solid fa-gem"></i><span>Quay Số</span></div>
             <div class="m-nav-item" onclick="UI.navigate('wheel', this, true)"><i class="fa-solid fa-dharmachakra"></i><span>Vòng Quay</span></div>
             <div class="m-nav-item" onclick="UI.navigate('tranhthuong', this, true)"><i class="fa-solid fa-ticket-alt"></i><span>T.Thưởng</span></div>
-            <div class="m-nav-item" onclick="UI.navigate('accounts', this, true)"><i class="fa-solid fa-users"></i><span>Tài Khoản</span></div>
+            <div class="m-nav-item" onclick="UI.navigate('tournament', this, true)"><i class="fa-solid fa-trophy"></i><span>Giải Đấu</span></div>
         </nav>
     </div>
 
@@ -840,8 +940,8 @@
             todayStr: new Date().toLocaleDateString('vi-VN'),
             attendanceCache: [], 
             regCache: [], 
-            luckyNumberHistoryCache: [], // MỚI: Dùng để xuất Báo cáo Quay số
-            currentLuckyNumbers: [],     // MỚI: Dùng để dò tìm người trúng thưởng
+            luckyNumberHistoryCache: [], 
+            currentLuckyNumbers: [],     
             wheelHistoryCache: [], 
             tranhThuongHistoryCache: [],
             accountsCache: [], 
@@ -964,7 +1064,6 @@
                 Theme.init(); Utils.buildTimeSelects();
                 setInterval(() => { document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('vi-VN'); }, 1000);
 
-                // --- 1. LẮNG NGHE KẾT QUẢ ĐỘC ĐẮC HIỆN TẠI ---
                 db.collection("settings").doc("lucky_number_result").onSnapshot(doc => {
                     const el = document.getElementById('admin-current-win-number');
                     if(doc.exists && doc.data().number) {
@@ -974,7 +1073,6 @@
                     }
                 });
 
-                // --- 2. SETTINGS SYNC ---
                 db.collection("settings").doc("attendance").onSnapshot(docConfig => {
                     if(docConfig.exists) {
                         const data = docConfig.data();
@@ -1013,7 +1111,6 @@
                     }
                 });
 
-                // --- 2. ATTENDANCE LIST SYNC ---
                 db.collection("attendance").onSnapshot(snap => {
                     const statElement = document.getElementById('stat-atts'); 
                     const tbody = document.getElementById('tb-att-list'); if (!tbody) return; 
@@ -1040,19 +1137,90 @@
                     });
                 });
 
-                // --- 3. REGISTRATIONS SYNC ---
+                // --- 3. REGISTRATIONS SYNC & CẬP NHẬT GIAO DIỆN SELECT ---
                 db.collection("users").orderBy("timestamp", "desc").onSnapshot(snap => {
                     document.getElementById('stat-regs').innerText = snap.size;
-                    const tbody = document.getElementById('tb-reg-list'); tbody.innerHTML = ""; State.regCache = [];
-                    if(snap.empty) { tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Không có đơn đăng ký ID Game mới nào.</td></tr>`; return; }
+                    const tbody = document.getElementById('tb-reg-list'); 
+                    tbody.innerHTML = ""; State.regCache = [];
+                    
+                    const selectTour = document.getElementById('tour-participant-select');
+                    let optionsHtml = `<option value="">-- Chọn một tài khoản --</option>`;
+
+                    if(snap.empty) { 
+                        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Không có đơn đăng ký ID Game mới nào.</td></tr>`; 
+                        if(selectTour) selectTour.innerHTML = `<option value="">-- Chưa có dữ liệu đăng ký --</option>`;
+                        return; 
+                    }
+
                     snap.forEach(doc => {
                         const d = doc.data(); State.regCache.push(d);
                         const timeStr = new Date(d.timestamp).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
-                        tbody.innerHTML += `<tr><td><span class="font-bold text-main">${d.name}</span></td><td style="font-family: var(--font-family-mono); font-size: 16px; color: var(--color-warning); font-weight: 700; letter-spacing: 1.5px;">${d.gameId}</td><td class="text-muted text-sm">${timeStr}</td><td class="text-right"><button class="btn btn-danger" style="padding: 8px 16px; font-size: 13px;" onclick="AdminActions.requestDelete('users', '${doc.id}', 'Bạn có chắc chắn muốn XÓA BỎ đơn đăng ký ID Game của nhân vật <b>${d.name}</b> không?')"><i class="fa-solid fa-trash-can mr-2"></i> Xóa Đơn</button></td></tr>`;
+                        
+                        tbody.innerHTML += `
+                        <tr>
+                            <td>
+                                <span class="font-bold text-main">${d.name}</span><br>
+                                <span class="text-xs text-muted"><i class="fa-solid fa-user text-primary mr-1"></i>${d.submitter}</span>
+                            </td>
+                            <td style="font-family: var(--font-family-mono); font-size: 16px; color: var(--color-warning); font-weight: 700; letter-spacing: 1.5px;">${d.gameId}</td>
+                            <td class="text-muted text-sm">${timeStr}</td>
+                            <td class="text-right">
+                                <button class="btn btn-warning" style="padding: 8px 12px; font-size: 12px; margin-right: 5px;" onclick="AdminActions.allowReregister('${doc.id}', '${d.submitter}')">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> Cho Phép Nộp Lại
+                                </button>
+                            </td>
+                        </tr>`;
+
+                        // Thêm vào Select Option Modal Thêm người tham gia
+                        optionsHtml += `<option value="${d.submitter}" data-gameid="${d.gameId}" data-ingame="${d.name}">[${d.submitter}] - ID: ${d.gameId} (${d.name})</option>`;
                     });
+
+                    if(selectTour) selectTour.innerHTML = optionsHtml;
                 });
 
-                // --- 4. ACCOUNTS SYNC ---
+                // --- LẤY DANH SÁCH GIẢI ĐẤU ---
+                db.collection("tournament").orderBy("timestamp", "desc").onSnapshot(snap => {
+                    const tbody = document.getElementById('tb-tournament-list');
+                    const checkboxList = document.getElementById('tour-group-checkbox-list');
+                    if(!tbody) return;
+                    tbody.innerHTML = "";
+                    let checkboxesHtml = ``;
+
+                    if(snap.empty) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-8">Chưa có ai tham gia giải đấu.</td></tr>`;
+                        if(checkboxList) checkboxList.innerHTML = `<div class="text-center text-muted p-4">Chưa có người tham gia giải đấu</div>`;
+                        return;
+                    }
+
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        const timeStr = new Date(d.timestamp).toLocaleString('vi-VN');
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><b class="text-main"><i class="fa-solid fa-user text-muted mr-2"></i>${d.username}</b></td>
+                                <td><span class="badge badge-warning" style="font-size: 13px; padding: 4px 10px;">${d.ingame}</span></td>
+                                <td style="font-family: var(--font-family-mono); letter-spacing: 1px; color: var(--color-info);">${d.gameId || '---'}</td>
+                                <td><span class="badge" style="background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-strong);">${d.team || '---'}</span></td>
+                                <td class="text-muted text-sm">${timeStr}</td>
+                                <td class="text-right">
+                                    <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('tournament', '${doc.id}', 'Bạn có muốn XÓA <b>${d.username}</b> khỏi danh sách giải đấu không?')" title="Xóa Khỏi Giải"><i class="fa-solid fa-trash-can"></i></button>
+                                </td>
+                            </tr>`;
+
+                        // Add to checkbox list for grouping teams
+                        checkboxesHtml += `
+                        <label class="flex items-center gap-3 mb-2 cursor-pointer p-2 rounded hover:bg-hover" style="transition: 0.2s;">
+                            <input type="checkbox" class="tour-group-cb" value="${doc.id}" style="width: 18px; height: 18px;">
+                            <div class="flex-col">
+                                <b class="text-main">${d.username}</b>
+                                <span class="text-xs text-muted">ID: ${d.gameId || '---'} | Đội hiện tại: ${d.team || 'Chưa phân đội'}</span>
+                            </div>
+                        </label>`;
+                    });
+
+                    if(checkboxList) checkboxList.innerHTML = checkboxesHtml;
+                });
+
                 db.collection("accounts").onSnapshot(snap => {
                     document.getElementById('stat-accs').innerText = snap.size;
                     const tbodyAcc = document.getElementById('tb-acc-list'); tbodyAcc.innerHTML = "";
@@ -1083,7 +1251,6 @@
                     });
                 });
 
-                // --- 4.5 SỐ DỰ ĐOÁN SYNC ---
                 db.collection("lucky_numbers").onSnapshot(snap => {
                     const tbody = document.getElementById('tb-ln-list');
                     if(!tbody) return;
@@ -1098,7 +1265,7 @@
                     let records = [];
                     snap.forEach(doc => {
                         const d = doc.data();
-                        State.currentLuckyNumbers.push(d); // Lưu bộ nhớ tạm để check Trúng Thưởng
+                        State.currentLuckyNumbers.push(d); 
                         records.push(d);
                     });
                     records.sort((a,b) => b.lastUpdated - a.lastUpdated);
@@ -1127,7 +1294,6 @@
                     });
                 });
 
-                // --- MỚI THÊM: LỊCH SỬ SỐ QUAY THƯỞNG SYNC ---
                 db.collection("lucky_number_history").onSnapshot(snap => {
                     const tbody = document.getElementById('tb-lnh-history');
                     if(tbody) tbody.innerHTML = "";
@@ -1167,7 +1333,6 @@
                     }
                 });
 
-                // --- 5A. LỊCH SỬ VÒNG QUAY ---
                 db.collection("spin_history").onSnapshot(snap => {
                     const tbodyWheel = document.getElementById('tb-wheel-history-list');
                     if(tbodyWheel) tbodyWheel.innerHTML = "";
@@ -1184,7 +1349,6 @@
                     });
                 });
 
-                // --- 5B. LỊCH SỬ TRANH THƯỞNG ---
                 db.collection("tranhthuong_history").onSnapshot(snap => {
                     const tbodyTT = document.getElementById('tb-tt-history-list');
                     if(tbodyTT) tbodyTT.innerHTML = "";
@@ -1201,7 +1365,6 @@
                     });
                 });
 
-                // --- 5C. ĐỒNG BỘ CẤU HÌNH TRANH THƯỞNG ---
                 db.collection("settings").doc("tranhthuong_config").onSnapshot(doc => {
                     let prizes = State.defaultTranhThuongPrizes; 
                     if(doc.exists && doc.data().prizes) { prizes = doc.data().prizes; }
@@ -1210,7 +1373,6 @@
                     AdminActions.calcTotalChanceTT(); 
                 });
 
-                // --- 5D. ĐỒNG BỘ LỊCH SỬ NHẬP MÃ MỜI ---
                 db.collection("invite_history").orderBy("timestamp", "desc").onSnapshot(snap => {
                     const tbody = document.getElementById('tb-invite-history'); if(!tbody) return; tbody.innerHTML = "";
                     if(snap.empty) { tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Chưa có ai sử dụng mã mời.</td></tr>`; return; }
@@ -1220,7 +1382,6 @@
                     });
                 });
 
-                // --- 6. NEWS SYNC ---
                 db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
                     const listRender = document.getElementById('news-feed-list'); listRender.innerHTML = "";
                     if(snap.empty) { listRender.innerHTML = `<div class="card p-10 text-center border-strong bg-elevated mb-0"><h4 class="text-muted font-normal m-0">Hệ thống chưa có bản tin nào được phát hành.</h4></div>`; return; }
@@ -1234,14 +1395,70 @@
 
         const AdminActions = {
             
-            // --- ACTION QUAY SỐ NHÂN PHẨM (ĐÃ NÂNG CẤP LƯU LỊCH SỬ) ---
+            // --- ACTION THÊM VÀO GIẢI ĐẤU ---
+            addTournamentParticipant: () => {
+                const sel = document.getElementById('tour-participant-select');
+                if(!sel || !sel.value) return Utils.toast("Vui lòng chọn một người chơi từ danh sách.", "warning");
+                
+                const opt = sel.options[sel.selectedIndex];
+                const u = opt.value;
+                const ign = opt.getAttribute('data-ingame');
+                const gameId = opt.getAttribute('data-gameid');
+
+                db.collection("tournament").where("username", "==", u).get().then(snap => {
+                    if(!snap.empty) {
+                        return Utils.toast("Tài khoản này đã có trong danh sách giải đấu!", "error");
+                    }
+                    db.collection("tournament").add({
+                        username: u,
+                        ingame: ign,
+                        gameId: gameId,
+                        team: "Chưa phân đội",
+                        timestamp: Date.now()
+                    }).then(() => {
+                        Utils.toast("Đã thêm vào giải đấu thành công!", "success");
+                        UI.closeModal('modal-add-participant');
+                        sel.value = "";
+                    }).catch(err => Utils.toast("Lỗi lưu dữ liệu giải đấu.", "error"));
+                });
+            },
+
+            // --- ACTION GỘP ĐỘI THI ĐẤU ---
+            groupTournamentTeam: () => {
+                const checkboxes = document.querySelectorAll('.tour-group-cb:checked');
+                const teamName = document.getElementById('tour-group-name').value.trim();
+                
+                if(checkboxes.length === 0) return Utils.toast("Vui lòng chọn ít nhất một người chơi.", "warning");
+                if(!teamName) return Utils.toast("Vui lòng nhập tên đội.", "warning");
+                
+                const batch = db.batch();
+                
+                checkboxes.forEach(cb => {
+                    const docId = cb.value;
+                    const ref = db.collection("tournament").doc(docId);
+                    batch.update(ref, {
+                        team: teamName
+                    });
+                });
+
+                batch.commit().then(() => {
+                    Utils.toast(`Đã gộp ${checkboxes.length} tài khoản vào đội "${teamName}" thành công!`, "success");
+                    UI.closeModal('modal-group-team');
+                    document.getElementById('tour-group-name').value = "";
+                }).catch(err => Utils.toast("Lỗi gộp đội giải đấu.", "error"));
+            },
+
+            // --- ACTION DUYỆT ĐĂNG KÝ LẠI ---
+            allowReregister: (docId, submitter) => {
+                AdminActions.requestDelete('users', docId, `Bạn có chắc chắn muốn xóa đơn hiện tại của tài khoản <b>${submitter}</b> để họ có thể đăng ký lại không?`);
+            },
+
             setWinningNumber: (num = null) => {
                 const targetNum = num !== null ? parseInt(num) : parseInt(document.getElementById('inp-force-win').value);
                 if(isNaN(targetNum) || targetNum < 1 || targetNum > 100) return Utils.toast("Vui lòng nhập số từ 1-100", "warning");
 
                 const batch = db.batch();
 
-                // 1. Cập nhật Số độc đắc cho Client thấy
                 const resultRef = db.collection("settings").doc("lucky_number_result");
                 batch.set(resultRef, {
                     number: targetNum,
@@ -1249,7 +1466,6 @@
                     updatedBy: "admin"
                 });
 
-                // 2. Tìm người trúng thưởng & Viết vào Lịch Sử
                 const winners = State.currentLuckyNumbers
                     .filter(p => parseInt(p.number) === targetNum)
                     .map(p => p.user);
@@ -1261,7 +1477,6 @@
                     timestamp: Date.now()
                 });
 
-                // Thực thi Transaction
                 batch.commit().then(() => {
                     Utils.toast(`Đã chốt kết quả số ${targetNum.toString().padStart(2, '0')} và lưu vào Lịch sử!`, "success");
                     document.getElementById('inp-force-win').value = "";
@@ -1279,7 +1494,6 @@
                 }).catch(err => Utils.toast("Lỗi hủy kết quả.", "error"));
             },
 
-            // --- NÚT XUẤT EXCEL QUAY SỐ ---
             exportLuckyNumberExcel: () => {
                 if(State.luckyNumberHistoryCache.length === 0) return Utils.toast("Không có lịch sử quay số trong 30 ngày qua.", "warning");
                 let htmlTableStr = `<table border="1"><thead><tr><th bgcolor="#ec4899"><font color="#ffffff">STT</font></th><th bgcolor="#ec4899"><font color="#ffffff">Số Trúng Thưởng</font></th><th bgcolor="#ec4899"><font color="#ffffff">Danh Sách Người Trúng</font></th><th bgcolor="#ec4899"><font color="#ffffff">Thời Gian Ghi Nhận</font></th></tr></thead><tbody>`;
@@ -1292,7 +1506,6 @@
                 AdminActions.downloadXLS(htmlTableStr, "Lich_Su_Quay_So_Nhan_Pham_30Ngay");
             },
 
-            // Các Settings khác (Giữ nguyên)
             saveTimeConfig: () => {
                 const start24h = Utils.get24HFromSelectors("cfg-start"); const end24h = Utils.get24HFromSelectors("cfg-end");
                 db.collection("settings").doc("attendance").set({ start: start24h, end: end24h }, { merge: true })
