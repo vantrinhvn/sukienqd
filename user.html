@@ -20,27 +20,22 @@
            1. DESIGN SYSTEM TOKENS
            --------------------------------------------------------------------- */
         :root {
-            /* Brand Colors */
             --brand-primary: #4f46e5; --brand-primary-hover: #4338ca; 
             --brand-primary-soft: rgba(79, 70, 229, 0.15); --brand-glow: rgba(79, 70, 229, 0.4);
-
-            /* Semantic Colors */
             --color-success: #10b981; --color-success-bg: rgba(16, 185, 129, 0.15);
             --color-danger: #ef4444; --color-danger-bg: rgba(239, 68, 68, 0.15);
             --color-warning: #f59e0b; --color-warning-bg: rgba(245, 158, 11, 0.15);
             --color-info: #0ea5e9; --color-info-bg: rgba(14, 165, 233, 0.15);
             
-            /* Typography & Border Radius */
             --font-family-base: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
             --font-family-mono: 'JetBrains Mono', 'Courier New', monospace;
             --radius-sm: 8px; --radius-md: 12px; --radius-lg: 20px; --radius-xl: 30px; --radius-full: 9999px;
             
-            /* UI States */
+            --UI-States: none;
             --z-index-sticky: 1020; --z-index-fixed: 1030; --z-index-modal-backdrop: 1040; --z-index-modal: 1050; --z-index-toast: 99999;
             --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             --transition-normal: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             
-            /* Dynamic Variables (Mutable via JS) */
             --chat-bubble-me: #4f46e5;
             --chat-text-me: #ffffff;
         }
@@ -200,7 +195,7 @@
         }
 
         /* ---------------------------------------------------------------------
-           7. MODALS, OVERLAYS & TOASTS & AUTH GATE (GLASSMORPHISM)
+           7. MODALS, OVERLAYS & TOASTS
            --------------------------------------------------------------------- */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: var(--z-index-modal-backdrop); opacity: 0; transition: opacity var(--transition-fast); padding: 20px; } .modal-overlay.active { display: flex; opacity: 1; }
         .modal-box { background: var(--bg-surface); padding: 40px; border-radius: var(--radius-xl); border: 1px solid var(--border-strong); width: 100%; max-width: 440px; transform: scale(0.95) translateY(20px); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; box-shadow: var(--shadow-lg); } .modal-overlay.active .modal-box { transform: scale(1) translateY(0); }
@@ -221,6 +216,44 @@
         @keyframes slideFadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+        /* ---------------------------------------------------------------------
+           8. CSS CHO VÒNG QUAY VÀ TRANH THƯỞNG BÊN TRONG USER.HTML
+           --------------------------------------------------------------------- */
+        .wheel-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; width: 100%; overflow: hidden; }
+        .wheel-container { 
+            position: relative; 
+            width: 350px; 
+            max-width: 90vw; /* Giới hạn chiều rộng trên Mobile */
+            aspect-ratio: 1 / 1; /* BẮT BUỘC ÉP TỶ LỆ 1:1 ĐỂ KHÔNG BỊ MÉO */
+            margin: 0 auto; 
+            border-radius: 50%; 
+            padding: 10px; 
+            background: linear-gradient(135deg, #1e1e26, #09090b); 
+            border: 4px solid var(--border-strong); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
+            transition: all 0.3s ease; 
+        }
+        .wheel-container.ready { border-color: rgba(245, 158, 11, 0.5); box-shadow: 0 0 50px rgba(245, 158, 11, 0.3); }
+        .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 40px; height: 50px; z-index: 10; background: linear-gradient(to bottom, #fde047, #f59e0b); clip-path: polygon(50% 100%, 0 0, 100% 0); }
+        canvas#wheelCanvas { width: 100%; height: 100%; border-radius: 50%; display: block; background: var(--bg-surface); transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1); object-fit: contain; }
+        .btn-spin { margin-top: 30px; padding: 18px 50px; border-radius: var(--radius-full); font-size: 18px; font-weight: 900; text-transform: uppercase; background: linear-gradient(135deg, #f59e0b, #ea580c); color: #fff; border: none; cursor: pointer; box-shadow: 0 10px 30px rgba(245, 158, 11, 0.5); transition: var(--transition-fast); }
+        .btn-spin:disabled { background: var(--bg-elevated); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
+        .spin-counter { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-full); color: var(--color-warning); font-weight: 800; font-size: 16px; margin-bottom: 20px; }
+
+        .ticket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; justify-content: center; width: 100%; margin-top: 20px; }
+        .ticket-container { position: relative; width: 100%; height: 120px; cursor: pointer; perspective: 1200px; border-radius: 16px; }
+        .ticket-back { position: absolute; inset: 0; background: linear-gradient(180deg, #1e1e26 0%, #121217 100%); border: 2px dashed rgba(255, 215, 0, 0.5); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; text-align: center; opacity: 0; transform: scale(0.9); transition: all 0.4s ease; }
+        .ticket-back h3 { color: var(--color-gold, #ffd700); font-size: 16px; font-weight: 900; margin-top: 5px; text-transform: uppercase; line-height: 1.2; }
+        .ticket-front { position: absolute; inset: 0; display: flex; z-index: 2; pointer-events: none; border-radius: 16px; }
+        .ticket-half { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.95); font-size: 24px; transition: all 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .half-left { background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); border-radius: 16px 0 0 16px; border-right: 2px dashed rgba(0,0,0,0.3); transform-origin: left center; }
+        .half-right { background: linear-gradient(135deg, #ffb199 0%, #ff0844 100%); border-radius: 0 16px 16px 0; border-left: 1px dashed rgba(255,255,255,0.5); transform-origin: right center; left: -1px; position: relative; }
+        .ticket-container.opened .half-left { transform: translateX(-100%) rotate(-25deg); opacity: 0; }
+        .ticket-container.opened .half-right { transform: translateX(100%) rotate(25deg); opacity: 0; }
+        .ticket-container.opened .ticket-back { opacity: 1; transform: scale(1); }
+        .ticket-container.disabled { filter: grayscale(0.8) brightness(0.5); opacity: 0.6; pointer-events: none; }
+        .ticket-counter { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-full); color: var(--color-danger); font-weight: 800; font-size: 16px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -256,6 +289,40 @@
             </div>
 
             <button class="btn btn-primary w-full" style="padding: 18px;" onclick="window.AppCore.sendRegistration()"><i class="fa-solid fa-paper-plane mr-2"></i> Gửi Yêu Cầu Đăng Ký</button>
+        </div>
+    </div>
+
+    <!-- MODAL KẾT QUẢ VÒNG QUAY -->
+    <div class="modal-overlay" id="modal-wheel-result">
+        <div class="modal-box text-center">
+            <div style="font-size: 70px; color: var(--color-warning); margin-bottom: 10px; text-shadow: 0 0 40px rgba(245,158,11,0.5);">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 style="font-size: 28px; margin-bottom: 5px; color: #fff; font-weight: 900; text-transform: uppercase;">XIN CHÚC MỪNG!</h2>
+            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 20px;">Bạn vừa quay trúng phần thưởng:</p>
+            <div style="padding: 20px; background: rgba(245, 158, 11, 0.1); border-radius: var(--radius-lg); border: 1px solid rgba(245, 158, 11, 0.5); margin-bottom: 30px;">
+                <h3 id="wheelPrizeText" style="font-size: 26px; color: var(--color-warning); margin: 0; text-transform: uppercase; font-weight: 900;">Tên Phần Thưởng</h3>
+            </div>
+            <button class="btn btn-warning w-full" style="padding: 16px; font-size: 16px;" onclick="window.Wheel.closeResultModal()">
+                <i class="fa-solid fa-check mr-2"></i> XÁC NHẬN NHẬN QUÀ
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL KẾT QUẢ XÉ VÉ -->
+    <div class="modal-overlay" id="modal-ticket-result">
+        <div class="modal-box text-center">
+            <div style="font-size: 70px; color: var(--color-gold, #ffd700); margin-bottom: 10px; text-shadow: 0 0 40px rgba(255,215,0,0.5);">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            <h2 style="font-size: 28px; margin-bottom: 5px; color: #fff; font-weight: 900; text-transform: uppercase;">BẠN ĐÃ XÉ TRÚNG!</h2>
+            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 20px;">Phần thưởng bí mật bên trong thẻ là:</p>
+            <div style="padding: 20px; background: rgba(245, 158, 11, 0.1); border-radius: var(--radius-lg); border: 1px solid rgba(245, 158, 11, 0.4); margin-bottom: 30px;">
+                <h3 id="ticketPrizeText" style="font-size: 26px; color: var(--color-gold, #ffd700); margin: 0; text-transform: uppercase; font-weight: 900;">Tên Phần Thưởng</h3>
+            </div>
+            <button class="btn btn-danger w-full" style="padding: 16px; font-size: 16px;" onclick="window.TranhThuong.closeModal()">
+                <i class="fa-solid fa-check mr-2"></i> XÁC NHẬN NHẬN QUÀ
+            </button>
         </div>
     </div>
 
@@ -447,7 +514,6 @@
                             <p class="text-sm text-muted">Ghi nhận chuyên cần lưu trữ tự động lên svever.</p>
                         </div>
 
-                        <!-- ĐÃ SỬA CHỖ NÀY THÀNH BẬT MODAL KHAI BÁO -->
                         <div class="bento-action" onclick="window.UI.openModal('modal-registration')">
                             <div class="bento-icon bg-primary-soft text-primary" style="background: var(--brand-primary-soft); color: var(--brand-primary);"><i class="fa-solid fa-id-card"></i></div>
                             <h3 class="text-xl mb-1">Khai Báo ID Game</h3>
@@ -460,13 +526,13 @@
                             <p class="text-sm text-muted">Xem danh sách các tuyển thủ thi đấu đã được chọn.</p>
                         </div>
 
-                        <div class="bento-action" onclick="window.location.href='qt.html'">
+                        <div class="bento-action" onclick="window.UI.navigate('wheel')">
                             <div class="bento-icon bg-warning-bg text-warning" style="background: var(--color-warning-bg); color: var(--color-warning);"><i class="fa-solid fa-dharmachakra"></i></div>
                             <h3 class="text-xl mb-1">Vòng Quay Thưởng</h3>
                             <p class="text-sm text-muted">Thử vận may với vòng quay 8 ô nhận ngay thẻ cào.</p>
                         </div>
 
-                        <div class="bento-action" onclick="window.location.href='tranht.html'">
+                        <div class="bento-action" onclick="window.UI.navigate('tranhthuong')">
                             <div class="bento-icon bg-danger-bg text-danger" style="background: var(--color-danger-bg); color: var(--color-danger);"><i class="fa-solid fa-ticket-alt"></i></div>
                             <h3 class="text-xl mb-1">Tranh Thưởng Nhanh</h3>
                             <p class="text-sm text-muted">Xé thẻ lật quà để rinh phần thưởng bí mật mỗi ngày.</p>
@@ -564,7 +630,6 @@
                     </div>
                 </section>
 
-                <!-- VIEW BẢNG THI ĐẤU (CHỈ CÓ 2 NÚT LỌC VÀ HIỂN THỊ TÊN INGAME) -->
                 <section id="view-tournament" class="view-section">
                     <div class="flex justify-between items-center mb-6">
                         <div>
@@ -573,13 +638,48 @@
                         </div>
                     </div>
                     
-                    <!-- Chỉ 2 nút như yêu cầu -->
                     <div class="flex gap-3 mb-6" id="tournament-team-filters">
-                        <!-- Render qua JS -->
                     </div>
                     
                     <div class="card p-0 overflow-hidden" id="tournament-display-area">
                         <div class="p-10 text-center text-muted"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu thi đấu...</div>
+                    </div>
+                </section>
+
+                <section id="view-wheel" class="view-section">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h1 class="text-3xl mb-2">Vòng Quay Thưởng</h1>
+                            <p class="text-muted text-lg">Thử vận may để nhận các phần quà hấp dẫn.</p>
+                        </div>
+                    </div>
+                    <div class="card text-center flex-col items-center">
+                        <div class="spin-counter" id="spin-counter-box">
+                            <i class="fa-solid fa-bolt"></i> Lượt quay: <span id="spin-count-val">0</span>
+                        </div>
+                        <div class="wheel-wrapper">
+                            <div class="wheel-container" id="wheel-container-ui">
+                                <div class="wheel-pointer"></div>
+                                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                            </div>
+                            <button id="spinBtn" class="btn-spin" onclick="window.Wheel.startSpin()"><i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-tranhthuong" class="view-section">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h1 class="text-3xl mb-2">Tranh Thưởng Nhanh</h1>
+                            <p class="text-muted text-lg">Chọn 1 thẻ bất kỳ để xé và lật mở phần quà bí mật.</p>
+                        </div>
+                    </div>
+                    <div class="card text-center flex-col items-center">
+                        <div class="ticket-counter" id="ticket-counter-box">
+                            <i class="fa-solid fa-bolt"></i> Lượt xé vé: <span id="ticket-count-val">0</span>
+                        </div>
+                        <div class="ticket-grid" id="ticket-grid-ui">
+                        </div>
                     </div>
                 </section>
 
@@ -609,7 +709,9 @@
             chatTarget: null, usersCache: {}, chatListener: null,
             nicknames: JSON.parse(localStorage.getItem('qd_elite_nicks') || '{}'),
             inviteCode: null, hasUsedInvite: false, luckyNumberCanEdit: true,
-            tournamentData: []
+            tournamentData: [],
+            availableSpins: 0, availableTickets: 0,
+            wheelPrizes: [], ticketPrizes: []
         };
 
         /** 3. UTILITY FUNCTIONS */
@@ -628,6 +730,42 @@
                 return `Truy cập: ${new Date(ts).toLocaleDateString('vi-VN')}`;
             },
             safeText: (id, text) => { const el = document.getElementById(id); if(el) el.innerText = text; }
+        };
+
+        /** ÂM THANH */
+        window.Sound = {
+            ctx: null,
+            rewardAudio: new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'),
+            initCtx: () => {
+                if (!window.Sound.ctx) window.Sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (window.Sound.ctx.state === 'suspended') window.Sound.ctx.resume();
+            },
+            playTick: () => {
+                try {
+                    window.Sound.initCtx();
+                    const osc = window.Sound.ctx.createOscillator(); const gain = window.Sound.ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(800, window.Sound.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(100, window.Sound.ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.1, window.Sound.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, window.Sound.ctx.currentTime + 0.1);
+                    osc.connect(gain); gain.connect(window.Sound.ctx.destination);
+                    osc.start(); osc.stop(window.Sound.ctx.currentTime + 0.1);
+                } catch(e){}
+            },
+            playWin: () => {
+                try {
+                    window.Sound.initCtx();
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; 
+                    notes.forEach((freq, i) => {
+                        const osc = window.Sound.ctx.createOscillator(); const gain = window.Sound.ctx.createGain();
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.15, window.Sound.ctx.currentTime + i * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, window.Sound.ctx.currentTime + i * 0.1 + 0.3);
+                        osc.connect(gain); gain.connect(window.Sound.ctx.destination);
+                        osc.start(window.Sound.ctx.currentTime + i * 0.1); osc.stop(window.Sound.ctx.currentTime + i * 0.1 + 0.3);
+                    });
+                } catch(e){}
+            }
         };
 
         /** 4. THEME & UI CONTROLLERS */
@@ -716,7 +854,7 @@
             ping: () => { const p = () => { if(State.currentDocId) db.collection("accounts").doc(State.currentDocId).update({lastActive: Date.now()}); }; p(); State.heartbeatInterval = setInterval(p, 60000); }
         };
 
-        /** 6. PRIVATE CHAT MODULE (Sửa nút quay lại & Gửi ảnh & Đã đọc/Đã gửi) */
+        /** 6. PRIVATE CHAT MODULE */
         window.Chat = {
             init: () => {
                 db.collection("accounts").onSnapshot(snap => {
@@ -845,6 +983,7 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, w, h);
                         
+                        // Nén chất lượng 60% cho nhẹ (Firebase Document max 1MB)
                         const base64Data = canvas.toDataURL('image/jpeg', 0.6);
                         
                         db.collection("private_chat").add({ 
@@ -856,7 +995,7 @@
                             time: Date.now(),
                             read: false // Đánh dấu chưa đọc
                         });
-                        inputElement.value = ""; 
+                        inputElement.value = ""; // reset
                     };
                     img.src = e.target.result;
                 };
@@ -864,13 +1003,217 @@
             }
         };
 
-        /** 7. APPLICATION CORE */
+        /** 7. MODULE VÒNG QUAY (TÍCH HỢP TRỰC TIẾP) */
+        window.Wheel = {
+            canvas: null, ctx: null,
+            currentRotation: 0, isSpinning: false, lastTickIndex: -1,
+            init: function() {
+                this.canvas = document.getElementById("wheelCanvas");
+                if(!this.canvas) return;
+                this.ctx = this.canvas.getContext("2d");
+                this.drawGraphics();
+            },
+            drawGraphics: function() {
+                if(!this.ctx) return;
+                const slices = State.wheelPrizes.length;
+                if(!slices) return;
+                const sliceAngle = (2 * Math.PI) / slices;
+                const centerX = this.canvas.width / 2; const centerY = this.canvas.height / 2; const radius = centerX;
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                for (let i = 0; i < slices; i++) {
+                    const startAngle = i * sliceAngle; const endAngle = startAngle + sliceAngle;
+                    const sliceColor = i % 2 === 0 ? "#18181b" : "#27272a";
+                    this.ctx.beginPath(); this.ctx.moveTo(centerX, centerY); this.ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                    this.ctx.fillStyle = sliceColor; this.ctx.fill();
+                    this.ctx.strokeStyle = "rgba(245, 158, 11, 0.4)"; this.ctx.lineWidth = 3; this.ctx.stroke();
+
+                    this.ctx.save(); this.ctx.translate(centerX, centerY); this.ctx.rotate(startAngle + sliceAngle / 2);
+                    this.ctx.textAlign = "right"; this.ctx.textBaseline = "middle";
+                    const prizeText = State.wheelPrizes[i].text;
+                    if(prizeText.includes("VNĐ") || prizeText.includes("20K")) this.ctx.fillStyle = "#fde047"; else this.ctx.fillStyle = "#f4f4f5";
+                    this.ctx.font = "bold 20px 'Plus Jakarta Sans'"; this.ctx.shadowColor = "rgba(0,0,0,0.8)"; this.ctx.shadowBlur = 6;
+                    this.ctx.fillText(prizeText, radius - 35, 0); this.ctx.restore();
+                }
+                this.ctx.beginPath(); this.ctx.arc(centerX, centerY, 35, 0, 2 * Math.PI);
+                this.ctx.fillStyle = "#f59e0b"; this.ctx.fill(); this.ctx.strokeStyle = "#121217"; this.ctx.lineWidth = 6; this.ctx.stroke();
+                this.ctx.fillStyle = "#ffffff"; this.ctx.font = "900 30px 'Font Awesome 6 Free'"; this.ctx.textAlign = "center"; this.ctx.textBaseline = "middle"; this.ctx.fillText("\uf005", centerX, centerY);
+            },
+            startSpin: function() {
+                if (this.isSpinning) return;
+                if (State.availableSpins <= 0) return Utils.toast("Bạn đã hết lượt quay! Hãy điểm danh để nhận thêm.", "warning");
+
+                window.Sound.initCtx();
+                this.isSpinning = true;
+                const spinBtn = document.getElementById("spinBtn");
+                spinBtn.disabled = true; spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG QUAY...`;
+
+                db.collection("accounts").doc(State.currentDocId).update({ spins: firebase.firestore.FieldValue.increment(-1) }).then(() => {
+                    let totalChance = 0; State.wheelPrizes.forEach(p => totalChance += (parseFloat(p.chance) || 0));
+                    let winningIndex = 0;
+                    if (totalChance <= 0) winningIndex = Math.floor(Math.random() * State.wheelPrizes.length);
+                    else {
+                        const rand = Math.random() * totalChance; let sum = 0;
+                        for(let i = 0; i < State.wheelPrizes.length; i++) {
+                            sum += parseFloat(State.wheelPrizes[i].chance) || 0;
+                            if(rand <= sum) { winningIndex = i; break; }
+                        }
+                    }
+                    
+                    const slices = State.wheelPrizes.length; const sliceDeg = 360 / slices;
+                    const targetSectorCenter = (winningIndex * sliceDeg) + (sliceDeg / 2);
+                    let finalDeg = 270 - targetSectorCenter; if(finalDeg < 0) finalDeg += 360;
+
+                    const spinsCount = Math.floor(Math.random() * 5) + 5;
+                    const randomOffset = (Math.random() * (sliceDeg - 8)) - (sliceDeg / 2 - 4);
+                    let rotateAmount = finalDeg - (this.currentRotation % 360);
+                    if (rotateAmount < 0) rotateAmount += 360; 
+                    rotateAmount += (360 * spinsCount) + randomOffset;
+                    this.currentRotation += rotateAmount;
+
+                    this.canvas.style.transform = `rotate(${this.currentRotation}deg)`;
+
+                    let start = null;
+                    const animateTick = (time) => {
+                        if (!start) start = time; const progress = time - start;
+                        const currentGoc = (progress / 5000) * rotateAmount; 
+                        const curIdx = Math.floor(currentGoc / sliceDeg);
+                        if(curIdx !== this.lastTickIndex) { window.Sound.playTick(); this.lastTickIndex = curIdx; }
+                        if(progress < 5000) requestAnimationFrame(animateTick);
+                    };
+                    requestAnimationFrame(animateTick);
+
+                    setTimeout(() => {
+                        this.isSpinning = false; spinBtn.disabled = false; spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
+                        this.processResult(winningIndex);
+                    }, 5000);
+                }).catch(err => {
+                    Utils.toast("Lỗi kết nối máy chủ.", "error");
+                    this.isSpinning = false; spinBtn.disabled = false; spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
+                });
+            },
+            processResult: function(winIndex) {
+                window.Sound.playWin();
+                const resultText = State.wheelPrizes[winIndex].text;
+                document.getElementById('wheelPrizeText').innerText = resultText;
+                window.UI.openModal('modal-wheel-result');
+                db.collection("spin_history").add({ userId: State.currentUser, result: resultText, timestamp: Date.now() });
+            },
+            closeResultModal: function() { window.UI.closeModal('modal-wheel-result'); }
+        };
+
+        /** 8. MODULE TRANH THƯỞNG (TÍCH HỢP TRỰC TIẾP) */
+        window.TranhThuong = {
+            hasPlayed: false,
+            init: function() {
+                this.renderTickets();
+            },
+            renderTickets: function() {
+                const grid = document.getElementById('ticket-grid-ui');
+                if(!grid) return;
+                grid.innerHTML = "";
+                for(let i = 0; i < 6; i++) {
+                    grid.innerHTML += `
+                        <div class="ticket-container" id="ticket-${i}" onclick="window.TranhThuong.openTicket(${i})">
+                            <div class="ticket-back">
+                                <i class="fa-solid fa-gift text-3xl" style="color: var(--color-gold, #ffd700); opacity: 0.8;"></i>
+                                <h3 id="ticket-result-${i}">?</h3>
+                            </div>
+                            <div class="ticket-front">
+                                <div class="ticket-half half-left"><i class="fa-solid fa-ticket-alt"></i></div>
+                                <div class="ticket-half half-right"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            openTicket: function(index) {
+                if (State.availableTickets <= 0) return Utils.toast("Bạn đã hết lượt xé phiếu!", "warning");
+                if (this.hasPlayed) return;
+                
+                window.Sound.initCtx();
+                this.hasPlayed = true;
+
+                db.collection("accounts").doc(State.currentDocId).update({ tickets: firebase.firestore.FieldValue.increment(-1) }).then(() => {
+                    let totalChance = 0; State.ticketPrizes.forEach(p => totalChance += parseFloat(p.chance) || 0);
+                    const rand = Math.random() * totalChance; let sum = 0; let winningPrize = "Chúc May Mắn";
+                    for(let i = 0; i < State.ticketPrizes.length; i++) {
+                        sum += parseFloat(State.ticketPrizes[i].chance) || 0;
+                        if(rand <= sum) { winningPrize = State.ticketPrizes[i].text; break; }
+                    }
+
+                    document.getElementById(`ticket-result-${index}`).innerText = winningPrize;
+                    for(let i=0; i<6; i++) { if(i !== index) document.getElementById(`ticket-${i}`).classList.add('disabled'); }
+
+                    const activeTicket = document.getElementById(`ticket-${index}`);
+                    activeTicket.classList.add('opened');
+
+                    setTimeout(() => {
+                        document.getElementById('ticketPrizeText').innerText = winningPrize;
+                        window.UI.openModal('modal-ticket-result');
+                        
+                        window.Sound.rewardAudio.currentTime = 0;
+                        window.Sound.rewardAudio.play().catch(e=>{});
+
+                        db.collection("tranhthuong_history").add({ userId: State.currentUser, result: winningPrize, timestamp: Date.now() });
+                    }, 900);
+
+                }).catch(err => {
+                    this.hasPlayed = false; Utils.toast("Lỗi kết nối máy chủ.", "error");
+                });
+            },
+            closeModal: function() {
+                window.Sound.rewardAudio.pause(); window.Sound.rewardAudio.currentTime = 0;
+                window.UI.closeModal('modal-ticket-result');
+                setTimeout(() => { this.hasPlayed = false; this.renderTickets(); }, 300);
+            }
+        };
+
+        /** 9. APPLICATION CORE */
         window.AppCore = {
             attConfig: { start: "09:00", end: "10:00" }, hasAttendedToday: false,
             
             init: () => {
                 setInterval(() => { const lc = document.getElementById('live-clock'); if(lc) { const n = new Date(); const e = n.getHours()*3600 + n.getMinutes()*60 + n.getSeconds(); const r = 86400 - e; lc.innerText = String(Math.floor(r/3600)).padStart(2,'0')+':'+String(Math.floor((r%3600)/60)).padStart(2,'0')+':'+String(r%60).padStart(2,'0'); } }, 1000);
                 const dateVN = Utils.getTodayString(); Utils.safeText('att-badge-date', dateVN);
+
+                // Lắng nghe tài khoản lấy lượt quay/xé vé
+                db.collection("accounts").doc(State.currentDocId).onSnapshot(doc => {
+                    if(doc.exists) {
+                        const data = doc.data();
+                        State.availableSpins = data.spins || 0;
+                        State.availableTickets = data.tickets || 0;
+                        Utils.safeText('spin-count-val', State.availableSpins);
+                        Utils.safeText('ticket-count-val', State.availableTickets);
+                        
+                        const wheelCont = document.getElementById('wheel-container-ui');
+                        if(wheelCont) {
+                            if(State.availableSpins > 0) wheelCont.classList.add('ready');
+                            else wheelCont.classList.remove('ready');
+                        }
+
+                        if(window.Wheel && !window.Wheel.isSpinning) {
+                            const btn = document.getElementById('spinBtn');
+                            if(btn) {
+                                if(State.availableSpins <= 0) { btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-ban mr-2"></i> ĐÃ HẾT LƯỢT`; }
+                                else { btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`; }
+                            }
+                        }
+                    }
+                });
+
+                // Cấu hình Wheel & Tranh Thuong
+                db.collection("settings").doc("wheel_config").onSnapshot(doc => {
+                    if(doc.exists && doc.data().prizes) State.wheelPrizes = doc.data().prizes;
+                    else State.wheelPrizes = [{text:"10K", chance:10}, {text:"Chúc May Mắn", chance:90}];
+                    window.Wheel.init();
+                });
+
+                db.collection("settings").doc("tranhthuong_config").onSnapshot(doc => {
+                    if(doc.exists && doc.data().prizes) State.ticketPrizes = doc.data().prizes;
+                    else State.ticketPrizes = [{text:"10K", chance:10}, {text:"Chúc May Mắn", chance:90}];
+                    window.TranhThuong.init();
+                });
 
                 db.collection("settings").doc("attendance").onSnapshot(doc => { if(doc.exists) { window.AppCore.attConfig.start = doc.data().start || "09:00"; window.AppCore.attConfig.end = doc.data().end || "10:00"; window.AppCore.evalAtt(); } });
                 db.collection("attendance").where("date", "==", dateVN).where("userName", "==", State.currentUser).onSnapshot(snap => { window.AppCore.hasAttendedToday = !snap.empty; window.AppCore.evalAtt(); });
@@ -971,7 +1314,7 @@
                 });
             },
 
-            // HIỂN THỊ CHỈ 2 NÚT GIẢI ĐẤU
+            // HIỂN THỊ CHỈ 2 NÚT
             renderTournamentFilters: () => {
                 const filtersContainer = document.getElementById('tournament-team-filters');
                 if (!filtersContainer) return;
