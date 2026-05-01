@@ -147,21 +147,22 @@
         .bento-action:hover .bento-icon { transform: scale(1.1) rotate(-5deg); }
 
         /* Mobile Adjustments */
-        .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: var(--z-index-fixed); background: rgba(var(--bg-surface), 0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border-strong); padding: 12px 10px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); justify-content: space-between; box-shadow: 0 -10px 25px rgba(0,0,0,0.2); }
-        .m-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; font-weight: 800; padding: 8px 4px; border-radius: var(--radius-md); cursor: pointer; transition: var(--transition-fast); user-select: none; }
-        .m-nav-item i { font-size: 20px; transition: var(--transition-fast); } 
+        .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: var(--z-index-fixed); background: rgba(var(--bg-surface), 0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border-strong); padding: 8px 10px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); justify-content: space-between; box-shadow: 0 -10px 25px rgba(0,0,0,0.2); }
+        .m-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-muted); font-size: 10px; font-weight: 800; padding: 6px 2px; border-radius: var(--radius-md); cursor: pointer; transition: var(--transition-fast); user-select: none; }
+        .m-nav-item i { font-size: 18px; transition: var(--transition-fast); } 
         .m-nav-item.active { color: var(--brand-primary); background: var(--brand-primary-soft); } .m-nav-item.active i { transform: translateY(-3px); }
 
         @media (max-width: 1023px) {
             #app-shell { padding: 0; display: flex !important; } .floating-sidebar { display: none; }
-            .main-content-wrapper { border: none; border-radius: 0; padding-bottom: 90px; }
-            .mobile-nav { display: flex; } .bento-hero { padding: 30px 20px; } .top-navbar { padding: 20px; } 
+            .main-content-wrapper { border: none; border-radius: 0; padding-bottom: 70px; }
+            .mobile-nav { display: flex; } .bento-hero { padding: 30px 20px; } 
+            .top-navbar { padding: 12px 16px; } 
             
             /* Tối ưu hóa margin khi vào điện thoại */
             .workspace-area { padding: 15px; } 
-            .card { padding: 20px; } /* Thu nhỏ lề Card để vòng quay có thêm diện tích hiển thị */
+            .card { padding: 20px; } 
             
-            .mobile-header-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 22px; color: var(--text-main); }
+            .mobile-header-brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; color: var(--text-main); }
             .mobile-header-brand i { color: var(--brand-primary); } .hidden-desktop { display: flex !important; } .hidden-mobile { display: none !important; }
             .bento-grid { grid-template-columns: 1fr 1fr; } .bento-action { padding: 20px; } .bento-icon { width: 50px; height: 50px; font-size: 22px; }
         }
@@ -227,15 +228,14 @@
            --------------------------------------------------------------------- */
         .wheel-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; width: 100%; overflow: hidden; }
         
-        /* Cập nhật lại giới hạn width để vòng quay nằm gọn trong Card */
         .wheel-container { 
             position: relative; 
             width: 350px; 
-            max-width: 100%; /* Sửa lại lỗi khuyết hình trên mobile do width vượt quá khung chứa */
+            max-width: 100%;
             aspect-ratio: 1 / 1; 
             margin: 0 auto; 
             border-radius: 50%; 
-            padding: 8px; /* Tối ưu lề trong */
+            padding: 8px;
             background: linear-gradient(135deg, #1e1e26, #09090b); 
             border: 4px solid var(--border-strong); 
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
@@ -466,7 +466,7 @@
         <main class="main-content-wrapper">
             
             <header class="top-navbar">
-                <div class="mobile-header-brand hidden-desktop"><i class="fa-solid fa-atom"></i> QĐ TLH <span class="badge badge-warning" style="background: var(--brand-primary-soft); color: var(--brand-primary); margin-left: 10px;">v2.6</span></div>
+                <div class="mobile-header-brand hidden-desktop"><i class="fa-solid fa-atom"></i> QĐ TLH</div>
                 <div class="hidden-mobile font-bold text-muted text-sm tracking-wide uppercase"><i class="fa-solid fa-shield-check text-success mr-2"></i> Phiên bản quân đoàn</div> 
                 <div class="flex items-center gap-3">
                     <button class="btn-icon hidden-desktop" style="color: var(--brand-primary); border-color: var(--brand-primary-soft); background: var(--brand-primary-soft);" onclick="window.UI.openModal('modal-profile')"><i class="fa-solid fa-user"></i></button>
