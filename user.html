@@ -55,6 +55,48 @@
             --shadow-sm: 0 4px 15px rgba(0,0,0,0.05); --shadow-lg: 0 20px 40px -10px rgba(0,0,0,0.1);
         }
 
+        /* CSS CHAT TƯƠNG TÁC THẢ TIM VÀ UNREAD BADGE */
+        .unread-badge {
+            background: var(--color-danger);
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+            box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+        }
+
+        .heart-reaction {
+            position: absolute;
+            bottom: -10px;
+            right: 10px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-strong);
+            border-radius: 20px;
+            padding: 2px 6px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 2;
+            transition: transform 0.2s;
+        }
+        .heart-reaction:hover { transform: scale(1.2); }
+        .heart-reaction.active { color: var(--color-danger); border-color: var(--color-danger-bg); }
+
+        .btn-heart-action {
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+            padding: 5px;
+        }
+        .msg-row:hover .btn-heart-action { opacity: 1; }
+        .msg-bubble-container { position: relative; }
+
         /* ---------------------------------------------------------------------
            3. BASE STYLES & UTILITIES
            --------------------------------------------------------------------- */
@@ -422,11 +464,12 @@
         </div>
     </div>
 
+    <!-- UPDATE: NÚT ĐĂNG NHẬP -->
     <div id="auth-gate">
         <div class="auth-box">
             <div class="flex-center mx-auto mb-8 bg-brand-soft" style="width: 90px; height: 90px; border-radius: 24px; background: var(--brand-primary-soft); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px var(--brand-glow); transform: rotate(-10deg);"><i class="fa-solid fa-atom text-primary" style="font-size: 50px; transform: rotate(10deg);"></i></div>
             <h1 class="mb-2 text-4xl font-bold text-primary" style="letter-spacing: -2px;">HỆ THỐNG QUÂN ĐOÀN</h1>
-            <p class="text-muted mb-10 text-md">Hệ Thống QĐ TLH</p>
+            <p class="text-muted mb-10 text-md">   </p>
 
             <div class="form-group">
                 <label class="form-label text-left">Tên Đăng Nhập</label>
@@ -438,7 +481,8 @@
                 <div class="relative"><i class="fa-solid fa-lock absolute text-muted" style="left: 20px; top: 50%; transform: translateY(-50%); font-size: 18px;"></i><input type="password" id="login-pwd" class="form-control" style="padding-left: 60px; border-radius: var(--radius-full);" placeholder="Nhập password bảo mật..." onkeypress="if(event.key==='Enter') window.Auth.login()"></div>
             </div>
 
-            <button class="btn btn-primary w-full" style="padding: 20px; font-size: 18px;" id="btn-login" onclick="window.Auth.login()">TRUY CẬP HỆ THỐNG <i class="fa-solid fa-arrow-right ml-2"></i></button>
+            <!-- Nút đăng nhập -->
+            <button class="btn btn-primary w-full" style="padding: 20px; font-size: 18px;" id="btn-login" onclick="window.Auth.login()">ĐĂNG NHẬP <i class="fa-solid fa-arrow-right ml-2"></i></button>
         </div>
     </div>
 
@@ -467,7 +511,7 @@
             
             <header class="top-navbar">
                 <div class="mobile-header-brand hidden-desktop"><i class="fa-solid fa-atom"></i> QĐ TLH</div>
-                <div class="hidden-mobile font-bold text-muted text-sm tracking-wide uppercase"><i class="fa-solid fa-shield-check text-success mr-2"></i> Phiên bản quân đoàn</div> 
+                <div class="hidden-mobile font-bold text-muted text-sm tracking-wide uppercase"><i class="fa-solid fa-shield-check text-success mr-2"></i> </div> 
                 <div class="flex items-center gap-3">
                     <button class="btn-icon hidden-desktop" style="color: var(--brand-primary); border-color: var(--brand-primary-soft); background: var(--brand-primary-soft);" onclick="window.UI.openModal('modal-profile')"><i class="fa-solid fa-user"></i></button>
                     <button class="btn-icon" onclick="window.UI.openModal('modal-settings')"><i class="fa-solid fa-gear"></i></button>
@@ -871,7 +915,6 @@
                     else { const meq = document.querySelector(`.m-nav-item[onclick*="${vid}"]`); if(meq) { document.querySelectorAll('.m-nav-item').forEach(n=>n.classList.remove('active')); meq.classList.add('active'); } }
                 }
 
-                // Cập nhật mảng bao gồm 'wheel' và 'tranhthuong' để ẩn top-navbar trên mobile
                 const topNav = document.querySelector('.top-navbar');
                 if (topNav) {
                     const hideOnViews = ['chat', 'attendance', 'news', 'tournament', 'wheel', 'tranhthuong'];
@@ -886,19 +929,19 @@
             }
         };
 
-        /** 5. AUTHENTICATION ENGINE */
+        /** 5. AUTHENTICATION ENGINE (Đã cập nhật text) */
         window.Auth = {
             login: async () => {
                 const u = document.getElementById('login-usr').value.trim(); const p = document.getElementById('login-pwd').value.trim(); const b = document.getElementById('btn-login');
                 if(!u || !p) return Utils.toast("Bạn cần điền đầy đủ thông tin để hệ thống xác thực.", "warning");
-                b.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG KẾT NỐI VỚI MÁY CHỦ...`; b.disabled = true;
+                b.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG KẾT NỐI...`; b.disabled = true;
 
                 try {
                     const snap = await db.collection("accounts").where("user", "==", u).where("pass", "==", p).get();
-                    if(snap.empty) { Utils.toast("Dữ liệu thông tin đăng nhập không chính xác.", "error"); b.innerHTML = `TRUY CẬP HỆ THỐNG <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; }
+                    if(snap.empty) { Utils.toast("Dữ liệu thông tin đăng nhập không chính xác.", "error"); b.innerHTML = `ĐĂNG NHẬP <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; }
                     else {
                         const docData = snap.docs[0].data();
-                        if(docData.isBlocked) { Utils.toast("Truy cập bị từ chối: Tài khoản này đã bị khóa.", "error"); b.innerHTML = `TRUY CẬP HỆ THỐNG <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; return; }
+                        if(docData.isBlocked) { Utils.toast("Truy cập bị từ chối: Tài khoản này đã bị khóa.", "error"); b.innerHTML = `ĐĂNG NHẬP <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; return; }
                         
                         State.currentUser = docData.user; State.currentDocId = snap.docs[0].id;
                         localStorage.setItem('qd_current_username', State.currentUser); 
@@ -933,25 +976,38 @@
                 } catch(e) { 
                     console.error("Login Error:", e);
                     Utils.toast(`Lỗi Máy Chủ: Request Timeout.`, "error"); 
-                    b.innerHTML = `TRUY CẬP HỆ THỐNG <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; 
+                    b.innerHTML = `ĐĂNG NHẬP <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; 
                 }
             },
             logout: () => { if(State.heartbeatInterval) clearInterval(State.heartbeatInterval); if(State.currentDocId) { db.collection("accounts").doc(State.currentDocId).update({lastActive: 0}).finally(()=>window.location.reload()); } else window.location.reload(); },
             ping: () => { const p = () => { if(State.currentDocId) db.collection("accounts").doc(State.currentDocId).update({lastActive: Date.now()}); }; p(); State.heartbeatInterval = setInterval(p, 60000); }
         };
 
-        /** 6. PRIVATE CHAT MODULE */
+        /** 6. PRIVATE CHAT MODULE WITH HEART & UNREAD BADGES */
         window.Chat = {
             init: () => {
-                db.collection("accounts").onSnapshot(snap => {
+                db.collection("accounts").onSnapshot(async snap => {
                     const ls = document.getElementById('contact-list-ui'); if(!ls) return; ls.innerHTML = ""; State.usersCache = {}; let count = 0;
-                    snap.forEach(doc => {
-                        const d = doc.data(); if(d.user !== State.currentUser) {
+                    
+                    for (const doc of snap.docs) {
+                        const d = doc.data(); 
+                        if(d.user !== State.currentUser) {
                             count++; State.usersCache[d.user] = d.lastActive; const isOn = (Date.now() - (d.lastActive||0)) < 300000;
                             const dN = State.nicknames[d.user] || d.user; const isAct = State.chatTarget === d.user ? 'active' : '';
-                            ls.innerHTML += `<div class="contact-card ${isAct}" data-key="${dN.toLowerCase()}" onclick="window.Chat.selectTarget('${d.user}')"><div class="avatar-circle" style="position:relative;">${dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${dN}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}">${Utils.timeAgo(d.lastActive)}</div></div></div>`;
+                            
+                            const roomId = Utils.getRoomId(State.currentUser, d.user);
+                            const unreadSnap = await db.collection("private_chat")
+                                .where("conversationId", "==", roomId)
+                                .where("to", "==", State.currentUser)
+                                .where("read", "==", false)
+                                .get();
+                            
+                            const unreadCount = unreadSnap.size;
+                            const unreadHtml = unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : '';
+
+                            ls.innerHTML += `<div class="contact-card ${isAct}" data-key="${dN.toLowerCase()}" onclick="window.Chat.selectTarget('${d.user}')"><div class="avatar-circle" style="position:relative;">${dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg flex items-center justify-between" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${dN} ${unreadHtml}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}">${Utils.timeAgo(d.lastActive)}</div></div></div>`;
                         }
-                    });
+                    }
                     if(count === 0) ls.innerHTML = `<div class="text-center text-muted p-10 mt-10"><i class="fa-solid fa-users-slash text-5xl mb-4 opacity-30 block"></i>Không có đồng nghiệp.</div>`;
                     if(State.chatTarget) window.Chat.updateHeader();
                 });
@@ -995,6 +1051,12 @@
                 } 
             },
 
+            toggleHeart: (msgId, currentStatus) => {
+                db.collection("private_chat").doc(msgId).update({
+                    heart: !currentStatus
+                }).catch(e => console.log("Lỗi thả tim:", e));
+            },
+
             load: () => {
                 if(State.chatListener) State.chatListener(); const box = document.getElementById('chat-history-ui'); if(!box) return;
                 box.innerHTML = `<div class="text-center text-primary mt-10 text-3xl"><i class="fa-solid fa-spinner fa-spin"></i></div>`;
@@ -1030,10 +1092,14 @@
                             }
                         }
 
+                        const hasHeart = m.heart || false;
+                        const heartHtml = hasHeart ? `<div class="heart-reaction active" onclick="window.Chat.toggleHeart('${m.id}', true)">❤️</div>` : '';
+                        const heartBtn = `<i class="fa-regular fa-heart btn-heart-action" onclick="window.Chat.toggleHeart('${m.id}', ${hasHeart})"></i>`;
+
                         const imgHtml = m.imageUrl ? `<img src="${m.imageUrl}" style="max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer;" onclick="window.open('${m.imageUrl}', '_blank')">` : '';
                         const textHtml = m.text ? `<div>${m.text}</div>` : '';
                         
-                        box.innerHTML += `<div class="msg-row ${isM?'me':'them'}"><div class="msg-bubble">${textHtml}${imgHtml}</div><div class="text-xs text-muted mt-2 font-bold ${isM?'text-right':'text-left'}">${tm}${statusHtml}</div></div>`; 
+                        box.innerHTML += `<div class="msg-row ${isM?'me':'them'}"><div class="flex items-center gap-2">${!isM ? heartBtn : ''}<div class="msg-bubble-container"><div class="msg-bubble">${textHtml}${imgHtml}</div>${heartHtml}</div>${isM ? heartBtn : ''}</div><div class="text-xs text-muted mt-2 font-bold ${isM?'text-right':'text-left'}">${tm}${statusHtml}</div></div>`; 
                     });
 
                     if (hasUnread) {
@@ -1044,7 +1110,7 @@
                 });
             },
             
-            sendMsg: () => { const i = document.getElementById('inp-chat-msg'); if(!i) return; const t = i.value.trim(); if(!t || !State.chatTarget) return; i.value = ""; i.focus(); db.collection("private_chat").add({ conversationId: Utils.getRoomId(State.currentUser, State.chatTarget), from: State.currentUser, to: State.chatTarget, text: t, imageUrl: null, time: Date.now(), read: false }); },
+            sendMsg: () => { const i = document.getElementById('inp-chat-msg'); if(!i) return; const t = i.value.trim(); if(!t || !State.chatTarget) return; i.value = ""; i.focus(); db.collection("private_chat").add({ conversationId: Utils.getRoomId(State.currentUser, State.chatTarget), from: State.currentUser, to: State.chatTarget, text: t, imageUrl: null, time: Date.now(), read: false, heart: false }); },
 
             sendImage: (inputElement) => {
                 if(!inputElement.files || !inputElement.files[0] || !State.chatTarget) return;
@@ -1074,7 +1140,8 @@
                             text: "", 
                             imageUrl: base64Data,
                             time: Date.now(),
-                            read: false 
+                            read: false,
+                            heart: false
                         });
                         inputElement.value = ""; 
                     };
@@ -1258,7 +1325,6 @@
                 setInterval(() => { const lc = document.getElementById('live-clock'); if(lc) { lc.innerText = new Date().toLocaleTimeString('vi-VN', { hour12: false }); } }, 1000);
                 const dateVN = Utils.getTodayString(); Utils.safeText('att-badge-date', dateVN);
 
-                // Lắng nghe tài khoản lấy lượt quay/xé vé
                 db.collection("accounts").doc(State.currentDocId).onSnapshot(doc => {
                     if(doc.exists) {
                         const data = doc.data();
@@ -1283,7 +1349,6 @@
                     }
                 });
 
-                // Cấu hình Wheel & Tranh Thuong
                 db.collection("settings").doc("wheel_config").onSnapshot(doc => {
                     if(doc.exists && doc.data().prizes) State.wheelPrizes = doc.data().prizes;
                     else State.wheelPrizes = [{text:"10K", chance:10}, {text:"Chúc May Mắn", chance:90}];
@@ -1334,7 +1399,6 @@
                     }
                 });
 
-                // CẬP NHẬT: THIẾT KẾ LẠI GIAO DIỆN BẢN TIN TRONG MÀN HÌNH NEWS
                 db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
                     const f = document.getElementById('news-feed-list'); 
                     const p = document.getElementById('dash-news-preview'); 
@@ -1352,7 +1416,6 @@
                         const d = doc.data(); 
                         const ts = new Date(d.time).toLocaleString('vi-VN');
                         
-                        // Giao diện hiển thị dễ đọc (Cho thẻ THÔNG BÁO lên trên cùng)
                         f.innerHTML += `
                         <div class="card mb-6 p-0 overflow-hidden" style="border: 1px solid var(--color-info);">
                             <div class="p-4" style="background: var(--color-info-bg); border-bottom: 1px solid rgba(14, 165, 233, 0.2); display: flex; align-items: center; gap: 12px;">
@@ -1374,7 +1437,6 @@
                     });
                 });
 
-                // ĐỒNG BỘ BẢNG GIẢI ĐẤU
                 db.collection("tournament").orderBy("timestamp", "desc").onSnapshot(snap => {
                     window.State.tournamentData = [];
                     const displayArea = document.getElementById('tournament-display-area');
@@ -1391,23 +1453,22 @@
                     });
 
                     window.AppCore.renderTournamentFilters();
-                    window.AppCore.renderTournamentView('all_members'); // Mặc định hiển thị tab Thành viên
+                    window.AppCore.renderTournamentView('all_members'); 
                 });
             },
 
-            // HIỂN THỊ CHỈ 2 NÚT
+            // ĐỔI TÊN NÚT BẤM THÀNH "Các Thành Viên"
             renderTournamentFilters: () => {
                 const filtersContainer = document.getElementById('tournament-team-filters');
                 if (!filtersContainer) return;
 
                 let html = `
-                    <button class="btn btn-primary" onclick="window.AppCore.renderTournamentView('all_members', this)">Tất Cả Thành Viên</button>
+                    <button class="btn btn-primary" onclick="window.AppCore.renderTournamentView('all_members', this)">Các Thành Viên</button>
                     <button class="btn btn-outline" onclick="window.AppCore.renderTournamentView('all_teams', this)">Các Đội</button>
                 `;
                 filtersContainer.innerHTML = html;
             },
 
-            // HIỂN THỊ GIAO DIỆN THEO CHẾ ĐỘ
             renderTournamentView: (mode, btnElement = null) => {
                 const displayArea = document.getElementById('tournament-display-area');
                 if (!displayArea) return;
@@ -1425,7 +1486,6 @@
                 let renderHtml = '';
 
                 if (mode === 'all_members') {
-                    // Dạng phẳng: Danh sách thành viên tham gia
                     renderHtml += `
                         <div class="table-responsive">
                             <table class="w-full text-left" style="border-collapse: collapse; min-width: 600px;">
@@ -1463,7 +1523,6 @@
                     renderHtml += `</tbody></table></div>`;
                     
                 } else if (mode === 'all_teams') {
-                    // Dạng chia nhóm: Hiển thị các đội
                     let teamsToRender = {};
                     data.forEach(d => {
                         const t = d.team || "Chưa phân đội";
@@ -1593,7 +1652,6 @@
                 }).catch(err => Utils.toast("Lỗi hệ thống.", "error"));
             },
 
-            // --- REGISTRATION MODULE ---
             sendRegistration: () => {
                 const nEl = document.getElementById('reg-name'); const idEl = document.getElementById('reg-id');
                 if(!nEl || !idEl) return;
@@ -1688,7 +1746,6 @@
             }
         };
 
-        // Bắt sự kiện thu/phóng màn hình để tự sửa layout chat & navbar
         window.addEventListener('resize', () => {
             const topNav = document.querySelector('.top-navbar');
             
@@ -1698,12 +1755,10 @@
                 if(s) s.style.display = 'flex';
                 if(m) m.style.display = 'flex';
                 
-                // Trả lại thanh navbar nếu mở trên Desktop
                 if (topNav) topNav.style.display = 'flex';
             } else {
                 window.Chat.toggleMobile(State.chatTarget === null);
                 
-                // Tính toán lại trạng thái navbar nếu thu nhỏ trình duyệt xuống dạng Mobile
                 const activeView = document.querySelector('.view-section.active');
                 if (activeView && topNav) {
                     const vid = activeView.id.replace('view-', '');
@@ -1717,7 +1772,6 @@
             }
         });
 
-        // RUN ENGINE ON BOOT
         document.addEventListener("DOMContentLoaded", () => { 
             window.Theme.init(); 
             window.Music.init(); 
