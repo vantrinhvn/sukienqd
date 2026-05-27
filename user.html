@@ -183,10 +183,17 @@
         .bento-hero { grid-column: 1 / -1; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), transparent); border: 1px solid var(--brand-primary-soft); padding: 40px; border-radius: var(--radius-xl); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; position: relative; overflow: hidden; }
         .bento-hero::after { content: ''; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: var(--brand-primary); filter: blur(100px); opacity: 0.15; border-radius: 50%; pointer-events: none; }
         
-        .bento-action { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 30px; background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-xl); cursor: pointer; transition: var(--transition-fast); position: relative; overflow: hidden; }
+        .bento-action { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 30px; background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-xl); cursor: pointer; transition: var(--transition-fast); position: relative; overflow: hidden; pointer-events: auto; }
         .bento-action:hover { transform: translateY(-5px); border-color: var(--brand-primary); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .bento-icon { width: 60px; height: 60px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 20px; transition: var(--transition-fast); }
         .bento-action:hover .bento-icon { transform: scale(1.1) rotate(-5deg); }
+
+        /* Trạng thái khóa tính năng */
+        .bento-action.locked { filter: grayscale(0.8); opacity: 0.6; cursor: not-allowed; position: relative; }
+        .bento-action.locked:hover { transform: none; box-shadow: none; border-color: var(--border-strong); }
+        .lock-overlay { position: absolute; inset: 0; background: rgba(var(--bg-surface), 0.7); display: none; align-items: center; justify-content: center; z-index: 10; font-size: 40px; color: var(--color-danger); backdrop-filter: blur(2px); }
+        .bento-action.locked .lock-overlay { display: flex; }
+        .m-nav-item.locked { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
 
         /* Mobile Adjustments */
         .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: var(--z-index-fixed); background: rgba(var(--bg-surface), 0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border-strong); padding: 8px 10px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); justify-content: space-between; box-shadow: 0 -10px 25px rgba(0,0,0,0.2); }
@@ -319,7 +326,6 @@
         </div>
     </div>
 
-    <!-- MODAL ĐĂNG KÝ ID -->
     <div class="modal-overlay" id="modal-registration">
         <div class="modal-box text-center">
             <button class="modal-close-btn" onclick="window.UI.closeModal('modal-registration')"><i class="fa-solid fa-xmark"></i></button>
@@ -341,7 +347,6 @@
         </div>
     </div>
 
-    <!-- MODAL KẾT QUẢ VÒNG QUAY -->
     <div class="modal-overlay" id="modal-wheel-result">
         <div class="modal-box text-center">
             <div style="font-size: 70px; color: var(--color-warning); margin-bottom: 10px; text-shadow: 0 0 40px rgba(245,158,11,0.5);">
@@ -358,7 +363,6 @@
         </div>
     </div>
 
-    <!-- MODAL KẾT QUẢ XÉ VÉ -->
     <div class="modal-overlay" id="modal-ticket-result">
         <div class="modal-box text-center">
             <div style="font-size: 70px; color: var(--color-gold, #ffd700); margin-bottom: 10px; text-shadow: 0 0 40px rgba(255,215,0,0.5);">
@@ -464,7 +468,6 @@
         </div>
     </div>
 
-    <!-- UPDATE: NÚT ĐĂNG NHẬP -->
     <div id="auth-gate">
         <div class="auth-box">
             <div class="flex-center mx-auto mb-8 bg-brand-soft" style="width: 90px; height: 90px; border-radius: 24px; background: var(--brand-primary-soft); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px var(--brand-glow); transform: rotate(-10deg);"><i class="fa-solid fa-atom text-primary" style="font-size: 50px; transform: rotate(10deg);"></i></div>
@@ -481,7 +484,6 @@
                 <div class="relative"><i class="fa-solid fa-lock absolute text-muted" style="left: 20px; top: 50%; transform: translateY(-50%); font-size: 18px;"></i><input type="password" id="login-pwd" class="form-control" style="padding-left: 60px; border-radius: var(--radius-full);" placeholder="Nhập password bảo mật..." onkeypress="if(event.key==='Enter') window.Auth.login()"></div>
             </div>
 
-            <!-- Nút đăng nhập -->
             <button class="btn btn-primary w-full" style="padding: 20px; font-size: 18px;" id="btn-login" onclick="window.Auth.login()">ĐĂNG NHẬP <i class="fa-solid fa-arrow-right ml-2"></i></button>
         </div>
     </div>
@@ -587,16 +589,18 @@
                             <p class="text-sm text-muted">Xem danh sách các tuyển thủ thi đấu đã được chọn.</p>
                         </div>
 
-                        <div class="bento-action" onclick="window.UI.navigate('wheel')">
+                        <div class="bento-action" id="btn-nav-wheel" onclick="if(!this.classList.contains('locked')) window.UI.navigate('wheel')">
+                            <div class="lock-overlay"><i class="fa-solid fa-lock"></i></div>
                             <div class="bento-icon bg-warning-bg text-warning" style="background: var(--color-warning-bg); color: var(--color-warning);"><i class="fa-solid fa-dharmachakra"></i></div>
                             <h3 class="text-xl mb-1">Vòng Quay Thưởng</h3>
-                            <p class="text-sm text-muted">Thử vận may với vòng quay 8 ô nhận ngay thẻ cào.</p>
+                            <p class="text-sm text-muted" id="wheel-desc-text">Thử vận may với vòng quay 8 ô nhận ngay thẻ cào.</p>
                         </div>
 
-                        <div class="bento-action" onclick="window.UI.navigate('tranhthuong')">
+                        <div class="bento-action" id="btn-nav-tranhthuong" onclick="if(!this.classList.contains('locked')) window.UI.navigate('tranhthuong')">
+                            <div class="lock-overlay"><i class="fa-solid fa-lock"></i></div>
                             <div class="bento-icon bg-danger-bg text-danger" style="background: var(--color-danger-bg); color: var(--color-danger);"><i class="fa-solid fa-ticket-alt"></i></div>
                             <h3 class="text-xl mb-1">Tranh Thưởng Nhanh</h3>
-                            <p class="text-sm text-muted">Xé thẻ lật quà để rinh phần thưởng bí mật mỗi ngày.</p>
+                            <p class="text-sm text-muted" id="tt-desc-text">Xé thẻ lật quà để rinh phần thưởng bí mật mỗi ngày.</p>
                         </div>
 
                         <div class="bento-action" style="grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 24px; cursor: pointer;" onclick="window.UI.navigate('news')">
@@ -759,7 +763,6 @@
         </nav>
     </div>
 
-    <!-- AUDIO CHO NHẠC NỀN HỆ THỐNG -->
     <audio id="bg-music" loop>
         <source src="nhac.mp3" type="audio/mpeg">
     </audio>
@@ -908,6 +911,10 @@
             openModal: (id) => { const el = document.getElementById(id); if(el) { el.style.display = 'flex'; void el.offsetWidth; el.classList.add('active'); } },
             closeModal: (id) => { const el = document.getElementById(id); if(el) { el.classList.remove('active'); setTimeout(() => el.style.display = 'none', 300); } },
             navigate: (vid, el, mob = false) => {
+                // CHẶN TRUY CẬP KHI BỊ KHÓA
+                if(vid === 'wheel' && document.getElementById('btn-nav-wheel')?.classList.contains('locked')) return Utils.toast("Tính năng đang bảo trì!", "warning");
+                if(vid === 'tranhthuong' && document.getElementById('btn-nav-tranhthuong')?.classList.contains('locked')) return Utils.toast("Tính năng đang bảo trì!", "warning");
+
                 document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); const tgt = document.getElementById(`view-${vid}`); if(tgt) tgt.classList.add('active');
                 if(el) {
                     document.querySelectorAll(mob ? '.m-nav-item' : '.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active');
@@ -1321,6 +1328,29 @@
         window.AppCore = {
             attConfig: { start: "09:00", end: "10:00" }, hasAttendedToday: false,
             
+            // XỬ LÝ GIAO DIỆN KHÓA/MỞ TÍNH NĂNG
+            lockFeatureUI: (featureId, isEnabled) => {
+                const btn = document.getElementById(`btn-nav-${featureId}`);
+                const mNav = document.getElementById(`m-nav-${featureId}`);
+                const desc = document.getElementById(`${featureId === 'wheel' ? 'wheel' : 'tt'}-desc-text`);
+                
+                if(!isEnabled) {
+                    if(btn) btn.classList.add('locked');
+                    if(mNav) mNav.classList.add('locked');
+                    if(desc) desc.innerText = "Chức năng đang bảo trì / Đóng bởi Admin.";
+                    
+                    const activeView = document.querySelector('.view-section.active');
+                    if(activeView && activeView.id === `view-${featureId}`) {
+                        window.UI.navigate('dashboard');
+                        Utils.toast("Tính năng này vừa bị khóa bảo trì!", "warning");
+                    }
+                } else {
+                    if(btn) btn.classList.remove('locked');
+                    if(mNav) mNav.classList.remove('locked');
+                    if(desc) desc.innerText = featureId === 'wheel' ? "Thử vận may với vòng quay 8 ô nhận ngay thẻ cào." : "Xé thẻ lật quà để rinh phần thưởng bí mật mỗi ngày.";
+                }
+            },
+
             init: () => {
                 setInterval(() => { const lc = document.getElementById('live-clock'); if(lc) { lc.innerText = new Date().toLocaleTimeString('vi-VN', { hour12: false }); } }, 1000);
                 const dateVN = Utils.getTodayString(); Utils.safeText('att-badge-date', dateVN);
@@ -1349,15 +1379,29 @@
                     }
                 });
 
+                // Cập nhật lắng nghe Wheel Config để thêm isEnabled
                 db.collection("settings").doc("wheel_config").onSnapshot(doc => {
-                    if(doc.exists && doc.data().prizes) State.wheelPrizes = doc.data().prizes;
-                    else State.wheelPrizes = [{text:"10K", chance:10}, {text:"Chúc May Mắn", chance:90}];
+                    let isEnabled = true;
+                    if(doc.exists) {
+                        if(doc.data().prizes) State.wheelPrizes = doc.data().prizes;
+                        if(doc.data().isEnabled !== undefined) isEnabled = doc.data().isEnabled;
+                    } else {
+                        State.wheelPrizes = [{text:"10K", chance:10}, {text:"Chúc May Mắn", chance:90}];
+                    }
+                    window.AppCore.lockFeatureUI('wheel', isEnabled);
                     window.Wheel.init();
                 });
 
+                // Cập nhật lắng nghe Tranh Thưởng Config để thêm isEnabled
                 db.collection("settings").doc("tranhthuong_config").onSnapshot(doc => {
-                    if(doc.exists && doc.data().prizes) State.ticketPrizes = doc.data().prizes;
-                    else State.ticketPrizes = [{text:"10K", chance:10}, {text:"Chúc May Mắn", chance:90}];
+                    let isEnabled = true;
+                    if(doc.exists) {
+                        if(doc.data().prizes) State.ticketPrizes = doc.data().prizes;
+                        if(doc.data().isEnabled !== undefined) isEnabled = doc.data().isEnabled;
+                    } else {
+                        State.ticketPrizes = [{text:"10K", chance:10}, {text:"Chúc May Mắn", chance:90}];
+                    }
+                    window.AppCore.lockFeatureUI('tranhthuong', isEnabled);
                     window.TranhThuong.init();
                 });
 
@@ -1777,5 +1821,5 @@
             window.Music.init(); 
         });
     </script>
-    </body>
+</body>
 </html>
