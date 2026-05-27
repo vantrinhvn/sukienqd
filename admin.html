@@ -210,7 +210,6 @@
         </div>
     </div>
 
-    <!-- MODAL THÊM NGƯỜI CHƠI (TỪ DANH SÁCH ĐĂNG KÝ) -->
     <div class="modal-overlay" id="modal-add-participant">
         <div class="modal-content">
             <button class="modal-close-btn" onclick="UI.closeModal('modal-add-participant')"><i class="fa-solid fa-xmark"></i></button>
@@ -234,7 +233,6 @@
         </div>
     </div>
 
-    <!-- MODAL GỘP ĐỘI THI ĐẤU -->
     <div class="modal-overlay" id="modal-group-team">
         <div class="modal-content" style="max-width: 500px;">
             <button class="modal-close-btn" onclick="UI.closeModal('modal-group-team')"><i class="fa-solid fa-xmark"></i></button>
@@ -544,7 +542,6 @@
                     </div>
                 </section>
 
-                <!-- VIEW QUẢN LÝ GIẢI ĐẤU MỚI -->
                 <section id="view-tournament" class="view-section">
                     <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
@@ -696,9 +693,18 @@
                     <div class="card mb-8">
                         <div class="card-header border-strong" style="border-bottom: 1px solid var(--border-strong);">
                             <h3 class="card-title"><i class="fa-solid fa-dharmachakra text-primary"></i> Cấu hình Phần thưởng & Tỉ lệ (Vòng Quay)</h3>
-                            <div class="text-right">
-                                <span class="text-sm font-bold text-muted mr-2">Trạng thái Tỉ lệ:</span>
-                                <span class="badge badge-online px-4 py-2 text-sm" id="wheel-total-chance" style="background: rgba(14, 165, 233, 0.15); color: var(--color-info); border-color: var(--color-info);">Tổng: Đang tính...</span>
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold text-muted" id="wheel-status-text">ĐANG BẬT</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="cfg-wheel-toggle" onchange="AdminActions.toggleWheelFeature(this)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-sm font-bold text-muted mr-2">Trạng thái Tỉ lệ:</span>
+                                    <span class="badge badge-online px-4 py-2 text-sm" id="wheel-total-chance" style="background: rgba(14, 165, 233, 0.15); color: var(--color-info); border-color: var(--color-info);">Tổng: Đang tính...</span>
+                                </div>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -757,9 +763,18 @@
                     <div class="card mb-8">
                         <div class="card-header border-strong" style="border-bottom: 1px solid var(--border-strong);">
                             <h3 class="card-title"><i class="fa-solid fa-ticket-alt text-danger"></i> Cấu hình Phần thưởng & Tỉ lệ (Tranh Thưởng)</h3>
-                            <div class="text-right">
-                                <span class="text-sm font-bold text-muted mr-2">Trạng thái Tỉ lệ:</span>
-                                <span class="badge badge-online px-4 py-2 text-sm" id="tt-total-chance" style="background: rgba(239, 68, 68, 0.15); color: var(--color-danger); border-color: var(--color-danger);">Tổng: Đang tính...</span>
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold text-muted" id="tt-status-text">ĐANG BẬT</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="cfg-tt-toggle" onchange="AdminActions.toggleTranhThuongFeature(this)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-sm font-bold text-muted mr-2">Trạng thái Tỉ lệ:</span>
+                                    <span class="badge badge-online px-4 py-2 text-sm" id="tt-total-chance" style="background: rgba(239, 68, 68, 0.15); color: var(--color-danger); border-color: var(--color-danger);">Tổng: Đang tính...</span>
+                                </div>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -1096,6 +1111,16 @@
                         tbody.innerHTML += `<tr><td class="text-center font-bold text-muted">${i + 1}</td><td><input type="text" class="form-control cfg-prize-text" value="${p.text}" style="padding: 10px; font-size: 14px;"></td><td><div class="flex items-center gap-2"><input type="number" class="form-control cfg-prize-chance" value="${p.chance}" min="0" step="0.1" style="padding: 10px; font-size: 14px; font-family: var(--font-family-mono);" oninput="AdminActions.calcTotalChance()"></div></td></tr>`;
                     });
                     AdminActions.calcTotalChance(); 
+                    
+                    // Xử lý nút bật/tắt Vòng Quay
+                    const toggle = document.getElementById('cfg-wheel-toggle');
+                    const statusText = document.getElementById('wheel-status-text');
+                    const isEnabled = doc.exists && doc.data().isEnabled !== false; // Mặc định là true
+                    if(toggle && statusText) {
+                        toggle.checked = isEnabled;
+                        statusText.innerText = isEnabled ? "ĐANG MỞ" : "ĐANG KHÓA";
+                        statusText.style.color = isEnabled ? "var(--color-success)" : "var(--color-danger)";
+                    }
                 });
 
                 db.collection("settings").doc("invite_config").onSnapshot(doc => {
@@ -1371,6 +1396,16 @@
                     const tbody = document.getElementById('tb-tt-config'); if(!tbody) return; tbody.innerHTML = "";
                     prizes.forEach((p, i) => { tbody.innerHTML += `<tr><td class="text-center font-bold text-muted">${i + 1}</td><td><input type="text" class="form-control cfg-tt-prize-text" value="${p.text}" style="padding: 10px; font-size: 14px;"></td><td><div class="flex items-center gap-2"><input type="number" class="form-control cfg-tt-prize-chance" value="${p.chance}" min="0" step="0.1" style="padding: 10px; font-size: 14px; font-family: var(--font-family-mono);" oninput="AdminActions.calcTotalChanceTT()"></div></td></tr>`; });
                     AdminActions.calcTotalChanceTT(); 
+                    
+                    // Xử lý nút bật/tắt Tranh Thưởng
+                    const toggleTT = document.getElementById('cfg-tt-toggle');
+                    const statusTextTT = document.getElementById('tt-status-text');
+                    const isEnabledTT = doc.exists && doc.data().isEnabled !== false; 
+                    if(toggleTT && statusTextTT) {
+                        toggleTT.checked = isEnabledTT;
+                        statusTextTT.innerText = isEnabledTT ? "ĐANG MỞ" : "ĐANG KHÓA";
+                        statusTextTT.style.color = isEnabledTT ? "var(--color-success)" : "var(--color-danger)";
+                    }
                 });
 
                 db.collection("invite_history").orderBy("timestamp", "desc").onSnapshot(snap => {
@@ -1395,6 +1430,21 @@
 
         const AdminActions = {
             
+            // --- ACTION BẬT/TẮT TÍNH NĂNG ---
+            toggleWheelFeature: (checkbox) => {
+                const isEnabled = checkbox.checked;
+                db.collection("settings").doc("wheel_config").set({ isEnabled: isEnabled }, { merge: true })
+                  .then(() => Utils.toast(isEnabled ? "Đã MỞ chức năng Vòng Quay!" : "Đã KHÓA chức năng Vòng Quay!", "success"))
+                  .catch(err => { Utils.toast("Lỗi lưu cấu hình", "error"); checkbox.checked = !isEnabled; });
+            },
+
+            toggleTranhThuongFeature: (checkbox) => {
+                const isEnabled = checkbox.checked;
+                db.collection("settings").doc("tranhthuong_config").set({ isEnabled: isEnabled }, { merge: true })
+                  .then(() => Utils.toast(isEnabled ? "Đã MỞ chức năng Tranh Thưởng!" : "Đã KHÓA chức năng Tranh Thưởng!", "success"))
+                  .catch(err => { Utils.toast("Lỗi lưu cấu hình", "error"); checkbox.checked = !isEnabled; });
+            },
+
             // --- ACTION THÊM VÀO GIẢI ĐẤU ---
             addTournamentParticipant: () => {
                 const sel = document.getElementById('tour-participant-select');
