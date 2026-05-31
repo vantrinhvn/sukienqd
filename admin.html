@@ -67,7 +67,7 @@
         .text-center { text-align: center; } .text-right { text-align: right; }
         .font-bold { font-weight: 700; } .text-xs { font-size: 0.75rem; } .text-sm { font-size: 0.875rem; } .text-lg { font-size: 1.125rem; }
         .text-primary { color: var(--brand-primary); } .text-success { color: var(--color-success); } .text-danger { color: var(--color-danger); } .text-warning { color: var(--color-warning); } .text-info { color: var(--color-info); } .text-muted { color: var(--text-muted); } .text-main { color: var(--text-main); }
-        .w-full { width: 100%; } .h-full { height: 100%; } .hidden { display: none !important; } .relative { position: relative; } .absolute { position: absolute; }
+        .w-full { width: 100%; height: 100%; } .hidden { display: none !important; } .relative { position: relative; } .absolute { position: absolute; }
 
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px; transition: var(--transition-fast); border: 1px solid transparent; white-space: nowrap; user-select: none; }
         .btn:active { transform: scale(0.96); } .btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(0.8); transform: none; }
@@ -90,7 +90,7 @@
         input:checked + .slider { background-color: var(--color-success); } input:checked + .slider:before { transform: translateX(24px); }
 
         .card { background-color: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-xl); padding: 30px; margin-bottom: 24px; box-shadow: var(--shadow-md); transition: var(--transition-normal); position: relative; overflow: hidden; }
-        .card:hover { box-shadow: var(--shadow-lg); border-color: var(--border-strong); }
+        .card:hover { box-shadow: var(--shadow-lg); border-color: var(--border-strong); transform: translateY(-3px); }
         .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px; }
         .card-title { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin: 0; color: var(--text-main); }
 
@@ -111,20 +111,13 @@
 
         #app-shell { display: none; min-height: 100vh; flex-direction: column; width: 100%; }
         .app-header { position: sticky; top: 0; z-index: var(--z-index-sticky); padding: 16px 5%; background-color: rgba(var(--bg-surface), 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-strong); display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
-        .header-brand { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+        .header-brand { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; cursor: pointer; }
         .header-brand i { color: var(--brand-primary); font-size: 26px; }
         .header-version { font-size: 11px; padding: 4px 8px; background-color: var(--brand-primary-soft); color: var(--brand-primary); border-radius: var(--radius-full); font-weight: 800; letter-spacing: 1px; }
 
-        .app-container { max-width: 1440px; margin: 0 auto; padding: 32px 5%; width: 100%; display: grid; gap: 32px; flex: 1; }
+        /* Tối ưu Layout thành 1 cột toàn màn hình sau khi bỏ Sidebar */
+        .app-container { max-width: 1440px; margin: 0 auto; padding: 32px 5%; width: 100%; display: grid; gap: 32px; flex: 1; grid-template-columns: 1fr; }
         
-        .sidebar { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 100px; height: fit-content; }
-        .nav-label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px 16px; }
-        .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: var(--radius-md); color: var(--text-muted); font-weight: 600; font-size: 15px; cursor: pointer; transition: var(--transition-normal); border: 1px solid transparent; user-select: none; position: relative; overflow: hidden; }
-        .nav-item i { font-size: 20px; width: 24px; text-align: center; transition: transform var(--transition-fast); z-index: 2; } .nav-item span { z-index: 2; }
-        .nav-item::before { content: ''; position: absolute; inset: 0; background-color: var(--brand-primary); opacity: 0; transition: opacity var(--transition-normal); z-index: 1; }
-        .nav-item:hover { color: var(--text-main); background-color: var(--bg-hover); } .nav-item:hover i { transform: scale(1.15) rotate(-5deg); color: var(--brand-primary); }
-        .nav-item.active { color: #ffffff; border-color: var(--brand-primary); box-shadow: 0 4px 15px var(--brand-glow); } .nav-item.active::before { opacity: 1; } .nav-item.active i { color: #ffffff; }
-
         .workspace { min-height: 600px; position: relative; }
         .view-section { display: none; animation: sectionEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); } .view-section.active { display: block; }
 
@@ -138,8 +131,7 @@
         .m-nav-item i { font-size: 22px; transition: transform var(--transition-fast); }
         .m-nav-item.active { color: var(--brand-primary); background-color: var(--brand-primary-soft); } .m-nav-item.active i { transform: translateY(-2px); }
 
-        @media (min-width: 1024px) { .app-container { grid-template-columns: 260px 1fr; } }
-        @media (max-width: 1023px) { .app-container { grid-template-columns: 1fr; padding-bottom: 100px; padding-top: 20px; } .sidebar { display: none; } .mobile-nav { display: flex; } .card { padding: 24px; } }
+        @media (max-width: 1023px) { .app-container { padding-bottom: 100px; padding-top: 20px; } .mobile-nav { display: flex; } .card { padding: 24px; } }
 
         .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: var(--z-index-modal-backdrop); display: none; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity var(--transition-normal); }
         .modal-overlay.active { display: flex; opacity: 1; }
@@ -162,7 +154,6 @@
 
         @keyframes sectionEnter { to { opacity: 1; transform: translateY(0); } } @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } } @keyframes toastProgress { from { width: 100%; } to { width: 0%; } } @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* SCROLL BAR FOR CHECKBOX LIST */
         #tour-group-checkbox-list::-webkit-scrollbar { width: 4px; }
         #tour-group-checkbox-list::-webkit-scrollbar-thumb { background: var(--brand-primary); border-radius: 4px; }
     </style>
@@ -384,40 +375,19 @@
 
     <div id="app-shell">
         <header class="app-header">
-            <div class="header-brand">
+            <div class="header-brand" onclick="UI.navigate('dashboard')">
                 <i class="fa-solid fa-shield-halved"></i> 
                 <span>QD ADMIN</span>
                 <span class="header-version">v2.0</span>
             </div>
             <div class="flex items-center gap-4">
+                <button class="btn-icon" title="Tổng quan hệ thống" onclick="UI.navigate('dashboard')"><i class="fa-solid fa-house"></i></button>
                 <button class="btn-icon" title="Cài đặt hệ thống" onclick="UI.openModal('modal-settings')"><i class="fa-solid fa-gear"></i></button>
                 <button class="btn-icon" title="Đăng xuất" style="color: var(--color-danger); border-color: var(--color-danger-bg); background: var(--color-danger-bg);" onclick="UI.openModal('modal-logout')"><i class="fa-solid fa-power-off"></i></button>
             </div>
         </header>
 
         <main class="app-container">
-            <aside class="sidebar">
-                <div class="nav-label">Phân Tích & Báo Cáo</div>
-                <div class="nav-item active" onclick="UI.navigate('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> <span>Tổng Quan Hệ Thống</span></div>
-                
-                <div class="nav-label mt-4">Nghiệp Vụ Dữ Liệu</div>
-                <div class="nav-item" onclick="UI.navigate('attendance', this)"><i class="fa-solid fa-calendar-check"></i> <span>Quản Lý Điểm Danh</span></div>
-                <div class="nav-item" onclick="UI.navigate('registration', this)"><i class="fa-solid fa-file-signature"></i> <span>Danh Sách Đăng Ký</span></div>
-                
-                <div class="nav-label mt-4">Hệ Thống Giải Đấu</div>
-                <div class="nav-item" onclick="UI.navigate('tournament', this)"><i class="fa-solid fa-trophy"></i> <span>Quản Lý Giải Đấu</span></div>
-
-                <div class="nav-label mt-4">Hệ Thống Giải Trí</div>
-                <div class="nav-item" onclick="UI.navigate('luckynumber', this)"><i class="fa-solid fa-gem"></i> <span>Quản Lý Số Quay Thưởng</span></div>
-                <div class="nav-item" onclick="UI.navigate('wheel', this)"><i class="fa-solid fa-dharmachakra"></i> <span>Quản Lý Vòng Quay</span></div>
-                <div class="nav-item" onclick="UI.navigate('tranhthuong', this)"><i class="fa-solid fa-ticket-alt"></i> <span>Quản Lý Tranh Thưởng</span></div>
-                <div class="nav-item" onclick="UI.navigate('invite', this)"><i class="fa-solid fa-handshake"></i> <span>Quản Lý Mã Mời</span></div>
-
-                <div class="nav-label mt-4">Hệ Thống Phân Quyền</div>
-                <div class="nav-item" onclick="UI.navigate('accounts', this)"><i class="fa-solid fa-users-gear"></i> <span>Quản Trị Tài Khoản</span></div>
-                <div class="nav-item" onclick="UI.navigate('news', this)"><i class="fa-solid fa-newspaper"></i> <span>Bản Tin Máy Chủ</span></div>
-            </aside>
-
             <div class="workspace">
 
                 <section id="view-dashboard" class="view-section active">
@@ -452,6 +422,82 @@
                                 <div class="flex-center rounded-md bg-warning-bg text-warning" style="width:32px; height:32px; background:var(--color-warning-bg); color:var(--color-warning); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-id-card"></i></div>
                             </div>
                             <h2 style="font-size: 40px; margin: 0; color: var(--color-warning);" id="stat-regs">0</h2>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl mb-4 font-bold" style="display: flex; align-items: center; gap: 10px; margin-top: 40px;"><i class="fa-solid fa-cubes text-primary"></i> Phân Hệ Quản Lý Hệ Thống</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('attendance')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-success" style="width: 40px; height: 40px; background: var(--color-success-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-calendar-check"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Điểm Danh</h4>
+                            <p class="text-muted text-xs m-0">Cấu hình khung giờ và trích xuất báo cáo chuyên cần.</p>
+                        </div>
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('registration')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-warning" style="width: 40px; height: 40px; background: var(--color-warning-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-file-signature"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Danh Sách Đăng Ký</h4>
+                            <p class="text-muted text-xs m-0">Phê duyệt và cho phép nộp lại các đơn khai báo ID Game.</p>
+                        </div>
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('tournament')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-primary" style="width: 40px; height: 40px; background: var(--brand-primary-soft); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-trophy"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Giải Đấu</h4>
+                            <p class="text-muted text-xs m-0">Phân chia nhánh đấu, gộp đội và quản lý tuyển thủ.</p>
+                        </div>
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('luckynumber')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md" style="width: 40px; height: 40px; background: rgba(236, 72, 153, 0.15); color: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-gem"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Số Quay</h4>
+                            <p class="text-muted text-xs m-0">Theo dõi số dự đoán cá nhân và điều khiển kết quả trúng thưởng.</p>
+                        </div>
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('wheel')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-warning" style="width: 40px; height: 40px; background: var(--color-warning-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-dharmachakra"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Vòng Quay</h4>
+                            <p class="text-muted text-xs m-0">Cấu hình hệ thống giải thưởng vật phẩm và tỉ lệ trúng ngẫu nhiên.</p>
+                        </div>
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('tranhthuong')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-danger" style="width: 40px; height: 40px; background: var(--color-danger-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-ticket-alt"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Tranh Thưởng</h4>
+                            <p class="text-muted text-xs m-0">Thiết lập cơ cấu phần thưởng cho phân hệ xé vé giải trí nhanh.</p>
+                        </div>
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('invite')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-primary" style="width: 40px; height: 40px; background: var(--brand-primary-soft); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-handshake"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Mã Mời</h4>
+                            <p class="text-muted text-xs m-0">Bật/tắt tính năng, điều chỉnh mức thưởng lượt xé khi mời.</p>
+                        </div>
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('accounts')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-muted" style="width: 40px; height: 40px; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-users-gear"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Trị Tài Khoản</h4>
+                            <p class="text-muted text-xs m-0">Cấp phát tài khoản, điều chỉnh số lượt chơi và phân quyền.</p>
+                        </div>
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('news')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-info" style="width: 40px; height: 40px; background: var(--color-info-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-newspaper"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Bản Tin Máy Chủ</h4>
+                            <p class="text-muted text-xs m-0">Phát hành thông báo mới, bài viết công khai tới toàn bộ Client.</p>
                         </div>
                     </div>
                 </section>
