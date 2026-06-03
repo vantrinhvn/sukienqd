@@ -969,7 +969,7 @@
                         Utils.safeText('profile-uid', State.currentDocId.substring(0,10).toUpperCase());
                         
                         document.getElementById('auth-gate').style.opacity = '0';
-                        setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; Auth.ping(); window.AppCore.init(); window.Chat.init(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
+                        setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
                     }
                 } catch(e) { 
                     console.error("Login Error:", e);
@@ -979,6 +979,32 @@
             },
             logout: () => { if(State.heartbeatInterval) clearInterval(State.heartbeatInterval); if(State.currentDocId) { db.collection("accounts").doc(State.currentDocId).update({lastActive: 0}).finally(()=>window.location.reload()); } else window.location.reload(); },
             ping: () => { const p = () => { if(State.currentDocId) db.collection("accounts").doc(State.currentDocId).update({lastActive: Date.now()}); }; p(); State.heartbeatInterval = setInterval(p, 60000); }
+        };
+
+        /** 5.5 SESSION MANAGEMENT (TỰ ĐỘNG ĐĂNG XUẤT) */
+        window.SessionManager = {
+            timeoutLimit: 3600000, // 1 tiếng = 60 phút * 60 giây * 1000 ms
+            timer: null,
+            init: () => {
+                // Lắng nghe các sự kiện tương tác của người dùng để reset bộ đếm giờ
+                ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
+                    document.addEventListener(evt, window.SessionManager.resetTimer, true);
+                });
+            },
+            resetTimer: () => {
+                // Chỉ chạy đếm ngược nếu người dùng đã đăng nhập thành công (có currentDocId)
+                if (window.State && window.State.currentDocId) {
+                    clearTimeout(window.SessionManager.timer);
+                    window.SessionManager.timer = setTimeout(() => {
+                        window.Utils.toast("Phiên đăng nhập đã hết hạn do không hoạt động. Vui lòng đăng nhập lại!", "warning");
+                        
+                        // Đợi 2 giây để user kịp đọc thông báo rồi tiến hành đăng xuất & reload trang
+                        setTimeout(() => {
+                            window.Auth.logout();
+                        }, 2000);
+                    }, window.SessionManager.timeoutLimit);
+                }
+            }
         };
 
         /** 6. PRIVATE CHAT MODULE WITH HEART & UNREAD BADGES */
@@ -1782,6 +1808,7 @@
         document.addEventListener("DOMContentLoaded", () => { 
             window.Theme.init(); 
             window.Music.init(); 
+            window.SessionManager.init(); // Khởi tạo bộ quản lý tương tác và phiên đăng nhập
         });
     </script>
 </body>
