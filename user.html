@@ -303,6 +303,37 @@
         </div>
     </div>
 
+    <!-- TẶNG QUÀ ĐỒNG ĐỘI MODAL -->
+    <div class="modal-overlay" id="modal-transfer">
+        <div class="modal-box text-center">
+            <button class="modal-close-btn" onclick="window.UI.closeModal('modal-transfer')"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center justify-center mx-auto mb-6" style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-info-bg); color: var(--color-info); font-size: 36px;"><i class="fa-solid fa-gift"></i></div>
+            <h2 class="text-2xl mb-2">Tặng Quà Đồng Đội</h2>
+            <p class="text-muted mb-8 px-2">Chuyển lượt quay vòng quay hoặc lượt xé vé của bạn cho thành viên khác.</p>
+            
+            <div class="form-group mb-4 text-left">
+                <label class="form-label text-xs">Tài Khoản Người Nhận</label>
+                <div class="relative"><i class="fa-solid fa-user absolute text-muted" style="left: 16px; top: 50%; transform: translateY(-50%);"></i><input type="text" id="transfer-target" class="form-control" style="padding-left: 45px;" placeholder="Nhập tên đăng nhập người nhận..."></div>
+            </div>
+
+            <div class="flex gap-4 mb-8">
+                <div class="form-group mb-0 flex-1 text-left">
+                    <label class="form-label text-xs">Loại Quà Tặng</label>
+                    <select id="transfer-type" class="form-control" style="cursor: pointer; appearance: auto; padding: 18px 10px;">
+                        <option value="spins">Lượt Vòng Quay</option>
+                        <option value="tickets">Lượt Xé Thẻ</option>
+                    </select>
+                </div>
+                <div class="form-group mb-0 flex-1 text-left">
+                    <label class="form-label text-xs">Số Lượng</label>
+                    <input type="number" id="transfer-amount" class="form-control font-bold text-center" placeholder="0" min="1">
+                </div>
+            </div>
+
+            <button class="btn btn-info w-full" id="btn-execute-transfer" style="background: var(--color-info); color: #fff; padding: 18px;" onclick="window.Transfer.execute()"><i class="fa-solid fa-paper-plane mr-2"></i> Xác Nhận Chuyển</button>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="modal-registration">
         <div class="modal-box text-center">
             <button class="modal-close-btn" onclick="window.UI.closeModal('modal-registration')"><i class="fa-solid fa-xmark"></i></button>
@@ -555,6 +586,12 @@
                             <div class="bento-icon bg-primary-soft text-primary" style="background: var(--brand-primary-soft); color: var(--brand-primary);"><i class="fa-solid fa-id-card"></i></div>
                             <h3 class="text-xl mb-1">Khai Báo ID Game</h3>
                             <p class="text-sm text-muted">Đăng ký thông tin định danh vào svever máy chủ.</p>
+                        </div>
+
+                        <div class="bento-action" onclick="window.UI.openModal('modal-transfer')">
+                            <div class="bento-icon" style="background: var(--color-info-bg); color: var(--color-info);"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                            <h3 class="text-xl mb-1">Tặng Quà Đồng Đội</h3>
+                            <p class="text-sm text-muted">Chia sẻ lượt quay, xé vé cho người khác.</p>
                         </div>
 
                         <div class="bento-action" id="btn-nav-wheel" onclick="if(!this.classList.contains('locked')) window.UI.navigate('wheel')">
@@ -1667,21 +1704,72 @@
                 }
             },
 
-            doAttendance: () => {
-                const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes(); const [sH, sM] = window.AppCore.attConfig.start.split(':').map(Number); const [eH, eM] = window.AppCore.attConfig.end.split(':').map(Number);
-                if(cur < (sH*60+sM) || cur > (eH*60+eM)) return Utils.toast("Cảnh báo Hệ thống: Bạn đang thao tác ngoài khung giờ quy định!", "error");
+            doAttendance: async () => {
+                const now = new Date(); 
+                const cur = now.getHours() * 60 + now.getMinutes(); 
+                const [sH, sM] = window.AppCore.attConfig.start.split(':').map(Number); 
+                const [eH, eM] = window.AppCore.attConfig.end.split(':').map(Number);
                 
-                const btn = document.getElementById('btn-do-att'); btn.disabled = true; btn.style.animation = 'none'; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TRUYỀN TẢI...`;
+                // 1. Kiểm tra khung giờ
+                if(cur < (sH*60+sM) || cur > (eH*60+eM)) {
+                    return Utils.toast("Cảnh báo Hệ thống: Bạn đang thao tác ngoài khung giờ quy định!", "error");
+                }
                 
-                db.collection("settings").doc("wheel").get().then(wheelDoc => {
+                const btn = document.getElementById('btn-do-att'); 
+                btn.disabled = true; btn.style.animation = 'none'; 
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG KIỂM TRA BẢO MẬT...`;
+
+                try {
+                    // 2. LẤY ĐỊA CHỈ IP PUBLIC CỦA MẠNG
+                    const ipResponse = await fetch('https://api.ipify.org?format=json');
+                    const ipData = await ipResponse.json();
+                    const currentIP = ipData.ip;
+
+                    const todayStr = Utils.getTodayString();
+
+                    // 3. KIỂM TRA BẢO MẬT LỚP 1: LOCAL STORAGE (CHỐNG DÙNG 1 MÁY)
+                    const lastDeviceAttDate = localStorage.getItem('qd_device_att_date');
+                    const lastDeviceAttUser = localStorage.getItem('qd_device_att_user');
+                    if (lastDeviceAttDate === todayStr && lastDeviceAttUser !== State.currentUser) {
+                        throw new Error(`Hệ thống phát hiện thiết bị này đã điểm danh cho [${lastDeviceAttUser}] hôm nay.`);
+                    }
+
+                    // 4. KIỂM TRA BẢO MẬT LỚP 2: ĐỊA CHỈ IP TRÊN SERVER (CHỐNG DÙNG NHIỀU MÁY CÙNG 1 WIFI)
+                    const ipCheckSnap = await db.collection("attendance")
+                        .where("date", "==", todayStr)
+                        .where("ipAddress", "==", currentIP)
+                        .get();
+
+                    let ipUsedByOther = false;
+                    let otherUser = "";
+                    ipCheckSnap.forEach(doc => {
+                        if(doc.data().userName !== State.currentUser) {
+                            ipUsedByOther = true;
+                            otherUser = doc.data().userName;
+                        }
+                    });
+
+                    if (ipUsedByOther) {
+                        throw new Error(`Địa chỉ mạng này (IP: ${currentIP}) đã được dùng để điểm danh cho [${otherUser}]. Nghi vấn điểm danh hộ!`);
+                    }
+
+                    // 5. TIẾN HÀNH GHI DỮ LIỆU ĐIỂM DANH
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TRUYỀN TẢI...`;
+                    
+                    const wheelDoc = await db.collection("settings").doc("wheel").get();
                     let addSpinFlag = false;
                     if (wheelDoc.exists && wheelDoc.data().autoSpinOnAttendance === true) addSpinFlag = true;
 
                     const batch = db.batch();
                     const newAttRef = db.collection("attendance").doc();
+                    
                     batch.set(newAttRef, { 
-                        userId: State.currentDocId, userName: State.currentUser, 
-                        time: now.toLocaleTimeString('vi-VN'), date: Utils.getTodayString(), timestamp: Date.now() 
+                        userId: State.currentDocId, 
+                        userName: State.currentUser, 
+                        time: now.toLocaleTimeString('vi-VN'), 
+                        date: todayStr, 
+                        timestamp: Date.now(),
+                        ipAddress: currentIP
                     });
 
                     if (addSpinFlag) {
@@ -1689,11 +1777,19 @@
                         batch.update(accRef, { spins: firebase.firestore.FieldValue.increment(1) });
                     }
 
-                    return batch.commit().then(() => {
-                        if(addSpinFlag) Utils.toast("Thành công xuất sắc! Hệ thống đã tặng bạn +1 Lượt Quay Thưởng.", "success");
-                        else Utils.toast("Dữ liệu chuyên cần của bạn đã được ghi nhận.", "success");
-                    });
-                }).catch(e => { Utils.toast("Lỗi truyền tải tới Database.", "error"); window.AppCore.evalAtt(); });
+                    await batch.commit();
+
+                    // 6. LƯU DẤU VẾT THIẾT BỊ VÀO LOCAL STORAGE SAU KHI THÀNH CÔNG
+                    localStorage.setItem('qd_device_att_date', todayStr);
+                    localStorage.setItem('qd_device_att_user', State.currentUser);
+
+                    if(addSpinFlag) Utils.toast("Thành công! Hệ thống đã tặng bạn +1 Lượt Quay Thưởng.", "success");
+                    else Utils.toast("Dữ liệu chuyên cần của bạn đã được ghi nhận.", "success");
+
+                } catch (error) {
+                    Utils.toast(error.message || "Lỗi kết nối máy chủ.", "error"); 
+                    window.AppCore.evalAtt(); 
+                }
             },
 
             submitLuckyNumber: () => {
@@ -1784,6 +1880,60 @@
                     btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i>`;
                     if(err === "ALREADY_USED") Utils.toast("Bạn đã sử dụng tính năng này rồi.", "error");
                     else Utils.toast("Lỗi hệ thống khi xử lý mã mời.", "error");
+                }
+            }
+        };
+
+        /** 10. TRANSFER MODULE (GỬI LƯỢT QUAY/XÉ) */
+        window.Transfer = {
+            execute: async () => {
+                const targetUser = document.getElementById('transfer-target').value.trim();
+                const type = document.getElementById('transfer-type').value; 
+                const amount = parseInt(document.getElementById('transfer-amount').value);
+
+                if(!targetUser || isNaN(amount) || amount <= 0) return Utils.toast("Vui lòng điền thông tin và số lượng hợp lệ (>0).", "warning");
+                if(targetUser === State.currentUser) return Utils.toast("Hệ thống từ chối: Không thể tự chuyển cho chính mình!", "error");
+
+                const currentBalance = type === 'spins' ? State.availableSpins : State.availableTickets;
+                const typeName = type === 'spins' ? 'Lượt quay' : 'Lượt xé';
+                if (currentBalance < amount) return Utils.toast(`Số dư không đủ! Bạn chỉ có ${currentBalance} ${typeName.toLowerCase()}.`, "error");
+
+                const btn = document.getElementById('btn-execute-transfer');
+                btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang giao dịch...`;
+
+                try {
+                    const targetSnap = await db.collection("accounts").where("user", "==", targetUser).get();
+                    if(targetSnap.empty) throw "USER_NOT_FOUND";
+                    
+                    const targetDocId = targetSnap.docs[0].id;
+
+                    await db.runTransaction(async (transaction) => {
+                        const senderRef = db.collection("accounts").doc(State.currentDocId);
+                        const receiverRef = db.collection("accounts").doc(targetDocId);
+
+                        const senderDoc = await transaction.get(senderRef);
+                        if ((senderDoc.data()[type] || 0) < amount) throw "INSUFFICIENT_FUNDS";
+
+                        transaction.update(senderRef, { [type]: firebase.firestore.FieldValue.increment(-amount) });
+                        transaction.update(receiverRef, { [type]: firebase.firestore.FieldValue.increment(amount) });
+
+                        // Lưu lịch sử giao dịch vào hệ thống
+                        const historyRef = db.collection("transfer_history").doc();
+                        transaction.set(historyRef, {
+                            from: State.currentUser, to: targetUser, type: type, amount: amount, timestamp: Date.now()
+                        });
+                    });
+
+                    Utils.toast(`Đã chuyển thành công ${amount} ${typeName} cho [${targetUser}]!`, "success");
+                    window.UI.closeModal('modal-transfer');
+                    document.getElementById('transfer-target').value = ''; document.getElementById('transfer-amount').value = '';
+
+                } catch (err) {
+                    if (err === "INSUFFICIENT_FUNDS") Utils.toast("Giao dịch thất bại: Số dư máy chủ không đủ.", "error");
+                    else if (err === "USER_NOT_FOUND") Utils.toast(`Không tìm thấy tài khoản [${targetUser}] trên hệ thống.`, "error");
+                    else Utils.toast("Lỗi hệ thống khi chuyển dữ liệu.", "error");
+                } finally {
+                    btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> Xác Nhận Chuyển`;
                 }
             }
         };
