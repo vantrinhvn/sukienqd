@@ -2,49 +2,382 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông báo bảo trì</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#030712">
+    <title>Đại Tiệc 6 Năm - Team T"L"Headshot</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --bg-dark: #030712;
+            --neon-cyan: #00f0ff;
+            --neon-pink: #ff003c;
+            --neon-gold: #fcee0a;
+            --panel-bg: rgba(3, 7, 18, 0.75);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Orbitron', sans-serif;
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            user-select: none; -webkit-user-select: none;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
+            font-family: var(--font-main);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #333;
-            text-align: center;
+            position: relative;
         }
+
+        /* --- 1. SCANLINES & VIGNETTE OVERLAY --- */
+        body::after {
+            content: "";
+            position: fixed; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        /* --- 2. 3D CYBER GRID BACKGROUND --- */
+        .cyber-grid {
+            position: fixed;
+            bottom: -30%; left: -50%;
+            width: 200%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.3) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(600px) rotateX(75deg);
+            animation: gridMove 3s linear infinite;
+            z-index: -2;
+            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0));
+            mask-image: linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0));
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(600px) rotateX(75deg) translateY(0); }
+            100% { transform: perspective(600px) rotateX(75deg) translateY(50px); }
+        }
+
+        /* Ambient Glow */
+        .ambient-glow {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 80vw; height: 80vh;
+            background: radial-gradient(circle, rgba(255,0,60,0.15) 0%, rgba(0,240,255,0.1) 40%, transparent 70%);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* --- 3. LAYOUT CONTAINER --- */
         .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 500px;
+            width: 100%; max-width: 1100px;
+            padding: 60px 20px;
+            display: flex; flex-direction: column; align-items: center; gap: 50px;
+            z-index: 1;
         }
-        h1 {
-            color: #e74c3c;
-            margin-bottom: 10px;
+
+        /* --- 4. AVATAR HI-TECH --- */
+        .hud-avatar {
+            position: relative;
+            width: 160px; height: 160px;
+            display: flex; justify-content: center; align-items: center;
         }
-        p {
-            font-size: 1.1rem;
-            line-height: 1.6;
+        .hud-ring-1, .hud-ring-2 {
+            position: absolute; inset: -10px;
+            border-radius: 50%; border: 2px solid transparent;
         }
-        .icon {
-            font-size: 50px;
-            margin-bottom: 20px;
+        .hud-ring-1 {
+            border-top-color: var(--neon-cyan); border-bottom-color: var(--neon-pink);
+            animation: spinRight 4s linear infinite;
+        }
+        .hud-ring-2 {
+            inset: -20px; border-left-color: var(--neon-gold); border-right-color: var(--neon-cyan);
+            border-style: dashed;
+            animation: spinLeft 8s linear infinite;
+            opacity: 0.5;
+        }
+        .hud-avatar img {
+            width: 100%; height: 100%; border-radius: 50%;
+            object-fit: cover; border: 3px solid var(--bg-dark);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+            position: relative; z-index: 2;
+        }
+
+        @keyframes spinRight { 100% { transform: rotate(360deg); } }
+        @keyframes spinLeft { 100% { transform: rotate(-360deg); } }
+
+        /* --- 5. REAL GLITCH TEXT --- */
+        .glitch-wrapper { text-align: center; margin-top: 20px; }
+        .glitch {
+            position: relative;
+            font-family: var(--font-display);
+            font-size: 50px; font-weight: 900;
+            color: var(--text-main);
+            text-transform: uppercase; letter-spacing: 4px;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+        }
+        .glitch::before {
+            left: 3px; text-shadow: -3px 0 var(--neon-pink);
+            clip-path: inset(20% 0 80% 0);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .glitch::after {
+            left: -3px; text-shadow: -3px 0 var(--neon-cyan);
+            clip-path: inset(80% 0 5% 0);
+            animation: glitch-anim-2 2.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 80% 0); }
+            20% { clip-path: inset(60% 0 10% 0); }
+            40% { clip-path: inset(40% 0 50% 0); }
+            60% { clip-path: inset(80% 0 5% 0); }
+            80% { clip-path: inset(10% 0 70% 0); }
+            100% { clip-path: inset(30% 0 40% 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(10% 0 60% 0); }
+            20% { clip-path: inset(80% 0 5% 0); }
+            40% { clip-path: inset(30% 0 20% 0); }
+            60% { clip-path: inset(70% 0 10% 0); }
+            80% { clip-path: inset(5% 0 80% 0); }
+            100% { clip-path: inset(50% 0 30% 0); }
+        }
+
+        .hero-desc {
+            color: var(--text-muted); font-size: 16px; max-width: 650px; 
+            line-height: 1.8; text-align: center; margin: 20px auto 0;
+        }
+
+        /* --- 6. GLASS PANEL BORDER ANIMATION --- */
+        .cyber-panel {
+            position: relative; width: 100%; padding: 3px; /* Dành cho viền */
+            border-radius: 16px; overflow: hidden;
+        }
+        /* Gradient viền chạy */
+        .cyber-panel::before {
+            content: ''; position: absolute; inset: -50%;
+            background: conic-gradient(from 0deg, transparent 0 340deg, var(--neon-cyan) 360deg);
+            animation: rotatePanelBorder 4s linear infinite;
+        }
+        .cyber-panel::after {
+            content: ''; position: absolute; inset: -50%;
+            background: conic-gradient(from 180deg, transparent 0 340deg, var(--neon-pink) 360deg);
+            animation: rotatePanelBorder 4s linear infinite;
+        }
+        @keyframes rotatePanelBorder { 100% { transform: rotate(360deg); } }
+
+        .cyber-panel-inner {
+            position: relative; z-index: 1;
+            background: var(--panel-bg); backdrop-filter: blur(20px);
+            border-radius: 14px; padding: 50px 40px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* --- 7. COUNTDOWN TIMERS --- */
+        .timer-header {
+            font-family: var(--font-display); color: var(--neon-gold);
+            font-size: 20px; margin-bottom: 30px; letter-spacing: 3px;
+            text-shadow: 0 0 15px rgba(252, 238, 10, 0.4);
+        }
+        .timer-grid { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; }
+        .t-box {
+            position: relative;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 10px; padding: 25px 15px; width: 110px; text-align: center;
+            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+        /* Góc chéo nhỏ (Cyberpunk detail) */
+        .t-box::before {
+            content: ''; position: absolute; top: -1px; left: -1px;
+            width: 15px; height: 15px; border-top: 2px solid var(--neon-cyan); border-left: 2px solid var(--neon-cyan);
+        }
+        .t-box::after {
+            content: ''; position: absolute; bottom: -1px; right: -1px;
+            width: 15px; height: 15px; border-bottom: 2px solid var(--neon-pink); border-right: 2px solid var(--neon-pink);
+        }
+        
+        .t-num {
+            font-family: var(--font-display); font-size: 42px; font-weight: 900;
+            color: #fff; display: block; line-height: 1;
+            text-shadow: 0 0 15px rgba(255,255,255,0.6);
+        }
+        .t-lbl {
+            font-size: 12px; color: var(--neon-cyan); text-transform: uppercase;
+            letter-spacing: 2px; font-weight: 700; margin-top: 10px; display: block;
+        }
+
+        /* --- 8. CYBERPUNK BUTTON (CLIPPED) --- */
+        .cyber-btn {
+            position: relative; display: inline-flex; align-items: center; justify-content: center;
+            padding: 20px 50px; margin-top: 50px;
+            font-family: var(--font-display); font-size: 18px; font-weight: 900;
+            color: #000; text-decoration: none; text-transform: uppercase; letter-spacing: 3px;
+            background: var(--neon-cyan);
+            border: none; cursor: pointer; transition: 0.3s;
+            clip-path: polygon(15% 0, 100% 0, 100% 70%, 85% 100%, 0 100%, 0 30%);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+        }
+        .cyber-btn i { margin-right: 12px; font-size: 24px; }
+        
+        /* Hiệu ứng trượt lấp lánh (glare) */
+        .cyber-btn::after {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transform: skewX(-45deg); transition: 0.5s;
+        }
+        .cyber-btn:hover {
+            background: var(--neon-pink); color: #fff;
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.7);
+        }
+        .cyber-btn:hover::after { left: 150%; }
+
+        /* --- 9. EVENT CARDS --- */
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px; width: 100%; margin-top: 20px;
+        }
+        .feature-card {
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 35px; transition: 0.4s ease;
+            clip-path: polygon(0 0, 95% 0, 100% 15%, 100% 100%, 5% 100%, 0 85%);
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        .feature-card::before {
+            content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+            transform: scaleX(0); transition: 0.4s;
+        }
+        .feature-card:hover {
+            background: rgba(0, 240, 255, 0.05); border-color: rgba(0, 240, 255, 0.3);
+            transform: translateY(-8px);
+        }
+        .feature-card:hover::before { transform: scaleX(1); }
+        
+        .f-icon {
+            width: 60px; height: 60px;
+            background: rgba(0, 0, 0, 0.5); border: 1px solid var(--neon-gold);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 28px; color: var(--neon-gold); transition: 0.4s;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); /* Hexagon */
+        }
+        .feature-card:hover .f-icon { background: var(--neon-gold); color: #000; box-shadow: 0 0 20px var(--neon-gold); }
+        
+        .f-info h3 { font-size: 20px; margin-bottom: 12px; font-family: var(--font-display); letter-spacing: 1px; }
+        .f-info p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+        /* --- RESPONSIVE MOBILE --- */
+        @media (max-width: 768px) {
+            .glitch { font-size: 32px; }
+            .t-box { width: 85px; padding: 20px 10px; }
+            .t-num { font-size: 32px; }
+            .cyber-panel-inner { padding: 40px 20px; }
+            .cyber-btn { padding: 18px 30px; font-size: 16px; }
+            .feature-card { align-items: center; text-align: center; }
         }
     </style>
 </head>
 <body>
 
+    <div class="cyber-grid"></div>
+    <div class="ambient-glow"></div>
+
     <div class="container">
-        <div class="icon">🛠️</div>
-        <h1>Hệ Thống Đang Bảo Trì</h1>
-        <p>Chúng tôi hiện đang nâng cấp hệ thống để mang lại trải nghiệm tốt hơn. Vui lòng quay lại sau ít phút.</p>
-        <p>Xin lỗi vì sự bất tiện này!</p>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div class="hud-avatar">
+                <div class="hud-ring-1"></div>
+                <div class="hud-ring-2"></div>
+                <img src="anh1.jpg" alt="Team Avatar">
+            </div>
+            
+            <div class="glitch-wrapper">
+                <h1 class="glitch" data-text="KỶ NIỆM 6 NĂM">KỶ NIỆM 6 NĂM</h1>
+                <h2 style="font-family: var(--font-display); color: var(--neon-cyan); letter-spacing: 5px; margin-top: 10px; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);">T"L"HEADSHOT</h2>
+            </div>
+            
+            <p class="hero-desc">
+                Giao thức hệ thống đã kích hoạt. Đại tiệc tri ân bắt đầu. Truy cập cổng không gian ngay bây giờ để nhận vòng quay nhân phẩm và mở khóa đặc quyền vinh quang.
+            </p>
+        </div>
+
+        <div class="cyber-panel text-center">
+            <div class="cyber-panel-inner">
+                <div class="timer-header"><i class="fa-solid fa-stopwatch"></i> ĐẾM NGƯỢC KHAI TIỆC</div>
+                <div class="timer-grid" id="cyber-timer">
+                    <div class="t-box"><span class="t-num" id="t-day">00</span><span class="t-lbl">Ngày</span></div>
+                    <div class="t-box"><span class="t-num" id="t-hr">00</span><span class="t-lbl">Giờ</span></div>
+                    <div class="t-box"><span class="t-num" id="t-min">00</span><span class="t-lbl">Phút</span></div>
+                    <div class="t-box"><span class="t-num" id="t-sec">00</span><span class="t-lbl">Giây</span></div>
+                </div>
+                
+                <a href="user.html" class="cyber-btn">
+                    <i class="fa-solid fa-satellite-dish"></i> KẾT NỐI HỆ THỐNG
+                </a>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="f-icon"><i class="fa-solid fa-dharmachakra"></i></div>
+                <div class="f-info">
+                    <h3>VÒNG QUAY TRI ÂN</h3>
+                    <p>Nhận phân bổ lượt quay miễn phí hàng ngày. Quét mã định danh để rinh ngay vật phẩm và thẻ cào giá trị.</p>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="f-icon"><i class="fa-solid fa-ranking-star"></i></div>
+                <div class="f-info">
+                    <h3>BẢNG VÀNG LỊCH SỬ</h3>
+                    <p>Hệ thống xếp hạng cống hiến toàn máy chủ. Cuộc đua tranh đỉnh cao để khắc tên vào lịch sử 6 năm Quân đoàn.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script>
+        const eventDate = new Date("July 1, 2026 00:00:00").getTime();
+
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = eventDate - now;
+
+            if (distance < 0) {
+                document.getElementById("cyber-timer").innerHTML = 
+                    "<div style='color: var(--neon-cyan); font-family: var(--font-display); font-size: 28px; font-weight: 900; text-shadow: 0 0 20px rgba(0,240,255,0.8); letter-spacing: 4px; text-transform: uppercase;'>CỔNG KHÔNG GIAN ĐÃ MỞ!</div>";
+                return;
+            }
+
+            document.getElementById("t-day").innerText = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, '0');
+            document.getElementById("t-hr").innerText = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+            document.getElementById("t-min").innerText = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+            document.getElementById("t-sec").innerText = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
+        }
+        
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    </script>
 </body>
 </html>
