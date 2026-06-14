@@ -265,14 +265,15 @@
                 <div class="flex-center rounded-md" style="width: 40px; height: 40px; color: white; background: var(--color-warning); display: flex; align-items: center; justify-content: center;">
                     <i class="fa-solid fa-gift text-lg"></i>
                 </div>
-                <h2 class="text-xl m-0">Cấp lượt giải trí</h2>
+                <h2 class="text-xl m-0">Cấp điểm / lượt giải trí</h2>
             </div>
             <p class="text-muted mb-4 text-sm">Điều chỉnh lượt thao tác cho tài khoản: <b class="text-main" id="spin-target-name">Unknown</b></p>
             <input type="hidden" id="spin-target-id">
             
             <div class="form-group mb-4">
-                <label class="form-label">Phân loại Trò chơi</label>
+                <label class="form-label">Phân loại Vật phẩm</label>
                 <select id="spin-type" class="form-control" style="cursor: pointer; appearance: auto;">
+                    <option value="points">Điểm Sự Kiện (Points)</option>
                     <option value="spins">Vòng Quay Thưởng (Lượt Quay)</option>
                     <option value="tickets">Tranh Thưởng May Mắn (Lượt Xé)</option>
                 </select>
@@ -285,7 +286,7 @@
             <div class="form-group mb-8">
                 <label class="form-label">Hành động</label>
                 <select id="spin-action" class="form-control" style="cursor: pointer; appearance: auto;">
-                    <option value="add">Cộng thêm (+)</option>
+                    <option value="add">Cộng thêm / Trừ bớt (+ / -)</option>
                     <option value="set">Cài đặt lại mức (Reset)</option>
                 </select>
             </div>
@@ -364,8 +365,8 @@
                     <i class="fa-solid fa-clock-rotate-left text-xl"></i>
                 </div>
                 <div class="flex-col">
-                    <h2 class="text-xl m-0">Biến động Lượt chơi: <span id="history-target-name" class="text-info font-bold">User</span></h2>
-                    <div class="text-sm mt-1 text-muted">Số dư máy chủ hiện tại: <b class="text-warning" id="history-real-spins">0</b> Quay | <b class="text-danger" id="history-real-tickets">0</b> Xé</div>
+                    <h2 class="text-xl m-0">Biến động Dữ liệu: <span id="history-target-name" class="text-info font-bold">User</span></h2>
+                    <div class="text-sm mt-1 text-muted">Số dư máy chủ hiện tại: <b class="text-success" id="history-real-points">0</b> Điểm | <b class="text-warning" id="history-real-spins">0</b> Quay | <b class="text-danger" id="history-real-tickets">0</b> Xé</div>
                 </div>
             </div>
             
@@ -465,6 +466,16 @@
 
                     <h3 class="text-xl mb-4 font-bold" style="display: flex; align-items: center; gap: 10px; margin-top: 40px;"><i class="fa-solid fa-cubes text-primary"></i> Phân Hệ Quản Lý Hệ Thống</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+                        
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('pointshop')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-success" style="width: 40px; height: 40px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-store"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Cửa Hàng Điểm</h4>
+                            <p class="text-muted text-xs m-0">Định giá vật phẩm quy đổi và kiểm soát dòng tiền.</p>
+                        </div>
+
                         <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('attendance')" style="display: flex; flex-direction: column; gap: 12px;">
                             <div class="flex justify-between items-center">
                                 <div class="flex-center rounded-md text-success" style="width: 40px; height: 40px; background: var(--color-success-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-calendar-check"></i></div>
@@ -536,6 +547,115 @@
                             </div>
                             <h4 class="font-bold text-main m-0" style="font-size: 16px;">Bản Tin Máy Chủ</h4>
                             <p class="text-muted text-xs m-0">Phát hành thông báo mới, bài viết công khai tới toàn bộ Client.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="view-pointshop" class="view-section">
+                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Quản Lý Cửa Hàng & Điểm Thưởng</h1>
+                            <p class="text-muted">Cấu hình giá bán quy đổi, thưởng nhiệm vụ và xem lịch sử giao dịch điểm.</p>
+                        </div>
+                        <button class="btn btn-success" style="padding: 14px 24px; box-shadow: none;" onclick="AdminActions.exportPointShopExcel()">
+                            <i class="fa-solid fa-file-excel mr-2"></i> Xuất Tệp Excel (.XLS)
+                        </button>
+                    </div>
+
+                    <div class="card mb-8" style="border-left: 4px solid var(--color-success); padding: 24px;">
+                        <div class="flex justify-between items-start flex-wrap gap-6">
+                            <div class="max-w-md">
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-tags text-success"></i> Bảng Giá Quy Đổi Vật Phẩm</h3>
+                                <p class="text-muted text-sm">Thiết lập số điểm sự kiện cần thiết để người chơi có thể đổi lấy các lượt giải trí. Đoạn Script User sẽ nhận diện bảng giá này để tính toán tự động.</p>
+                                
+                                <div class="mt-4 flex items-center gap-2">
+                                    <span class="text-sm font-bold text-muted" id="shop-status-text">ĐANG MỞ CỬA</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="cfg-shop-toggle" onchange="AdminActions.toggleShopFeature(this)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="flex-col gap-4 bg-base p-5 rounded-lg border-strong flex-1 min-w-[300px]" style="background: var(--bg-base); border: 1px solid var(--border-strong);">
+                                <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
+                                    <div class="flex items-center gap-3">
+                                        <div class="btn-icon" style="background: var(--color-warning-bg); color: var(--color-warning); border:none;"><i class="fa-solid fa-dharmachakra"></i></div>
+                                        <span class="font-bold text-main">1 Lượt Vòng Quay</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" id="cfg-shop-spin-cost" class="form-control text-center font-bold text-success" style="width: 100px; padding: 8px;" min="1" value="100">
+                                        <span class="text-muted text-sm font-bold">Điểm</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
+                                    <div class="flex items-center gap-3">
+                                        <div class="btn-icon" style="background: var(--color-danger-bg); color: var(--color-danger); border:none;"><i class="fa-solid fa-ticket-alt"></i></div>
+                                        <span class="font-bold text-main">1 Lượt Xé Thẻ</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" id="cfg-shop-ticket-cost" class="form-control text-center font-bold text-success" style="width: 100px; padding: 8px;" min="1" value="50">
+                                        <span class="text-muted text-sm font-bold">Điểm</span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <button class="btn btn-success" onclick="AdminActions.saveShopConfig()"><i class="fa-solid fa-save mr-2"></i> Lưu Bảng Giá</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-8" style="border-left: 4px solid var(--brand-primary); padding: 24px;">
+                        <div class="flex justify-between items-start flex-wrap gap-6">
+                            <div class="max-w-md">
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-list-check text-primary"></i> Cấu hình Thưởng Nhiệm Vụ</h3>
+                                <p class="text-muted text-sm">Thiết lập số điểm thưởng tự động cộng vào tài khoản khi người chơi hoàn thành các nhiệm vụ hàng ngày.</p>
+                            </div>
+                            <div class="flex-col gap-4 bg-base p-5 rounded-lg border-strong flex-1 min-w-[300px]" style="background: var(--bg-base); border: 1px solid var(--border-strong);">
+                                <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
+                                    <div class="flex items-center gap-3">
+                                        <div class="btn-icon" style="background: rgba(79, 70, 229, 0.15); color: var(--brand-primary); border:none;"><i class="fa-solid fa-right-to-bracket"></i></div>
+                                        <span class="font-bold text-main">Đăng nhập (Lần đầu/ngày)</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" id="cfg-task-login" class="form-control text-center font-bold text-success" style="width: 100px; padding: 8px;" min="0" value="10">
+                                        <span class="text-muted text-sm font-bold">Điểm</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
+                                    <div class="flex items-center gap-3">
+                                        <div class="btn-icon" style="background: var(--color-success-bg); color: var(--color-success); border:none;"><i class="fa-solid fa-calendar-check"></i></div>
+                                        <span class="font-bold text-main">Điểm danh thành công</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" id="cfg-task-att" class="form-control text-center font-bold text-success" style="width: 100px; padding: 8px;" min="0" value="20">
+                                        <span class="text-muted text-sm font-bold">Điểm</span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <button class="btn btn-primary" onclick="AdminActions.saveTaskConfig()"><i class="fa-solid fa-save mr-2"></i> Lưu Cấu Hình</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden mb-0">
+                        <div class="card-header m-0 p-6" style="background: rgba(16, 185, 129, 0.1); border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+                            <h3 class="card-title text-lg m-0 text-success"><i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử Giao Dịch Cửa Hàng (30 Ngày)</h3>
+                        </div>
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Người Mua</th>
+                                        <th>Sản Phẩm Đổi</th>
+                                        <th class="text-center">Chi Phí Điểm</th>
+                                        <th class="text-right">Thời Gian</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tb-shop-history-list">
+                                    <tr><td colspan="4" class="text-center text-muted py-8">Đang tải dữ liệu...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -982,6 +1102,7 @@
                                     <tr>
                                         <th>Tên Đăng Nhập</th>
                                         <th>Mật Khẩu</th>
+                                        <th class="text-center">Điểm Sự Kiện</th>
                                         <th class="text-center">Lượt Vòng Quay</th>
                                         <th class="text-center">Lượt Tranh Thưởng</th>
                                         <th>Trạng thái</th>
@@ -989,7 +1110,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tb-acc-list">
-                                    <tr><td colspan="6" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
+                                    <tr><td colspan="7" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1046,6 +1167,7 @@
             wheelHistoryCache: [], 
             tranhThuongHistoryCache: [],
             accountsCache: [], 
+            pointShopHistoryCache: [], /* Cache cho lịch sử điểm */
             activeDeleteAction: null,
             defaultWheelPrizes: [
                 { text: "10.000 VNĐ", chance: 5 },
@@ -1188,6 +1310,77 @@
             init: () => {
                 Theme.init(); Utils.buildTimeSelects();
                 setInterval(() => { document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('vi-VN'); }, 1000);
+
+                /** ĐỒNG BỘ: CẤU HÌNH NHIỆM VỤ */
+                db.collection("settings").doc("task_config").onSnapshot(doc => {
+                    const loginInp = document.getElementById('cfg-task-login');
+                    const attInp = document.getElementById('cfg-task-att');
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (loginInp) loginInp.value = data.loginReward !== undefined ? data.loginReward : 10;
+                        if (attInp) attInp.value = data.attendanceReward !== undefined ? data.attendanceReward : 20;
+                    } else {
+                        if (loginInp) loginInp.value = 10;
+                        if (attInp) attInp.value = 20;
+                    }
+                });
+
+                /** ĐỒNG BỘ: CẤU HÌNH CỬA HÀNG ĐIỂM */
+                db.collection("settings").doc("point_shop_config").onSnapshot(doc => {
+                    const toggle = document.getElementById('cfg-shop-toggle');
+                    const statusText = document.getElementById('shop-status-text');
+                    const spinInput = document.getElementById('cfg-shop-spin-cost');
+                    const ticketInput = document.getElementById('cfg-shop-ticket-cost');
+
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if(toggle) toggle.checked = data.isEnabled !== false;
+                        if(statusText) {
+                            statusText.innerText = data.isEnabled !== false ? "ĐANG MỞ CỬA" : "ĐANG ĐÓNG CỬA";
+                            statusText.style.color = data.isEnabled !== false ? "var(--color-success)" : "var(--color-danger)";
+                        }
+                        if(spinInput) spinInput.value = data.spinCost || 100;
+                        if(ticketInput) ticketInput.value = data.ticketCost || 50;
+                    } else {
+                        if(toggle) toggle.checked = true;
+                        if(statusText) { statusText.innerText = "ĐANG MỞ CỬA"; statusText.style.color = "var(--color-success)"; }
+                        if(spinInput) spinInput.value = 100;
+                        if(ticketInput) ticketInput.value = 50;
+                    }
+                });
+
+                /** ĐỒNG BỘ: LỊCH SỬ CỬA HÀNG ĐIỂM */
+                db.collection("point_history").where("action", "==", "exchange").onSnapshot(snap => {
+                    const tbody = document.getElementById('tb-shop-history-list');
+                    if(tbody) tbody.innerHTML = "";
+                    State.pointShopHistoryCache = [];
+                    
+                    if(snap.empty) { 
+                        if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Chưa có giao dịch quy đổi nào.</td></tr>`; 
+                        return; 
+                    }
+                    
+                    let records = [];
+                    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+                    snap.forEach(doc => { 
+                        const d = doc.data(); 
+                        if(d.timestamp >= thirtyDaysAgo) { records.push(d); } 
+                    });
+                    records.sort((a,b) => b.timestamp - a.timestamp);
+                    
+                    records.forEach(d => {
+                        State.pointShopHistoryCache.push(d);
+                        const timeStr = new Date(d.timestamp).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
+                        
+                        if(tbody) tbody.innerHTML += `
+                            <tr>
+                                <td><b class="text-main">${d.user}</b></td>
+                                <td><span class="text-info font-bold">${d.detail}</span></td>
+                                <td class="text-center"><span class="badge badge-success" style="font-size: 13px;">${d.pointsChanged} Điểm</span></td>
+                                <td class="text-right text-muted text-sm">${timeStr}</td>
+                            </tr>`;
+                    });
+                });
 
                 db.collection("settings").doc("lucky_number_result").onSnapshot(doc => {
                     const el = document.getElementById('admin-current-win-number');
@@ -1357,7 +1550,7 @@
                     State.accountsCache = [];
 
                     if(snap.empty) {
-                        tbodyAcc.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-8">Chưa có tài khoản User nào trên Database.</td></tr>`;
+                        tbodyAcc.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-8">Chưa có tài khoản User nào trên Database.</td></tr>`;
                         return;
                     }
 
@@ -1367,22 +1560,20 @@
                     snap.forEach(doc => {
                         const d = doc.data(); d.docId = doc.id; State.accountsCache.push(d);
                         
-                        // --- FIX LOGIC TỰ ĐỘNG KHÓA 24H CHUẨN XÁC NHẤT ---
                         const lastActiveTime = d.lastActive || d.created_at || 0;
                         const unlockTime = d.unlockedAt || 0;
-                        
-                        // Sử dụng mốc thời gian gần nhất giữa "Hành động cuối" và "Thời gian được mở khóa"
                         const referenceTime = Math.max(lastActiveTime, unlockTime);
 
-                        // Quét xem mốc referenceTime đã quá 24h chưa
                         if (referenceTime > 0 && (now - referenceTime) > oneDayMs && !d.isBlocked) {
                             db.collection("accounts").doc(doc.id).update({ isBlocked: true });
                             return;
                         }
 
-                        // Người dùng đang online sẽ dựa chuẩn vào lastActive
                         const isOnline = (now - (d.lastActive || 0)) < 300000; 
-                        const spinCount = d.spins || 0; const ticketCount = d.tickets || 0;
+                        
+                        const pointCount = d.points || 0;
+                        const spinCount = d.spins || 0; 
+                        const ticketCount = d.tickets || 0;
                         const isBlocked = d.isBlocked || false;
                         
                         let statusHtml = '';
@@ -1401,12 +1592,13 @@
                         <tr>
                             <td><div class="flex items-center gap-3"><i class="fa-solid fa-user-shield text-muted text-lg"></i><span class="font-bold ${isBlocked ? 'text-danger' : 'text-main'}">${d.user}</span></div></td>
                             <td style="font-family: var(--font-family-mono); letter-spacing: 1px;">${d.pass}</td>
+                            <td class="text-center"><span class="badge badge-success" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success); border-color: var(--color-success); font-size: 13px; padding: 4px 10px;">${pointCount}</span></td>
                             <td class="text-center"><span class="badge badge-warning" style="font-size: 13px; padding: 4px 10px;">${spinCount}</span></td>
                             <td class="text-center"><span class="badge badge-danger" style="background: rgba(239, 68, 68, 0.15); color: var(--color-danger); border-color: var(--color-danger); font-size: 13px; padding: 4px 10px;">${ticketCount}</span></td>
                             <td>${statusHtml}</td>
                             <td class="text-right flex justify-end">
-                                <button class="btn-icon mr-1" style="color: var(--color-info); border-color: rgba(14, 165, 233, 0.3);" onclick="AdminActions.viewUserHistory('${d.user}')" title="Xem Lịch sử Biến động Lượt"><i class="fa-solid fa-clock-rotate-left"></i></button>
-                                <button class="btn-icon mr-1" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.3);" onclick="AdminActions.openSpinModal('${doc.id}', '${d.user}')" title="Cấp Lượt Giải Trí"><i class="fa-solid fa-gift"></i></button>
+                                <button class="btn-icon mr-1" style="color: var(--color-info); border-color: rgba(14, 165, 233, 0.3);" onclick="AdminActions.viewUserHistory('${d.user}')" title="Xem Lịch sử Biến động Dữ liệu"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                                <button class="btn-icon mr-1" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.3);" onclick="AdminActions.openSpinModal('${doc.id}', '${d.user}')" title="Cấp Lượt Giải Trí / Điểm"><i class="fa-solid fa-gift"></i></button>
                                 <button class="btn-icon mr-1" style="color: ${lockBtnColor}; border-color: ${lockBtnColor}; background: ${lockBtnBg};" onclick="AdminActions.toggleLock('${doc.id}', ${isBlocked}, '${d.user}')" title="${lockBtnTitle}"><i class="fa-solid ${lockBtnIcon}"></i></button>
                                 <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('accounts', '${doc.id}', 'Hành động này sẽ XÓA VĨNH VIỄN tài khoản <b>${d.user}</b>.')" title="Xóa Tài Khoản"><i class="fa-solid fa-trash"></i></button>
                             </td>
@@ -1571,26 +1763,75 @@
 
         const AdminActions = {
             
-            // --- ACTION KHÓA/MỞ KHÓA TÀI KHOẢN ---
+            saveTaskConfig: () => {
+                const loginReward = parseInt(document.getElementById('cfg-task-login').value);
+                const attReward = parseInt(document.getElementById('cfg-task-att').value);
+                
+                if (isNaN(loginReward) || isNaN(attReward) || loginReward < 0 || attReward < 0) {
+                    return Utils.toast("Vui lòng nhập số điểm thưởng hợp lệ và không âm!", "warning");
+                }
+
+                db.collection("settings").doc("task_config").set({
+                    loginReward: loginReward,
+                    attendanceReward: attReward,
+                    updatedAt: Date.now()
+                }, { merge: true })
+                .then(() => {
+                    Utils.toast("Đã ghi đè và áp dụng cấu hình nhiệm vụ mới!", "success");
+                })
+                .catch(err => {
+                    console.error(err);
+                    Utils.toast("Lỗi ghi dữ liệu cấu hình lên hệ thống.", "error");
+                });
+            },
+
+            /** CÁC CHỨC NĂNG CỦA CỬA HÀNG ĐIỂM */
+            toggleShopFeature: (checkbox) => {
+                const isEnabled = checkbox.checked;
+                db.collection("settings").doc("point_shop_config").set({ isEnabled: isEnabled }, { merge: true })
+                  .then(() => Utils.toast(isEnabled ? "Đã MỞ Cửa Hàng Điểm!" : "Đã ĐÓNG Cửa Hàng Điểm!", "success"))
+                  .catch(err => { Utils.toast("Lỗi lưu cấu hình cửa hàng.", "error"); checkbox.checked = !isEnabled; });
+            },
+
+            saveShopConfig: () => {
+                const spinCost = parseInt(document.getElementById('cfg-shop-spin-cost').value);
+                const ticketCost = parseInt(document.getElementById('cfg-shop-ticket-cost').value);
+                
+                if(isNaN(spinCost) || spinCost < 0 || isNaN(ticketCost) || ticketCost < 0) {
+                    return Utils.toast("Giá vật phẩm quy đổi phải lớn hơn hoặc bằng 0", "warning");
+                }
+
+                db.collection("settings").doc("point_shop_config").set({ 
+                    spinCost: spinCost, 
+                    ticketCost: ticketCost 
+                }, { merge: true })
+                  .then(() => Utils.toast("Cập nhật Bảng Giá Quy Đổi thành công!", "success"))
+                  .catch(err => Utils.toast("Lỗi lưu dữ liệu bảng giá.", "error"));
+            },
+
+            exportPointShopExcel: () => {
+                if(State.pointShopHistoryCache.length === 0) return Utils.toast("Không có lịch sử giao dịch điểm trong 30 ngày qua.", "warning");
+                let htmlTableStr = `<table border="1"><thead><tr><th bgcolor="#10b981"><font color="#ffffff">STT</font></th><th bgcolor="#10b981"><font color="#ffffff">Người Mua</font></th><th bgcolor="#10b981"><font color="#ffffff">Chi Tiết Sản Phẩm</font></th><th bgcolor="#10b981"><font color="#ffffff">Biến Động Điểm</font></th><th bgcolor="#10b981"><font color="#ffffff">Thời Gian Giao Dịch</font></th></tr></thead><tbody>`;
+                State.pointShopHistoryCache.forEach((row, index) => { 
+                    const timeFmt = new Date(row.timestamp).toLocaleString('vi-VN'); 
+                    htmlTableStr += `<tr><td align="center">${index + 1}</td><td>${row.user}</td><td>${row.detail}</td><td align="center">${row.pointsChanged}</td><td align="center">${timeFmt}</td></tr>`; 
+                });
+                htmlTableStr += `</tbody></table>`; 
+                AdminActions.downloadXLS(htmlTableStr, "Lich_Su_Cua_Hang_Diem_30Ngay");
+            },
+
             toggleLock: (docId, isCurrentlyBlocked, username) => {
                 const newStatus = !isCurrentlyBlocked; 
                 const updateData = { isBlocked: newStatus };
-                
-                // Mở khóa: Cập nhật mốc thời gian "Được mở khóa" (unlockedAt) 
-                // Thay vì ghi đè lên lastActive làm hỏng hiển thị trạng thái Offline
-                if (newStatus === false) {
-                    updateData.unlockedAt = Date.now();
-                }
+                if (newStatus === false) { updateData.unlockedAt = Date.now(); }
 
                 db.collection("accounts").doc(docId).update(updateData).then(() => {
                     Utils.toast(`Đã ${newStatus ? 'TẠM KHÓA' : 'MỞ KHÓA'} tài khoản [${username}] thành công!`, "success");
                 }).catch(err => {
                     Utils.toast("Lỗi cập nhật trạng thái trên CSDL.", "error");
-                    console.error(err);
                 });
             },
 
-            // --- ACTION BẬT/TẮT TÍNH NĂNG ---
             toggleWheelFeature: (checkbox) => {
                 const isEnabled = checkbox.checked;
                 db.collection("settings").doc("wheel_config").set({ isEnabled: isEnabled }, { merge: true })
@@ -1605,7 +1846,6 @@
                   .catch(err => { Utils.toast("Lỗi lưu cấu hình", "error"); checkbox.checked = !isEnabled; });
             },
 
-            // --- ACTION THÊM VÀO GIẢI ĐẤU ---
             addTournamentParticipant: () => {
                 const sel = document.getElementById('tour-participant-select');
                 if(!sel || !sel.value) return Utils.toast("Vui lòng chọn một người chơi từ danh sách.", "warning");
@@ -1633,7 +1873,6 @@
                 });
             },
 
-            // --- ACTION GỘP ĐỘI THI ĐẤU ---
             groupTournamentTeam: () => {
                 const checkboxes = document.querySelectorAll('.tour-group-cb:checked');
                 const teamName = document.getElementById('tour-group-name').value.trim();
@@ -1658,7 +1897,6 @@
                 }).catch(err => Utils.toast("Lỗi gộp đội giải đấu.", "error"));
             },
 
-            // --- ACTION DUYỆT ĐĂNG KÝ LẠI ---
             allowReregister: (docId, submitter) => {
                 AdminActions.requestDelete('users', docId, `Bạn có chắc chắn muốn xóa đơn hiện tại của tài khoản <b>${submitter}</b> để họ có thể đăng ký lại không?`);
             },
@@ -1792,10 +2030,10 @@
                 const docId = document.getElementById('spin-target-id').value; 
                 const amount = parseInt(document.getElementById('spin-amount').value); 
                 const action = document.getElementById('spin-action').value; 
-                const type = document.getElementById('spin-type').value;
+                const type = document.getElementById('spin-type').value; // points | spins | tickets
                 const username = document.getElementById('spin-target-name').innerText;
 
-                if(!docId || isNaN(amount) || amount < 0) return Utils.toast("Số lượng không hợp lệ.", "error");
+                if(!docId || isNaN(amount)) return Utils.toast("Số lượng không hợp lệ.", "error");
                 
                 const accRef = db.collection("accounts").doc(docId);
                 const logRef = db.collection("admin_logs").doc();
@@ -1820,7 +2058,7 @@
                         });
                     });
                 }).then(() => { 
-                    Utils.toast("Đã cập nhật lượt giải trí thành công!", "success"); 
+                    Utils.toast("Đã cập nhật dữ liệu thành công!", "success"); 
                     UI.closeModal('modal-spins'); 
                 }).catch(err => Utils.toast("Lỗi giao dịch CSDL.", "error"));
             },
@@ -1837,12 +2075,19 @@
                     const accSnap = await db.collection("accounts").where("user", "==", username).get();
                     if(!accSnap.empty) {
                         const data = accSnap.docs[0].data();
+                        document.getElementById('history-real-points').innerText = data.points || 0;
                         document.getElementById('history-real-spins').innerText = data.spins || 0;
                         document.getElementById('history-real-tickets').innerText = data.tickets || 0;
                     }
 
                     const wheelCfg = await db.collection("settings").doc("wheel").get();
                     const autoSpin = wheelCfg.exists && wheelCfg.data().autoSpinOnAttendance === true;
+
+                    // Thêm Lịch sử Cửa hàng Điểm
+                    const pointSnap = await db.collection("point_history").where("user", "==", username).get();
+                    pointSnap.forEach(doc => {
+                        logs.push({ time: doc.data().timestamp, type: 'points', action: 'add', amount: doc.data().pointsChanged, reason: doc.data().detail || 'Đổi vật phẩm tại Cửa Hàng' });
+                    });
 
                     const spinSnap = await db.collection("spin_history").where("userId", "==", username).get();
                     spinSnap.forEach(doc => {
@@ -1885,20 +2130,24 @@
 
                     logs.sort((a, b) => a.time - b.time);
 
+                    let runPoints = 0;
                     let runSpins = 0; 
                     let runTickets = 0;
 
                     logs.forEach(log => {
-                        if (log.type === 'spins') {
+                        if (log.type === 'points') {
+                            if (log.action === 'add') runPoints += log.amount;
+                            else if (log.action === 'set') runPoints = log.amount;
+                            if (runPoints < 0) runPoints = 0;
+                            log.balanceAfter = runPoints;
+                        } else if (log.type === 'spins') {
                             if (log.action === 'add') runSpins += log.amount;
                             else if (log.action === 'set') runSpins = log.amount;
-                            
                             if (runSpins < 0) runSpins = 0;
                             log.balanceAfter = runSpins;
                         } else if (log.type === 'tickets') {
                             if (log.action === 'add') runTickets += log.amount;
                             else if (log.action === 'set') runTickets = log.amount;
-                            
                             if (runTickets < 0) runTickets = 0;
                             log.balanceAfter = runTickets;
                         }
@@ -1916,7 +2165,8 @@
                         const timeStr = new Date(log.time).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'});
                         const typeBadge = log.type === 'spins' 
                             ? `<span class="badge badge-warning"><i class="fa-solid fa-dharmachakra mr-1"></i> Lượt Quay</span>` 
-                            : `<span class="badge badge-danger"><i class="fa-solid fa-ticket-alt mr-1"></i> Lượt Xé</span>`;
+                            : log.type === 'tickets' ? `<span class="badge badge-danger"><i class="fa-solid fa-ticket-alt mr-1"></i> Lượt Xé</span>`
+                            : `<span class="badge badge-online" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success); border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-coins mr-1"></i> Điểm Sự Kiện</span>`;
                         
                         let amountHtml = '';
                         if (log.action === 'add') {
@@ -1927,7 +2177,7 @@
                             amountHtml = `<span class="text-info font-bold">=${log.amount}</span>`;
                         }
 
-                        let balanceClass = log.type === 'spins' ? 'text-warning' : 'text-danger';
+                        let balanceClass = log.type === 'spins' ? 'text-warning' : (log.type === 'tickets' ? 'text-danger' : 'text-success');
 
                         tbody.innerHTML += `
                             <tr>
@@ -1986,7 +2236,7 @@
             createAccount: () => {
                 const uInput = document.getElementById('new-u'); const pInput = document.getElementById('new-p'); const u = uInput.value.trim(); const p = pInput.value.trim();
                 if(!u || !p) return Utils.toast("Dữ liệu không hợp lệ.", "warning"); if(u.length < 4) return Utils.toast("Tên đăng nhập tối thiểu 4 ký tự.", "error");
-                db.collection("accounts").add({ user: u, pass: p, lastActive: 0, isBlocked: false, spins: 0, tickets: 0, created_at: Date.now() }).then(() => { Utils.toast(`Đã cấp phép quyền truy cập cho "${u}".`, "success"); uInput.value = ""; pInput.value = ""; UI.closeModal('modal-add-user'); }).catch(err => Utils.toast("Lỗi hệ thống.", "error"));
+                db.collection("accounts").add({ user: u, pass: p, lastActive: 0, isBlocked: false, points: 0, spins: 0, tickets: 0, created_at: Date.now() }).then(() => { Utils.toast(`Đã cấp phép quyền truy cập cho "${u}".`, "success"); uInput.value = ""; pInput.value = ""; UI.closeModal('modal-add-user'); }).catch(err => Utils.toast("Lỗi hệ thống.", "error"));
             },
 
             openNewsEditor: (docId = '', currentContent = '') => { document.getElementById('news-id').value = docId; document.getElementById('news-content').value = currentContent; UI.openModal('modal-news'); },
