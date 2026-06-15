@@ -107,6 +107,7 @@
         .btn-icon { width: 44px; height: 44px; border-radius: var(--radius-full); background: var(--bg-elevated); border: 1px solid var(--border-strong); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; transition: var(--transition-fast); font-size: 16px; } .btn-icon:hover { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary); transform: translateY(-3px); box-shadow: 0 5px 15px var(--brand-glow); }
 
         .form-group { margin-bottom: 24px; text-align: left; }
+        .form-group select.form-control { cursor: pointer; appearance: auto; padding: 18px 10px; }
         .form-label { display: block; margin-bottom: 10px; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
         .form-control { width: 100%; padding: 18px 24px; background: var(--bg-body); border: 1px solid var(--border-strong); color: var(--text-main); border-radius: var(--radius-md); font-size: 16px; transition: var(--transition-fast); }
         .form-control:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 4px var(--brand-primary-soft); }
@@ -238,7 +239,23 @@
         .toast.success { border-left: 4px solid var(--color-success); color: var(--color-success); } .toast.error { border-left: 4px solid var(--color-danger); color: var(--color-danger); } .toast.warning { border-left: 4px solid var(--color-warning); color: var(--color-warning); } .toast.info { border-left: 4px solid var(--color-info); color: var(--color-info); }
 
         /* ---------------------------------------------------------------------
-           8. CSS CHO VÒNG QUAY VÀ TRANH THƯỞNG BÊN TRONG USER.HTML
+           8. CSS CHO KÉO BÚA BAO (RPS GAME)
+           --------------------------------------------------------------------- */
+        .rps-arena { display: flex; flex-direction: column; gap: 20px; align-items: center; background: var(--bg-elevated); padding: 30px; border-radius: var(--radius-xl); border: 1px solid var(--border-strong); position: relative; overflow: hidden; }
+        .rps-players { display: flex; justify-content: space-between; width: 100%; align-items: center; }
+        .rps-player-card { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 40%; }
+        .rps-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--brand-primary-soft); color: var(--brand-primary); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border: 2px solid var(--brand-primary); transition: all 0.3s ease; }
+        .rps-vs { font-size: 24px; font-weight: 900; color: var(--color-danger); text-transform: uppercase; font-style: italic; }
+        .rps-score { font-size: 32px; font-weight: 900; font-family: var(--font-family-mono); color: var(--color-warning); }
+        .rps-controls { display: flex; gap: 15px; margin-top: 20px; }
+        .rps-btn { width: 70px; height: 70px; border-radius: 50%; background: var(--bg-surface); border: 2px solid var(--border-strong); font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-fast); }
+        .rps-btn:hover:not(:disabled) { transform: translateY(-5px); border-color: var(--color-success); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+        .rps-btn.selected { background: var(--color-success-bg); border-color: var(--color-success); color: var(--color-success); transform: scale(1.1); }
+        .rps-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .rps-status { text-align: center; font-size: 16px; font-weight: 700; color: var(--color-info); padding: 10px; background: var(--color-info-bg); border-radius: var(--radius-md); width: 100%; margin-top: 20px; }
+
+        /* ---------------------------------------------------------------------
+           9. CSS CHO VÒNG QUAY VÀ TRANH THƯỞNG
            --------------------------------------------------------------------- */
         .wheel-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; width: 100%; overflow: hidden; }
         .wheel-container { position: relative; width: 350px; max-width: 100%; aspect-ratio: 1 / 1; margin: 0 auto; border-radius: 50%; padding: 8px; background: linear-gradient(135deg, #1e1e26, #09090b); border: 4px solid var(--border-strong); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: all 0.3s ease; }
@@ -326,7 +343,7 @@
             <div class="flex gap-4 mb-8">
                 <div class="form-group mb-0 flex-1 text-left">
                     <label class="form-label text-xs">Loại Quà Tặng</label>
-                    <select id="transfer-type" class="form-control" style="cursor: pointer; appearance: auto; padding: 18px 10px;">
+                    <select id="transfer-type" class="form-control">
                         <option value="spins">Lượt Vòng Quay</option>
                         <option value="tickets">Lượt Xé Thẻ</option>
                     </select>
@@ -390,6 +407,56 @@
             </div>
             <button class="btn btn-danger w-full" style="padding: 16px; font-size: 16px;" onclick="window.TranhThuong.closeModal()">
                 <i class="fa-solid fa-check mr-2"></i> XÁC NHẬN NHẬN QUÀ
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-rps-alert" style="z-index: 999999;">
+        <div class="modal-box text-center" style="max-width: 380px; padding: 32px 24px; border-radius: var(--radius-xl);">
+            <div class="flex-center mx-auto mb-4" style="width: 70px; height: 70px; border-radius: 50%; background: var(--color-warning-bg); color: var(--color-warning); font-size: 32px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-stopwatch fa-shake"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-warning mb-2 uppercase">Đến lượt của bạn!</h2>
+            <p class="text-muted text-sm mb-6">Đối thủ đã khóa chiêu. Bạn có <b class="text-danger text-lg">10 giây</b> để quyết định. Nếu không chọn, hệ thống sẽ tự động xử thua.</p>
+            <button class="btn btn-warning w-full" style="padding: 14px; font-size: 15px;" onclick="window.UI.closeModal('modal-rps-alert')">
+                <i class="fa-solid fa-hand-pointer mr-2"></i> TÔI ĐÃ HIỂU!
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-rps-result" style="z-index: 999999;">
+        <div class="modal-box text-center" style="max-width: 380px; padding: 32px 24px; border-radius: var(--radius-xl);">
+            <div class="flex-center mx-auto mb-4" id="rps-result-icon" style="width: 80px; height: 80px; border-radius: 50%; font-size: 36px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-trophy text-warning fa-bounce"></i>
+            </div>
+            <h2 class="text-2xl mb-2 font-bold uppercase" id="rps-result-title">KẾT THÚC!</h2>
+            <p class="text-main font-bold text-md mb-2" id="rps-result-desc">Đang tải kết quả...</p>
+            <p class="text-muted text-xs mb-6 bg-elevated py-2 rounded-md" style="background: var(--bg-body); color: var(--text-muted);">Hệ thống tự động thoát sau 5 giây...</p>
+            <button class="btn w-full" id="btn-rps-result-close" style="padding: 14px; font-size: 15px;" onclick="window.RPSGame.leaveRoom()">
+                <i class="fa-solid fa-right-from-bracket mr-2"></i> THOÁT PHÒNG
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-attendance-reward" style="z-index: 999999;">
+        <div class="modal-box text-center" style="max-width: 420px; background: rgba(30, 30, 38, 0.95); border: 2px solid var(--color-success); box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);">
+            <div style="font-size: 70px; margin-bottom: 15px;"><i class="fa-solid fa-gift text-success fa-bounce"></i></div>
+            <h2 class="text-3xl text-success mb-2 font-bold uppercase">ĐIỂM DANH THÀNH CÔNG!</h2>
+            <p class="text-main font-bold text-lg mb-6">Bạn đã hoàn thành xuất sắc điểm danh hôm nay. Xin chúc mừng bạn nhận được:</p>
+            
+            <div class="flex justify-center gap-4 mb-8">
+                <div class="flex-col items-center justify-center p-3 rounded-xl border-strong w-1/2" style="border: 1px solid var(--color-warning); background: rgba(245, 158, 11, 0.1); display: flex;">
+                    <i class="fa-solid fa-dharmachakra text-warning text-4xl mb-2"></i>
+                    <span class="font-bold text-main text-lg">+<span id="popup-reward-spins">1</span> Lượt Quay</span>
+                </div>
+                <div class="flex-col items-center justify-center p-3 rounded-xl border-strong w-1/2" style="border: 1px solid var(--color-danger); background: rgba(239, 68, 68, 0.1); display: flex;">
+                    <i class="fa-solid fa-ticket-alt text-danger text-4xl mb-2"></i>
+                    <span class="font-bold text-main text-lg">+<span id="popup-reward-tickets">1</span> Lượt Xé</span>
+                </div>
+            </div>
+
+            <button class="btn btn-success w-full" style="padding: 16px; font-size: 16px;" onclick="window.UI.closeModal('modal-attendance-reward')">
+                <i class="fa-solid fa-check-circle mr-2"></i> TUYỆT VỜI! XÁC NHẬN
             </button>
         </div>
     </div>
@@ -627,6 +694,12 @@
                             <p class="text-sm text-muted" id="tt-desc-text">Xé thẻ lật quà để rinh phần thưởng bí mật mỗi ngày.</p>
                         </div>
 
+                        <div class="bento-action" onclick="window.UI.navigate('rps')">
+                            <div class="bento-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--color-danger);"><i class="fa-regular fa-hand-scissors"></i></div>
+                            <h3 class="text-xl mb-1">Kéo Búa Bao PvP</h3>
+                            <p class="text-sm text-muted">Đấu trí với thành viên khác. Phí 5 điểm, Thắng 10 điểm.</p>
+                        </div>
+
                         <div class="bento-action" style="grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 24px; cursor: pointer;" onclick="window.UI.navigate('news')">
                             <div class="bento-icon m-0" style="width: 70px; height: 70px; font-size: 30px; background: var(--bg-body); border: 1px solid var(--border-strong);"><i class="fa-solid fa-bullhorn text-primary"></i></div>
                             <div class="flex-1" id="dash-news-preview">
@@ -775,6 +848,58 @@
                     </div>
                 </section>
 
+                <section id="view-rps" class="view-section">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h1 class="text-3xl mb-2">Đấu Trường Kéo Búa Bao</h1>
+                            <p class="text-muted text-lg">Phí vào bàn: 5 Điểm. Thắng nhận 10 Điểm. Thi đấu BO3.</p>
+                        </div>
+                    </div>
+
+                    <div class="card text-center flex-col items-center">
+                        <div id="rps-lobby" style="display: block;">
+                            <div style="font-size: 80px; color: var(--color-warning); margin-bottom: 20px;"><i class="fa-regular fa-hand-scissors"></i></div>
+                            <h2 class="text-2xl mb-4">Sẵn sàng thử thách?</h2>
+                            <p class="text-muted mb-6">Bạn đang có <b class="text-success" id="rps-current-points">0</b> điểm sự kiện.</p>
+                            <button class="btn btn-warning" style="padding: 16px 40px; font-size: 18px;" onclick="window.RPSGame.findMatch()" id="btn-find-match">
+                                <i class="fa-solid fa-magnifying-glass mr-2"></i> TÌM ĐỐI THỦ NGAY
+                            </button>
+                        </div>
+
+                        <div id="rps-gameplay" style="display: none; width: 100%; max-width: 600px; margin: 0 auto;">
+                            <div class="rps-arena">
+                                <div class="rps-players">
+                                    <div class="rps-player-card">
+                                        <div class="rps-avatar" id="rps-my-avt">U</div>
+                                        <span class="font-bold text-main" id="rps-my-name">Bạn</span>
+                                        <div class="rps-score" id="rps-my-score">0</div>
+                                    </div>
+                                    <div class="rps-vs">VS</div>
+                                    <div class="rps-player-card">
+                                        <div class="rps-avatar" style="border-color: var(--color-danger); color: var(--color-danger); background: var(--color-danger-bg);" id="rps-opp-avt">?</div>
+                                        <span class="font-bold text-main" id="rps-opp-name">Đang tìm...</span>
+                                        <div class="rps-score" style="color: var(--color-danger);" id="rps-opp-score">0</div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center font-bold text-muted text-sm uppercase tracking-wide mt-4">
+                                    Vòng <span id="rps-round-num">1</span>/3
+                                    <span id="rps-timer-wrap" style="display: none;"> - <span id="rps-timer" class="text-danger font-bold text-lg" style="font-size: 18px;">10</span>s</span>
+                                </div>
+
+                                <div class="rps-controls" id="rps-controls">
+                                    <button class="rps-btn" id="btn-rock" onclick="window.RPSGame.makeChoice('rock')"><i class="fa-regular fa-hand-back-fist"></i></button>
+                                    <button class="rps-btn" id="btn-paper" onclick="window.RPSGame.makeChoice('paper')"><i class="fa-regular fa-hand"></i></button>
+                                    <button class="rps-btn" id="btn-scissors" onclick="window.RPSGame.makeChoice('scissors')"><i class="fa-regular fa-hand-scissors"></i></button>
+                                </div>
+
+                                <div class="rps-status" id="rps-status-text">Đang kết nối vào phòng...</div>
+                            </div>
+                            <button class="btn btn-outline mt-6" onclick="window.RPSGame.leaveRoom()">Thoát Phòng</button>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </main>
 
@@ -807,8 +932,7 @@
             inviteCode: null, hasUsedInvite: false, luckyNumberCanEdit: true,
             tournamentData: [],
             availableSpins: 0, availableTickets: 0, availablePoints: 0,
-            wheelPrizes: [], ticketPrizes: [],
-            taskConfig: { loginReward: 0, attendanceReward: 0 }
+            wheelPrizes: [], ticketPrizes: []
         };
 
         /** 3. UTILITY FUNCTIONS */
@@ -949,7 +1073,7 @@
 
                 const topNav = document.querySelector('.top-navbar');
                 if (topNav) {
-                    const hideOnViews = ['chat', 'attendance', 'news', 'tournament', 'wheel', 'tranhthuong', 'pointshop'];
+                    const hideOnViews = ['chat', 'attendance', 'news', 'tournament', 'wheel', 'tranhthuong', 'pointshop', 'rps'];
                     if (window.innerWidth <= 1023 && hideOnViews.includes(vid)) {
                         topNav.style.display = 'none';
                     } else {
@@ -1002,36 +1126,6 @@
                         Utils.safeText('sidebar-avt', initial); Utils.safeText('profile-avatar-large', initial);
                         Utils.safeText('profile-uid', State.currentDocId.substring(0,10).toUpperCase());
                         
-                        // XỬ LÝ NHIỆM VỤ ĐĂNG NHẬP HÀNG NGÀY
-                        const todayStr = Utils.getTodayString();
-                        if (docData.lastLoginRewardDate !== todayStr) {
-                            db.collection("settings").doc("task_config").get().then(docConf => {
-                                const loginReward = docConf.exists ? (docConf.data().loginReward || 0) : 0;
-                                const accRef = db.collection("accounts").doc(State.currentDocId);
-                                
-                                if (loginReward > 0) {
-                                    const batch = db.batch();
-                                    batch.update(accRef, {
-                                        points: firebase.firestore.FieldValue.increment(loginReward),
-                                        lastLoginRewardDate: todayStr
-                                    });
-                                    const logRef = db.collection("point_history").doc();
-                                    batch.set(logRef, {
-                                        user: State.currentUser, 
-                                        action: "add", 
-                                        detail: "Nhiệm vụ: Đăng nhập hệ thống", 
-                                        pointsChanged: loginReward, 
-                                        timestamp: Date.now()
-                                    });
-                                    batch.commit().then(() => {
-                                        setTimeout(() => Utils.toast(`Nhiệm vụ Đăng nhập: +${loginReward} Điểm Sự Kiện!`, "success"), 2500);
-                                    });
-                                } else {
-                                    accRef.update({ lastLoginRewardDate: todayStr });
-                                }
-                            });
-                        }
-
                         document.getElementById('auth-gate').style.opacity = '0';
                         setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
                     }
@@ -1469,7 +1563,7 @@
         /** MODULE CỬA HÀNG ĐIỂM (TÍCH HỢP FETCH GIÁ TỪ ADMIN) */
         window.PointShop = {
             userPoints: 0,
-            spinCost: 100, // Giá dự phòng
+            spinCost: 100, 
             ticketCost: 50,
             
             init: function() {
@@ -1540,11 +1634,300 @@
             }
         };
 
+        /** MODULE KÉO BÚA BAO MULTIPLAYER */
+        window.RPSGame = {
+            roomId: null,
+            isPlayer1: false,
+            unsubscribe: null,
+            timerInt: null,
+            currentRound: 0,
+            myCurrentChoice: null,
+
+            getIcon: function(choice) {
+                if (choice === 'rock') return '<i class="fa-regular fa-hand-back-fist text-warning"></i>';
+                if (choice === 'paper') return '<i class="fa-regular fa-hand text-success"></i>';
+                if (choice === 'scissors') return '<i class="fa-regular fa-hand-scissors text-danger"></i>';
+                if (choice === 'timeout') return '<i class="fa-solid fa-hourglass-end text-muted"></i>';
+                return '?';
+            },
+
+            getChoiceName: function(c) {
+                if(c === 'rock') return 'Búa';
+                if(c === 'paper') return 'Bao';
+                if(c === 'scissors') return 'Kéo';
+                if(c === 'timeout') return 'Hết Giờ';
+                return 'Chưa ra chiêu';
+            },
+
+            updatePoints: function(points) { window.Utils.safeText('rps-current-points', points); },
+
+            findMatch: async function() {
+                // Kiểm tra cấu hình Admin đóng mở và khung giờ
+                if (window.AppCore.rpsConfig) {
+                    if (window.AppCore.rpsConfig.isEnabled === false) {
+                        return window.Utils.toast("Kéo Búa Bao hiện đang được bảo trì!", "warning");
+                    }
+                    const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes(); 
+                    const [sH, sM] = (window.AppCore.rpsConfig.start || "00:00").split(':').map(Number); 
+                    const [eH, eM] = (window.AppCore.rpsConfig.end || "23:59").split(':').map(Number);
+                    if(cur < (sH*60+sM) || cur > (eH*60+eM)) {
+                        return window.Utils.toast(`Đấu trường chỉ mở cửa từ ${window.AppCore.rpsConfig.start} đến ${window.AppCore.rpsConfig.end}!`, "error");
+                    }
+                }
+
+                if (window.State.availablePoints < 5) return window.Utils.toast("Bạn cần ít nhất 5 điểm để vào bàn!", "error");
+                const btn = document.getElementById('btn-find-match');
+                btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TÌM...`;
+
+                try {
+                    const snapshot = await db.collection("rps_rooms").where("status", "==", "waiting").limit(1).get();
+                    if (snapshot.empty) {
+                        const newRoomRef = await db.collection("rps_rooms").add({
+                            player1: window.State.currentUser, player2: null, p1Choice: null, p2Choice: null,
+                            p1Score: 0, p2Score: 0, round: 1, status: "waiting", roundWinner: null, deadline: null, createdAt: Date.now()
+                        });
+                        this.roomId = newRoomRef.id; this.isPlayer1 = true; this.enterRoom();
+                    } else {
+                        const roomDoc = snapshot.docs[0];
+                        if(roomDoc.data().player1 === window.State.currentUser) {
+                            btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-magnifying-glass mr-2"></i> TÌM ĐỐI THỦ`;
+                            return window.Utils.toast("Bạn đang mở phòng ở tab khác!", "warning");
+                        }
+                        this.roomId = roomDoc.id; this.isPlayer1 = false;
+                        await db.collection("rps_rooms").doc(this.roomId).update({ player2: window.State.currentUser, status: "playing" });
+                        this.enterRoom();
+                    }
+                } catch (error) { window.Utils.toast("Lỗi kết nối máy chủ.", "error"); btn.disabled = false; }
+            },
+
+            enterRoom: function() {
+                document.getElementById('rps-lobby').style.display = 'none'; document.getElementById('rps-gameplay').style.display = 'block';
+                window.Utils.safeText('rps-my-name', window.State.currentUser); window.Utils.safeText('rps-my-avt', window.State.currentUser.charAt(0).toUpperCase());
+                document.getElementById('rps-status-text').style.color = "var(--color-info)";
+                document.querySelectorAll('.rps-btn').forEach(b => b.classList.remove('selected'));
+
+                this.unsubscribe = db.collection("rps_rooms").doc(this.roomId).onSnapshot(doc => {
+                    if (!doc.exists) { this.resetLobby("Phòng đã bị hủy hoặc đối thủ đã rời đi."); return; }
+                    const data = doc.data(); this.updateUI(data); this.checkGameLogic(data);
+                });
+            },
+
+            updateUI: function(data) {
+                const oppName = this.isPlayer1 ? data.player2 : data.player1;
+                const myChoice = this.isPlayer1 ? data.p1Choice : data.p2Choice;
+                const oppChoice = this.isPlayer1 ? data.p2Choice : data.p1Choice;
+                
+                this.myCurrentChoice = myChoice; 
+
+                if (data.status === 'revealing' || data.status === 'finished') {
+                    document.getElementById('rps-opp-avt').innerHTML = this.getIcon(oppChoice);
+                    document.getElementById('rps-my-avt').innerHTML = this.getIcon(myChoice);
+                    document.getElementById('rps-opp-avt').style.fontSize = "34px";
+                    document.getElementById('rps-my-avt').style.fontSize = "34px";
+                } else {
+                    document.getElementById('rps-opp-avt').innerHTML = oppName ? oppName.charAt(0).toUpperCase() : "?";
+                    document.getElementById('rps-my-avt').innerHTML = window.State.currentUser.charAt(0).toUpperCase();
+                    document.getElementById('rps-opp-avt').style.fontSize = "24px";
+                    document.getElementById('rps-my-avt').style.fontSize = "24px";
+                }
+                
+                window.Utils.safeText('rps-opp-name', oppName || "Đang chờ...");
+                window.Utils.safeText('rps-my-score', this.isPlayer1 ? data.p1Score : data.p2Score);
+                window.Utils.safeText('rps-opp-score', this.isPlayer1 ? data.p2Score : data.p1Score);
+                window.Utils.safeText('rps-round-num', data.round);
+
+                const controls = document.getElementById('rps-controls');
+                
+                if (data.status === 'waiting') {
+                    window.Utils.safeText('rps-status-text', "Đang chờ đối thủ..."); controls.style.pointerEvents = 'none'; controls.style.opacity = '0.5';
+                } else if (data.status === 'playing') {
+                    if (myChoice) {
+                        window.Utils.safeText('rps-status-text', "Đã chọn! Chờ đối thủ..."); controls.style.pointerEvents = 'none'; controls.style.opacity = '0.5';
+                    } else {
+                        window.Utils.safeText('rps-status-text', "Đến lượt bạn ra chiêu!"); controls.style.pointerEvents = 'auto'; controls.style.opacity = '1';
+                        if(!this.myCurrentChoice && (!data.deadline)) document.querySelectorAll('.rps-btn').forEach(b => b.classList.remove('selected'));
+                    }
+                } else if (data.status === 'revealing') {
+                    controls.style.pointerEvents = 'none'; controls.style.opacity = '0.5';
+                    let msg = "HÒA NHAU!"; let color = "var(--color-warning)";
+                    if (data.roundWinner === (this.isPlayer1 ? 'p1' : 'p2')) { msg = "BẠN THẮNG HIỆP NÀY!"; color = "var(--color-success)"; } 
+                    else if (data.roundWinner !== 'draw') { msg = "BẠN THUA HIỆP NÀY!"; color = "var(--color-danger)"; }
+                    window.Utils.safeText('rps-status-text', `Đối thủ ra ${this.getChoiceName(oppChoice)}. ${msg}`); document.getElementById('rps-status-text').style.color = color;
+                } else if (data.status === 'finished') {
+                    controls.style.pointerEvents = 'none';
+                    const iWon = (this.isPlayer1 && data.p1Score >= 2) || (!this.isPlayer1 && data.p2Score >= 2);
+                    
+                    const mTitle = document.getElementById('rps-result-title');
+                    const mDesc = document.getElementById('rps-result-desc');
+                    const mIcon = document.getElementById('rps-result-icon');
+                    const mBtn = document.getElementById('btn-rps-result-close');
+
+                    if (iWon) { 
+                        window.Utils.safeText('rps-status-text', "🎉 CHIẾN THẮNG (+10 ĐIỂM)"); 
+                        document.getElementById('rps-status-text').style.color = "var(--color-success)";
+                        if(mTitle) {
+                            mTitle.innerText = "CHIẾN THẮNG!"; mTitle.className = "text-2xl mb-2 font-bold uppercase text-success";
+                            mDesc.innerText = "Tuyệt vời! Bạn nhận được +10 Điểm Sự Kiện.";
+                            mIcon.innerHTML = '<div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-success-bg); color: var(--color-success); font-size:36px; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-trophy fa-bounce"></i></div>';
+                            mBtn.className = "btn btn-success w-full";
+                        }
+                    } else { 
+                        window.Utils.safeText('rps-status-text', "💀 BẠN ĐÃ THUA! (-5 ĐIỂM)"); 
+                        document.getElementById('rps-status-text').style.color = "var(--color-danger)";
+                        if(mTitle) {
+                            mTitle.innerText = "THẤT BẠI!"; mTitle.className = "text-2xl mb-2 font-bold uppercase text-danger";
+                            mDesc.innerText = "Rất tiếc! Bạn bị trừ -5 Điểm Sự Kiện.";
+                            mIcon.innerHTML = '<div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-danger-bg); color: var(--color-danger); font-size:36px; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-skull-crossbones fa-shake"></i></div>';
+                            mBtn.className = "btn btn-danger w-full";
+                        }
+                    }
+
+                    window.UI.openModal('modal-rps-result');
+
+                    if(this.timerInt) { clearInterval(this.timerInt); this.timerInt = null; }
+                    this.timerInt = setTimeout(() => {
+                        this.leaveRoom();
+                    }, 5000);
+                }
+
+                // XỬ LÝ TIMER ĐẾM NGƯỢC 10 GIÂY
+                if (data.status === 'playing' && data.deadline) {
+                    document.getElementById('rps-timer-wrap').style.display = 'inline';
+                    
+                    if (!this.timerInt) {
+                        if (!this.myCurrentChoice) {
+                            window.UI.openModal('modal-rps-alert');
+                        }
+
+                        this.timerInt = setInterval(() => {
+                            let timeLeft = Math.ceil((data.deadline - Date.now()) / 1000);
+                            if (timeLeft < 0) timeLeft = 0;
+                            window.Utils.safeText('rps-timer', timeLeft);
+                            
+                            if (timeLeft <= 0) {
+                                clearInterval(this.timerInt); this.timerInt = null;
+                                if (!this.myCurrentChoice) {
+                                    this.makeChoice('timeout'); 
+                                    window.Utils.toast("Hết thời gian! Bạn bị xử thua hiệp này.", "error");
+                                    window.UI.closeModal('modal-rps-alert');
+                                }
+                            }
+                        }, 500);
+                    }
+                } else {
+                    document.getElementById('rps-timer-wrap').style.display = 'none';
+                    if (this.timerInt && data.status !== 'finished') { clearInterval(this.timerInt); this.timerInt = null; }
+                }
+            },
+
+            makeChoice: async function(choice) {
+                if (this.myCurrentChoice) return; 
+                this.myCurrentChoice = choice;
+                document.querySelectorAll('.rps-btn').forEach(b => b.classList.remove('selected'));
+                if(document.getElementById(`btn-${choice}`)) document.getElementById(`btn-${choice}`).classList.add('selected');
+                window.UI.closeModal('modal-rps-alert');
+
+                try {
+                    const doc = await db.collection("rps_rooms").doc(this.roomId).get();
+                    let updateData = this.isPlayer1 ? { p1Choice: choice } : { p2Choice: choice };
+                    
+                    if (!doc.data().deadline) {
+                        updateData.deadline = Date.now() + 10500;
+                    }
+                    await db.collection("rps_rooms").doc(this.roomId).update(updateData);
+                } catch(e) {}
+            },
+
+            checkGameLogic: async function(data) {
+                if (this.isPlayer1 && data.status === 'playing' && data.p1Choice && data.p2Choice) {
+                    let p1WinsRound = false; let p2WinsRound = false; let roundWinner = 'draw';
+
+                    if (data.p1Choice === data.p2Choice) roundWinner = 'draw';
+                    else if (data.p1Choice === 'timeout') { p2WinsRound = true; roundWinner = 'p2'; }
+                    else if (data.p2Choice === 'timeout') { p1WinsRound = true; roundWinner = 'p1'; }
+                    else if ((data.p1Choice === 'rock' && data.p2Choice === 'scissors') || (data.p1Choice === 'paper' && data.p2Choice === 'rock') || (data.p1Choice === 'scissors' && data.p2Choice === 'paper')) { p1WinsRound = true; roundWinner = 'p1'; } 
+                    else { p2WinsRound = true; roundWinner = 'p2'; }
+
+                    let newP1Score = data.p1Score + (p1WinsRound ? 1 : 0);
+                    let newP2Score = data.p2Score + (p2WinsRound ? 1 : 0);
+                    let gameFinished = (newP1Score >= 2 || newP2Score >= 2);
+
+                    db.collection("rps_rooms").doc(this.roomId).update({ status: 'revealing', roundWinner: roundWinner, p1Score: newP1Score, p2Score: newP2Score });
+
+                    setTimeout(async () => {
+                        if (gameFinished) {
+                            const winner = newP1Score >= 2 ? data.player1 : data.player2;
+                            const loser = newP1Score >= 2 ? data.player2 : data.player1;
+                            
+                            // Ghi lịch sử cho trang Admin
+                            await db.collection("rps_history").add({
+                                player1: data.player1, player2: data.player2,
+                                p1Choice: data.p1Choice, p2Choice: data.p2Choice,
+                                p1Score: newP1Score, p2Score: newP2Score,
+                                winner: winner, timestamp: Date.now()
+                            }).catch(e => console.log(e));
+
+                            await db.collection("rps_rooms").doc(this.roomId).update({ status: 'finished' });
+                            this.finalizeGame(winner, loser);
+                        } else {
+                            await db.collection("rps_rooms").doc(this.roomId).update({ p1Choice: null, p2Choice: null, roundWinner: null, deadline: null, round: data.round + (roundWinner !== 'draw' ? 1 : 0), status: 'playing' });
+                        }
+                    }, 3000);
+                }
+            },
+
+            finalizeGame: async function(winnerName, loserName) {
+                try {
+                    await db.runTransaction(async (t) => {
+                        const winSnap = await db.collection("accounts").where("user", "==", winnerName).get();
+                        const loseSnap = await db.collection("accounts").where("user", "==", loserName).get();
+                        if (!winSnap.empty && !loseSnap.empty) {
+                            t.update(db.collection("accounts").doc(winSnap.docs[0].id), { points: firebase.firestore.FieldValue.increment(10) });
+                            t.update(db.collection("accounts").doc(loseSnap.docs[0].id), { points: firebase.firestore.FieldValue.increment(-5) });
+                        }
+                    });
+                } catch (e) { console.error(e); }
+            },
+
+            leaveRoom: async function() {
+                if (this.timerInt) { clearInterval(this.timerInt); this.timerInt = null; }
+                if (this.unsubscribe) { this.unsubscribe(); this.unsubscribe = null; }
+                if (this.roomId) { try { await db.collection("rps_rooms").doc(this.roomId).delete(); } catch(e) {} }
+                this.resetLobby("Đã rời phòng đấu.");
+            },
+
+            resetLobby: function(msg) {
+                this.roomId = null; this.currentRound = 0; 
+                window.UI.closeModal('modal-rps-alert');
+                window.UI.closeModal('modal-rps-result');
+                
+                document.getElementById('rps-lobby').style.display = 'block'; 
+                document.getElementById('rps-gameplay').style.display = 'none';
+                document.getElementById('btn-find-match').disabled = false; 
+                
+                if (window.AppCore.rpsConfig && window.AppCore.rpsConfig.isEnabled === false) {
+                    document.getElementById('btn-find-match').innerHTML = `<i class="fa-solid fa-lock mr-2"></i> ĐANG BẢO TRÌ`;
+                    document.getElementById('btn-find-match').className = "btn btn-danger";
+                } else {
+                    document.getElementById('btn-find-match').innerHTML = `<i class="fa-solid fa-magnifying-glass mr-2"></i> TÌM ĐỐI THỦ NGAY`;
+                    document.getElementById('btn-find-match').className = "btn btn-warning";
+                }
+                
+                if(msg) window.Utils.toast(msg, "info"); 
+                this.updatePoints(window.State.availablePoints);
+            }
+        };
+
+        window.addEventListener('beforeunload', () => {
+            if (window.RPSGame.roomId) window.RPSGame.leaveRoom();
+        });
+
         /** 9. APPLICATION CORE */
         window.AppCore = {
             attConfig: { start: "09:00", end: "10:00" }, 
             hasAttendedToday: false,
             isProcessingAttendance: false,
+            rpsConfig: null,
             
             lockFeatureUI: (featureId, isEnabled) => {
                 const btn = document.getElementById(`btn-nav-${featureId}`);
@@ -1576,15 +1959,24 @@
                 setInterval(() => { const lc = document.getElementById('live-clock'); if(lc) { lc.innerText = new Date().toLocaleTimeString('vi-VN', { hour12: false }); } }, 1000);
                 const dateVN = Utils.getTodayString(); Utils.safeText('att-badge-date', dateVN);
 
-                // KHỞI TẠO CẤU HÌNH NHIỆM VỤ
-                db.collection("settings").doc("task_config").onSnapshot(doc => {
+                window.PointShop.init();
+
+                // Lắng nghe cấu hình Đấu trường Kéo búa bao từ Admin
+                db.collection("settings").doc("rps_config").onSnapshot(doc => {
                     if(doc.exists) {
-                        window.State.taskConfig = doc.data();
+                        window.AppCore.rpsConfig = doc.data();
+                        const btn = document.getElementById('btn-find-match');
+                        if (btn && window.AppCore.rpsConfig.isEnabled === false) {
+                            btn.innerHTML = `<i class="fa-solid fa-lock mr-2"></i> ĐANG BẢO TRÌ`;
+                            btn.className = "btn btn-danger";
+                        } else if (btn) {
+                            btn.innerHTML = `<i class="fa-solid fa-magnifying-glass mr-2"></i> TÌM ĐỐI THỦ NGAY`;
+                            btn.className = "btn btn-warning";
+                        }
+                    } else {
+                        window.AppCore.rpsConfig = { isEnabled: true, start: "00:00", end: "23:59" };
                     }
                 });
-
-                // KHỞI TẠO CỬA HÀNG ĐIỂM
-                window.PointShop.init();
 
                 db.collection("accounts").doc(State.currentDocId).onSnapshot(doc => {
                     if(doc.exists) {
@@ -1593,13 +1985,8 @@
                         if (data.isBlocked === true) {
                             window.Utils.toast("Tài khoản của bạn đã bị khóa. Phiên làm việc kết thúc!", "error");
                             const appShell = document.getElementById('app-shell');
-                            if(appShell) {
-                                appShell.style.pointerEvents = 'none';
-                                appShell.style.opacity = '0.5';
-                            }
-                            setTimeout(() => {
-                                window.Auth.logout();
-                            }, 2000);
+                            if(appShell) { appShell.style.pointerEvents = 'none'; appShell.style.opacity = '0.5'; }
+                            setTimeout(() => { window.Auth.logout(); }, 2000);
                             return; 
                         }
 
@@ -1610,8 +1997,8 @@
                         Utils.safeText('spin-count-val', State.availableSpins);
                         Utils.safeText('ticket-count-val', State.availableTickets);
                         
-                        // ĐỒNG BỘ UI ĐIỂM NGƯỜI CHƠI
                         window.PointShop.updateUI(State.availablePoints);
+                        window.RPSGame.updatePoints(State.availablePoints);
 
                         const wheelCont = document.getElementById('wheel-container-ui');
                         if(wheelCont) {
@@ -1705,14 +2092,8 @@
                 db.collection("tournament").orderBy("timestamp", "desc").onSnapshot(snap => {
                     window.State.tournamentData = [];
                     const displayArea = document.getElementById('tournament-display-area');
-                    const filtersArea = document.getElementById('tournament-team-filters');
-                    
-                    if(snap.empty) {
-                        if(displayArea) displayArea.innerHTML = `<div class="p-10 text-center text-muted">Chưa có danh sách thi đấu do Ban Quản Trị thiết lập.</div>`;
-                        if(filtersArea) filtersArea.innerHTML = '';
-                        return;
-                    }
-                    
+                    if(!displayArea) return;
+                    if(snap.empty) { displayArea.innerHTML = `<div class="p-10 text-center text-muted">Chưa có danh sách thi đấu do Ban Quản Trị thiết lập.</div>`; return; }
                     snap.forEach(doc => { window.State.tournamentData.push(doc.data()); });
                     window.AppCore.renderTournamentFilters();
                     window.AppCore.renderTournamentView('all_members'); 
@@ -1864,7 +2245,6 @@
                 if (window.AppCore.hasAttendedToday) return Utils.toast("Bạn đã điểm danh hôm nay rồi!", "warning");
                 
                 window.AppCore.isProcessingAttendance = true;
-
                 const now = new Date(); 
                 const cur = now.getHours() * 60 + now.getMinutes(); 
                 const [sH, sM] = window.AppCore.attConfig.start.split(':').map(Number); 
@@ -1883,7 +2263,6 @@
                     const ipResponse = await fetch('https://api.ipify.org?format=json');
                     const ipData = await ipResponse.json();
                     const currentIP = ipData.ip;
-
                     const todayStr = Utils.getTodayString();
 
                     const lastDeviceAttDate = localStorage.getItem('qd_device_att_date');
@@ -1892,91 +2271,63 @@
                         throw new Error(`Hệ thống phát hiện thiết bị này đã điểm danh cho [${lastDeviceAttUser}] hôm nay.`);
                     }
 
-                    const ipCheckSnap = await db.collection("attendance")
-                        .where("date", "==", todayStr)
-                        .where("ipAddress", "==", currentIP)
-                        .get();
-
-                    let ipUsedByOther = false;
-                    let otherUser = "";
+                    const ipCheckSnap = await db.collection("attendance").where("date", "==", todayStr).where("ipAddress", "==", currentIP).get();
+                    let ipUsedByOther = false; let otherUser = "";
                     ipCheckSnap.forEach(doc => {
-                        if(doc.data().userName !== State.currentUser) {
-                            ipUsedByOther = true;
-                            otherUser = doc.data().userName;
-                        }
+                        if(doc.data().userName !== State.currentUser) { ipUsedByOther = true; otherUser = doc.data().userName; }
                     });
 
                     if (ipUsedByOther) {
                         throw new Error(`Địa chỉ mạng này (IP: ${currentIP}) đã được dùng để điểm danh cho [${otherUser}]. Nghi vấn điểm danh hộ!`);
                     }
 
-                    const userCheckSnap = await db.collection("attendance")
-                        .where("date", "==", todayStr)
-                        .where("userName", "==", State.currentUser)
-                        .get();
-
-                    if (!userCheckSnap.empty) {
-                        window.AppCore.hasAttendedToday = true;
-                        throw new Error("Bạn đã điểm danh thành công trước đó rồi!");
-                    }
+                    const userCheckSnap = await db.collection("attendance").where("date", "==", todayStr).where("userName", "==", State.currentUser).get();
+                    if (!userCheckSnap.empty) { window.AppCore.hasAttendedToday = true; throw new Error("Bạn đã điểm danh thành công trước đó rồi!"); }
 
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TRUYỀN TẢI...`;
-                    
-                    const wheelDoc = await db.collection("settings").doc("wheel").get();
-                    let addSpinFlag = false;
-                    if (wheelDoc.exists && wheelDoc.data().autoSpinOnAttendance === true) addSpinFlag = true;
-
                     const batch = db.batch();
                     const newAttRef = db.collection("attendance").doc();
                     
                     batch.set(newAttRef, { 
-                        userId: State.currentDocId, 
-                        userName: State.currentUser, 
-                        time: now.toLocaleTimeString('vi-VN'), 
-                        date: todayStr, 
-                        timestamp: Date.now(),
-                        ipAddress: currentIP
+                        userId: State.currentDocId, userName: State.currentUser, time: now.toLocaleTimeString('vi-VN'), date: todayStr, timestamp: Date.now(), ipAddress: currentIP
                     });
 
-                    let accUpdates = {};
-                    if (addSpinFlag) {
-                        accUpdates.spins = firebase.firestore.FieldValue.increment(1);
+                    // ĐỒNG BỘ THƯỞNG VẬT PHẨM TỪ ADMIN
+                    let rewardSpins = 0; let rewardTickets = 0;
+                    const rewardDoc = await db.collection("settings").doc("attendance_reward_items").get();
+                    if (rewardDoc.exists && rewardDoc.data().isEnabled === true) {
+                        rewardSpins = rewardDoc.data().spins || 0;
+                        rewardTickets = rewardDoc.data().tickets || 0;
+                        if(rewardSpins > 0 || rewardTickets > 0) {
+                            const accRef = db.collection("accounts").doc(State.currentDocId);
+                            batch.update(accRef, { 
+                                spins: firebase.firestore.FieldValue.increment(rewardSpins),
+                                tickets: firebase.firestore.FieldValue.increment(rewardTickets)
+                            });
+                        }
                     }
 
-                    // XỬ LÝ NHIỆM VỤ ĐIỂM DANH
-                    const attReward = window.State.taskConfig ? (window.State.taskConfig.attendanceReward || 0) : 0;
-                    if (attReward > 0) {
-                        accUpdates.points = firebase.firestore.FieldValue.increment(attReward);
-                        const pointLogRef = db.collection("point_history").doc();
-                        batch.set(pointLogRef, {
-                            user: State.currentUser,
-                            action: "add",
-                            detail: "Nhiệm vụ: Điểm danh thành công",
-                            pointsChanged: attReward,
-                            timestamp: Date.now()
-                        });
+                    // TỰ ĐỘNG THƯỞNG ĐIỂM NHIỆM VỤ ĐIỂM DANH
+                    const taskDoc = await db.collection("settings").doc("task_config").get();
+                    let attRewardPoints = 20; // Default
+                    if (taskDoc.exists && taskDoc.data().attendanceReward !== undefined) {
+                        attRewardPoints = taskDoc.data().attendanceReward;
                     }
-
-                    if (Object.keys(accUpdates).length > 0) {
+                    if (attRewardPoints > 0) {
                         const accRef = db.collection("accounts").doc(State.currentDocId);
-                        batch.update(accRef, accUpdates);
+                        batch.update(accRef, { points: firebase.firestore.FieldValue.increment(attRewardPoints) });
                     }
 
                     await batch.commit();
-
                     localStorage.setItem('qd_device_att_date', todayStr);
                     localStorage.setItem('qd_device_att_user', State.currentUser);
                     window.AppCore.hasAttendedToday = true;
 
-                    if(addSpinFlag && attReward > 0) {
-                        Utils.toast(`Thành công! Bạn nhận được +1 Lượt Quay và +${attReward} Điểm Sự Kiện.`, "success");
-                    } else if (addSpinFlag) {
-                        Utils.toast("Thành công! Hệ thống đã tặng bạn +1 Lượt Quay Thưởng.", "success");
-                    } else if (attReward > 0) {
-                        Utils.toast(`Thành công! Hệ thống đã tặng bạn +${attReward} Điểm Sự Kiện.`, "success");
-                    } else {
-                        Utils.toast("Dữ liệu chuyên cần của bạn đã được ghi nhận.", "success");
-                    }
+                    // Hiện giao diện popup nhận thưởng
+                    document.getElementById('popup-reward-spins').innerText = rewardSpins;
+                    document.getElementById('popup-reward-tickets').innerText = rewardTickets;
+                    window.Sound.initCtx(); window.Sound.playWin();
+                    window.UI.openModal('modal-attendance-reward');
 
                 } catch (error) {
                     Utils.toast(error.message || "Lỗi kết nối máy chủ.", "error"); 
@@ -2078,77 +2429,7 @@
             }
         };
 
-        /** 10. TRANSFER MODULE (GỬI LƯỢT QUAY/XÉ) */
-        window.Transfer = {
-            execute: async () => {
-                const targetUser = document.getElementById('transfer-target').value.trim();
-                const type = document.getElementById('transfer-type').value; 
-                const amount = parseInt(document.getElementById('transfer-amount').value);
-
-                if(!targetUser || isNaN(amount) || amount <= 0) return Utils.toast("Vui lòng điền thông tin và số lượng hợp lệ (>0).", "warning");
-                if(targetUser === State.currentUser) return Utils.toast("Hệ thống từ chối: Không thể tự chuyển cho chính mình!", "error");
-
-                const currentBalance = type === 'spins' ? State.availableSpins : State.availableTickets;
-                const typeName = type === 'spins' ? 'Lượt quay' : 'Lượt xé';
-                if (currentBalance < amount) return Utils.toast(`Số dư không đủ! Bạn chỉ có ${currentBalance} ${typeName.toLowerCase()}.`, "error");
-
-                const btn = document.getElementById('btn-execute-transfer');
-                btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang giao dịch...`;
-
-                try {
-                    const targetSnap = await db.collection("accounts").where("user", "==", targetUser).get();
-                    if(targetSnap.empty) throw "USER_NOT_FOUND";
-                    
-                    const targetDocId = targetSnap.docs[0].id;
-
-                    await db.runTransaction(async (transaction) => {
-                        const senderRef = db.collection("accounts").doc(State.currentDocId);
-                        const receiverRef = db.collection("accounts").doc(targetDocId);
-
-                        const senderDoc = await transaction.get(senderRef);
-                        if ((senderDoc.data()[type] || 0) < amount) throw "INSUFFICIENT_FUNDS";
-
-                        transaction.update(senderRef, { [type]: firebase.firestore.FieldValue.increment(-amount) });
-                        transaction.update(receiverRef, { [type]: firebase.firestore.FieldValue.increment(amount) });
-
-                        const historyRef = db.collection("transfer_history").doc();
-                        transaction.set(historyRef, {
-                            from: State.currentUser, to: targetUser, type: type, amount: amount, timestamp: Date.now()
-                        });
-                    });
-
-                    Utils.toast(`Đã chuyển thành công ${amount} ${typeName} cho [${targetUser}]!`, "success");
-                    window.UI.closeModal('modal-transfer');
-                    document.getElementById('transfer-target').value = ''; document.getElementById('transfer-amount').value = '';
-
-                } catch (err) {
-                    if (err === "INSUFFICIENT_FUNDS") Utils.toast("Giao dịch thất bại: Số dư máy chủ không đủ.", "error");
-                    else if (err === "USER_NOT_FOUND") Utils.toast(`Không tìm thấy tài khoản [${targetUser}] trên hệ thống.`, "error");
-                    else Utils.toast("Lỗi hệ thống khi chuyển dữ liệu.", "error");
-                } finally {
-                    btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> Xác Nhận Chuyển`;
-                }
-            }
-        };
-
-        window.addEventListener('resize', () => {
-            const topNav = document.querySelector('.top-navbar');
-            if(window.innerWidth > 1023) {
-                const s = document.getElementById('chat-sidebar'); const m = document.querySelector('.chat-main');
-                if(s) s.style.display = 'flex'; if(m) m.style.display = 'flex';
-                if (topNav) topNav.style.display = 'flex';
-            } else {
-                window.Chat.toggleMobile(State.chatTarget === null);
-                const activeView = document.querySelector('.view-section.active');
-                if (activeView && topNav) {
-                    const vid = activeView.id.replace('view-', '');
-                    const hideOnViews = ['chat', 'attendance', 'news', 'tournament', 'wheel', 'tranhthuong', 'pointshop'];
-                    if (hideOnViews.includes(vid)) topNav.style.display = 'none';
-                    else topNav.style.display = 'flex';
-                }
-            }
-        });
-
+        // Kích hoạt đồng bộ khi tải DOM
         document.addEventListener("DOMContentLoaded", () => { 
             window.Theme.init(); window.Music.init(); window.SessionManager.init(); 
         });
