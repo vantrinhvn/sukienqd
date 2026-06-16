@@ -357,7 +357,12 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
     <script>
+        // 1. Đếm Ngược Thời Gian Khai Tiệc
         const eventDate = new Date("July 1, 2026 00:00:00").getTime();
 
         function updateTimer() {
@@ -378,6 +383,56 @@
         
         setInterval(updateTimer, 1000);
         updateTimer();
+
+        // ==========================================
+        // 2. HỆ THỐNG BẢO TRÌ TỰ ĐỘNG CHẶN TRUY CẬP
+        // ==========================================
+        const firebaseConfig = { apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", projectId: "web-dangky-123" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        db.collection("settings").doc("maintenance").onSnapshot(doc => {
+            let blocker = document.getElementById('maintenance-blocker');
+            
+            // Tạo thẻ div che màn hình nếu chưa có
+            if (!blocker) {
+                blocker = document.createElement('div');
+                blocker.id = 'maintenance-blocker';
+                document.body.appendChild(blocker);
+            }
+            
+            if (doc.exists && doc.data().isEnabled === true) {
+                const data = doc.data();
+                
+                // Định dạng lại ngày để hiển thị dạng DD/MM/YYYY cho đẹp
+                const formatVN = (d) => { if(!d) return ''; const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
+
+                blocker.innerHTML = `
+                    <div style="font-size: 90px; color: #f59e0b; margin-bottom: 25px;"><i class="fa-solid fa-person-digging fa-bounce"></i></div>
+                    <h1 style="font-size: 36px; font-weight: 900; color: #f4f4f5; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; font-family: 'Orbitron', sans-serif;">Bảo Trì Hệ Thống</h1>
+                    <p style="color: #a1a1aa; font-size: 16px; margin-bottom: 30px; max-width: 500px; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif;">${data.message}</p>
+                    
+                    <div style="background: rgba(245, 158, 11, 0.1); border: 2px solid rgba(245, 158, 11, 0.3); padding: 20px 30px; border-radius: 16px; display: inline-flex; flex-direction: column; gap: 10px; text-align: left; font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <div style="color: #f59e0b; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; text-align: center; border-bottom: 1px solid rgba(245,158,11,0.3); padding-bottom: 10px; margin-bottom: 5px;">Thời Gian Dự Kiến</div>
+                        <div style="font-size: 16px; font-weight: bold; color: #fff; display: flex; justify-content: space-between; gap: 40px;">
+                            <span style="color: #a1a1aa;"><i class="fa-regular fa-clock mr-2"></i> Bắt đầu:</span> 
+                            <span>${data.startTime} - ${formatVN(data.startDate)}</span>
+                        </div>
+                        <div style="font-size: 16px; font-weight: bold; color: #fff; display: flex; justify-content: space-between; gap: 40px;">
+                            <span style="color: #a1a1aa;"><i class="fa-solid fa-flag-checkered mr-2"></i> Kết thúc:</span> 
+                            <span style="color: #10b981;">${data.endTime} - ${formatVN(data.endDate)}</span>
+                        </div>
+                    </div>
+                `;
+                // CSS ép cứng che toàn bộ màn hình, chống cuộn chuột, ưu tiên đè lên tất cả modal
+                blocker.style.cssText = "position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999999; background: rgba(3, 7, 18, 0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;";
+                document.body.style.overflow = 'hidden'; 
+            } else {
+                // Gỡ bảng thông báo nếu Admin tắt Bảo trì
+                blocker.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        });
     </script>
 </body>
 </html>
