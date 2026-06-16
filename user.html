@@ -129,7 +129,7 @@
         /* ---------------------------------------------------------------------
            5. APP SHELL (FLOATING SIDEBAR + BENTO GRID)
            --------------------------------------------------------------------- */
-        #app-shell { display: none; height: 100vh; overflow: hidden; padding: 20px; gap: 20px; background: var(--bg-body); }
+        #app-shell { display: none; height: 100vh; overflow: hidden; padding: 20px; gap: 20px; background: var(--bg-body); transition: opacity 0.3s ease; }
         
         .floating-sidebar { width: 280px; background: var(--bg-surface); border-radius: var(--radius-xl); border: 1px solid var(--border-strong); display: flex; flex-direction: column; padding: 30px 20px; box-shadow: var(--shadow-sm); z-index: 20; }
         .brand-logo { font-size: 26px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 10px; letter-spacing: -1px; }
@@ -255,7 +255,7 @@
         .rps-status { text-align: center; font-size: 16px; font-weight: 700; color: var(--color-info); padding: 10px; background: var(--color-info-bg); border-radius: var(--radius-md); width: 100%; margin-top: 20px; }
 
         /* ---------------------------------------------------------------------
-           9. CSS CHO VÒNG QUAY VÀ TRANH THƯỞOSG
+           9. CSS CHO VÒNG QUAY VÀ TRANH THƯỞNG
            --------------------------------------------------------------------- */
         .wheel-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; width: 100%; overflow: hidden; }
         .wheel-container { position: relative; width: 350px; max-width: 100%; aspect-ratio: 1 / 1; margin: 0 auto; border-radius: 50%; padding: 8px; background: linear-gradient(135deg, #1e1e26, #09090b); border: 4px solid var(--border-strong); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: all 0.3s ease; }
@@ -912,14 +912,6 @@
         </nav>
     </div>
 
-    <nav class="mobile-nav hidden-desktop">
-        <div class="m-nav-item active" onclick="window.UI.navigate('dashboard', this, true)"><i class="fa-solid fa-house"></i><span>Trang Chủ</span></div>
-        <div class="m-nav-item" onclick="window.UI.navigate('chat', this, true)"><i class="fa-solid fa-comments"></i><span>Trò Chuyện</span></div>
-        <div class="m-nav-item" onclick="window.UI.navigate('attendance', this, true)"><i class="fa-solid fa-fingerprint"></i><span>Điểm Danh</span></div>
-        <div class="m-nav-item" onclick="window.UI.navigate('news', this, true)"><i class="fa-solid fa-newspaper"></i><span>Tin Tức</span></div>
-        <div class="m-nav-item" onclick="window.UI.navigate('tournament', this, true)"><i class="fa-solid fa-trophy"></i><span>Giải Đấu</span></div>
-    </nav>
-
     <audio id="bg-music" loop>
         <source src="nhac.mp3" type="audio/mpeg">
     </audio>
@@ -933,7 +925,8 @@
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
 
         // ==========================================
-        // HỆ THỐNG BẢO TRÌ TỰ ĐỘNG REALTIME (ĐỒNG BỘ MẬT KHẨU MỚI)
+        // HỆ THỐNG BẢO TRÌ TỰ ĐỘNG CHẶN TRUY CẬP 
+        // LÀM MỜ VÀ KHÓA TƯƠNG TÁC BACKGROUND
         // ==========================================
         db.collection("settings").doc("maintenance").onSnapshot(doc => {
             let blocker = document.getElementById('maintenance-blocker');
@@ -946,9 +939,26 @@
             if (doc.exists && doc.data().isEnabled === true) {
                 const data = doc.data();
                 
-                // Tắt nhạc nền hệ thống ngay lập tức
+                // [QUAN TRỌNG] Phá bỏ cờ ẩn (display:none) nếu trước đó Admin đã tắt bảo trì
+                blocker.style.display = 'flex';
+                
+                // Tắt nhạc nền nếu có
                 if (typeof window.Sound !== 'undefined' && window.Sound.rewardAudio) window.Sound.rewardAudio.pause();
                 const bgMusic = document.getElementById('bg-music'); if(bgMusic) bgMusic.pause();
+
+                // [QUAN TRỌNG] Ẩn và khóa tương tác toàn bộ khung làm việc Dashboard và Login 
+                // Người dùng sẽ hoàn toàn không thể ấn ngầm hay dùng thẻ f12 xóa div để lách
+                const appShell = document.getElementById('app-shell');
+                if (appShell) { appShell.style.opacity = '0'; appShell.style.pointerEvents = 'none'; }
+                const authGate = document.getElementById('auth-gate');
+                if (authGate) { authGate.style.opacity = '0'; authGate.style.pointerEvents = 'none'; }
+
+                // Tự động đóng tất cả hộp thoại Modal đang mở dở dang
+                document.querySelectorAll('.modal-overlay').forEach(m => {
+                    if (m.id !== 'custom-admin-prompt') {
+                        m.classList.remove('active'); m.style.display = 'none';
+                    }
+                });
 
                 const formatVN = (d) => { if(!d) return ''; const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
 
@@ -1099,9 +1109,20 @@
             } else {
                 if (blocker) blocker.style.display = 'none';
                 document.body.style.overflow = '';
+                
+                // [QUAN TRỌNG] Khôi phục lại giao diện hiển thị cho người dùng bình thường nếu Admin TẮT BẢO TRÌ
+                const appShell = document.getElementById('app-shell');
+                if (appShell && window.State && window.State.currentUser) { 
+                    appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; 
+                }
+                const authGate = document.getElementById('auth-gate');
+                if (authGate && (!window.State || !window.State.currentUser)) { 
+                    authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; 
+                }
             }
         });
 
+        // 3. LOGIC HỘP THOẠI XUYÊN RÀO CHO ADMIN
         window.openCustomAdmin = function() {
             const modal = document.getElementById('custom-admin-prompt');
             const inp = document.getElementById('admin-pass-inp');
@@ -1121,11 +1142,22 @@
             const pass = document.getElementById('admin-pass-inp').value;
             const errMsg = document.getElementById('admin-error-msg');
             
-            if (pass === "16062004") { // <-- MẬT KHẨU ADMIN NHẬN BIẾN ĐỘNG CHUẨN LÀ 16062004
+            if (pass === "16062004") { 
                 document.getElementById('maintenance-blocker').style.display = 'none';
                 document.body.style.overflow = '';
                 window.closeCustomAdmin();
                 
+                // [QUAN TRỌNG] Khôi phục lại màn hình giao diện bên dưới cho Admin duyệt
+                const appShell = document.getElementById('app-shell');
+                if (appShell && window.State && window.State.currentUser) { 
+                    appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; 
+                }
+                const authGate = document.getElementById('auth-gate');
+                if (authGate && (!window.State || !window.State.currentUser)) { 
+                    authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; 
+                }
+
+                // Hiện thông báo (Toast) thành công xịn xò góc màn hình
                 const t = document.createElement('div');
                 t.style.cssText = "position:fixed; top:24px; right:24px; background:#121217; color:#fff; padding:16px 24px; border-radius:12px; font-weight:bold; box-shadow:0 15px 30px rgba(0,0,0,0.5); z-index:999999999; transform:translateX(150%); transition:0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); font-family:'Plus Jakarta Sans',sans-serif; border: 1px solid #3f3f46; border-left: 4px solid #10b981; display:flex; align-items:center; gap:12px;";
                 t.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#10b981; font-size:24px;"></i> <span style="font-size: 15px;">Xác thực thành công. Đã gỡ bỏ giới hạn bảo trì!</span>';
@@ -1136,6 +1168,7 @@
                     setTimeout(()=>t.remove(), 500);
                 }, 3000);
             } else {
+                // Nhập sai mật khẩu -> Hiện lỗi và tạo hiệu ứng rung lắc khung input
                 errMsg.style.display = 'block';
                 const inp = document.getElementById('admin-pass-inp');
                 inp.style.transform = 'translateX(-10px)';
@@ -1305,397 +1338,6 @@
                 }
 
                 if(vid === 'chat' && window.innerWidth <= 1023 && !State.chatTarget) window.Chat.toggleMobile(true);
-            }
-        };
-
-        /** 5. AUTHENTICATION ENGINE */
-        window.Auth = {
-            login: async () => {
-                const u = document.getElementById('login-usr').value.trim(); const p = document.getElementById('login-pwd').value.trim(); const b = document.getElementById('btn-login');
-                if(!u || !p) return Utils.toast("Bạn cần điền đầy đủ thông tin để hệ thống xác thực.", "warning");
-                b.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> đang kết nối`; b.disabled = true;
-
-                try {
-                    const snap = await db.collection("accounts").where("user", "==", u).where("pass", "==", p).get();
-                    if(snap.empty) { Utils.toast("Dữ liệu thông tin đăng nhập không chính xác.", "error"); b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; }
-                    else {
-                        const docData = snap.docs[0].data();
-                        if(docData.isBlocked) { Utils.toast("Truy cập bị từ chối: Tài khoản này đã bị khóa.", "error"); b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; return; }
-                        
-                        State.currentUser = docData.user; State.currentDocId = snap.docs[0].id;
-                        localStorage.setItem('qd_current_username', State.currentUser); 
-                        
-                        let invCode = docData.inviteCode;
-                        let updateAccData = {};
-
-                        if(!invCode) {
-                            invCode = State.currentDocId.substring(0, 6).toUpperCase();
-                            updateAccData.inviteCode = invCode;
-                        }
-
-                        // XỬ LÝ NHIỆM VỤ ĐĂNG NHẬP (LẦN ĐẦU / NGÀY)
-                        const todayStr = Utils.getTodayString();
-                        if(docData.lastLoginRewardDate !== todayStr) {
-                            try {
-                                const taskDoc = await db.collection("settings").doc("task_config").get();
-                                let loginPoints = 10; // Mặc định
-                                if (taskDoc.exists && taskDoc.data().loginReward !== undefined) {
-                                    loginPoints = parseInt(taskDoc.data().loginReward);
-                                }
-                                if(loginPoints > 0) {
-                                    updateAccData.points = firebase.firestore.FieldValue.increment(loginPoints);
-                                    updateAccData.lastLoginRewardDate = todayStr;
-                                    
-                                    // Ghi lịch sử để hiện trong Lịch Sử Giao Dịch
-                                    db.collection("point_history").add({
-                                        user: State.currentUser,
-                                        action: "add",
-                                        detail: `Nhiệm vụ: Đăng nhập lần đầu trong ngày`,
-                                        pointsChanged: loginPoints,
-                                        timestamp: Date.now()
-                                    });
-                                    
-                                    setTimeout(() => Utils.toast(`🎁 Đăng nhập ngày mới: +${loginPoints} Điểm sự kiện!`, "success"), 2500);
-                                }
-                            } catch(e) { console.error("Lỗi lấy cấu hình nhiệm vụ", e); }
-                        }
-
-                        if(Object.keys(updateAccData).length > 0) {
-                            db.collection("accounts").doc(State.currentDocId).update(updateAccData);
-                        }
-
-                        Utils.safeText('my-invite-code', invCode);
-                        
-                        if(docData.hasUsedInvite) {
-                            document.getElementById('invite-input-area').style.display = 'none';
-                            document.getElementById('invite-success-area').style.display = 'block';
-                            document.getElementById('invite-success-area').classList.remove('hidden');
-                        } else {
-                            document.getElementById('invite-input-area').style.display = 'block';
-                            document.getElementById('invite-success-area').style.display = 'none';
-                            document.getElementById('invite-success-area').classList.add('hidden');
-                        }
-                        State.hasUsedInvite = docData.hasUsedInvite || false;
-                        State.inviteCode = invCode;
-
-                        Utils.safeText('sidebar-name', State.currentUser); Utils.safeText('dash-name', State.currentUser); Utils.safeText('profile-name-large', State.currentUser);
-                        const initial = State.currentUser.charAt(0).toUpperCase();
-                        Utils.safeText('sidebar-avt', initial); Utils.safeText('profile-avatar-large', initial);
-                        Utils.safeText('profile-uid', State.currentDocId.substring(0,10).toUpperCase());
-                        
-                        document.getElementById('auth-gate').style.opacity = '0';
-                        setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
-                    }
-                } catch(e) { 
-                    console.error("Login Error:", e);
-                    Utils.toast(`Lỗi Máy Chủ: Request Timeout.`, "error"); 
-                    b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; 
-                }
-            },
-            logout: () => { 
-                if(State.heartbeatInterval) clearInterval(State.heartbeatInterval); 
-                if(State.currentDocId) { 
-                    db.collection("accounts").doc(State.currentDocId).update({lastActive: Date.now()}).finally(()=>window.location.reload()); 
-                } else {
-                    window.location.reload(); 
-                }
-            },
-            ping: () => { const p = () => { if(State.currentDocId) db.collection("accounts").doc(State.currentDocId).update({lastActive: Date.now()}); }; p(); State.heartbeatInterval = setInterval(p, 60000); }
-        };
-
-        /** 5.5 SESSION MANAGEMENT (TỰ ĐỘNG ĐĂNG XUẤT) */
-        window.SessionManager = {
-            timeoutLimit: 3600000, 
-            timer: null,
-            init: () => {
-                ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
-                    document.addEventListener(evt, window.SessionManager.resetTimer, true);
-                });
-            },
-            resetTimer: () => {
-                if (window.State && window.State.currentDocId) {
-                    clearTimeout(window.SessionManager.timer);
-                    window.SessionManager.timer = setTimeout(() => {
-                        window.Utils.toast("Phiên đăng nhập đã hết hạn do không hoạt động. Vui lòng đăng nhập lại!", "warning");
-                        setTimeout(() => { window.Auth.logout(); }, 2000);
-                    }, window.SessionManager.timeoutLimit);
-                }
-            }
-        };
-
-        /** 6. PRIVATE CHAT MODULE WITH HEART, UNREAD BADGES & GENERAL CHANNEL */
-        window.Chat = {
-            init: () => {
-                db.collection("accounts").onSnapshot(snap => {
-                    const ls = document.getElementById('contact-list-ui'); if(!ls) return; 
-                    State.usersCache = {}; 
-                    
-                    if (!document.getElementById('contact-general')) {
-                        const isGeneralAct = State.chatTarget === 'general' ? 'active' : '';
-                        ls.insertAdjacentHTML('afterbegin', `
-                            <div id="contact-general" class="contact-card ${isGeneralAct}" data-key="kênh chung" onclick="window.Chat.selectTarget('general')">
-                                <div class="avatar-circle" style="background: var(--color-info); font-size: 18px;"><i class="fa-solid fa-users"></i></div>
-                                <div class="flex-col flex-1 overflow-hidden">
-                                    <div class="font-bold text-main text-lg flex items-center justify-between">Kênh Chung</div>
-                                    <div class="text-sm font-semibold text-muted">Trò chuyện toàn Server</div>
-                                </div>
-                            </div>
-                        `);
-                    }
-
-                    const skeleton = ls.querySelector('.skeleton');
-                    if (skeleton) skeleton.closest('.contact-card').remove();
-
-                    snap.docs.forEach(doc => {
-                        const d = doc.data(); 
-                        if(d.user !== State.currentUser) {
-                            State.usersCache[d.user] = d.lastActive; const isOn = (Date.now() - (d.lastActive||0)) < 300000;
-                            const dN = State.nicknames[d.user] || d.user; const isAct = State.chatTarget === d.user ? 'active' : '';
-                            
-                            const roomId = Utils.getRoomId(State.currentUser, d.user);
-                            
-                            db.collection("private_chat").where("conversationId", "==", roomId).where("to", "==", State.currentUser).where("read", "==", false).get().then(unreadSnap => {
-                                const unreadCount = unreadSnap.size;
-                                const unreadHtml = unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : '';
-
-                                let card = document.getElementById(`contact-${d.user}`);
-                                if (!card) {
-                                    card = document.createElement('div');
-                                    card.id = `contact-${d.user}`;
-                                    card.onclick = () => window.Chat.selectTarget(d.user);
-                                    ls.appendChild(card);
-                                }
-                                
-                                card.className = `contact-card ${isAct}`;
-                                card.setAttribute('data-key', dN.toLowerCase());
-                                card.innerHTML = `<div class="avatar-circle" style="position:relative;">${dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg flex items-center justify-between" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${dN} ${unreadHtml}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}">${Utils.timeAgo(d.lastActive)}</div></div>`;
-                            });
-                        }
-                    });
-                    if(State.chatTarget) window.Chat.updateHeader();
-                });
-                setInterval(() => { if(State.chatTarget) window.Chat.updateHeader(); }, 30000);
-            },
-            
-            filterContacts: () => { const v = document.getElementById('inp-search-contact').value.toLowerCase(); document.querySelectorAll('.contact-card').forEach(c => { c.style.display = c.getAttribute('data-key').includes(v) ? 'flex' : 'none'; }); },
-            
-            selectTarget: (u) => {
-                State.chatTarget = u; document.querySelectorAll('.contact-card').forEach(el => el.classList.remove('active'));
-                
-                const cardId = u === 'general' ? 'contact-general' : `contact-${u}`;
-                document.getElementById(cardId)?.classList.add('active');
-                
-                const emp = document.getElementById('chat-empty-ui'); const act = document.getElementById('chat-active-ui');
-                if(emp && act) { emp.style.display = 'none'; act.style.display = 'flex'; }
-                if(window.innerWidth <= 1023) window.Chat.toggleMobile(false); 
-                window.Chat.updateHeader(); window.Chat.load();
-            },
-            
-            updateHeader: () => {
-                if(!State.chatTarget) return; 
-                
-                if(State.chatTarget === 'general') {
-                    Utils.safeText('active-name', 'Kênh Chung (Toàn Server)'); 
-                    const avt = document.getElementById('active-avt');
-                    if(avt) { avt.innerHTML = '<i class="fa-solid fa-users"></i>'; avt.style.background = 'var(--color-info)'; }
-                    const st = document.getElementById('active-status'); if(st) { st.innerText = 'Tất cả thành viên đều có mặt'; st.className = "text-xs text-info font-bold"; }
-                    return;
-                }
-                
-                const dN = State.nicknames[State.chatTarget] || State.chatTarget; const lP = State.usersCache[State.chatTarget]; const isOn = (Date.now()-(lP||0))<300000;
-                Utils.safeText('active-name', dN); 
-                const avt = document.getElementById('active-avt');
-                if(avt) { avt.innerHTML = dN.charAt(0).toUpperCase(); avt.style.background = ''; }
-                const st = document.getElementById('active-status'); if(st) { st.innerText = Utils.timeAgo(lP); st.className = isOn ? "text-xs text-success font-bold" : "text-xs text-muted font-bold"; }
-            },
-            
-            openNicknameEditor: () => { 
-                if(State.chatTarget === 'general') return Utils.toast("Không thể đổi biệt danh cho Kênh Chung.", "info");
-                const inp = document.getElementById('inp-nickname'); if(inp) inp.value = State.nicknames[State.chatTarget] || ''; window.UI.openModal('modal-nickname'); 
-            },
-            
-            saveNickname: () => { const v = document.getElementById('inp-nickname').value.trim(); if(v) State.nicknames[State.chatTarget] = v; else delete State.nicknames[State.chatTarget]; localStorage.setItem('qd_elite_nicks', JSON.stringify(State.nicknames)); window.UI.closeModal('modal-nickname'); window.Chat.updateHeader(); window.Chat.init(); Utils.toast("Cập nhật biệt danh hiển thị thành công.", "success"); },
-            
-            toggleMobile: (showSidebar) => { 
-                const s = document.getElementById('chat-sidebar'); const m = document.querySelector('.chat-main'); 
-                if(!s || !m) return; 
-                if(window.innerWidth > 1023) { s.style.display = 'flex'; m.style.display = 'flex'; return; } 
-                if(showSidebar) { 
-                    s.style.display = 'flex'; m.style.display = 'none'; 
-                    document.querySelectorAll('.contact-card').forEach(el => el.classList.remove('active'));
-                    document.getElementById('chat-active-ui').style.display = 'none';
-                    document.getElementById('chat-empty-ui').style.display = 'flex';
-                    State.chatTarget = null;
-                } else { s.style.display = 'none'; m.style.display = 'flex'; } 
-            },
-
-            toggleHeart: (msgId, currentStatus) => {
-                db.collection("private_chat").doc(msgId).update({ heart: !currentStatus }).catch(e => console.log("Lỗi thả tim:", e));
-            },
-
-            load: () => {
-                if(State.chatListener) State.chatListener(); const box = document.getElementById('chat-history-ui'); if(!box) return;
-                box.innerHTML = `<div class="text-center text-primary mt-10 text-3xl"><i class="fa-solid fa-spinner fa-spin"></i></div>`;
-                
-                const roomId = State.chatTarget === 'general' ? 'general_room' : Utils.getRoomId(State.currentUser, State.chatTarget);
-                
-                State.chatListener = db.collection("private_chat").where("conversationId", "==", roomId).onSnapshot(snap => {
-                    box.innerHTML = ""; if(snap.empty) { box.innerHTML = `<div class="text-center text-success mt-10"><i class="fa-solid fa-shield-heart text-5xl mb-4 opacity-50 block"></i>Kênh kết nối hoàn tất. Hãy gửi tin nhắn đầu tiên!</div>`; return; }
-                    let ms = []; snap.forEach(d => { const mData = d.data(); mData.id = d.id; ms.push(mData); }); ms.sort((a,b) => a.time - b.time);
-                    
-                    const unreadUpdates = [];
-
-                    ms.forEach(m => { 
-                        const isM = m.from === State.currentUser; 
-                        const tm = new Date(m.time).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); 
-                        let statusHtml = '';
-
-                        if (State.chatTarget === 'general') {
-                            const readList = m.readBy || [];
-                            
-                            if (!isM && !readList.includes(State.currentUser)) {
-                                unreadUpdates.push({ id: m.id, type: 'general' });
-                            }
-                            
-                            if (isM) {
-                                const readNames = readList.filter(u => u !== State.currentUser).map(u => State.nicknames[u] || u);
-                                if (readNames.length > 0) {
-                                    const readStr = readNames.join(', ');
-                                    if (readNames.length > 2) {
-                                        statusHtml = `<span class="ml-2 text-success" title="${readStr}"><i class="fa-solid fa-check-double"></i> Đã xem (${readNames.length})</span>`;
-                                    } else {
-                                        statusHtml = `<span class="ml-2 text-success" title="${readStr}"><i class="fa-solid fa-check-double"></i> Đã xem: ${readStr}</span>`;
-                                    }
-                                } else {
-                                    statusHtml = `<span class="ml-2" style="opacity: 0.6;"><i class="fa-solid fa-check"></i> Đã gửi</span>`;
-                                }
-                            }
-                        } 
-                        else {
-                            if (!isM && !m.read) {
-                                unreadUpdates.push({ id: m.id, type: 'private' });
-                            }
-                            
-                            if (isM) {
-                                if (m.read) {
-                                    statusHtml = `<span class="ml-2 text-success"><i class="fa-solid fa-check-double"></i> Đã đọc</span>`;
-                                } else {
-                                    statusHtml = `<span class="ml-2" style="opacity: 0.6;"><i class="fa-solid fa-check"></i> Đã gửi</span>`;
-                                }
-                            }
-                        }
-
-                        const hasHeart = m.heart || false;
-                        const heartHtml = hasHeart ? `<div class="heart-reaction active" onclick="window.Chat.toggleHeart('${m.id}', true)">❤️</div>` : '';
-                        const heartBtn = `<i class="fa-regular fa-heart btn-heart-action" onclick="window.Chat.toggleHeart('${m.id}', ${hasHeart})"></i>`;
-
-                        const imgHtml = m.imageUrl ? `<img src="${m.imageUrl}" style="max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer;" onclick="window.open('${m.imageUrl}', '_blank')">` : '';
-                        const textHtml = m.text ? `<div>${m.text}</div>` : '';
-                        
-                        let senderNameHtml = '';
-                        if (State.chatTarget === 'general' && !isM) {
-                             senderNameHtml = `<div class="text-xs font-bold mb-1" style="color: var(--color-info); text-transform: capitalize;">${m.from}</div>`;
-                        }
-                        
-                        box.innerHTML += `<div class="msg-row ${isM?'me':'them'}"><div class="flex items-center gap-2">${!isM ? heartBtn : ''}<div class="msg-bubble-container"><div class="msg-bubble">${senderNameHtml}${textHtml}${imgHtml}</div>${heartHtml}</div>${isM ? heartBtn : ''}</div><div class="text-xs text-muted mt-2 font-bold ${isM?'text-right':'text-left'}">${tm}${statusHtml}</div></div>`; 
-                    });
-
-                    unreadUpdates.forEach(u => {
-                        if (u.type === 'general') {
-                            db.collection("private_chat").doc(u.id).update({
-                                readBy: firebase.firestore.FieldValue.arrayUnion(State.currentUser)
-                            }).catch(e => console.error("Lỗi cập nhật đã xem:", e));
-                        } else {
-                            db.collection("private_chat").doc(u.id).update({
-                                read: true
-                            }).catch(e => console.error("Lỗi cập nhật đã đọc:", e));
-                        }
-                    });
-
-                    setTimeout(() => box.scrollTop = box.scrollHeight, 100);
-                });
-            },
-            
-            sendMsg: () => { 
-                const i = document.getElementById('inp-chat-msg'); if(!i) return; 
-                const t = i.value.trim(); if(!t || !State.chatTarget) return; 
-                i.value = ""; i.focus(); 
-                
-                const roomId = State.chatTarget === 'general' ? 'general_room' : Utils.getRoomId(State.currentUser, State.chatTarget);
-                const targetUser = State.chatTarget === 'general' ? 'all' : State.chatTarget;
-                
-                db.collection("private_chat").add({ conversationId: roomId, from: State.currentUser, to: targetUser, text: t, imageUrl: null, time: Date.now(), read: false, heart: false, readBy: [] }); 
-            },
-
-            sendImage: (inputElement) => {
-                if(!inputElement.files || !inputElement.files[0] || !State.chatTarget) return;
-                const file = inputElement.files[0]; const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let w = img.width; let h = img.height; const maxW = 800; const maxH = 800;
-                        if(w > maxW || h > maxH) { if(w > h) { h = (maxW / w) * h; w = maxW; } else { w = (maxH / h) * w; h = maxH; } }
-                        canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
-                        
-                        const base64Data = canvas.toDataURL('image/jpeg', 0.6);
-                        const roomId = State.chatTarget === 'general' ? 'general_room' : Utils.getRoomId(State.currentUser, State.chatTarget);
-                        const targetUser = State.chatTarget === 'general' ? 'all' : State.chatTarget;
-                        
-                        db.collection("private_chat").add({ conversationId: roomId, from: State.currentUser, to: targetUser, text: "", imageUrl: base64Data, time: Date.now(), read: false, heart: false, readBy: [] });
-                        inputElement.value = ""; 
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-
-        /** 7. MODULE VÒNG QUAY (TÍCH HỢP TRỰC TIẾP) */
-        window.Wheel = {
-            canvas: null, ctx: null,
-            currentRotation: 0, isSpinning: false, lastTickIndex: -1,
-            init: function() {
-                this.canvas = document.getElementById("wheelCanvas");
-                if(!this.canvas) return;
-                this.ctx = this.canvas.getContext("2d");
-                this.drawGraphics();
-            },
-            get24HFromSelectors: (prefix) => {
-                let h = document.getElementById(`${prefix}-h`).value; let m = document.getElementById(`${prefix}-m`).value; return `${h}:${m}`;
-            }
-        };
-
-        const Theme = {
-            init: () => {
-                const savedMode = localStorage.getItem('qd_adm_theme') || 'dark'; document.documentElement.setAttribute('data-theme', savedMode);
-                const themeText = document.getElementById('theme-text'); const themeIcon = document.getElementById('theme-icon');
-                if(themeText && themeIcon) { themeText.innerText = savedMode === 'dark' ? 'Giao diện Tối' : 'Giao diện Sáng'; themeIcon.className = savedMode === 'dark' ? 'fa-solid fa-moon text-lg' : 'fa-solid fa-sun text-lg'; }
-            },
-            toggle: () => {
-                const root = document.documentElement; const nextMode = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                root.setAttribute('data-theme', nextMode); localStorage.setItem('qd_adm_theme', nextMode);
-                const themeText = document.getElementById('theme-text'); const themeIcon = document.getElementById('theme-icon');
-                if(themeText && themeIcon) { themeText.innerText = nextMode === 'dark' ? 'Giao diện Tối' : 'Giao diện Sáng'; themeIcon.className = nextMode === 'dark' ? 'fa-solid fa-moon text-lg' : 'fa-solid fa-sun text-lg'; }
-                Utils.toast(`Đã áp dụng giao diện ${nextMode === 'dark' ? 'Tối' : 'Sáng'}`, 'success');
-            }
-        };
-
-        const UI = {
-            openModal: (modalId) => { const modal = document.getElementById(modalId); if(modal) { modal.style.display = 'flex'; void modal.offsetWidth; modal.classList.add('active'); } },
-            closeModal: (modalId) => { const modal = document.getElementById(modalId); if(modal) { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); } },
-            navigate: (viewId, element = null, isMobile = false) => {
-                document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-                const targetView = document.getElementById(`view-${viewId}`); if(targetView) targetView.classList.add('active');
-                if (element) {
-                    const selectorClass = isMobile ? '.m-nav-item' : '.nav-item';
-                    document.querySelectorAll(selectorClass).forEach(n => n.classList.remove('active')); element.classList.add('active');
-                    if(isMobile) { const dEq = document.querySelector(`.nav-item[onclick*="${viewId}"]`); if(dEq) { document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); dEq.classList.add('active'); } } 
-                    else { const mEq = document.querySelector(`.m-nav-item[onclick*="${viewId}"]`); if(mEq) { document.querySelectorAll('.m-nav-item').forEach(n => n.classList.remove('active')); mEq.classList.add('active'); } }
-                } else {
-                    document.querySelectorAll('.nav-item, .m-nav-item').forEach(n => n.classList.remove('active'));
-                    document.querySelector(`.nav-item[onclick*="${viewId}"]`)?.classList.add('active'); document.querySelector(`.m-nav-item[onclick*="${viewId}"]`)?.classList.add('active');
-                }
             }
         };
 
@@ -2790,7 +2432,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-main" style="font-size: 15px; line-height: 1.7; white-space: pre-wrap; padding-left: 4px;">${d.content}</div>
+                                <div class="text-main" style="font-size: 15px; line-height: 1.8; white-space: pre-wrap; padding-left: 4px;">${d.content}</div>
                             </div>`;
                             
                         if(isF && p) { 
@@ -3167,6 +2809,7 @@
             }
         };
 
+        // Kích hoạt đồng bộ khi tải DOM
         document.addEventListener("DOMContentLoaded", () => { 
             window.Theme.init(); window.Music.init(); window.SessionManager.init(); 
         });
