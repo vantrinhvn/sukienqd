@@ -925,8 +925,7 @@
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
 
         // ==========================================
-        // HỆ THỐNG BẢO TRÌ TỰ ĐỘNG CHẶN TRUY CẬP 
-        // LÀM MỜ VÀ KHÓA TƯƠNG TÁC BACKGROUND
+        // HỆ THỐNG BẢO TRÌ TỰ ĐỘNG REALTIME (ĐÃ FIX LƯU PHIÊN ADMIN)
         // ==========================================
         db.collection("settings").doc("maintenance").onSnapshot(doc => {
             let blocker = document.getElementById('maintenance-blocker');
@@ -937,23 +936,39 @@
             }
             
             if (doc.exists && doc.data().isEnabled === true) {
+                // KIỂM TRA "THẺ BÀI" CỦA ADMIN
+                // Nếu Admin đã nhập mật khẩu trước đó trong phiên này -> Bỏ qua bảo trì
+                if (sessionStorage.getItem('admin_bypass_mt') === 'true') {
+                    if (blocker) blocker.style.display = 'none';
+                    document.body.style.overflow = '';
+                    
+                    // Khôi phục giao diện (Dành cho trang user.html)
+                    const appShell = document.getElementById('app-shell');
+                    if (appShell && window.State && window.State.currentUser) { 
+                        appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; 
+                    }
+                    const authGate = document.getElementById('auth-gate');
+                    if (authGate && (!window.State || !window.State.currentUser)) { 
+                        authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; 
+                    }
+                    return; // Dừng tại đây, không hiện màn hình bảo trì nữa
+                }
+
                 const data = doc.data();
                 
-                // [QUAN TRỌNG] Phá bỏ cờ ẩn (display:none) nếu trước đó Admin đã tắt bảo trì
-                blocker.style.display = 'flex';
+                blocker.style.display = 'flex'; // Ép hiện nếu trước đó bị ẩn
                 
                 // Tắt nhạc nền nếu có
                 if (typeof window.Sound !== 'undefined' && window.Sound.rewardAudio) window.Sound.rewardAudio.pause();
                 const bgMusic = document.getElementById('bg-music'); if(bgMusic) bgMusic.pause();
 
-                // [QUAN TRỌNG] Ẩn và khóa tương tác toàn bộ khung làm việc Dashboard và Login 
-                // Người dùng sẽ hoàn toàn không thể ấn ngầm hay dùng thẻ f12 xóa div để lách
+                // Ẩn và khóa tương tác toàn bộ khung làm việc (Dành cho trang user.html)
                 const appShell = document.getElementById('app-shell');
                 if (appShell) { appShell.style.opacity = '0'; appShell.style.pointerEvents = 'none'; }
                 const authGate = document.getElementById('auth-gate');
                 if (authGate) { authGate.style.opacity = '0'; authGate.style.pointerEvents = 'none'; }
 
-                // Tự động đóng tất cả hộp thoại Modal đang mở dở dang
+                // Tự động đóng tất cả Modal đang mở dở dang
                 document.querySelectorAll('.modal-overlay').forEach(m => {
                     if (m.id !== 'custom-admin-prompt') {
                         m.classList.remove('active'); m.style.display = 'none';
@@ -1107,10 +1122,11 @@
                 `;
                 document.body.style.overflow = 'hidden'; 
             } else {
+                // KHI ADMIN TẮT BẢO TRÌ (Hoặc khi chưa bật)
                 if (blocker) blocker.style.display = 'none';
                 document.body.style.overflow = '';
                 
-                // [QUAN TRỌNG] Khôi phục lại giao diện hiển thị cho người dùng bình thường nếu Admin TẮT BẢO TRÌ
+                // Khôi phục lại giao diện hiển thị cho người dùng
                 const appShell = document.getElementById('app-shell');
                 if (appShell && window.State && window.State.currentUser) { 
                     appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; 
@@ -1143,11 +1159,14 @@
             const errMsg = document.getElementById('admin-error-msg');
             
             if (pass === "16062004") { 
+                // LƯU CỜ VÀO SESSION STORAGE (ĐỂ QUA TRANG KHÁC KHÔNG BỊ HỎI LẠI)
+                sessionStorage.setItem('admin_bypass_mt', 'true');
+                
                 document.getElementById('maintenance-blocker').style.display = 'none';
                 document.body.style.overflow = '';
                 window.closeCustomAdmin();
                 
-                // [QUAN TRỌNG] Khôi phục lại màn hình giao diện bên dưới cho Admin duyệt
+                // Khôi phục màn hình
                 const appShell = document.getElementById('app-shell');
                 if (appShell && window.State && window.State.currentUser) { 
                     appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; 
@@ -1157,7 +1176,7 @@
                     authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; 
                 }
 
-                // Hiện thông báo (Toast) thành công xịn xò góc màn hình
+                // Hiện thông báo thành công
                 const t = document.createElement('div');
                 t.style.cssText = "position:fixed; top:24px; right:24px; background:#121217; color:#fff; padding:16px 24px; border-radius:12px; font-weight:bold; box-shadow:0 15px 30px rgba(0,0,0,0.5); z-index:999999999; transform:translateX(150%); transition:0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); font-family:'Plus Jakarta Sans',sans-serif; border: 1px solid #3f3f46; border-left: 4px solid #10b981; display:flex; align-items:center; gap:12px;";
                 t.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#10b981; font-size:24px;"></i> <span style="font-size: 15px;">Xác thực thành công. Đã gỡ bỏ giới hạn bảo trì!</span>';
@@ -1168,7 +1187,6 @@
                     setTimeout(()=>t.remove(), 500);
                 }, 3000);
             } else {
-                // Nhập sai mật khẩu -> Hiện lỗi và tạo hiệu ứng rung lắc khung input
                 errMsg.style.display = 'block';
                 const inp = document.getElementById('admin-pass-inp');
                 inp.style.transform = 'translateX(-10px)';
@@ -2093,6 +2111,14 @@
                     
                     if (!this.timerInt) {
                         if (!this.myCurrentChoice) {
+                            let tLimit = 10;
+                            if(window.AppCore.rpsConfig && window.AppCore.rpsConfig.timeLimit) {
+                                tLimit = parseInt(window.AppCore.rpsConfig.timeLimit);
+                            }
+                            const alertDesc = document.querySelector('#modal-rps-alert .text-muted.text-sm.mb-6');
+                            if(alertDesc) {
+                                alertDesc.innerHTML = `Đối thủ đã khóa chiêu. Bạn có <b class="text-danger text-lg">${tLimit} giây</b> để quyết định. Nếu không chọn, hệ thống sẽ tự động xử thua.`;
+                            }
                             window.UI.openModal('modal-rps-alert');
                         }
 
@@ -2129,7 +2155,11 @@
                     let updateData = this.isPlayer1 ? { p1Choice: choice } : { p2Choice: choice };
                     
                     if (!doc.data().deadline) {
-                        updateData.deadline = Date.now() + 10500;
+                        let tLimit = 10;
+                        if(window.AppCore.rpsConfig && window.AppCore.rpsConfig.timeLimit) {
+                            tLimit = parseInt(window.AppCore.rpsConfig.timeLimit);
+                        }
+                        updateData.deadline = Date.now() + (tLimit * 1000) + 500;
                     }
                     await db.collection("rps_rooms").doc(this.roomId).update(updateData);
                 } catch(e) {}
@@ -2284,7 +2314,7 @@
                             btn.className = "btn btn-warning";
                         }
                     } else {
-                        window.AppCore.rpsConfig = { isEnabled: true, start: "00:00", end: "23:59", fee: 5, winReward: 10, loseReward: -5 };
+                        window.AppCore.rpsConfig = { isEnabled: true, start: "00:00", end: "23:59", fee: 5, winReward: 10, loseReward: -5, timeLimit: 10 };
                     }
                 });
 
