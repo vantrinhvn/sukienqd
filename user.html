@@ -285,6 +285,29 @@
 
     <div id="toast-container"></div>
 
+    <div class="modal-overlay" id="modal-account-locked" style="z-index: 99999;">
+        <div class="modal-box text-center">
+            <button class="modal-close-btn" onclick="window.UI.closeModal('modal-account-locked')"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex-center mx-auto mb-4 bg-danger-bg text-danger" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px;">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 class="text-2xl mb-2 text-danger font-bold">Tài Khoản Đang Bị Khóa</h2>
+            <p class="text-muted mb-6 text-sm" id="locked-msg-desc">Tài khoản của bạn đã bị hệ thống tạm khóa do không hoạt động hoặc vi phạm chính sách.</p>
+            
+            <div id="unlock-action-area">
+                <button class="btn btn-warning w-full" style="padding: 16px; font-size: 16px;" onclick="window.Auth.requestUnlock()">
+                    <i class="fa-solid fa-unlock-keyhole mr-2"></i> YÊU CẦU MỞ KHÓA
+                </button>
+            </div>
+
+            <div id="unlock-countdown-area" style="display: none; background: var(--bg-elevated); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-strong);">
+                <p class="text-muted text-sm mb-2">Hệ thống sẽ tự động mở sau:</p>
+                <div class="text-3xl font-bold font-mono text-warning" id="unlock-timer">00:00:00</div>
+                <p class="text-xs text-info mt-3"><i class="fa-solid fa-spinner fa-spin"></i> Vui lòng giữ màn hình này...</p>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="modal-logout">
         <div class="modal-box text-center">
             <button class="modal-close-btn" onclick="window.UI.closeModal('modal-logout')"><i class="fa-solid fa-xmark"></i></button>
@@ -925,7 +948,7 @@
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
 
         // ==========================================
-        // HỆ THỐNG BẢO TRÌ TỰ ĐỘNG REALTIME (ĐÃ FIX LƯU PHIÊN ADMIN)
+        // HỆ THỐNG BẢO TRÌ TỰ ĐỘNG REALTIME
         // ==========================================
         db.collection("settings").doc("maintenance").onSnapshot(doc => {
             let blocker = document.getElementById('maintenance-blocker');
@@ -936,145 +959,67 @@
             }
             
             if (doc.exists && doc.data().isEnabled === true) {
-                // KIỂM TRA "THẺ BÀI" CỦA ADMIN
-                // Nếu Admin đã nhập mật khẩu trước đó trong phiên này -> Bỏ qua bảo trì
                 if (sessionStorage.getItem('admin_bypass_mt') === 'true') {
                     if (blocker) blocker.style.display = 'none';
                     document.body.style.overflow = '';
-                    
-                    // Khôi phục giao diện (Dành cho trang user.html)
                     const appShell = document.getElementById('app-shell');
-                    if (appShell && window.State && window.State.currentUser) { 
-                        appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; 
-                    }
+                    if (appShell && window.State && window.State.currentUser) { appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; }
                     const authGate = document.getElementById('auth-gate');
-                    if (authGate && (!window.State || !window.State.currentUser)) { 
-                        authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; 
-                    }
-                    return; // Dừng tại đây, không hiện màn hình bảo trì nữa
+                    if (authGate && (!window.State || !window.State.currentUser)) { authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; }
+                    return; 
                 }
 
                 const data = doc.data();
+                blocker.style.display = 'flex'; 
                 
-                blocker.style.display = 'flex'; // Ép hiện nếu trước đó bị ẩn
-                
-                // Tắt nhạc nền nếu có
                 if (typeof window.Sound !== 'undefined' && window.Sound.rewardAudio) window.Sound.rewardAudio.pause();
                 const bgMusic = document.getElementById('bg-music'); if(bgMusic) bgMusic.pause();
 
-                // Ẩn và khóa tương tác toàn bộ khung làm việc (Dành cho trang user.html)
                 const appShell = document.getElementById('app-shell');
                 if (appShell) { appShell.style.opacity = '0'; appShell.style.pointerEvents = 'none'; }
                 const authGate = document.getElementById('auth-gate');
                 if (authGate) { authGate.style.opacity = '0'; authGate.style.pointerEvents = 'none'; }
 
-                // Tự động đóng tất cả Modal đang mở dở dang
                 document.querySelectorAll('.modal-overlay').forEach(m => {
-                    if (m.id !== 'custom-admin-prompt') {
-                        m.classList.remove('active'); m.style.display = 'none';
-                    }
+                    if (m.id !== 'custom-admin-prompt') { m.classList.remove('active'); m.style.display = 'none'; }
                 });
 
                 const formatVN = (d) => { if(!d) return ''; const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
 
                 blocker.innerHTML = `
                     <style>
-                        #maintenance-blocker {
-                            position: fixed; inset: 0; z-index: 99999999;
-                            background: radial-gradient(circle at center, #121217 0%, #000000 100%);
-                            display: flex; flex-direction: column; align-items: center; justify-content: center;
-                            font-family: 'Plus Jakarta Sans', sans-serif;
-                            color: white; overflow: hidden;
-                        }
-                        .mt-bg-grid {
-                            position: absolute; inset: 0;
-                            background-image: linear-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(245, 158, 11, 0.05) 1px, transparent 1px);
-                            background-size: 40px 40px; z-index: 1;
-                            animation: bgPan 20s linear infinite;
-                        }
+                        #maintenance-blocker { position: fixed; inset: 0; z-index: 99999999; background: radial-gradient(circle at center, #121217 0%, #000000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; color: white; overflow: hidden; }
+                        .mt-bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(245, 158, 11, 0.05) 1px, transparent 1px); background-size: 40px 40px; z-index: 1; animation: bgPan 20s linear infinite; }
                         @keyframes bgPan { 0% { transform: translateY(0); } 100% { transform: translateY(40px); } }
-                        
-                        .mt-glow {
-                            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                            width: 60vw; height: 60vw; max-width: 600px; max-height: 600px;
-                            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
-                            z-index: 1; filter: blur(40px); animation: pulseGlow 4s ease-in-out infinite alternate;
-                        }
+                        .mt-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60vw; height: 60vw; max-width: 600px; max-height: 600px; background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%); z-index: 1; filter: blur(40px); animation: pulseGlow 4s ease-in-out infinite alternate; }
                         @keyframes pulseGlow { 0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } }
-                        
-                        .mt-card {
-                            position: relative; z-index: 10;
-                            background: rgba(18, 18, 23, 0.8);
-                            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-                            border: 1px solid rgba(245, 158, 11, 0.3);
-                            border-radius: 24px; padding: 50px 40px; text-align: center;
-                            max-width: 540px; width: 90%;
-                            box-shadow: 0 25px 50px -12px rgba(0,0,0,1), 0 0 30px rgba(245, 158, 11, 0.1);
-                            animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                        }
+                        .mt-card { position: relative; z-index: 10; background: rgba(18, 18, 23, 0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 24px; padding: 50px 40px; text-align: center; max-width: 540px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,1), 0 0 30px rgba(245, 158, 11, 0.1); animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
                         @keyframes popIn { 0% { opacity: 0; transform: scale(0.9) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
-                        
-                        .mt-icon-wrap {
-                            position: relative; width: 100px; height: 100px; margin: 0 auto 25px;
-                            display: flex; align-items: center; justify-content: center;
-                        }
-                        .mt-icon-ring {
-                            position: absolute; inset: 0; border-radius: 50%;
-                            border: 3px dashed rgba(245, 158, 11, 0.4);
-                            animation: spinRing 10s linear infinite;
-                        }
+                        .mt-icon-wrap { position: relative; width: 100px; height: 100px; margin: 0 auto 25px; display: flex; align-items: center; justify-content: center; }
+                        .mt-icon-ring { position: absolute; inset: 0; border-radius: 50%; border: 3px dashed rgba(245, 158, 11, 0.4); animation: spinRing 10s linear infinite; }
                         @keyframes spinRing { 100% { transform: rotate(360deg); } }
                         .mt-icon { font-size: 44px; color: #f59e0b; animation: floatIcon 3s ease-in-out infinite alternate; text-shadow: 0 0 20px rgba(245,158,11,0.5); }
                         @keyframes floatIcon { 0% { transform: translateY(-5px); } 100% { transform: translateY(5px); } }
-
                         .mt-title { font-size: 30px; font-weight: 900; color: #fff; margin-bottom: 15px; letter-spacing: -0.5px; text-transform: uppercase; }
                         .mt-desc { color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-bottom: 35px; }
-
-                        .mt-time-box {
-                            background: rgba(0,0,0,0.4); border: 1px solid rgba(245, 158, 11, 0.2);
-                            border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 15px;
-                        }
+                        .mt-time-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
                         .mt-time-row { display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 800; }
                         .mt-time-label { color: #a1a1aa; display: flex; align-items: center; gap: 8px; }
                         .mt-time-val { color: #fff; background: rgba(245, 158, 11, 0.1); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3); font-family: monospace; letter-spacing: 0.5px; }
-
-                        .mt-bypass {
-                            position: absolute; bottom: 20px; color: rgba(255,255,255,0.15);
-                            font-size: 12px; font-weight: 700; cursor: pointer; z-index: 10; transition: 0.3s;
-                            letter-spacing: 1px; text-transform: uppercase;
-                        }
+                        .mt-bypass { position: absolute; bottom: 20px; color: rgba(255,255,255,0.15); font-size: 12px; font-weight: 700; cursor: pointer; z-index: 10; transition: 0.3s; letter-spacing: 1px; text-transform: uppercase; }
                         .mt-bypass:hover { color: rgba(255,255,255,0.6); }
-
-                        .admin-modal-overlay {
-                            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100000000;
-                            display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-                            opacity: 0; transition: opacity 0.3s ease;
-                        }
+                        .admin-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100000000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); opacity: 0; transition: opacity 0.3s ease; }
                         .admin-modal-overlay.active { display: flex; opacity: 1; }
-                        .admin-modal-box {
-                            background: rgba(18, 18, 23, 0.95); border: 1px solid rgba(239, 68, 68, 0.5);
-                            box-shadow: 0 0 40px rgba(239, 68, 68, 0.2); border-radius: 24px; padding: 40px;
-                            text-align: center; width: 90%; max-width: 400px;
-                            transform: scale(0.9) translateY(20px); transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                        }
+                        .admin-modal-box { background: rgba(18, 18, 23, 0.95); border: 1px solid rgba(239, 68, 68, 0.5); box-shadow: 0 0 40px rgba(239, 68, 68, 0.2); border-radius: 24px; padding: 40px; text-align: center; width: 90%; max-width: 400px; transform: scale(0.9) translateY(20px); transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
                         .admin-modal-overlay.active .admin-modal-box { transform: scale(1) translateY(0); }
-                        
-                        .admin-inp {
-                            width: 100%; background: rgba(0,0,0,0.6); border: 1px solid #3f3f46;
-                            color: #fff; padding: 16px 20px; border-radius: 12px; font-size: 20px; margin-bottom: 20px;
-                            text-align: center; letter-spacing: 8px; font-family: monospace; transition: 0.3s;
-                        }
+                        .admin-inp { width: 100%; background: rgba(0,0,0,0.6); border: 1px solid #3f3f46; color: #fff; padding: 16px 20px; border-radius: 12px; font-size: 20px; margin-bottom: 20px; text-align: center; letter-spacing: 8px; font-family: monospace; transition: 0.3s; }
                         .admin-inp:focus { border-color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.4); outline: none; }
-                        
                         .admin-btn-group { display: flex; gap: 12px; }
-                        .admin-btn {
-                            flex: 1; padding: 16px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; border: none; text-transform: uppercase; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 1px;
-                        }
+                        .admin-btn { flex: 1; padding: 16px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; border: none; text-transform: uppercase; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 1px; }
                         .admin-btn-cancel { background: transparent; border: 1px solid #3f3f46; color: #a1a1aa; }
                         .admin-btn-cancel:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: #a1a1aa; }
                         .admin-btn-submit { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; box-shadow: 0 8px 20px rgba(239,68,68,0.4); }
                         .admin-btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(239,68,68,0.6); }
-
                         @media (max-width: 500px) { .mt-time-row { flex-direction: column; gap: 8px; align-items: stretch; text-align: center; } .mt-time-label { justify-content: center; } }
                     </style>
 
@@ -1122,23 +1067,15 @@
                 `;
                 document.body.style.overflow = 'hidden'; 
             } else {
-                // KHI ADMIN TẮT BẢO TRÌ (Hoặc khi chưa bật)
                 if (blocker) blocker.style.display = 'none';
                 document.body.style.overflow = '';
-                
-                // Khôi phục lại giao diện hiển thị cho người dùng
                 const appShell = document.getElementById('app-shell');
-                if (appShell && window.State && window.State.currentUser) { 
-                    appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; 
-                }
+                if (appShell && window.State && window.State.currentUser) { appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; }
                 const authGate = document.getElementById('auth-gate');
-                if (authGate && (!window.State || !window.State.currentUser)) { 
-                    authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; 
-                }
+                if (authGate && (!window.State || !window.State.currentUser)) { authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; }
             }
         });
 
-        // 3. LOGIC HỘP THOẠI XUYÊN RÀO CHO ADMIN
         window.openCustomAdmin = function() {
             const modal = document.getElementById('custom-admin-prompt');
             const inp = document.getElementById('admin-pass-inp');
@@ -1159,33 +1096,22 @@
             const errMsg = document.getElementById('admin-error-msg');
             
             if (pass === "16062004") { 
-                // LƯU CỜ VÀO SESSION STORAGE (ĐỂ QUA TRANG KHÁC KHÔNG BỊ HỎI LẠI)
                 sessionStorage.setItem('admin_bypass_mt', 'true');
-                
                 document.getElementById('maintenance-blocker').style.display = 'none';
                 document.body.style.overflow = '';
                 window.closeCustomAdmin();
                 
-                // Khôi phục màn hình
                 const appShell = document.getElementById('app-shell');
-                if (appShell && window.State && window.State.currentUser) { 
-                    appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; 
-                }
+                if (appShell && window.State && window.State.currentUser) { appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; }
                 const authGate = document.getElementById('auth-gate');
-                if (authGate && (!window.State || !window.State.currentUser)) { 
-                    authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; 
-                }
+                if (authGate && (!window.State || !window.State.currentUser)) { authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; }
 
-                // Hiện thông báo thành công
                 const t = document.createElement('div');
                 t.style.cssText = "position:fixed; top:24px; right:24px; background:#121217; color:#fff; padding:16px 24px; border-radius:12px; font-weight:bold; box-shadow:0 15px 30px rgba(0,0,0,0.5); z-index:999999999; transform:translateX(150%); transition:0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); font-family:'Plus Jakarta Sans',sans-serif; border: 1px solid #3f3f46; border-left: 4px solid #10b981; display:flex; align-items:center; gap:12px;";
                 t.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#10b981; font-size:24px;"></i> <span style="font-size: 15px;">Xác thực thành công. Đã gỡ bỏ giới hạn bảo trì!</span>';
                 document.body.appendChild(t);
                 setTimeout(() => t.style.transform = 'translateX(0)', 10);
-                setTimeout(() => {
-                    t.style.transform = 'translateX(150%)';
-                    setTimeout(()=>t.remove(), 500);
-                }, 3000);
+                setTimeout(() => { t.style.transform = 'translateX(150%)'; setTimeout(()=>t.remove(), 500); }, 3000);
             } else {
                 errMsg.style.display = 'block';
                 const inp = document.getElementById('admin-pass-inp');
@@ -1332,7 +1258,16 @@
 
         window.UI = {
             openModal: (id) => { const el = document.getElementById(id); if(el) { el.style.display = 'flex'; void el.offsetWidth; el.classList.add('active'); } },
-            closeModal: (id) => { const el = document.getElementById(id); if(el) { el.classList.remove('active'); setTimeout(() => el.style.display = 'none', 300); } },
+            closeModal: (id) => { 
+                const el = document.getElementById(id); 
+                if(el) { 
+                    el.classList.remove('active'); 
+                    setTimeout(() => el.style.display = 'none', 300); 
+                } 
+                if(id === 'modal-account-locked') {
+                    if(window.Auth.unlockInterval) clearInterval(window.Auth.unlockInterval);
+                }
+            },
             navigate: (vid, el, mob = false) => {
                 if(vid === 'wheel' && document.getElementById('btn-nav-wheel')?.classList.contains('locked')) return Utils.toast("Tính năng đang bảo trì!", "warning");
                 if(vid === 'tranhthuong' && document.getElementById('btn-nav-tranhthuong')?.classList.contains('locked')) return Utils.toast("Tính năng đang bảo trì!", "warning");
@@ -1361,6 +1296,10 @@
 
         /** 5. AUTHENTICATION ENGINE */
         window.Auth = {
+            pendingLockedId: null,
+            pendingLockedData: null,
+            unlockInterval: null,
+
             login: async () => {
                 const u = document.getElementById('login-usr').value.trim(); const p = document.getElementById('login-pwd').value.trim(); const b = document.getElementById('btn-login');
                 if(!u || !p) return Utils.toast("Bạn cần điền đầy đủ thông tin để hệ thống xác thực.", "warning");
@@ -1368,10 +1307,35 @@
 
                 try {
                     const snap = await db.collection("accounts").where("user", "==", u).where("pass", "==", p).get();
-                    if(snap.empty) { Utils.toast("Dữ liệu thông tin đăng nhập không chính xác.", "error"); b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; }
+                    if(snap.empty) { 
+                        Utils.toast("Dữ liệu thông tin đăng nhập không chính xác.", "error"); 
+                        b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; 
+                        b.disabled = false; 
+                    }
                     else {
                         const docData = snap.docs[0].data();
-                        if(docData.isBlocked) { Utils.toast("Truy cập bị từ chối: Tài khoản này đã bị khóa.", "error"); b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; return; }
+                        
+                        // Nếu tài khoản đang bị khóa
+                        if(docData.isBlocked) { 
+                            window.Auth.pendingLockedId = snap.docs[0].id;
+                            window.Auth.pendingLockedData = docData;
+                            
+                            // Nếu đã bấm yêu cầu trước đó, tự động tiếp tục đếm ngược
+                            if (docData.unlockRequestedAt) {
+                                document.getElementById('unlock-action-area').style.display = 'none';
+                                document.getElementById('unlock-countdown-area').style.display = 'block';
+                                window.Auth.requestUnlock();
+                            } else {
+                                document.getElementById('unlock-action-area').style.display = 'block';
+                                document.getElementById('unlock-countdown-area').style.display = 'none';
+                            }
+                            
+                            window.UI.openModal('modal-account-locked');
+                            
+                            b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; 
+                            b.disabled = false; 
+                            return; 
+                        }
                         
                         State.currentUser = docData.user; State.currentDocId = snap.docs[0].id;
                         localStorage.setItem('qd_current_username', State.currentUser); 
@@ -1443,6 +1407,80 @@
                     b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; 
                 }
             },
+
+            requestUnlock: async () => {
+                if(!window.Auth.pendingLockedId) return;
+                
+                const btnArea = document.getElementById('unlock-action-area');
+                const timerArea = document.getElementById('unlock-countdown-area');
+                const timerDisplay = document.getElementById('unlock-timer');
+                
+                btnArea.style.display = 'none';
+                timerArea.style.display = 'block';
+                timerDisplay.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+
+                try {
+                    const configDoc = await db.collection("settings").doc("account_config").get();
+                    let autoUnlockMinutes = 0;
+                    if(configDoc.exists && configDoc.data().autoUnlockMinutes !== undefined) {
+                        autoUnlockMinutes = parseInt(configDoc.data().autoUnlockMinutes);
+                    }
+                    
+                    if(autoUnlockMinutes <= 0) {
+                        timerDisplay.innerHTML = `<span class="text-danger" style="font-size:18px;">Tính năng tự mở đã bị tắt bởi Ban Quản Trị!</span>`;
+                        return;
+                    }
+
+                    // Lưu mốc thời gian bắt đầu bấm nút yêu cầu
+                    const userRef = db.collection("accounts").doc(window.Auth.pendingLockedId);
+                    const userDoc = await userRef.get();
+                    const userData = userDoc.data();
+
+                    let requestedAt = userData.unlockRequestedAt;
+                    if (!requestedAt) {
+                        requestedAt = Date.now();
+                        await userRef.update({ unlockRequestedAt: requestedAt });
+                    }
+
+                    const targetTime = requestedAt + (autoUnlockMinutes * 60 * 1000);
+
+                    if(window.Auth.unlockInterval) clearInterval(window.Auth.unlockInterval);
+
+                    window.Auth.unlockInterval = setInterval(() => {
+                        const now = Date.now();
+                        const diff = targetTime - now;
+
+                        if(diff <= 0) {
+                            clearInterval(window.Auth.unlockInterval);
+                            timerDisplay.innerHTML = `<span class="text-success">ĐANG XỬ LÝ MỞ KHÓA...</span>`;
+                            
+                            userRef.update({
+                                isBlocked: false,
+                                unlockedAt: Date.now(),
+                                lockedAt: null,
+                                unlockRequestedAt: null,
+                                lastActive: Date.now()
+                            }).then(() => {
+                                window.Utils.toast("Tài khoản đã được mở khóa. Đang tự động đăng nhập...", "success");
+                                setTimeout(() => {
+                                    window.UI.closeModal('modal-account-locked');
+                                    window.Auth.login();
+                                }, 1500);
+                            });
+                        } else {
+                            const h = Math.floor(diff / (1000 * 60 * 60));
+                            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                            const s = Math.floor((diff % (1000 * 60)) / 1000);
+                            timerDisplay.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                        }
+                    }, 1000);
+
+                } catch(e) {
+                    console.error(e);
+                    window.Utils.toast("Lỗi khi lấy cấu hình mở khóa", "error");
+                }
+            },
+
             logout: () => { 
                 if(State.heartbeatInterval) clearInterval(State.heartbeatInterval); 
                 if(State.currentDocId) { 
@@ -2322,11 +2360,32 @@
                     if(doc.exists) {
                         const data = doc.data();
 
+                        // Nếu bị admin/hệ thống khóa tài khoản khi đang truy cập
                         if (data.isBlocked === true) {
-                            window.Utils.toast("Tài khoản của bạn đã bị khóa. Phiên làm việc kết thúc!", "error");
-                            const appShell = document.getElementById('app-shell');
-                            if(appShell) { appShell.style.pointerEvents = 'none'; appShell.style.opacity = '0.5'; }
-                            setTimeout(() => { window.Auth.logout(); }, 2000);
+                            window.Utils.toast("Tài khoản của bạn đã bị hệ thống khóa do không hoạt động!", "error");
+                            
+                            window.Auth.pendingLockedId = State.currentDocId;
+                            window.Auth.pendingLockedData = data;
+                            
+                            // Đẩy ra ngoài màn hình đăng nhập
+                            document.getElementById('auth-gate').style.display = 'flex';
+                            document.getElementById('auth-gate').style.opacity = '1';
+                            document.getElementById('app-shell').style.display = 'none';
+
+                            if (data.unlockRequestedAt) {
+                                document.getElementById('unlock-action-area').style.display = 'none';
+                                document.getElementById('unlock-countdown-area').style.display = 'block';
+                                window.Auth.requestUnlock();
+                            } else {
+                                document.getElementById('unlock-action-area').style.display = 'block';
+                                document.getElementById('unlock-countdown-area').style.display = 'none';
+                            }
+                            
+                            window.UI.openModal('modal-account-locked');
+                            
+                            State.currentUser = null;
+                            State.currentDocId = null;
+                            if(State.heartbeatInterval) clearInterval(State.heartbeatInterval);
                             return; 
                         }
 
