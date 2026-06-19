@@ -206,7 +206,7 @@
         .msg-bubble { padding: 14px 22px; border-radius: 24px; font-size: 15px; line-height: 1.5; word-wrap: break-word; box-shadow: var(--shadow-sm); }
         .msg-row.me .msg-bubble { background: var(--chat-bubble-me); color: var(--chat-text-me); border-bottom-right-radius: 6px; }
         .msg-row.them .msg-bubble { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-bottom-left-radius: 6px; color: var(--text-main); }
-        .chat-input-wrapper { padding: 20px 30px; background: var(--bg-surface); border-top: 1px solid var(--border-strong); display: flex; gap: 16px; align-items: center; }
+        .chat-input-wrapper { padding: 12px 20px; background: var(--bg-surface); border-top: 1px solid var(--border-strong); display: flex; gap: 12px; align-items: center; }
 
         .btn-mobile-back { display: none; background: transparent; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; margin-right: 16px; padding: 10px; } 
         @media (max-width: 1023px) { 
@@ -573,6 +573,21 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="modal-image-viewer" style="z-index: 100000; padding: 0;">
+        <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+            <button class="btn-icon" style="position: absolute; top: 20px; right: 20px; color: white; background: rgba(255,255,255,0.1); border: none; font-size: 20px; z-index: 2;" onclick="window.UI.closeModal('modal-image-viewer')"><i class="fa-solid fa-xmark"></i></button>
+            <img id="chat-fullscreen-img" src="" style="max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s ease;" onclick="event.stopPropagation()" ondragstart="return false;" onmousedown="window.Chat.startPan(event)" onmousemove="window.Chat.doPan(event)" onmouseup="window.Chat.endPan(event)" onmouseleave="window.Chat.endPan(event)" ontouchstart="window.Chat.startPan(event)" ontouchmove="window.Chat.doPan(event)" ontouchend="window.Chat.endPan(event)" onwheel="window.Chat.wheelZoom(event)">
+            <!-- Added zoom controls and download button -->
+            <div style="position: absolute; bottom: 30px; display: flex; gap: 15px; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 50px;">
+                <button class="btn-icon" style="color: white; border: none; background: transparent;" onclick="window.Chat.zoomImage(-0.2)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button class="btn-icon" style="color: white; border: none; background: transparent;" onclick="window.Chat.zoomImage(0)"><i class="fa-solid fa-rotate-right"></i></button>
+                <button class="btn-icon" style="color: white; border: none; background: transparent;" onclick="window.Chat.zoomImage(0.2)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <div style="width: 1px; background: rgba(255,255,255,0.2); margin: 0 5px;"></div>
+                <a id="chat-fullscreen-download" href="#" target="_blank" download class="btn-icon" style="color: white; border: none; background: transparent; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i class="fa-solid fa-download"></i></a>
+            </div>
+        </div>
+    </div>
+
     <div id="auth-gate">
         <div class="auth-box">
             <div class="flex-center mx-auto mb-8 bg-brand-soft" style="width: 90px; height: 90px; border-radius: 24px; background: var(--brand-primary-soft); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px var(--brand-glow); transform: rotate(-10deg);"><i class="fa-solid fa-atom text-primary" style="font-size: 50px; transform: rotate(10deg);"></i></div>
@@ -698,7 +713,7 @@
                         </div>
 
                         <div class="bento-action" onclick="window.UI.openModal('modal-transfer')">
-                            <div class="bento-icon" style="background: var(--color-info-bg); color: var(--color-info);"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                            <div class="bento-icon" style="background: var(--color-info-bg); color: var(--color-info);"><i class="fa-solid fa-handholding-heart"></i></div>
                             <h3 class="text-xl mb-1">Tặng Quà Đồng Đội</h3>
                             <p class="text-sm text-muted">Chia sẻ lượt quay, xé vé cho người khác.</p>
                         </div>
@@ -774,11 +789,17 @@
                                 <div class="chat-history" id="chat-history-ui">
                                 </div>
                                 
-                                <footer class="chat-input-wrapper" style="align-items: center;">
+                                <footer class="chat-input-wrapper">
                                     <input type="file" id="chat-img-upload" accept="image/*" style="display: none;" onchange="window.Chat.sendImage(this)">
-                                    <button class="btn-icon" style="background: transparent; border: none; font-size: 20px; color: var(--text-muted); box-shadow: none; width: auto; height: auto;" onclick="document.getElementById('chat-img-upload').click()"><i class="fa-solid fa-image"></i></button>
-                                    <input type="text" id="inp-chat-msg" class="form-control" style="border-radius: var(--radius-full); padding: 20px 28px; font-size: 16px; flex: 1;" placeholder="Soạn tin nhắn..." onkeypress="if(event.key==='Enter') window.Chat.sendMsg()" autocomplete="off">
-                                    <button class="btn-primary" style="border-radius: 50%; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;" onclick="window.Chat.sendMsg()"><i class="fa-solid fa-paper-plane"></i></button>
+                                    <div style="display: flex; flex: 1; align-items: center; background: var(--bg-body); border: 1px solid var(--border-strong); border-radius: var(--radius-full); padding: 4px 8px; transition: border-color 0.2s;" onfocusin="this.style.borderColor='var(--brand-primary)'" onfocusout="this.style.borderColor='var(--border-strong)'">
+                                        <button class="btn-icon" style="background: transparent; border: none; font-size: 18px; color: var(--text-muted); box-shadow: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" onclick="document.getElementById('chat-img-upload').click()" title="Gửi ảnh đính kèm">
+                                            <i class="fa-solid fa-image"></i>
+                                        </button>
+                                        <input type="text" id="inp-chat-msg" style="flex: 1; border: none; background: transparent; padding: 10px 14px; font-size: 15px; color: var(--text-main); outline: none;" placeholder="Soạn tin nhắn..." onkeypress="if(event.key==='Enter') window.Chat.sendMsg()" autocomplete="off">
+                                    </div>
+                                    <button class="btn-primary" style="border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; padding: 0; box-shadow: 0 4px 15px var(--brand-glow);" onclick="window.Chat.sendMsg()">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
                                 </footer>
                             </div>
                         </main>
@@ -1514,7 +1535,44 @@
 
         /** 6. PRIVATE CHAT MODULE WITH HEART, UNREAD BADGES & GENERAL CHANNEL */
         window.Chat = {
+            showNotification: (title, body, roomId) => {
+                try {
+                    window.Sound.initCtx();
+                    const osc = window.Sound.ctx.createOscillator();
+                    const gain = window.Sound.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, window.Sound.ctx.currentTime); // A5
+                    osc.frequency.exponentialRampToValueAtTime(440, window.Sound.ctx.currentTime + 0.1); 
+                    gain.gain.setValueAtTime(0.2, window.Sound.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, window.Sound.ctx.currentTime + 0.2);
+                    osc.connect(gain); gain.connect(window.Sound.ctx.destination);
+                    osc.start(); osc.stop(window.Sound.ctx.currentTime + 0.2);
+                } catch(e) {}
+
+                if ("Notification" in window && Notification.permission === "granted") {
+                    const notif = new Notification(title, {
+                        body: body,
+                        icon: "https://cdn-icons-png.flaticon.com/512/1041/1041916.png",
+                        vibrate: [200, 100, 200]
+                    });
+                    notif.onclick = function() {
+                        window.focus();
+                        window.UI.navigate('chat');
+                        if (roomId === 'general_room') window.Chat.selectTarget('general');
+                        else {
+                            const users = roomId.split('_');
+                            const target = users[0] === State.currentUser ? users[1] : users[0];
+                            if(target) window.Chat.selectTarget(target);
+                        }
+                    };
+                }
+            },
             init: () => {
+                if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+                State.appStartTime = Date.now();
+
                 db.collection("accounts").onSnapshot(snap => {
                     const ls = document.getElementById('contact-list-ui'); if(!ls) return; 
                     State.usersCache = {}; 
@@ -1525,7 +1583,7 @@
                             <div id="contact-general" class="contact-card ${isGeneralAct}" data-key="kênh chung" onclick="window.Chat.selectTarget('general')">
                                 <div class="avatar-circle" style="background: var(--color-info); font-size: 18px;"><i class="fa-solid fa-users"></i></div>
                                 <div class="flex-col flex-1 overflow-hidden">
-                                    <div class="font-bold text-main text-lg flex items-center justify-between">Kênh Chung</div>
+                                    <div class="font-bold text-main text-lg flex items-center justify-between">Kênh Chung <span id="general-unread-badge"></span></div>
                                     <div class="text-sm font-semibold text-muted">Trò chuyện toàn Server</div>
                                 </div>
                             </div>
@@ -1563,6 +1621,41 @@
                     });
                     if(State.chatTarget) window.Chat.updateHeader();
                 });
+
+                db.collection("private_chat").where("conversationId", "==", "general_room").onSnapshot(snap => {
+                    let unreadCount = 0;
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.from !== State.currentUser) {
+                            const readList = data.readBy || [];
+                            if (!readList.includes(State.currentUser)) unreadCount++;
+                        }
+                    });
+                    const badgeEl = document.getElementById('general-unread-badge');
+                    if(badgeEl) badgeEl.innerHTML = unreadCount > 0 ? `<span class="unread-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>` : '';
+
+                    snap.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const data = change.doc.data();
+                            if (data.from !== State.currentUser && data.time > State.appStartTime && State.chatTarget !== 'general') {
+                                window.Chat.showNotification("Kênh Chung", `${data.from}: ${data.text || "Gửi một ảnh đính kèm"}`, "general_room");
+                            }
+                        }
+                    });
+                });
+
+                db.collection("private_chat").where("to", "==", State.currentUser).onSnapshot(snap => {
+                    snap.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const data = change.doc.data();
+                            if (data.from !== State.currentUser && data.time > State.appStartTime && State.chatTarget !== data.from) {
+                                const dN = State.nicknames[data.from] || data.from;
+                                window.Chat.showNotification(`Tin nhắn từ ${dN}`, data.text || "Đã gửi một ảnh đính kèm", data.conversationId);
+                            }
+                        }
+                    });
+                });
+
                 setInterval(() => { if(State.chatTarget) window.Chat.updateHeader(); }, 30000);
             },
             
@@ -1636,7 +1729,7 @@
 
                     ms.forEach(m => { 
                         const isM = m.from === State.currentUser; 
-                        const tm = new Date(m.time).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); 
+                        const tm = new Date(m.time).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'}); 
                         let statusHtml = '';
 
                         if (State.chatTarget === 'general') {
@@ -1674,20 +1767,32 @@
                             }
                         }
 
-                        const hasHeart = m.heart || false;
-                        const heartHtml = hasHeart ? `<div class="heart-reaction active" onclick="window.Chat.toggleHeart('${m.id}', true)">❤️</div>` : '';
-                        const heartBtn = `<i class="fa-regular fa-heart btn-heart-action" onclick="window.Chat.toggleHeart('${m.id}', ${hasHeart})"></i>`;
+                        let hasHeart = m.heart || false;
+                        let heartHtml = hasHeart ? `<div class="heart-reaction active" onclick="window.Chat.toggleHeart('${m.id}', true)">❤️</div>` : '';
+                        let heartBtn = `<i class="fa-regular fa-heart btn-heart-action" onclick="window.Chat.toggleHeart('${m.id}', ${hasHeart})"></i>`;
+                        let revokeBtn = (isM && !m.revoked) ? `<i class="fa-solid fa-rotate-left btn-heart-action" style="color: var(--color-danger); opacity: 0.7;" onclick="window.Chat.revokeMsg('${m.id}')" title="Thu hồi tin nhắn"></i>` : '';
 
-                        const imgHtml = m.imageUrl ? `<img src="${m.imageUrl}" style="max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer;" onclick="window.open('${m.imageUrl}', '_blank')">` : '';
-                        const textHtml = m.text ? `<div>${m.text}</div>` : '';
+                        let imgHtml = m.imageUrl ? `<img src="${m.imageUrl}" style="max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; border: 1px solid var(--border-strong);" onclick="window.Chat.viewImage(this.src)" title="Nhấn để phóng to">` : '';
+                        let textHtml = m.text ? `<div>${m.text}</div>` : '';
                         
                         let senderNameHtml = '';
                         if (State.chatTarget === 'general' && !isM) {
                              senderNameHtml = `<div class="text-xs font-bold mb-1" style="color: var(--color-info); text-transform: capitalize;">${m.from}</div>`;
                         }
+
+                        if (m.revoked) {
+                            textHtml = `<div style="font-style: italic; color: var(--text-muted); opacity: 0.8; font-size: 13px;"><i class="fa-solid fa-ban mr-1"></i> Tin nhắn đã bị thu hồi</div>`;
+                            imgHtml = '';
+                            heartBtn = '';
+                            heartHtml = '';
+                            revokeBtn = '';
+                        }
                         
-                        box.innerHTML += `<div class="msg-row ${isM?'me':'them'}"><div class="flex items-center gap-2">${!isM ? heartBtn : ''}<div class="msg-bubble-container"><div class="msg-bubble">${senderNameHtml}${textHtml}${imgHtml}</div>${heartHtml}</div>${isM ? heartBtn : ''}</div><div class="text-xs text-muted mt-2 font-bold ${isM?'text-right':'text-left'}">${tm}${statusHtml}</div></div>`; 
-                    });
+                        let actionsHtml = isM ? revokeBtn + heartBtn : heartBtn;
+                        let msgBubbleHtml = `<div class="msg-bubble-container"><div class="msg-bubble">${senderNameHtml}${textHtml}${imgHtml}</div>${heartHtml}</div>`;
+                        let layoutHtml = isM ? `${actionsHtml}${msgBubbleHtml}` : `${msgBubbleHtml}${actionsHtml}`;
+                        box.innerHTML += `<div class="msg-row ${isM?'me':'them'}"><div class="flex items-center gap-2">${layoutHtml}</div><div class="text-xs text-muted mt-2 font-bold ${isM?'text-right':'text-left'}">${tm}${statusHtml}</div></div>`;
+});
 
                     unreadUpdates.forEach(u => {
                         if (u.type === 'general') {
@@ -1716,6 +1821,83 @@
                 db.collection("private_chat").add({ conversationId: roomId, from: State.currentUser, to: targetUser, text: t, imageUrl: null, time: Date.now(), read: false, heart: false, readBy: [] }); 
             },
 
+            revokeMsg: (msgId) => {
+                if(confirm("Bạn có chắc chắn muốn thu hồi tin nhắn này? Hành động này không thể hoàn tác.")) {
+                    db.collection("private_chat").doc(msgId).update({ revoked: true, text: "Tin nhắn đã bị thu hồi", imageUrl: null })
+                      .then(() => Utils.toast("Đã thu hồi tin nhắn", "success"))
+                      .catch(e => Utils.toast("Lỗi thu hồi tin nhắn", "error"));
+                }
+            },
+            
+            currentZoom: 1,
+            panX: 0,
+            panY: 0,
+            isDragging: false,
+            startX: 0,
+            startY: 0,
+            viewImage: (url) => {
+                const imgEl = document.getElementById('chat-fullscreen-img');
+                const dlBtn = document.getElementById('chat-fullscreen-download');
+                if(!imgEl) return;
+                imgEl.src = url;
+                if(dlBtn) dlBtn.href = url;
+                window.Chat.currentZoom = 1;
+                window.Chat.panX = 0;
+                window.Chat.panY = 0;
+                imgEl.style.transition = 'transform 0.3s ease';
+                imgEl.style.transform = `translate(0px, 0px) scale(1)`;
+                imgEl.style.cursor = 'default';
+                window.UI.openModal('modal-image-viewer');
+            },
+            zoomImage: (factor) => {
+                const imgEl = document.getElementById('chat-fullscreen-img');
+                if(!imgEl) return;
+                if(factor === 0) {
+                    window.Chat.currentZoom = 1;
+                    window.Chat.panX = 0;
+                    window.Chat.panY = 0;
+                } else {
+                    window.Chat.currentZoom += factor;
+                }
+                if(window.Chat.currentZoom < 0.5) window.Chat.currentZoom = 0.5;
+                if(window.Chat.currentZoom > 5) window.Chat.currentZoom = 5;
+                imgEl.style.transition = 'transform 0.3s ease';
+                imgEl.style.transform = `translate(${window.Chat.panX}px, ${window.Chat.panY}px) scale(${window.Chat.currentZoom})`;
+                imgEl.style.cursor = window.Chat.currentZoom > 1 ? 'grab' : 'default';
+            },
+            wheelZoom: (e) => {
+                e.preventDefault();
+                const factor = e.deltaY < 0 ? 0.2 : -0.2;
+                window.Chat.zoomImage(factor);
+            },
+            startPan: (e) => {
+                if (window.Chat.currentZoom <= 1) return;
+                window.Chat.isDragging = true;
+                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                window.Chat.startX = clientX - window.Chat.panX;
+                window.Chat.startY = clientY - window.Chat.panY;
+                const imgEl = document.getElementById('chat-fullscreen-img');
+                imgEl.style.transition = 'none';
+                imgEl.style.cursor = 'grabbing';
+            },
+            doPan: (e) => {
+                if (!window.Chat.isDragging) return;
+                e.preventDefault();
+                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                window.Chat.panX = clientX - window.Chat.startX;
+                window.Chat.panY = clientY - window.Chat.startY;
+                const imgEl = document.getElementById('chat-fullscreen-img');
+                imgEl.style.transform = `translate(${window.Chat.panX}px, ${window.Chat.panY}px) scale(${window.Chat.currentZoom})`;
+            },
+            endPan: (e) => {
+                if (!window.Chat.isDragging) return;
+                window.Chat.isDragging = false;
+                const imgEl = document.getElementById('chat-fullscreen-img');
+                if(imgEl) imgEl.style.cursor = window.Chat.currentZoom > 1 ? 'grab' : 'default';
+            },
+            
             sendImage: (inputElement) => {
                 if(!inputElement.files || !inputElement.files[0] || !State.chatTarget) return;
                 const file = inputElement.files[0]; const reader = new FileReader();
@@ -1774,7 +1956,7 @@
                 }
                 this.ctx.beginPath(); this.ctx.arc(centerX, centerY, 35, 0, 2 * Math.PI);
                 this.ctx.fillStyle = "#f59e0b"; this.ctx.fill(); this.ctx.strokeStyle = "#121217"; this.ctx.lineWidth = 6; this.ctx.stroke();
-                this.ctx.fillStyle = "#ffffff"; this.ctx.font = "900 30px 'Font Awesome 6 Free'"; this.ctx.textAlign = "center"; this.ctx.textBaseline = "middle"; this.ctx.fillText("\uf005", centerX, centerY);
+                this.ctx.fillStyle = "#ffffff"; this.ctx.font = "900 30px 'Font Awesome 6 Free'"; this.ctx.textAlign = "center"; this.ctx.textBaseline = "middle"; this.ctx.fillText("", centerX, centerY);
             },
             startSpin: function() {
                 if (this.isSpinning) return;
@@ -2275,6 +2457,15 @@
                 document.getElementById('rps-gameplay').style.display = 'none';
                 document.getElementById('btn-find-match').disabled = false; 
                 
+                if (window.State.currentDocId) {
+                    db.collection("accounts").doc(window.State.currentDocId).get().then(doc => {
+                        if (doc.exists) {
+                            window.State.availablePoints = doc.data().points || 0;
+                            this.updatePoints(window.State.availablePoints);
+                        }
+                    });
+                }
+                
                 if (window.AppCore.rpsConfig && window.AppCore.rpsConfig.isEnabled === false) {
                     document.getElementById('btn-find-match').innerHTML = `<i class="fa-solid fa-lock mr-2"></i> ĐANG BẢO TRÌ`;
                     document.getElementById('btn-find-match').className = "btn btn-danger";
@@ -2284,7 +2475,6 @@
                 }
                 
                 if(msg) window.Utils.toast(msg, "info"); 
-                this.updatePoints(window.State.availablePoints);
             }
         };
 
@@ -2330,6 +2520,36 @@
                 const dateVN = Utils.getTodayString(); Utils.safeText('att-badge-date', dateVN);
 
                 window.PointShop.init();
+
+                db.collection("settings").doc("registration_config").onSnapshot(doc => {
+                    const btn = document.querySelector('#modal-registration .btn-primary');
+                    if (doc.exists) {
+                        const data = doc.data();
+                        let isLocked = data.isEnabled === false;
+                        
+                        if (!isLocked && data.endDate && data.endTime) {
+                            const dlStr = `${data.endDate}T${data.endTime}`;
+                            const deadline = new Date(dlStr).getTime();
+                            if (Date.now() >= deadline) {
+                                isLocked = true;
+                            }
+                        }
+
+                        if (btn) {
+                            if (isLocked) {
+                                btn.disabled = true;
+                                btn.innerHTML = `<i class="fa-solid fa-lock mr-2"></i> Hệ Thống Đăng Ký Đã Đóng`;
+                                btn.style.filter = 'grayscale(1)';
+                                btn.style.cursor = 'not-allowed';
+                            } else {
+                                btn.disabled = false;
+                                btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> Gửi Yêu Cầu Đăng Ký`;
+                                btn.style.filter = 'none';
+                                btn.style.cursor = 'pointer';
+                            }
+                        }
+                    }
+                });
 
                 db.collection("settings").doc("rps_config").onSnapshot(doc => {
                     if(doc.exists) {
@@ -2819,13 +3039,28 @@
                 }).catch(err => Utils.toast("Lỗi hệ thống.", "error"));
             },
 
-            sendRegistration: () => {
+            sendRegistration: async () => {
                 const nEl = document.getElementById('reg-name'); const idEl = document.getElementById('reg-id');
                 if(!nEl || !idEl) return;
                 const n = nEl.value.trim(); const id = idEl.value.trim();
                 
                 if(!n || !id) return Utils.toast("Cảnh báo: Bạn bỏ trống trường dữ liệu bắt buộc!", "warning"); 
                 if(!/^\d+$/.test(id)) { idEl.value=""; return Utils.toast("Vi phạm bảo mật: ID Định danh chỉ được phép là SỐ.", "error"); }
+                
+                try {
+                    const cfgDoc = await db.collection("settings").doc("registration_config").get();
+                    if(cfgDoc.exists) {
+                        const data = cfgDoc.data();
+                        let isLocked = data.isEnabled === false;
+                        if (!isLocked && data.endDate && data.endTime) {
+                            const deadline = new Date(`${data.endDate}T${data.endTime}`).getTime();
+                            if (Date.now() >= deadline) isLocked = true;
+                        }
+                        if (isLocked) return Utils.toast("Đăng ký đã bị đóng hoặc quá hạn!", "error");
+                    }
+                } catch(e) {
+                    console.error(e);
+                }
                 
                 db.collection("users").where("submitter", "==", State.currentUser).get().then(snap => {
                     if(!snap.empty) return Utils.toast("Bạn đã nộp đơn định danh rồi!", "error");
