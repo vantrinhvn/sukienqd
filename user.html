@@ -284,6 +284,18 @@
 <body>
 
     <div id="toast-container"></div>
+    <div class="modal-overlay" id="modal-confirm" style="z-index: 999999;">
+        <div class="modal-box text-center" style="max-width: 360px;">
+            <div class="flex-center mx-auto mb-4 bg-danger-bg text-danger" style="width: 70px; height: 70px; border-radius: 50%; font-size: 32px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h2 class="text-2xl mb-2 font-bold" id="confirm-title">Xác Nhận</h2>
+            <p class="text-muted text-sm mb-6" id="confirm-desc">Bạn có chắc chắn không?</p>
+            <div class="flex gap-4">
+                <button class="btn btn-outline w-full" onclick="window.UI.closeModal('modal-confirm')">Hủy</button>
+                <button class="btn btn-danger w-full" id="btn-confirm-action">Đồng Ý</button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="modal-overlay" id="modal-account-locked" style="z-index: 99999;">
         <div class="modal-box text-center">
@@ -1541,7 +1553,7 @@
                     const osc = window.Sound.ctx.createOscillator();
                     const gain = window.Sound.ctx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(880, window.Sound.ctx.currentTime); // A5
+                    osc.frequency.setValueAtTime(880, window.Sound.ctx.currentTime); 
                     osc.frequency.exponentialRampToValueAtTime(440, window.Sound.ctx.currentTime + 0.1); 
                     gain.gain.setValueAtTime(0.2, window.Sound.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, window.Sound.ctx.currentTime + 0.2);
@@ -1550,12 +1562,17 @@
                 } catch(e) {}
 
                 if ("Notification" in window && Notification.permission === "granted") {
-                    const notif = new Notification(title, {
+                    const options = {
                         body: body,
                         icon: "https://cdn-icons-png.flaticon.com/512/1041/1041916.png",
-                        vibrate: [200, 100, 200]
-                    });
-                    notif.onclick = function() {
+                        badge: "https://cdn-icons-png.flaticon.com/512/1041/1041916.png",
+                        vibrate: [200, 100, 200, 100, 200],
+                        tag: roomId,
+                        renotify: true,
+                        requireInteraction: true
+                    };
+
+                    const handleNotifClick = function() {
                         window.focus();
                         window.UI.navigate('chat');
                         if (roomId === 'general_room') window.Chat.selectTarget('general');
@@ -1565,12 +1582,32 @@
                             if(target) window.Chat.selectTarget(target);
                         }
                     };
+
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.ready.then(function(registration) {
+                            registration.showNotification(title, options);
+                        }).catch(e => {
+                            const notif = new Notification(title, options);
+                            notif.onclick = handleNotifClick;
+                        });
+                    } else {
+                        const notif = new Notification(title, options);
+                        notif.onclick = handleNotifClick;
+                    }
                 }
             },
             init: () => {
                 if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
                     Notification.requestPermission();
                 }
+                
+                // Đăng ký Service Worker ẩn danh để hỗ trợ hiển thị Notification dạng System Tray trên Mobile
+                if ('serviceWorker' in navigator) {
+                    const swCode = `self.addEventListener('notificationclick', function(e) { e.notification.close(); e.waitUntil(clients.matchAll({type: 'window', includeUncontrolled: true}).then(clientsArr => { if(clientsArr.length) { clientsArr[0].focus(); return true; } return clients.openWindow('/'); })); });`;
+                    const blob = new Blob([swCode], {type: 'application/javascript'});
+                    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log("SW Register failed: ", err));
+                }
+
                 State.appStartTime = Date.now();
 
                 db.collection("accounts").onSnapshot(snap => {
@@ -1822,11 +1859,15 @@
             },
 
             revokeMsg: (msgId) => {
-                if(confirm("Bạn có chắc chắn muốn thu hồi tin nhắn này? Hành động này không thể hoàn tác.")) {
+                document.getElementById('confirm-title').innerText = "Thu hồi tin nhắn";
+                document.getElementById('confirm-desc').innerText = "Tin nhắn này sẽ bị xóa với mọi người và không thể hoàn tác. Bạn chắc chắn chứ?";
+                document.getElementById('btn-confirm-action').onclick = () => {
+                    window.UI.closeModal('modal-confirm');
                     db.collection("private_chat").doc(msgId).update({ revoked: true, text: "Tin nhắn đã bị thu hồi", imageUrl: null })
                       .then(() => Utils.toast("Đã thu hồi tin nhắn", "success"))
                       .catch(e => Utils.toast("Lỗi thu hồi tin nhắn", "error"));
-                }
+                };
+                window.UI.openModal('modal-confirm');
             },
             
             currentZoom: 1,
