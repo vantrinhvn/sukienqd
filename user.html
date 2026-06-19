@@ -527,6 +527,15 @@
                     <button class="btn btn-outline" style="padding: 10px 20px; font-size: 13px;" onclick="window.Music.toggle()">Bật / Tắt</button>
                 </div>
             </div>
+            <div class="form-group mb-8">
+                <label class="form-label">Kiểm tra Thông báo (Push Notif)</label>
+                <div class="flex justify-between items-center p-5 bg-elevated rounded-lg border-strong" style="border: 1px solid var(--border-strong);">
+                    <div class="flex items-center gap-3 font-bold text-sm text-muted">
+                        Bấm Test rồi lập tức thoát ra màn hình chính điện thoại để kiểm tra banner có nhảy xuống không.
+                    </div>
+                    <button class="btn btn-info" style="padding: 10px 20px; font-size: 13px;" onclick="window.Chat.testNotification()">Test (5s)</button>
+                </div>
+            </div>
             <button class="btn btn-primary w-full" onclick="window.UI.closeModal('modal-settings')">Hoàn Tất</button>
         </div>
     </div>
@@ -1587,12 +1596,16 @@
                         navigator.serviceWorker.ready.then(function(registration) {
                             registration.showNotification(title, options);
                         }).catch(e => {
-                            const notif = new Notification(title, options);
-                            notif.onclick = handleNotifClick;
+                            try {
+                                const notif = new Notification(title, options);
+                                notif.onclick = handleNotifClick;
+                            } catch(err) { console.log('Notification API fallback failed', err); }
                         });
                     } else {
-                        const notif = new Notification(title, options);
-                        notif.onclick = handleNotifClick;
+                        try {
+                            const notif = new Notification(title, options);
+                            notif.onclick = handleNotifClick;
+                        } catch(err) { console.log('Notification API fallback failed', err); }
                     }
                 }
             },
@@ -1601,11 +1614,13 @@
                     Notification.requestPermission();
                 }
                 
-                // Đăng ký Service Worker ẩn danh để hỗ trợ hiển thị Notification dạng System Tray trên Mobile
+                // Đăng ký Service Worker vật lý để hiển thị Notification trên Mobile
                 if ('serviceWorker' in navigator) {
-                    const swCode = `self.addEventListener('notificationclick', function(e) { e.notification.close(); e.waitUntil(clients.matchAll({type: 'window', includeUncontrolled: true}).then(clientsArr => { if(clientsArr.length) { clientsArr[0].focus(); return true; } return clients.openWindow('/'); })); });`;
-                    const blob = new Blob([swCode], {type: 'application/javascript'});
-                    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log("SW Register failed: ", err));
+                    navigator.serviceWorker.register('./sw.js').then(function(registration) {
+                        console.log('Service Worker registered!');
+                    }).catch(function(err) {
+                        console.log('Service Worker registration failed:', err);
+                    });
                 }
 
                 State.appStartTime = Date.now();
@@ -1728,6 +1743,15 @@
                 const st = document.getElementById('active-status'); if(st) { st.innerText = Utils.timeAgo(lP); st.className = isOn ? "text-xs text-success font-bold" : "text-xs text-muted font-bold"; }
             },
             
+            testNotification: () => {
+                if ("Notification" in window && Notification.permission !== "granted") {
+                    Notification.requestPermission();
+                }
+                window.Utils.toast("Sẽ gửi thông báo sau 5 giây! Hãy ẩn trình duyệt xuống màn hình chính ngay lúc này.", "info");
+                setTimeout(() => {
+                    window.Chat.showNotification("🔔 Hệ Thống QD Elite", "Đây là thông báo thử nghiệm! Nếu bạn thấy dòng này thì hệ thống hoạt động 100%.", "general_room");
+                }, 5000);
+            },
             openNicknameEditor: () => { 
                 if(State.chatTarget === 'general') return Utils.toast("Không thể đổi biệt danh cho Kênh Chung.", "info");
                 const inp = document.getElementById('inp-nickname'); if(inp) inp.value = State.nicknames[State.chatTarget] || ''; window.UI.openModal('modal-nickname'); 
@@ -1911,32 +1935,79 @@
                 const factor = e.deltaY < 0 ? 0.2 : -0.2;
                 window.Chat.zoomImage(factor);
             },
+            initialPinchDistance: 0,
+            lastZoom: 1,
             startPan: (e) => {
-                if (window.Chat.currentZoom <= 1) return;
+                const imgEl = document.getElementById('chat-fullscreen-img');
+                imgEl.style.transition = 'none';
+
+                // Bắt sự kiện chạm 2 ngón tay (Pinch to Zoom)
+                if (e.type === 'touchstart' && e.touches.length === 2) {
+                    window.Chat.isDragging = false;
+                    window.Chat.initialPinchDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    window.Chat.lastZoom = window.Chat.currentZoom;
+                    return;
+                }
+
                 window.Chat.isDragging = true;
                 const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
                 const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
                 window.Chat.startX = clientX - window.Chat.panX;
                 window.Chat.startY = clientY - window.Chat.panY;
-                const imgEl = document.getElementById('chat-fullscreen-img');
-                imgEl.style.transition = 'none';
                 imgEl.style.cursor = 'grabbing';
             },
             doPan: (e) => {
-                if (!window.Chat.isDragging) return;
                 e.preventDefault();
+                const imgEl = document.getElementById('chat-fullscreen-img');
+
+                // Xử lý khi đang zoom bằng 2 ngón tay
+                if (e.type === 'touchmove' && e.touches.length === 2) {
+                    const currentDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    if (window.Chat.initialPinchDistance) {
+                        const zoomFactor = currentDistance / window.Chat.initialPinchDistance;
+                        let newZoom = window.Chat.lastZoom * zoomFactor;
+                        
+                        // Giới hạn zoom
+                        if (newZoom < 0.5) newZoom = 0.5;
+                        if (newZoom > 5) newZoom = 5;
+                        
+                        window.Chat.currentZoom = newZoom;
+                        imgEl.style.transform = `translate(${window.Chat.panX}px, ${window.Chat.panY}px) scale(${window.Chat.currentZoom})`;
+                    }
+                    return;
+                }
+
+                if (!window.Chat.isDragging) return;
+                
+                // Chỉ cho phép kéo (Pan) khi ảnh đang được phóng to
+                if (window.Chat.currentZoom <= 1) {
+                   window.Chat.panX = 0; window.Chat.panY = 0;
+                   return;
+                }
+
                 const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
                 const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
                 window.Chat.panX = clientX - window.Chat.startX;
                 window.Chat.panY = clientY - window.Chat.startY;
-                const imgEl = document.getElementById('chat-fullscreen-img');
                 imgEl.style.transform = `translate(${window.Chat.panX}px, ${window.Chat.panY}px) scale(${window.Chat.currentZoom})`;
             },
             endPan: (e) => {
-                if (!window.Chat.isDragging) return;
                 window.Chat.isDragging = false;
+                window.Chat.initialPinchDistance = 0;
                 const imgEl = document.getElementById('chat-fullscreen-img');
-                if(imgEl) imgEl.style.cursor = window.Chat.currentZoom > 1 ? 'grab' : 'default';
+                if(imgEl) {
+                    imgEl.style.cursor = window.Chat.currentZoom > 1 ? 'grab' : 'default';
+                    // Tự động đàn hồi (Snap back) về kích thước gốc nếu lỡ zoom nhỏ hơn 1
+                    if (window.Chat.currentZoom < 1) {
+                        window.Chat.zoomImage(0); 
+                    }
+                }
             },
             
             sendImage: (inputElement) => {
