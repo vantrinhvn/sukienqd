@@ -210,7 +210,10 @@
 
         .btn-mobile-back { display: none; background: transparent; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; margin-right: 16px; padding: 10px; } 
         @media (max-width: 1023px) { 
-            .chat-module { height: calc(100vh - 90px); border-radius: var(--radius-md); } 
+            .chat-module { height: calc(100dvh - 165px); border-radius: var(--radius-md); }
+            body.in-chat-mode .mobile-nav { display: none !important; }
+            body.in-chat-mode .main-content-wrapper { padding-bottom: 15px !important; }
+            body.in-chat-mode .chat-module { height: calc(100dvh - 90px) !important; } 
             .chat-sidebar { position: absolute; width: 100%; height: 100%; z-index: 10; } 
             .chat-sidebar.hidden { transform: translateX(-100%); display: none; } 
             .chat-history { padding: 20px 16px; } 
@@ -1311,6 +1314,7 @@
                 }
             },
             navigate: (vid, el, mob = false) => {
+                document.body.classList.remove('in-chat-mode');
                 if(vid === 'wheel' && document.getElementById('btn-nav-wheel')?.classList.contains('locked')) return Utils.toast("Tính năng đang bảo trì!", "warning");
                 if(vid === 'tranhthuong' && document.getElementById('btn-nav-tranhthuong')?.classList.contains('locked')) return Utils.toast("Tính năng đang bảo trì!", "warning");
                 if(vid === 'pointshop' && document.getElementById('btn-nav-pointshop')?.classList.contains('locked')) return Utils.toast("Cửa hàng hiện đang đóng cửa!", "warning");
@@ -1762,14 +1766,18 @@
             toggleMobile: (showSidebar) => { 
                 const s = document.getElementById('chat-sidebar'); const m = document.querySelector('.chat-main'); 
                 if(!s || !m) return; 
-                if(window.innerWidth > 1023) { s.style.display = 'flex'; m.style.display = 'flex'; return; } 
+                if(window.innerWidth > 1023) { document.body.classList.remove('in-chat-mode'); s.style.display = 'flex'; m.style.display = 'flex'; return; } 
                 if(showSidebar) { 
+                    document.body.classList.remove('in-chat-mode');
                     s.style.display = 'flex'; m.style.display = 'none'; 
                     document.querySelectorAll('.contact-card').forEach(el => el.classList.remove('active'));
                     document.getElementById('chat-active-ui').style.display = 'none';
                     document.getElementById('chat-empty-ui').style.display = 'flex';
                     State.chatTarget = null;
-                } else { s.style.display = 'none'; m.style.display = 'flex'; } 
+                } else { 
+                    document.body.classList.add('in-chat-mode');
+                    s.style.display = 'none'; m.style.display = 'flex'; 
+                } 
             },
 
             toggleHeart: (msgId, currentStatus) => {
