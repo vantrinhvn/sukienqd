@@ -1768,7 +1768,26 @@
                         if (change.type === 'added') {
                             const data = change.doc.data();
                             if (data.from !== State.currentUser && data.time > State.appStartTime && State.chatTarget !== 'general') {
-                                window.Chat.showNotification("Kênh Chung", `${data.from}: ${data.text || "Gửi một ảnh đính kèm"}`, "general_room");
+                                // Check if mentioned
+                                const mentionRegex = new RegExp(`@${State.currentUser}\\b`, 'i');
+                                const isMentioned = data.text && mentionRegex.test(data.text);
+                                
+                                if (isMentioned) {
+                                    window.Chat.showNotification(`🔔 Bạn được nhắc tên trong Kênh Chung!`, `${data.from}: ${data.text}`, "general_room");
+                                } else {
+                                    window.Chat.showNotification("Kênh Chung", `${data.from}: ${data.text || "Gửi một ảnh đính kèm"}`, "general_room");
+                                }
+                            } else if (data.from !== State.currentUser && data.time > State.appStartTime && State.chatTarget === 'general') {
+                                // Even if currently in general chat, if mentioned, maybe play sound or show a toast
+                                const mentionRegex = new RegExp(`@${State.currentUser}\\b`, 'i');
+                                const isMentioned = data.text && mentionRegex.test(data.text);
+                                if (isMentioned) {
+                                    window.Utils.toast(`💬 ${data.from} vừa nhắc đến bạn!`, "warning");
+                                    if (window.Sound.msgAudio && localStorage.getItem('qd_notif_state') !== 'false') {
+                                        window.Sound.msgAudio.currentTime = 0;
+                                        window.Sound.msgAudio.play().catch(e => console.log('Autoplay blocked'));
+                                    }
+                                }
                             }
                         }
                     });
