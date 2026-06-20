@@ -211,9 +211,15 @@
         .btn-mobile-back { display: none; background: transparent; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; margin-right: 16px; padding: 10px; } 
         @media (max-width: 1023px) { 
             .chat-module { height: calc(100dvh - 165px); border-radius: var(--radius-md); }
+            
+            body.in-chat-mode { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100dvh; overflow: hidden; overscroll-behavior-y: none; }
+            body.in-chat-mode #app-shell { height: 100%; padding: 0; }
             body.in-chat-mode .mobile-nav { display: none !important; }
-            body.in-chat-mode .main-content-wrapper { padding-bottom: 15px !important; }
-            body.in-chat-mode .chat-module { height: calc(100dvh - 90px) !important; } 
+            body.in-chat-mode .main-content-wrapper { padding: 0 !important; margin: 0 !important; border-radius: 0; overflow: hidden; flex: 1; display: flex; flex-direction: column; }
+            body.in-chat-mode .workspace-area { padding: 0 !important; flex: 1; display: flex; flex-direction: column; }
+            body.in-chat-mode #view-chat { flex: 1; display: flex; flex-direction: column; }
+            body.in-chat-mode .chat-module { flex: 1; height: 100% !important; border-radius: 0; border: none; display: flex; flex-direction: column; }
+            
             .chat-sidebar { position: absolute; width: 100%; height: 100%; z-index: 10; } 
             .chat-sidebar.hidden { transform: translateX(-100%); display: none; } 
             .chat-history { padding: 20px 16px; } 
@@ -819,7 +825,7 @@
                                         <button class="btn-icon" style="background: transparent; border: none; font-size: 18px; color: var(--text-muted); box-shadow: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" onclick="document.getElementById('chat-img-upload').click()" title="Gửi ảnh đính kèm">
                                             <i class="fa-solid fa-image"></i>
                                         </button>
-                                        <input type="text" id="inp-chat-msg" style="flex: 1; border: none; background: transparent; padding: 10px 14px; font-size: 15px; color: var(--text-main); outline: none;" placeholder="Soạn tin nhắn..." onkeypress="if(event.key==='Enter') window.Chat.sendMsg()" autocomplete="off">
+                                        <input type="text" id="inp-chat-msg" style="flex: 1; border: none; background: transparent; padding: 10px 14px; font-size: 15px; color: var(--text-main); outline: none;" placeholder="Soạn tin nhắn..." onkeypress="if(event.key==='Enter') window.Chat.sendMsg()" onblur="setTimeout(() => { window.scrollTo(0,0); document.body.scrollTop = 0; document.documentElement.scrollTop = 0; }, 100);" autocomplete="off">
                                     </div>
                                     <button class="btn-primary" style="border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; padding: 0; box-shadow: 0 4px 15px var(--brand-glow);" onclick="window.Chat.sendMsg()">
                                         <i class="fa-solid fa-paper-plane"></i>
