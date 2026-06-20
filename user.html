@@ -13,7 +13,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 
     <style>
-        /* ---------------------------------------------------------------------
+        
+        .mention-suggest-box { position: absolute; bottom: calc(100% + 10px); left: 20px; right: 20px; background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); max-height: 200px; overflow-y: auto; z-index: 120; display: none; flex-direction: column; }
+        .mention-item { padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.2s; border-bottom: 1px solid var(--border-subtle); }
+        .mention-item:last-child { border-bottom: none; }
+        .mention-item:hover { background: var(--bg-hover); }
+        .mention-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0; }
+/* ---------------------------------------------------------------------
            1. DESIGN SYSTEM TOKENS
            --------------------------------------------------------------------- */
         :root {
@@ -890,13 +896,14 @@
                                 <div class="chat-history" id="chat-history-ui">
                                 </div>
                                 
-                                <footer class="chat-input-wrapper">
+                                <footer class="chat-input-wrapper" style="position: relative;">
+                                    <div id="mention-suggestions" class="mention-suggest-box"></div>
                                     <input type="file" id="chat-img-upload" accept="image/*" style="display: none;" onchange="window.Chat.sendImage(this)">
                                     <div style="display: flex; flex: 1; align-items: flex-end; background: var(--bg-body); border: 1px solid var(--border-strong); border-radius: 24px; padding: 4px 8px; transition: border-color 0.2s;" onfocusin="this.style.borderColor='var(--brand-primary)'" onfocusout="this.style.borderColor='var(--border-strong)'">
                                         <button class="btn-icon" style="background: transparent; border: none; font-size: 18px; color: var(--text-muted); box-shadow: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 2px;" onclick="document.getElementById('chat-img-upload').click()" title="Gửi ảnh đính kèm">
                                             <i class="fa-solid fa-image"></i>
                                         </button>
-                                        <textarea id="inp-chat-msg" style="flex: 1; border: none; background: transparent; padding: 12px 14px; font-size: 16px !important; color: var(--text-main); outline: none; resize: none; overflow-y: auto; max-height: 120px; min-height: 44px; line-height: 1.4; box-sizing: border-box; font-family: inherit;" rows="1" placeholder="Soạn tin nhắn..." onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); window.Chat.sendMsg(); }" oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px';" onblur="setTimeout(() => { window.scrollTo(0,0); document.body.scrollTop = 0; document.documentElement.scrollTop = 0; if(window.visualViewport){ document.body.style.height = `${window.visualViewport.height}px`; } }, 50)" autocomplete="off"></textarea>
+                                        <textarea id="inp-chat-msg" style="flex: 1; border: none; background: transparent; padding: 12px 14px; font-size: 16px !important; color: var(--text-main); outline: none; resize: none; overflow-y: auto; max-height: 120px; min-height: 44px; line-height: 1.4; box-sizing: border-box; font-family: inherit;" rows="1" placeholder="Soạn tin nhắn..." onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); window.Chat.sendMsg(); }" oninput="window.Chat.handleInput(event)" onblur="setTimeout(() => { window.scrollTo(0,0); document.body.scrollTop = 0; document.documentElement.scrollTop = 0; if(window.visualViewport){ document.body.style.height = `${window.visualViewport.height}px`; } }, 50)" autocomplete="off"></textarea>
                                     </div>
                                     <button class="btn-primary" style="border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; padding: 0; box-shadow: 0 4px 15px var(--brand-glow);" onclick="window.Chat.sendMsg()">
                                         <i class="fa-solid fa-paper-plane"></i>
@@ -1279,7 +1286,6 @@
         window.Sound = {
             ctx: null,
             rewardAudio: new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'),
-            msgAudio: new Audio('nhac.mp3'),
             initCtx: () => {
                 if (!window.Sound.ctx) window.Sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 if (window.Sound.ctx.state === 'suspended') window.Sound.ctx.resume();
@@ -1638,14 +1644,77 @@
 
         /** 6. PRIVATE CHAT MODULE WITH HEART, UNREAD BADGES & GENERAL CHANNEL */
         window.Chat = {
+            handleInput: (e) => {
+                const input = e.target;
+                input.style.height = 'auto';
+                input.style.height = (input.scrollHeight) + 'px';
+                
+                const cursorPosition = input.selectionStart;
+                const textBeforeCursor = input.value.substring(0, cursorPosition);
+                
+                const words = textBeforeCursor.split(/\s+/);
+                const currentWord = words[words.length - 1];
+                
+                const suggestBox = document.getElementById('mention-suggestions');
+                if (currentWord.startsWith('@')) {
+                    const searchTerm = currentWord.substring(1).toLowerCase();
+                    let matches = [];
+                    Object.keys(window.State.nicknames || {}).forEach(user => {
+                        if (user !== window.State.currentUser && (user.toLowerCase().includes(searchTerm) || (window.State.nicknames[user]||'').toLowerCase().includes(searchTerm))) {
+                            matches.push(user);
+                        }
+                    });
+                    
+                    if (matches.length > 0) {
+                        suggestBox.innerHTML = matches.map(u => `
+                            <div class="mention-item" onclick="window.Chat.insertMention('${u}')">
+                                <div class="mention-avatar">${(window.State.nicknames[u]||u).charAt(0).toUpperCase()}</div>
+                                <div style="display:flex; flex-direction:column; line-height: 1.2;">
+                                    <span style="font-weight:bold; font-size:14px; color:var(--text-main);">${window.State.nicknames[u] || u}</span>
+                                    <span style="font-size:12px; color:var(--text-muted);">@${u}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                        suggestBox.style.display = 'flex';
+                    } else {
+                        suggestBox.style.display = 'none';
+                    }
+                } else {
+                    suggestBox.style.display = 'none';
+                }
+            },
+            insertMention: (username) => {
+                const input = document.getElementById('inp-chat-msg');
+                const cursorPosition = input.selectionStart;
+                const textBeforeCursor = input.value.substring(0, cursorPosition);
+                const textAfterCursor = input.value.substring(cursorPosition);
+                
+                const words = textBeforeCursor.split(/\s+/);
+                words.pop(); // Remove the typed @term
+                const newTextBefore = words.length > 0 ? words.join(' ') + ' ' : '';
+                
+                const insertText = '@' + username + ' ';
+                input.value = newTextBefore + insertText + textAfterCursor;
+                document.getElementById('mention-suggestions').style.display = 'none';
+                input.focus();
+                
+                const newPos = newTextBefore.length + insertText.length;
+                input.setSelectionRange(newPos, newPos);
+            },
             showNotification: (title, body, roomId) => {
                 if (localStorage.getItem('qd_notif_state') === 'false') return;
 
                 try {
-                    if (window.Sound.msgAudio) {
-                        window.Sound.msgAudio.currentTime = 0;
-                        window.Sound.msgAudio.play().catch(e => console.log('Autoplay blocked'));
-                    }
+                    window.Sound.initCtx();
+                    const osc = window.Sound.ctx.createOscillator();
+                    const gain = window.Sound.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, window.Sound.ctx.currentTime); 
+                    osc.frequency.exponentialRampToValueAtTime(440, window.Sound.ctx.currentTime + 0.1); 
+                    gain.gain.setValueAtTime(0.2, window.Sound.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, window.Sound.ctx.currentTime + 0.2);
+                    osc.connect(gain); gain.connect(window.Sound.ctx.destination);
+                    osc.start(); osc.stop(window.Sound.ctx.currentTime + 0.2);
                 } catch(e) {}
 
                 if ("Notification" in window && Notification.permission === "granted") {
@@ -1783,9 +1852,8 @@
                                 const isMentioned = data.text && mentionRegex.test(data.text);
                                 if (isMentioned) {
                                     window.Utils.toast(`💬 ${data.from} vừa nhắc đến bạn!`, "warning");
-                                    if (window.Sound.msgAudio && localStorage.getItem('qd_notif_state') !== 'false') {
-                                        window.Sound.msgAudio.currentTime = 0;
-                                        window.Sound.msgAudio.play().catch(e => console.log('Autoplay blocked'));
+                                    if (localStorage.getItem('qd_notif_state') !== 'false') {
+                                        window.Sound.playTick();
                                     }
                                 }
                             }
@@ -1991,6 +2059,7 @@
                 const i = document.getElementById('inp-chat-msg'); if(!i) return; 
                 const t = i.value.trim(); if(!t || !State.chatTarget) return; 
                 i.value = ""; i.style.height = 'auto'; i.focus(); 
+                document.getElementById('mention-suggestions').style.display = 'none'; 
                 
                 const roomId = State.chatTarget === 'general' ? 'general_room' : Utils.getRoomId(State.currentUser, State.chatTarget);
                 const targetUser = State.chatTarget === 'general' ? 'all' : State.chatTarget;
@@ -3362,7 +3431,16 @@
         };
 
         // Kích hoạt đồng bộ khi tải DOM
-        document.addEventListener("DOMContentLoaded", () => {
+        
+        // Hide suggestion box when clicking outside
+        document.addEventListener('click', (e) => {
+            const suggestBox = document.getElementById('mention-suggestions');
+            const input = document.getElementById('inp-chat-msg');
+            if (suggestBox && e.target !== input && !suggestBox.contains(e.target)) {
+                suggestBox.style.display = 'none';
+            }
+        });
+document.addEventListener("DOMContentLoaded", () => {
         // Mouse tracking for glassy cards
         document.querySelectorAll('.bento-action').forEach(card => {
             card.addEventListener('mousemove', e => {
