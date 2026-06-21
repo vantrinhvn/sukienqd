@@ -1633,7 +1633,7 @@
 
         /** 5.5 SESSION MANAGEMENT (TỰ ĐỘNG ĐĂNG XUẤT) */
         window.SessionManager = {
-            timeoutLimit: 3600000, 
+            timeoutLimit: 21600000, // 6 hours (6 * 60 * 60 * 1000)
             timer: null,
             init: () => {
                 ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
@@ -1685,20 +1685,20 @@
                         }
                     };
 
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.ready.then(function(registration) {
-                            registration.showNotification(title, options);
-                        }).catch(e => {
-                            try {
-                                const notif = new Notification(title, options);
-                                notif.onclick = handleNotifClick;
-                            } catch(err) { console.log('Notification API fallback failed', err); }
-                        });
-                    } else {
-                        try {
-                            const notif = new Notification(title, options);
-                            notif.onclick = handleNotifClick;
-                        } catch(err) { console.log('Notification API fallback failed', err); }
+                    try {
+                        // 1. Phóng thẳng thông báo hệ thống (Instant Local Notification - Tốc độ bàn thờ)
+                        const notif = new Notification(title, options);
+                        notif.onclick = handleNotifClick;
+                    } catch(err) {
+                        // 2. Fallback: Nếu trình duyệt (Chrome Android/Safari) chặn tạo Notification trực tiếp khi ở chế độ ngầm (Background)
+                        // Bắt buộc phải mượn tay Service Worker để bắn thông báo
+                        if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.getRegistration().then(function(reg) {
+                                if (reg) {
+                                    reg.showNotification(title, options);
+                                }
+                            });
+                        }
                     }
                 }
             },
