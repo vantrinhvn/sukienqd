@@ -698,9 +698,14 @@
                 <div class="relative"><i class="fa-solid fa-user absolute text-muted" style="left: 20px; top: 50%; transform: translateY(-50%); font-size: 18px;"></i><input type="text" id="login-usr" class="form-control" style="padding-left: 60px; border-radius: var(--radius-full);" placeholder="Nhập username của bạn..." spellcheck="false" autocomplete="off"></div>
             </div>
             
-            <div class="form-group mb-10">
+            <div class="form-group mb-6">
                 <label class="form-label text-left">Mật Khẩu</label>
                 <div class="relative"><i class="fa-solid fa-lock absolute text-muted" style="left: 20px; top: 50%; transform: translateY(-50%); font-size: 18px;"></i><input type="password" id="login-pwd" class="form-control" style="padding-left: 60px; border-radius: var(--radius-full);" placeholder="Nhập password bảo mật..." onkeypress="if(event.key==='Enter') window.Auth.login()"></div>
+            </div>
+
+            <div class="flex items-center gap-2 mb-8 ml-2 cursor-pointer" onclick="const cb = document.getElementById('remember-me'); cb.checked = !cb.checked; cb.dispatchEvent(new Event('change'));">
+                <input type="checkbox" id="remember-me" style="width: 18px; height: 18px; accent-color: var(--brand-primary); cursor: pointer;" onclick="event.stopPropagation()">
+                <label for="remember-me" class="text-sm text-muted cursor-pointer select-none">Ghi nhớ tài khoản</label>
             </div>
 
             <button class="btn btn-primary w-full" style="padding: 20px; font-size: 18px;" id="btn-login" onclick="window.Auth.login()">Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i></button>
@@ -1438,6 +1443,16 @@
                     }
                     else {
                         const docData = snap.docs[0].data();
+                        
+                        // Xử lý Ghi nhớ đăng nhập
+                        const isRemember = document.getElementById('remember-me').checked;
+                        if (isRemember) {
+                            localStorage.setItem('qd_saved_usr', u);
+                            localStorage.setItem('qd_saved_pwd', p);
+                        } else {
+                            localStorage.removeItem('qd_saved_usr');
+                            localStorage.removeItem('qd_saved_pwd');
+                        }
                         
                         // Nếu tài khoản đang bị khóa
                         if(docData.isBlocked) { 
@@ -3403,6 +3418,15 @@
         });
  
             window.Theme.init(); window.Music.init(); window.SessionManager.init(); 
+            
+            // Restore saved credentials
+            const savedUsr = localStorage.getItem('qd_saved_usr');
+            const savedPwd = localStorage.getItem('qd_saved_pwd');
+            if (savedUsr && savedPwd) {
+                document.getElementById('login-usr').value = savedUsr;
+                document.getElementById('login-pwd').value = savedPwd;
+                document.getElementById('remember-me').checked = true;
+            }
         });
     </script>
 </body>
