@@ -1796,6 +1796,20 @@
                             if (data.from !== State.currentUser && data.time > State.appStartTime && State.chatTarget !== data.from) {
                                 const dN = State.nicknames[data.from] || data.from;
                                 window.Chat.showNotification(`Tin nhắn từ ${dN}`, data.text || "Đã gửi một ảnh đính kèm", data.conversationId);
+                                
+                                // Cập nhật live số tin nhắn chưa đọc cho liên hệ
+                                const roomId = Utils.getRoomId(State.currentUser, data.from);
+                                db.collection("private_chat").where("conversationId", "==", roomId).where("to", "==", State.currentUser).where("read", "==", false).get().then(unreadSnap => {
+                                    const unreadCount = unreadSnap.size;
+                                    const card = document.getElementById(`contact-${data.from}`);
+                                    if (card) {
+                                        const nameDiv = card.querySelector('.font-bold.text-main');
+                                        if (nameDiv) {
+                                            const unreadHtml = unreadCount > 0 ? `<span class="unread-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>` : '';
+                                            nameDiv.innerHTML = `${dN} ${unreadHtml}`;
+                                        }
+                                    }
+                                });
                             }
                         }
                     });
@@ -1810,7 +1824,13 @@
                 State.chatTarget = u; document.querySelectorAll('.contact-card').forEach(el => el.classList.remove('active'));
                 
                 const cardId = u === 'general' ? 'contact-general' : `contact-${u}`;
-                document.getElementById(cardId)?.classList.add('active');
+                const card = document.getElementById(cardId);
+                if (card) {
+                    card.classList.add('active');
+                    // Xóa ngay lập tức badge chưa đọc khi click vào tin nhắn
+                    const badge = card.querySelector('.unread-badge');
+                    if (badge) badge.remove();
+                }
                 
                 const emp = document.getElementById('chat-empty-ui'); const act = document.getElementById('chat-active-ui');
                 if(emp && act) { emp.style.display = 'none'; act.style.display = 'flex'; }
@@ -3004,10 +3024,16 @@
             renderTournamentFilters: () => {
                 const filtersContainer = document.getElementById('tournament-team-filters');
                 if (!filtersContainer) return;
+                filtersContainer.className = 'flex-col gap-3 mb-6';
+                filtersContainer.style.display = 'flex';
                 filtersContainer.innerHTML = `
-                    <button class="btn btn-primary" onclick="window.AppCore.renderTournamentView('all_members', this)">Các Thành Viên</button>
-                    <button class="btn btn-outline" onclick="window.AppCore.renderTournamentView('all_teams', this)">Các Đội</button>
-                    <button class="btn btn-outline" onclick="window.AppCore.renderTournamentView('leaderboard', this)"><i class="fa-solid fa-ranking-star text-warning mr-1"></i> Bảng Điểm</button>
+                    <div class="flex gap-3 w-full">
+                        <button class="btn btn-primary flex-1" onclick="window.AppCore.renderTournamentView('all_members', this)">Các Thành Viên</button>
+                        <button class="btn btn-outline flex-1" onclick="window.AppCore.renderTournamentView('all_teams', this)">Các Đội</button>
+                    </div>
+                    <button class="btn btn-outline w-full" style="padding: 14px 0; font-size: 15px;" onclick="window.AppCore.renderTournamentView('leaderboard', this)">
+                        <i class="fa-solid fa-ranking-star text-warning mr-2" style="font-size: 18px;"></i> Bảng Điểm Quân Đoàn
+                    </button>
                 `;
             },
 
@@ -3028,7 +3054,7 @@
                 if (mode === 'all_members') {
                     renderHtml += `
                         <div class="table-responsive">
-                            <table class="w-full text-left" style="border-collapse: collapse; min-width: 600px;">
+                            <table class="w-full text-left" style="border-collapse: collapse; min-width: 450px;">
                                 <thead>
                                     <tr style="background: var(--bg-surface); border-bottom: 1px solid var(--border-strong);">
                                         <th class="p-4 text-muted text-sm uppercase" style="width: 60px; text-align: center;">STT</th>
@@ -3083,7 +3109,7 @@
                                     <span class="text-muted text-sm font-normal ml-2">(${members.length} Tuyển thủ)</span>
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="w-full text-left" style="border-collapse: collapse; min-width: 600px;">
+                                    <table class="w-full text-left" style="border-collapse: collapse; min-width: 450px;">
                                         <thead>
                                             <tr style="background: var(--bg-surface); border-bottom: 1px solid var(--border-strong);">
                                                 <th class="p-4 text-muted text-sm uppercase" style="width: 60px; text-align: center;">STT</th>
@@ -3121,10 +3147,10 @@
                     
                     renderHtml += `
                         <div class="table-responsive">
-                            <table class="w-full text-left" style="border-collapse: collapse; min-width: 400px;">
+                            <table class="w-full text-left" style="border-collapse: collapse;">
                                 <thead>
                                     <tr style="background: var(--bg-surface); border-bottom: 1px solid var(--border-strong);">
-                                        <th class="p-4 text-muted text-sm uppercase" style="width: 80px; text-align: center;">Hạng</th>
+                                        <th class="p-4 text-muted text-sm uppercase" style="width: 50px; text-align: center;">Hạng</th>
                                         <th class="p-4 text-muted text-sm uppercase">Tuyển Thủ</th>
                                         <th class="p-4 text-muted text-sm uppercase text-right">Điểm Tích Lũy</th>
                                     </tr>
@@ -3144,17 +3170,17 @@
                                 <td class="p-4 font-bold text-center" style="color: ${rankColor}; text-shadow: 0 0 10px rgba(0,0,0,0.2); font-size: 16px;">
                                     ${rankIcon}${index + 1}
                                 </td>
-                                <td class="p-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="avatar-circle" style="width:36px; height:36px; font-size:14px; background:var(--brand-primary-soft); color:var(--brand-primary);">${d.username.charAt(0).toUpperCase()}</div>
-                                        <div class="flex-col">
-                                            <b class="text-main">${d.username}</b>
-                                            <span class="text-xs text-muted">${d.team || 'Chưa phân đội'}</span>
+                                <td class="p-4" style="min-width: 150px;">
+                                    <div class="flex items-center gap-2">
+                                        <div class="avatar-circle hidden-mobile" style="width:32px; height:32px; font-size:13px; background:var(--brand-primary-soft); color:var(--brand-primary);">${d.username.charAt(0).toUpperCase()}</div>
+                                        <div class="flex-col" style="overflow: hidden;">
+                                            <b class="text-main" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: block;">${d.username}</b>
+                                            <span class="text-xs text-muted" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: block;">${d.team || 'Chưa phân đội'}</span>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="p-4 text-right">
-                                    <span class="badge badge-success px-4 py-2" style="font-size: 15px; font-family: var(--font-family-mono); box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.2);">
+                                <td class="p-4 text-right" style="white-space: nowrap;">
+                                    <span class="badge badge-success px-3 py-1" style="font-size: 14px; font-family: var(--font-family-mono); box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.2);">
                                         <i class="fa-solid fa-star mr-1"></i> ${d.points || 0}
                                     </span>
                                 </td>
