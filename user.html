@@ -3430,6 +3430,77 @@
             }
         };
 
+
+        window.Transfer = {
+            execute: async () => {
+                const targetUser = document.getElementById('transfer-target').value.trim();
+                const type = document.getElementById('transfer-type').value;
+                const amount = parseInt(document.getElementById('transfer-amount').value);
+                const btn = document.getElementById('btn-execute-transfer');
+
+                if (!targetUser) return Utils.toast("Vui lòng nhập tên người nhận!", "warning");
+                if (targetUser === State.currentUser) return Utils.toast("Bạn không thể tự chuyển quà cho chính mình!", "error");
+                if (isNaN(amount) || amount <= 0) return Utils.toast("Số lượng chuyển phải lớn hơn 0!", "warning");
+
+                const typeName = type === 'spins' ? 'Lượt Quay' : 'Lượt Xé Vé';
+                const currentBalance = type === 'spins' ? State.availableSpins : State.availableTickets;
+
+                if (amount > currentBalance) {
+                    return Utils.toast(`Bạn không đủ số lượng để chuyển. Hiện tại bạn có: ${currentBalance} ${typeName}`, "error");
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang Xử Lý...`;
+
+                try {
+                    const targetSnap = await db.collection("accounts").where("user", "==", targetUser).get();
+                    if (targetSnap.empty) {
+                        btn.disabled = false;
+                        btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> Xác Nhận Chuyển`;
+                        return Utils.toast("Tài khoản người nhận không tồn tại!", "error");
+                    }
+
+                    const targetDoc = targetSnap.docs[0];
+                    const targetId = targetDoc.id;
+
+                    await db.runTransaction(async (transaction) => {
+                        const myRef = db.collection("accounts").doc(State.currentDocId);
+                        const targetRef = db.collection("accounts").doc(targetId);
+
+                        const myDoc = await transaction.get(myRef);
+                        const myData = myDoc.data();
+                        const myCurrentBal = myData[type] || 0;
+                        if (myCurrentBal < amount) {
+                            throw new Error("INSUFFICIENT_FUNDS");
+                        }
+
+                        transaction.update(myRef, {
+                            [type]: firebase.firestore.FieldValue.increment(-amount)
+                        });
+
+                        transaction.update(targetRef, {
+                            [type]: firebase.firestore.FieldValue.increment(amount)
+                        });
+                    });
+
+                    Utils.toast(`Giao dịch thành công! Đã tặng ${amount} ${typeName} cho ${targetUser}`, "success");
+                    document.getElementById('transfer-target').value = '';
+                    document.getElementById('transfer-amount').value = '';
+                    window.UI.closeModal('modal-transfer');
+
+                } catch (error) {
+                    if (error.message === "INSUFFICIENT_FUNDS") {
+                        Utils.toast("Số dư của bạn không đủ để thực hiện!", "error");
+                    } else {
+                        Utils.toast("Lỗi hệ thống khi thực hiện chuyển quà.", "error");
+                    }
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> Xác Nhận Chuyển`;
+                }
+            }
+        };
+
         // Kích hoạt đồng bộ khi tải DOM
         document.addEventListener("DOMContentLoaded", () => {
         // Mouse tracking for glassy cards
