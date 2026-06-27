@@ -3481,6 +3481,15 @@
                         transaction.update(targetRef, {
                             [type]: firebase.firestore.FieldValue.increment(amount)
                         });
+
+                        const historyRef = db.collection("transfer_history").doc();
+                        transaction.set(historyRef, {
+                            from: State.currentUser,
+                            to: targetUser,
+                            type: type,
+                            amount: amount,
+                            timestamp: Date.now()
+                        });
                     });
 
                     Utils.toast(`Giao dịch thành công! Đã tặng ${amount} ${typeName} cho ${targetUser}`, "success");
