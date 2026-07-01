@@ -11198,8 +11198,14 @@ tr:hover td { background: #f8fafc; }
                 db.collection("settings").doc("wheel_config").onSnapshot(doc => {
                     let isEnabled = true;
                     if(doc.exists) {
-                        if(doc.data().prizes) State.wheelPrizes = doc.data().prizes;
-                        if(doc.data().isEnabled !== undefined) isEnabled = doc.data().isEnabled;
+                        const data = doc.data();
+                        if(data.prizes) State.wheelPrizes = data.prizes;
+                        if(data.isEnabled !== undefined) isEnabled = data.isEnabled;
+                        
+                        if (isEnabled && data.endDate && data.endTime) {
+                            const deadline = new Date(`${data.endDate}T${data.endTime}`).getTime();
+                            if (Date.now() >= deadline) isEnabled = false;
+                        }
                     } else {
                         State.wheelPrizes = [{text:"10K", chance:10}, {text:"Chúc May Mắn", chance:90}];
                     }
@@ -11210,8 +11216,14 @@ tr:hover td { background: #f8fafc; }
                 db.collection("settings").doc("tranhthuong_config").onSnapshot(doc => {
                     let isEnabled = true;
                     if(doc.exists) {
-                        if(doc.data().prizes) State.ticketPrizes = doc.data().prizes;
-                        if(doc.data().isEnabled !== undefined) isEnabled = doc.data().isEnabled;
+                        const data = doc.data();
+                        if(data.prizes) State.ticketPrizes = data.prizes;
+                        if(data.isEnabled !== undefined) isEnabled = data.isEnabled;
+                        
+                        if (isEnabled && data.endDate && data.endTime) {
+                            const deadline = new Date(`${data.endDate}T${data.endTime}`).getTime();
+                            if (Date.now() >= deadline) isEnabled = false;
+                        }
                     } else {
                         State.ticketPrizes = [{text:"10K", chance:10}, {text:"Chúc May Mắn", chance:90}];
                     }
