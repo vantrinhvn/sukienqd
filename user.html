@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="light">
+<html lang="vi" data-theme="tet">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8564,9 +8564,211 @@ tr:hover td { background: #f8fafc; }
 .v5-extra-padding-447 { padding-top: 447px !important; }
 .v5-extra-padding-448 { padding-top: 448px !important; }
 .v5-extra-padding-449 { padding-top: 449px !important; }
+
+        /* TẾT 2027 THEME */
+        
+        /* TỐI ƯU CHỮ DỄ NHÌN VÀ GIAO DIỆN SINH ĐỘNG (TẾT) */
+        [data-theme="tet"] {
+            --bg-body: #780000; --bg-surface: #c1121f; --bg-elevated: #a10000; --bg-hover: #d62828;
+            --bg-glass: rgba(133, 0, 0, 0.85);
+            --text-main: #ffffff !important; /* Trắng tinh để dễ nhìn trên nền đỏ */
+            --text-muted: #fef08a !important; 
+            --border-strong: #ffd700; --border-subtle: rgba(255, 215, 0, 0.3);
+            --brand-primary: #ffd700; --brand-primary-hover: #ffea00;
+        }
+        
+        /* 1. TEXT ĐẬM, CÓ BÓNG ĐEN ĐỂ TĂNG ĐỘ TƯƠNG PHẢN CỰC ĐẠI */
+        [data-theme="tet"] h1, [data-theme="tet"] h2, [data-theme="tet"] h3, [data-theme="tet"] .bento-action h3 {
+            color: #ffd700 !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,215,0,0.3) !important;
+            font-weight: 900 !important;
+        }
+        [data-theme="tet"] p, [data-theme="tet"] span, [data-theme="tet"] label, [data-theme="tet"] td, [data-theme="tet"] th {
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6) !important;
+            font-weight: 600 !important;
+        }
+        
+        /* 2. THANH MENU SÁNG HƠN & HOẠT ẢNH NEON */
+        [data-theme="tet"] .floating-sidebar { 
+            background: linear-gradient(180deg, rgba(140,0,0,0.95) 0%, rgba(100,0,0,0.95) 100%); 
+            border: 2px solid #ffd700; 
+            box-shadow: 0 0 20px rgba(255,215,0,0.2), inset 0 0 15px rgba(255,215,0,0.1); 
+        }
+        [data-theme="tet"] .nav-item.active { 
+            background: linear-gradient(90deg, rgba(255,215,0,0.3) 0%, transparent 100%); 
+            border-left: 5px solid #ffd700; 
+            text-shadow: 0 0 5px #ffd700 !important;
+        }
+        [data-theme="tet"] .nav-item i { filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.8)); }
+
+        /* 3. NÚT BẤM SINH ĐỘNG (NHỊP TIM / PHÁT SÁNG) */
+        @keyframes tetPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+        [data-theme="tet"] .btn-primary { 
+            background: linear-gradient(135deg, #ffd700, #ffaa00) !important; 
+            color: #850000 !important; 
+            border: 2px solid #fff !important; 
+            font-weight: 900 !important; 
+            text-shadow: none !important;
+            animation: tetPulse 2s infinite;
+        }
+        [data-theme="tet"] .btn-primary:hover { 
+            background: #fff !important; color: #d62828 !important; border-color: #ffd700 !important;
+        }
+        
+        /* 4. MÀN HÌNH ĐĂNG NHẬP CỰC DỄ NHÌN */
+        [data-theme="tet"] .auth-box { 
+            background: rgba(100, 0, 0, 0.85) !important; /* Tối nền đỏ lại để nổi chữ */
+            border: 3px solid #ffd700 !important; 
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5) !important; 
+        }
+        [data-theme="tet"] .auth-box h1 { font-size: 32px; letter-spacing: 2px; }
+        [data-theme="tet"] .auth-box .form-control { 
+            background: rgba(0, 0, 0, 0.6) !important; /* Đen mờ để chữ trắng nổi lên */
+            border: 2px solid #ffd700 !important; 
+            color: #ffffff !important; 
+            font-size: 16px;
+            font-weight: 700;
+        }
+        [data-theme="tet"] .auth-box .form-control::placeholder { color: rgba(255, 255, 255, 0.7) !important; }
+        [data-theme="tet"] .auth-box .form-control:focus { background: rgba(0,0,0,0.8) !important; box-shadow: 0 0 20px rgba(255,215,0,0.6) !important; }
+
+        /* 5. CÁC THẺ CHỨC NĂNG (BENTO) NỔI BẬT & NHÚN NHẢY */
+        @keyframes floatEffect {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        [data-theme="tet"] .bento-action { 
+            background: linear-gradient(135deg, #a10000 0%, #780000 100%); 
+            border: 2px solid rgba(255,215,0,0.5); 
+        }
+        [data-theme="tet"] .bento-action:hover { 
+            border-color: #ffd700; 
+            background: linear-gradient(135deg, #c1121f 0%, #a10000 100%);
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.3); 
+        }
+        [data-theme="tet"] .bento-action:hover .bento-icon {
+            animation: floatEffect 1s ease-in-out infinite;
+            background: #ffd700 !important; color: #a10000 !important;
+            box-shadow: 0 0 25px #ffd700;
+        }
+        
+        
+        /* 7. TỐI ƯU GIAO DIỆN DANH BẠ CHAT (CHỐNG CHÓI DO BỊ GHI ĐÈ NỀN TRẮNG) */
+        [data-theme="tet"] .chat-module {
+            background: rgba(90, 0, 0, 0.9) !important;
+            border: 2px solid #ffd700 !important;
+            box-shadow: 0 0 30px rgba(255,215,0,0.2) !important;
+        }
+        [data-theme="tet"] .chat-main {
+            background: rgba(60, 0, 0, 0.95) !important;
+        }
+        [data-theme="tet"] .chat-sidebar, 
+        [data-theme="tet"] .contact-list {
+            background: rgba(70, 0, 0, 0.95) !important;
+            border-right: 1px solid rgba(255,215,0,0.3) !important;
+        }
+        [data-theme="tet"] .contact-card {
+            background: rgba(0, 0, 0, 0.4) !important;
+            border: 1px solid transparent !important;
+            border-radius: var(--radius-md) !important;
+            margin-bottom: 6px;
+            transition: all 0.3s ease !important;
+        }
+        [data-theme="tet"] .contact-card:hover {
+            background: rgba(200, 0, 0, 0.6) !important;
+            border-color: rgba(255,215,0,0.5) !important;
+            transform: translateX(5px);
+        }
+        [data-theme="tet"] .contact-card.active {
+            background: linear-gradient(90deg, rgba(214, 40, 40, 0.9) 0%, rgba(133, 0, 0, 0.9) 100%) !important;
+            border-left: 5px solid #ffd700 !important;
+            border-color: #ffd700 !important;
+            box-shadow: 0 0 15px rgba(255,215,0,0.3) !important;
+        }
+        [data-theme="tet"] .contact-card h4, 
+        [data-theme="tet"] .contact-card span:not(.status-indicator) {
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
+        }
+        [data-theme="tet"] .contact-card .text-muted,
+        [data-theme="tet"] .contact-card p,
+        [data-theme="tet"] .contact-card small {
+            color: #fef08a !important; /* Chữ phụ màu vàng nhạt */
+            font-weight: 600 !important;
+        }
+        [data-theme="tet"] .chat-header,
+        [data-theme="tet"] .chat-search-wrap,
+        [data-theme="tet"] .chat-input-wrapper {
+            background: rgba(100, 0, 0, 0.95) !important;
+            border-color: rgba(255,215,0,0.3) !important;
+        }
+
+        /* 6. HIỆU ỨNG NỀN MAI VÀNG RƠI (SNOWFALL ĐỔI MÀU) TẠO SỰ SINH ĐỘNG */
+        @keyframes tetSnow {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0.2; }
+        }
+        .tet-flower {
+            position: fixed; width: 12px; height: 12px;
+            background: #ffd700; border-radius: 50%;
+            box-shadow: 0 0 10px #ffd700, 0 0 20px #ffea00;
+            pointer-events: none; z-index: 1;
+            animation: tetSnow linear infinite;
+        }
+        /* Sinh động thêm cho Body */
+        [data-theme="tet"] body {
+            background-color: #5a0000 !important; /* Đỏ đô cực tối làm nền, tôn các thẻ đỏ tươi lên */
+            background-image: radial-gradient(circle at top right, #850000, transparent 40%),
+                              radial-gradient(circle at bottom left, #850000, transparent 40%) !important;
+        }
+        [data-theme="tet"] .workspace-area { background: transparent !important; }
+
+
+
+        /* Animation Hoa Rơi & Lồng đèn */
+        .tet-lantern { position: fixed; top: 0; z-index: 1045; pointer-events: none; width: 80px; animation: swing 3s ease-in-out infinite alternate; transform-origin: top center; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8)); }
+        .tet-lantern.left { left: 20px; }
+        .tet-lantern.right { right: 20px; animation-delay: -1.5s; }
+        @keyframes swing { 0% { transform: rotate(-5deg); } 100% { transform: rotate(5deg); } }
+        
+        .hoa-mai { position: fixed; z-index: 1040; pointer-events: none; color: #ffd700; text-shadow: 0 0 5px #ffea00; animation: fall linear infinite; user-select: none; }
+        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg) scale(0.5); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg) scale(1); opacity: 0; } }
+        
+        @media (max-width: 768px) {
+            .tet-lantern { width: 50px; }
+        }
+
 </style>
 </head>
 <body>
+    <!-- LỒNG ĐÈN TẾT -->
+    <img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDwhLS0gRMOieSB0cmVvIC0tPgogICAgPGxpbmUgeDE9IjUwIiB5MT0iMCIgeDI9IjUwIiB5Mj0iMjAiIHN0cm9rZT0iI2YxYzQwZiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8IS0tIE7huq9wIGzhu5NuZyDEkcOobiAodHLDqm4pIC0tPgogICAgPHBhdGggZD0iTSAzNSAyMCBRIDUwIDEwIDY1IDIwIEwgNjAgMjUgTCA0MCAyNSBaIiBmaWxsPSIjZjFjNDBmIi8+CiAgICA8IS0tIFRow6JuIGzhu5NuZyDEkcOobiAtLT4KICAgIDxwYXRoIGQ9Ik0gNDAgMjUgQyAxMCAyNSAxMCA5NSA0MCA5NSBMIDYwIDk1IEMgOTAgOTUgOTAgMjUgNjAgMjUgWiIgZmlsbD0iI2U3NGMzYyIvPgogICAgPCEtLSBDw6FjIMSRxrDhu51uZyB2w6JuIHRyw6puIHRow6JuIC0tPgogICAgPHBhdGggZD0iTSA1MCAyNSBRIDQwIDYwIDUwIDk1IiBmaWxsPSJub25lIiBzdHJva2U9IiNjMDM5MmIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNIDUwIDI1IFEgNjAgNjAgNTAgOTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwMzkyYiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICAgIDxwYXRoIGQ9Ik0gNTAgMjUgUSAyNSA2MCA1MCA5NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzAzOTJiIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogICAgPHBhdGggZD0iTSA1MCAyNSBRIDc1IDYwIDUwIDk1IiBmaWxsPSJub25lIiBzdHJva2U9IiNjMDM5MmIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8IS0tIE7huq9wIGzhu5NuZyDEkcOobiAoZMaw4bubaSkgLS0+CiAgICA8cGF0aCBkPSJNIDQwIDk1IFEgNTAgMTAwIDYwIDk1IEwgNTUgMTAwIEwgNDUgMTAwIFoiIGZpbGw9IiNmMWM0MGYiLz4KICAgIDwhLS0gxJB1w7RpIGzhu5NuZyDEkcOobiAtLT4KICAgIDxyZWN0IHg9IjQ4IiB5PSIxMDAiIHdpZHRoPSI0IiBoZWlnaHQ9IjE1IiBmaWxsPSIjZjFjNDBmIi8+CiAgICA8IS0tIFR1YSBydWEgLS0+CiAgICA8cGF0aCBkPSJNIDQ1IDExNSBMIDU1IDExNSBMIDYwIDE0NSBMIDU1IDE0NSBMIDUwIDEyNSBMIDQ1IDE0NSBMIDQwIDE0NSBaIiBmaWxsPSIjZTc0YzNjIi8+Cjwvc3ZnPg==" class="tet-lantern left" alt="Lantern">
+    <img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDwhLS0gRMOieSB0cmVvIC0tPgogICAgPGxpbmUgeDE9IjUwIiB5MT0iMCIgeDI9IjUwIiB5Mj0iMjAiIHN0cm9rZT0iI2YxYzQwZiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8IS0tIE7huq9wIGzhu5NuZyDEkcOobiAodHLDqm4pIC0tPgogICAgPHBhdGggZD0iTSAzNSAyMCBRIDUwIDEwIDY1IDIwIEwgNjAgMjUgTCA0MCAyNSBaIiBmaWxsPSIjZjFjNDBmIi8+CiAgICA8IS0tIFRow6JuIGzhu5NuZyDEkcOobiAtLT4KICAgIDxwYXRoIGQ9Ik0gNDAgMjUgQyAxMCAyNSAxMCA5NSA0MCA5NSBMIDYwIDk1IEMgOTAgOTUgOTAgMjUgNjAgMjUgWiIgZmlsbD0iI2U3NGMzYyIvPgogICAgPCEtLSBDw6FjIMSRxrDhu51uZyB2w6JuIHRyw6puIHRow6JuIC0tPgogICAgPHBhdGggZD0iTSA1MCAyNSBRIDQwIDYwIDUwIDk1IiBmaWxsPSJub25lIiBzdHJva2U9IiNjMDM5MmIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNIDUwIDI1IFEgNjAgNjAgNTAgOTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwMzkyYiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICAgIDxwYXRoIGQ9Ik0gNTAgMjUgUSAyNSA2MCA1MCA5NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzAzOTJiIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogICAgPHBhdGggZD0iTSA1MCAyNSBRIDc1IDYwIDUwIDk1IiBmaWxsPSJub25lIiBzdHJva2U9IiNjMDM5MmIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8IS0tIE7huq9wIGzhu5NuZyDEkcOobiAoZMaw4bubaSkgLS0+CiAgICA8cGF0aCBkPSJNIDQwIDk1IFEgNTAgMTAwIDYwIDk1IEwgNTUgMTAwIEwgNDUgMTAwIFoiIGZpbGw9IiNmMWM0MGYiLz4KICAgIDwhLS0gxJB1w7RpIGzhu5NuZyDEkcOobiAtLT4KICAgIDxyZWN0IHg9IjQ4IiB5PSIxMDAiIHdpZHRoPSI0IiBoZWlnaHQ9IjE1IiBmaWxsPSIjZjFjNDBmIi8+CiAgICA8IS0tIFR1YSBydWEgLS0+CiAgICA8cGF0aCBkPSJNIDQ1IDExNSBMIDU1IDExNSBMIDYwIDE0NSBMIDU1IDE0NSBMIDUwIDEyNSBMIDQ1IDE0NSBMIDQwIDE0NSBaIiBmaWxsPSIjZTc0YzNjIi8+Cjwvc3ZnPg==" class="tet-lantern right" alt="Lantern">
+    
+    <!-- SCRIPT TẠO HOA MAI RƠI -->
+    <script>
+        function createHoaMai() {
+            const hoa = document.createElement('i');
+            hoa.className = 'fa-solid fa-fan hoa-mai'; // Dùng icon quạt/hoa để mô phỏng hoa mai
+            hoa.style.left = Math.random() * 100 + 'vw';
+            hoa.style.animationDuration = Math.random() * 3 + 4 + 's'; // 4s - 7s
+            hoa.style.opacity = Math.random();
+            hoa.style.fontSize = Math.random() * 15 + 10 + 'px'; // 10px - 25px
+            
+            document.body.appendChild(hoa);
+            
+            setTimeout(() => {
+                hoa.remove();
+            }, 7000);
+        }
+        setInterval(createHoaMai, 300);
+    </script>
+
 
     <div id="toast-container"></div>
     <div class="modal-overlay" id="modal-confirm" style="z-index: 999999;">
@@ -8619,14 +8821,14 @@ tr:hover td { background: #f8fafc; }
         <div class="modal-box text-center">
             <button class="modal-close-btn" onclick="window.UI.closeModal('modal-point-shop')"><i class="fa-solid fa-xmark"></i></button>
             <div class="flex-center mx-auto mb-4" style="width: 70px; height: 70px; border-radius: 20px; background: rgba(16, 185, 129, 0.15); color: var(--color-success); font-size: 32px; display: flex; align-items: center; justify-content: center;">
-                <i class="fa-solid fa-store"></i>
+                <i class="fa-solid fa-gifts"></i>
             </div>
             <h2 class="text-2xl mb-2">Trạm Quy Đổi Vật Phẩm</h2>
             <p class="text-muted text-sm mb-6">Số dư hiện tại của bạn: <b class="text-success" id="shop-current-points">0</b> Điểm</p>
 
             <div class="flex justify-between items-center p-4 mb-4 bg-elevated rounded-xl border-strong" style="border: 1px solid var(--border-strong);">
                 <div class="flex items-center gap-3">
-                    <div class="avatar-circle" style="width: 40px; height: 40px; background: var(--color-warning-bg); color: var(--color-warning); font-size: 18px;"><i class="fa-solid fa-dharmachakra"></i></div>
+                    <div class="avatar-circle" style="width: 40px; height: 40px; background: var(--color-warning-bg); color: var(--color-warning); font-size: 18px;"><i class="fa-solid fa-fan"></i></div>
                     <div class="text-left">
                         <div class="font-bold text-main">1 Lượt Vòng Quay</div>
                         <div class="text-xs text-muted">Giá: <span id="shop-spin-cost">100</span> Điểm</div>
@@ -8637,9 +8839,9 @@ tr:hover td { background: #f8fafc; }
 
             <div class="flex justify-between items-center p-4 mb-6 bg-elevated rounded-xl border-strong" style="border: 1px solid var(--border-strong);">
                 <div class="flex items-center gap-3">
-                    <div class="avatar-circle" style="width: 40px; height: 40px; background: var(--color-danger-bg); color: var(--color-danger); font-size: 18px;"><i class="fa-solid fa-ticket-alt"></i></div>
+                    <div class="avatar-circle" style="width: 40px; height: 40px; background: var(--color-danger-bg); color: var(--color-danger); font-size: 18px;"><i class="fa-solid fa-envelope-open-text"></i></div>
                     <div class="text-left">
-                        <div class="font-bold text-main">1 Lượt Xé Thẻ</div>
+                        <div class="font-bold text-main">1 Lượt Mở Thẻ</div>
                         <div class="text-xs text-muted">Giá: <span id="shop-ticket-cost">50</span> Điểm</div>
                     </div>
                 </div>
@@ -8665,7 +8867,7 @@ tr:hover td { background: #f8fafc; }
                     <label class="form-label text-xs">Loại Quà Tặng</label>
                     <select id="transfer-type" class="form-control">
                         <option value="spins">Lượt Vòng Quay</option>
-                        <option value="tickets">Lượt Xé Thẻ</option>
+                        <option value="tickets">Lượt Mở Thẻ</option>
                     </select>
                 </div>
                 <div class="form-group mb-0 flex-1 text-left">
@@ -8702,7 +8904,7 @@ tr:hover td { background: #f8fafc; }
     <div class="modal-overlay" id="modal-wheel-result">
         <div class="modal-box text-center">
             <div style="font-size: 70px; color: var(--color-warning); margin-bottom: 10px; text-shadow: 0 0 40px rgba(245,158,11,0.5);">
-                <i class="fa-solid fa-trophy"></i>
+                <i class="fa-solid fa-fire"></i>
             </div>
             <h2 style="font-size: 28px; margin-bottom: 5px; color: #fff; font-weight: 900; text-transform: uppercase;">XIN CHÚC MỪNG!</h2>
             <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 20px;">Bạn vừa quay trúng phần thưởng:</p>
@@ -8747,7 +8949,7 @@ tr:hover td { background: #f8fafc; }
     <div class="modal-overlay" id="modal-rps-result" style="z-index: 999999;">
         <div class="modal-box text-center" style="max-width: 380px; padding: 32px 24px; border-radius: var(--radius-xl);">
             <div class="flex-center mx-auto mb-4" id="rps-result-icon" style="width: 80px; height: 80px; border-radius: 50%; font-size: 36px; display: flex; align-items: center; justify-content: center;">
-                <i class="fa-solid fa-trophy text-warning fa-bounce"></i>
+                <i class="fa-solid fa-fire text-warning fa-bounce"></i>
             </div>
             <h2 class="text-2xl mb-2 font-bold uppercase" id="rps-result-title">KẾT THÚC!</h2>
             <p class="text-main font-bold text-md mb-2" id="rps-result-desc">Đang tải kết quả...</p>
@@ -8766,12 +8968,12 @@ tr:hover td { background: #f8fafc; }
             
             <div class="flex justify-center gap-4 mb-8">
                 <div class="flex-col items-center justify-center p-4 rounded-xl w-1/2" style="border: 1px solid var(--color-warning); background: var(--color-warning-bg); display: flex; transition: var(--transition-fast);">
-                    <i class="fa-solid fa-dharmachakra text-warning text-4xl mb-2"></i>
+                    <i class="fa-solid fa-fan text-warning text-4xl mb-2"></i>
                     <span class="font-bold text-main text-lg">+<span id="popup-reward-spins">1</span> Lượt Quay</span>
                 </div>
                 <div class="flex-col items-center justify-center p-4 rounded-xl w-1/2" style="border: 1px solid var(--color-danger); background: var(--color-danger-bg); display: flex; transition: var(--transition-fast);">
-                    <i class="fa-solid fa-ticket-alt text-danger text-4xl mb-2"></i>
-                    <span class="font-bold text-main text-lg">+<span id="popup-reward-tickets">1</span> Lượt Xé</span>
+                    <i class="fa-solid fa-envelope-open-text text-danger text-4xl mb-2"></i>
+                    <span class="font-bold text-main text-lg">+<span id="popup-reward-tickets">1</span> Lượt Mở</span>
                 </div>
             </div>
 
@@ -8846,7 +9048,10 @@ tr:hover td { background: #f8fafc; }
             <div class="text-left bg-elevated rounded-xl p-5 mb-6 border-strong" style="border: 1px solid var(--border-strong);">
                 <div class="flex justify-between items-center flex-wrap gap-2 mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);">
                     <span class="text-muted">Nhóm quyền</span>
-                    <span class="font-bold text-primary">Thành viên</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-primary" id="profile-role">Thành viên</span>
+                        <a href="admin.html" target="_blank" id="admin-access-btn" class="hidden btn-icon" style="width: 28px; height: 28px; font-size: 12px; background: var(--color-danger); color: #fff; border: none; text-decoration: none;" title="Truy Cập Quản Trị"><i class="fa-solid fa-shield-halved"></i></a>
+                    </div>
                 </div>
                 <div class="flex justify-between items-center flex-wrap gap-2 mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);">
                     <span class="text-muted">Mã ID Khách</span>
@@ -8862,7 +9067,7 @@ tr:hover td { background: #f8fafc; }
             </div>
 
             <div class="text-left bg-elevated rounded-xl p-5 mb-8 border-strong" style="border: 1px solid var(--border-strong); background: rgba(245, 158, 11, 0.05);">
-                <h4 class="mb-3 text-warning"><i class="fa-solid fa-handshake"></i> Nhập Mã Mời Nhận Lượt Xé</h4>
+                <h4 class="mb-3 text-warning"><i class="fa-solid fa-envelope-circle-check"></i> Nhập Mã Mời Nhận Lượt Mở</h4>
                 <div id="invite-input-area">
                     <p class="text-sm text-muted mb-3">Nhập mã của đồng nghiệp để cả 2 cùng nhận lượt xé vé:</p>
                     <div class="flex gap-2">
@@ -8924,25 +9129,23 @@ tr:hover td { background: #f8fafc; }
     <canvas id="particle-canvas"></canvas>
 
     <!-- Theme Switcher Button -->
-    <div class="theme-toggle-btn" id="draggable-theme-btn" title="Đổi Giao Diện (Kéo thả được)">
-        <i class="fa-solid fa-moon" id="theme-icon"></i>
-    </div>
+    
 
     <!-- Inventory Modal -->
     <div class="modal-overlay" id="modal-inventory" style="z-index: 1050;">
         <div class="modal-content" style="padding: 0; overflow: hidden; max-width: 600px;">
             <div class="premium-modal-header">
-                <h2><i class="fa-solid fa-backpack mr-2"></i> Túi Đồ Cá Nhân</h2>
+                <h2><i class="fa-solid fa-backpack mr-2"></i> Túi Quà Cá Nhân</h2>
                 <button class="close-btn" onclick="window.UI.closeModal('modal-inventory')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="inventory-grid" id="inventory-render-area">
                 <div class="inventory-item">
-                    <div class="inventory-icon"><i class="fa-solid fa-ticket-alt"></i></div>
+                    <div class="inventory-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
                     <div class="inventory-name">Vé Xé Thưởng</div>
                     <div class="inventory-qty">Số lượng: <span id="inv-tickets" class="font-bold text-danger">0</span></div>
                 </div>
                 <div class="inventory-item">
-                    <div class="inventory-icon" style="color: var(--brand-primary);"><i class="fa-solid fa-dharmachakra"></i></div>
+                    <div class="inventory-icon" style="color: var(--brand-primary);"><i class="fa-solid fa-fan"></i></div>
                     <div class="inventory-name">Lượt Vòng Quay</div>
                     <div class="inventory-qty">Số lượng: <span id="inv-spins" class="font-bold text-primary">0</span></div>
                 </div>
@@ -8962,7 +9165,7 @@ tr:hover td { background: #f8fafc; }
     <div class="modal-overlay" id="modal-achievements" style="z-index: 1050;">
         <div class="modal-content" style="padding: 0; overflow: hidden; max-width: 600px;">
             <div class="premium-modal-header" style="background: linear-gradient(135deg, var(--color-warning) 0%, #ea580c 100%);">
-                <h2><i class="fa-solid fa-trophy mr-2"></i> Thành Tựu Quân Đoàn</h2>
+                <h2><i class="fa-solid fa-fire mr-2"></i> Thành Tựu Quân Đoàn</h2>
                 <button class="close-btn" onclick="window.UI.closeModal('modal-achievements')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="achievement-list">
@@ -9003,7 +9206,7 @@ tr:hover td { background: #f8fafc; }
                 <div class="nav-item" onclick="window.UI.navigate('chat', this)"><i class="fa-solid fa-comments"></i> <span>Trò Chuyện Nội Bộ</span></div>
                 <div class="nav-item" onclick="window.UI.navigate('attendance', this)"><i class="fa-solid fa-calendar-check"></i> <span>Điểm Danh </span></div>
                 <div class="nav-item" onclick="window.UI.navigate('news', this)"><i class="fa-solid fa-newspaper"></i> <span>Bản Tin Quân Đoàn</span></div>
-                <div class="nav-item" onclick="window.UI.navigate('tournament', this)"><i class="fa-solid fa-trophy"></i> <span>Giải Đấu Máy Chủ</span></div>
+                <div class="nav-item" onclick="window.UI.navigate('tournament', this)"><i class="fa-solid fa-fire"></i> <span>Giải Đấu Máy Chủ</span></div>
             </nav>
             
             <div class="sidebar-profile" onclick="window.UI.openModal('modal-profile')">
@@ -9034,13 +9237,13 @@ tr:hover td { background: #f8fafc; }
                         
                         <div class="bento-hero">
                             <div class="hero-title-area">
-                                <h1 class="mb-2">Chào mừng trở lại, <span class="text-primary" id="dash-name">User</span>!</h1>
-                                <p class="text-muted text-lg mb-0">Bạn đã sẵn sàng lên rank chưa!</p>
+                                <h1 class="mb-2"><i class="fa-solid fa-fire text-danger mr-2"></i>Xuân Đinh Mùi 2027, <span class="text-primary" id="dash-name" style="text-shadow: 0 0 10px var(--brand-primary);">User</span>!</h1>
+                                <p class="text-muted text-lg mb-0">Chúc mừng năm mới! An khang thịnh vượng, vạn sự như ý!</p>
                             </div>
                             
                             <div class="hero-badges-area flex items-center gap-3 flex-wrap">
-                                <div class="hero-point-pill inline-flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer" onclick="window.UI.openModal('modal-inventory')" title="Mở Túi Đồ">
-                                    <i class="fa-solid fa-backpack text-success"></i>
+                                <div class="hero-point-pill inline-flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer" onclick="window.UI.openModal('modal-inventory')" title="Mở Túi Quà">
+                                    <i class="fa-solid fa-gift text-danger"></i>
                                     <span class="font-bold text-success">Điểm sự kiện: <span id="user-points-display">0</span></span>
                                 </div>
                                 
@@ -9090,7 +9293,7 @@ tr:hover td { background: #f8fafc; }
 
                         <div class="bento-action" id="btn-nav-pointshop" onclick="if(!this.classList.contains('locked')) window.UI.openModal('modal-point-shop')">
                             <div class="lock-overlay"><i class="fa-solid fa-lock"></i></div>
-                            <div class="bento-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success);"><i class="fa-solid fa-store"></i></div>
+                            <div class="bento-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success);"><i class="fa-solid fa-gifts"></i></div>
                             <h3 class="text-xl mb-1">Cửa Hàng Quy Đổi</h3>
                             <p class="text-sm text-muted" id="shop-desc-text">Dùng điểm tích lũy để đổi lấy lượt quay và xé vé.</p>
                         </div>
@@ -9109,20 +9312,20 @@ tr:hover td { background: #f8fafc; }
 
                         <div class="bento-action" id="btn-nav-wheel" onclick="if(!this.classList.contains('locked')) window.UI.navigate('wheel')">
                             <div class="lock-overlay"><i class="fa-solid fa-lock"></i></div>
-                            <div class="bento-icon bg-warning-bg text-warning" style="background: var(--color-warning-bg); color: var(--color-warning);"><i class="fa-solid fa-dharmachakra"></i></div>
+                            <div class="bento-icon bg-warning-bg text-warning" style="background: var(--color-warning-bg); color: var(--color-warning);"><i class="fa-solid fa-fan"></i></div>
                             <h3 class="text-xl mb-1">Vòng Quay Thưởng</h3>
                             <p class="text-sm text-muted" id="wheel-desc-text">Thử vận may với vòng quay 8 ô nhận ngay thẻ cào.</p>
                         </div>
 
                         <div class="bento-action" id="btn-nav-tranhthuong" onclick="if(!this.classList.contains('locked')) window.UI.navigate('tranhthuong')">
                             <div class="lock-overlay"><i class="fa-solid fa-lock"></i></div>
-                            <div class="bento-icon bg-danger-bg text-danger" style="background: var(--color-danger-bg); color: var(--color-danger);"><i class="fa-solid fa-ticket-alt"></i></div>
+                            <div class="bento-icon bg-danger-bg text-danger" style="background: var(--color-danger-bg); color: var(--color-danger);"><i class="fa-solid fa-envelope-open-text"></i></div>
                             <h3 class="text-xl mb-1">Tranh Thưởng Nhanh</h3>
                             <p class="text-sm text-muted" id="tt-desc-text">Xé thẻ lật quà để rinh phần thưởng bí mật mỗi ngày.</p>
                         </div>
 
                         <div class="bento-action" onclick="window.UI.navigate('rps')">
-                            <div class="bento-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--color-danger);"><i class="fa-regular fa-hand-scissors"></i></div>
+                            <div class="bento-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--color-danger);"><i class="fa-regular fa-hand-sparkles"></i></div>
                             <h3 class="text-xl mb-1">Kéo Búa Bao PvP</h3>
                             <p class="text-sm text-muted">Đấu trí với thành viên khác. Phí 5 điểm, Thắng 10 điểm.</p>
                         </div>
@@ -9291,7 +9494,7 @@ tr:hover td { background: #f8fafc; }
 
                     <div class="card text-center flex-col items-center">
                         <div id="rps-lobby" style="display: block;">
-                            <div style="font-size: 80px; color: var(--color-warning); margin-bottom: 20px;"><i class="fa-regular fa-hand-scissors"></i></div>
+                            <div style="font-size: 80px; color: var(--color-warning); margin-bottom: 20px;"><i class="fa-regular fa-hand-sparkles"></i></div>
                             <h2 class="text-2xl mb-4">Sẵn sàng thử thách?</h2>
                             <p class="text-muted mb-6">Bạn đang có <b class="text-success" id="rps-current-points">0</b> điểm sự kiện.</p>
                             <button class="btn btn-warning" style="padding: 16px 40px; font-size: 18px;" onclick="window.RPSGame.findMatch()" id="btn-find-match">
@@ -9323,7 +9526,7 @@ tr:hover td { background: #f8fafc; }
                                 <div class="rps-controls" id="rps-controls">
                                     <button class="rps-btn" id="btn-rock" onclick="window.RPSGame.makeChoice('rock')"><i class="fa-regular fa-hand-back-fist"></i></button>
                                     <button class="rps-btn" id="btn-paper" onclick="window.RPSGame.makeChoice('paper')"><i class="fa-regular fa-hand"></i></button>
-                                    <button class="rps-btn" id="btn-scissors" onclick="window.RPSGame.makeChoice('scissors')"><i class="fa-regular fa-hand-scissors"></i></button>
+                                    <button class="rps-btn" id="btn-scissors" onclick="window.RPSGame.makeChoice('scissors')"><i class="fa-regular fa-hand-sparkles"></i></button>
                                 </div>
 
                                 <div class="rps-status" id="rps-status-text">Đang kết nối vào phòng...</div>
@@ -9341,7 +9544,7 @@ tr:hover td { background: #f8fafc; }
             <div class="m-nav-item" onclick="window.UI.navigate('chat', this, true)"><i class="fa-solid fa-comments"></i><span>Trò Chuyện</span></div>
             <div class="m-nav-item" onclick="window.UI.navigate('attendance', this, true)"><i class="fa-solid fa-fingerprint"></i><span>Điểm Danh</span></div>
             <div class="m-nav-item" onclick="window.UI.navigate('news', this, true)"><i class="fa-solid fa-newspaper"></i><span>Tin Tức</span></div>
-            <div class="m-nav-item" onclick="window.UI.navigate('tournament', this, true)"><i class="fa-solid fa-trophy"></i><span>Giải Đấu</span></div>
+            <div class="m-nav-item" onclick="window.UI.navigate('tournament', this, true)"><i class="fa-solid fa-fire"></i><span>Giải Đấu</span></div>
         </nav>
     </div>
 
@@ -9464,7 +9667,186 @@ tr:hover td { background: #f8fafc; }
                         .admin-btn-submit { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; box-shadow: 0 8px 20px rgba(239,68,68,0.4); }
                         .admin-btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(239,68,68,0.6); }
                         @media (max-width: 500px) { .mt-time-row { flex-direction: column; gap: 8px; align-items: stretch; text-align: center; } .mt-time-label { justify-content: center; } }
-                    </style>
+                    
+        /* TẾT 2027 THEME */
+        
+        /* TỐI ƯU CHỮ DỄ NHÌN VÀ GIAO DIỆN SINH ĐỘNG (TẾT) */
+        [data-theme="tet"] {
+            --bg-body: #780000; --bg-surface: #c1121f; --bg-elevated: #a10000; --bg-hover: #d62828;
+            --bg-glass: rgba(133, 0, 0, 0.85);
+            --text-main: #ffffff !important; /* Trắng tinh để dễ nhìn trên nền đỏ */
+            --text-muted: #fef08a !important; 
+            --border-strong: #ffd700; --border-subtle: rgba(255, 215, 0, 0.3);
+            --brand-primary: #ffd700; --brand-primary-hover: #ffea00;
+        }
+        
+        /* 1. TEXT ĐẬM, CÓ BÓNG ĐEN ĐỂ TĂNG ĐỘ TƯƠNG PHẢN CỰC ĐẠI */
+        [data-theme="tet"] h1, [data-theme="tet"] h2, [data-theme="tet"] h3, [data-theme="tet"] .bento-action h3 {
+            color: #ffd700 !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,215,0,0.3) !important;
+            font-weight: 900 !important;
+        }
+        [data-theme="tet"] p, [data-theme="tet"] span, [data-theme="tet"] label, [data-theme="tet"] td, [data-theme="tet"] th {
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6) !important;
+            font-weight: 600 !important;
+        }
+        
+        /* 2. THANH MENU SÁNG HƠN & HOẠT ẢNH NEON */
+        [data-theme="tet"] .floating-sidebar { 
+            background: linear-gradient(180deg, rgba(140,0,0,0.95) 0%, rgba(100,0,0,0.95) 100%); 
+            border: 2px solid #ffd700; 
+            box-shadow: 0 0 20px rgba(255,215,0,0.2), inset 0 0 15px rgba(255,215,0,0.1); 
+        }
+        [data-theme="tet"] .nav-item.active { 
+            background: linear-gradient(90deg, rgba(255,215,0,0.3) 0%, transparent 100%); 
+            border-left: 5px solid #ffd700; 
+            text-shadow: 0 0 5px #ffd700 !important;
+        }
+        [data-theme="tet"] .nav-item i { filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.8)); }
+
+        /* 3. NÚT BẤM SINH ĐỘNG (NHỊP TIM / PHÁT SÁNG) */
+        @keyframes tetPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+        [data-theme="tet"] .btn-primary { 
+            background: linear-gradient(135deg, #ffd700, #ffaa00) !important; 
+            color: #850000 !important; 
+            border: 2px solid #fff !important; 
+            font-weight: 900 !important; 
+            text-shadow: none !important;
+            animation: tetPulse 2s infinite;
+        }
+        [data-theme="tet"] .btn-primary:hover { 
+            background: #fff !important; color: #d62828 !important; border-color: #ffd700 !important;
+        }
+        
+        /* 4. MÀN HÌNH ĐĂNG NHẬP CỰC DỄ NHÌN */
+        [data-theme="tet"] .auth-box { 
+            background: rgba(100, 0, 0, 0.85) !important; /* Tối nền đỏ lại để nổi chữ */
+            border: 3px solid #ffd700 !important; 
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5) !important; 
+        }
+        [data-theme="tet"] .auth-box h1 { font-size: 32px; letter-spacing: 2px; }
+        [data-theme="tet"] .auth-box .form-control { 
+            background: rgba(0, 0, 0, 0.6) !important; /* Đen mờ để chữ trắng nổi lên */
+            border: 2px solid #ffd700 !important; 
+            color: #ffffff !important; 
+            font-size: 16px;
+            font-weight: 700;
+        }
+        [data-theme="tet"] .auth-box .form-control::placeholder { color: rgba(255, 255, 255, 0.7) !important; }
+        [data-theme="tet"] .auth-box .form-control:focus { background: rgba(0,0,0,0.8) !important; box-shadow: 0 0 20px rgba(255,215,0,0.6) !important; }
+
+        /* 5. CÁC THẺ CHỨC NĂNG (BENTO) NỔI BẬT & NHÚN NHẢY */
+        @keyframes floatEffect {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        [data-theme="tet"] .bento-action { 
+            background: linear-gradient(135deg, #a10000 0%, #780000 100%); 
+            border: 2px solid rgba(255,215,0,0.5); 
+        }
+        [data-theme="tet"] .bento-action:hover { 
+            border-color: #ffd700; 
+            background: linear-gradient(135deg, #c1121f 0%, #a10000 100%);
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.3); 
+        }
+        [data-theme="tet"] .bento-action:hover .bento-icon {
+            animation: floatEffect 1s ease-in-out infinite;
+            background: #ffd700 !important; color: #a10000 !important;
+            box-shadow: 0 0 25px #ffd700;
+        }
+        
+        
+        /* 7. TỐI ƯU GIAO DIỆN DANH BẠ CHAT (CHỐNG CHÓI DO BỊ GHI ĐÈ NỀN TRẮNG) */
+        [data-theme="tet"] .chat-module {
+            background: rgba(90, 0, 0, 0.9) !important;
+            border: 2px solid #ffd700 !important;
+            box-shadow: 0 0 30px rgba(255,215,0,0.2) !important;
+        }
+        [data-theme="tet"] .chat-main {
+            background: rgba(60, 0, 0, 0.95) !important;
+        }
+        [data-theme="tet"] .chat-sidebar, 
+        [data-theme="tet"] .contact-list {
+            background: rgba(70, 0, 0, 0.95) !important;
+            border-right: 1px solid rgba(255,215,0,0.3) !important;
+        }
+        [data-theme="tet"] .contact-card {
+            background: rgba(0, 0, 0, 0.4) !important;
+            border: 1px solid transparent !important;
+            border-radius: var(--radius-md) !important;
+            margin-bottom: 6px;
+            transition: all 0.3s ease !important;
+        }
+        [data-theme="tet"] .contact-card:hover {
+            background: rgba(200, 0, 0, 0.6) !important;
+            border-color: rgba(255,215,0,0.5) !important;
+            transform: translateX(5px);
+        }
+        [data-theme="tet"] .contact-card.active {
+            background: linear-gradient(90deg, rgba(214, 40, 40, 0.9) 0%, rgba(133, 0, 0, 0.9) 100%) !important;
+            border-left: 5px solid #ffd700 !important;
+            border-color: #ffd700 !important;
+            box-shadow: 0 0 15px rgba(255,215,0,0.3) !important;
+        }
+        [data-theme="tet"] .contact-card h4, 
+        [data-theme="tet"] .contact-card span:not(.status-indicator) {
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
+        }
+        [data-theme="tet"] .contact-card .text-muted,
+        [data-theme="tet"] .contact-card p,
+        [data-theme="tet"] .contact-card small {
+            color: #fef08a !important; /* Chữ phụ màu vàng nhạt */
+            font-weight: 600 !important;
+        }
+        [data-theme="tet"] .chat-header,
+        [data-theme="tet"] .chat-search-wrap,
+        [data-theme="tet"] .chat-input-wrapper {
+            background: rgba(100, 0, 0, 0.95) !important;
+            border-color: rgba(255,215,0,0.3) !important;
+        }
+
+        /* 6. HIỆU ỨNG NỀN MAI VÀNG RƠI (SNOWFALL ĐỔI MÀU) TẠO SỰ SINH ĐỘNG */
+        @keyframes tetSnow {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0.2; }
+        }
+        .tet-flower {
+            position: fixed; width: 12px; height: 12px;
+            background: #ffd700; border-radius: 50%;
+            box-shadow: 0 0 10px #ffd700, 0 0 20px #ffea00;
+            pointer-events: none; z-index: 1;
+            animation: tetSnow linear infinite;
+        }
+        /* Sinh động thêm cho Body */
+        [data-theme="tet"] body {
+            background-color: #5a0000 !important; /* Đỏ đô cực tối làm nền, tôn các thẻ đỏ tươi lên */
+            background-image: radial-gradient(circle at top right, #850000, transparent 40%),
+                              radial-gradient(circle at bottom left, #850000, transparent 40%) !important;
+        }
+        [data-theme="tet"] .workspace-area { background: transparent !important; }
+
+
+
+        /* Animation Hoa Rơi & Lồng đèn */
+        .tet-lantern { position: fixed; top: 0; z-index: 1045; pointer-events: none; width: 80px; animation: swing 3s ease-in-out infinite alternate; transform-origin: top center; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8)); }
+        .tet-lantern.left { left: 20px; }
+        .tet-lantern.right { right: 20px; animation-delay: -1.5s; }
+        @keyframes swing { 0% { transform: rotate(-5deg); } 100% { transform: rotate(5deg); } }
+        
+        .hoa-mai { position: fixed; z-index: 1040; pointer-events: none; color: #ffd700; text-shadow: 0 0 5px #ffea00; animation: fall linear infinite; user-select: none; }
+        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg) scale(0.5); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg) scale(1); opacity: 0; } }
+        
+        @media (max-width: 768px) {
+            .tet-lantern { width: 50px; }
+        }
+
+</style>
 
                     <div class="mt-bg-grid"></div>
                     <div class="mt-glow"></div>
@@ -9636,70 +10018,17 @@ tr:hover td { background: #f8fafc; }
         /** 4. THEME & UI CONTROLLERS */
         window.Theme = {
             init: () => {
-                const m = localStorage.getItem('qd_theme_mode') || 'dark'; document.documentElement.setAttribute('data-theme', m);
-                Utils.safeText('theme-text', m === 'dark' ? 'Giao diện Tối' : 'Giao diện Sáng');
-                const icn = document.getElementById('theme-icon'); if(icn) icn.className = m === 'dark' ? 'fa-solid fa-moon text-primary' : 'fa-solid fa-sun text-warning';
+                document.documentElement.setAttribute('data-theme', 'tet');
+                localStorage.setItem('qd_theme_mode', 'tet');
+                Utils.safeText('theme-text', 'Giao diện Tết');
+                const icn = document.getElementById('theme-icon'); if(icn) icn.className = 'fa-solid fa-fire text-danger';
                 const c = localStorage.getItem('qd_chat_color'); if(c) document.documentElement.style.setProperty('--chat-bubble-me', c);
             },
             toggle: () => {
-                const nm = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', nm); localStorage.setItem('qd_theme_mode', nm);
-                Utils.safeText('theme-text', nm === 'dark' ? 'Giao diện Tối' : 'Giao diện Sáng');
-                const icn = document.getElementById('theme-icon'); if(icn) icn.className = nm === 'dark' ? 'fa-solid fa-moon text-primary' : 'fa-solid fa-sun text-warning';
-                Utils.toast(`Hệ thống đã chuyển sang chế độ ${nm === 'dark' ? 'Tối' : 'Sáng'}`, "success");
+                Utils.toast(`Giao diện Tết đã được cố định!`, "success");
             },
             setChatColor: (hex) => { document.documentElement.style.setProperty('--chat-bubble-me', hex); localStorage.setItem('qd_chat_color', hex); Utils.toast('Màu sắc tin nhắn đã được cập nhật.', "success"); window.UI.closeModal('modal-settings'); }
-        };
-
-        window.Music = {
-            init: () => {
-                const isPlaying = localStorage.getItem('qd_music_state') === 'true';
-                if (isPlaying) {
-                    window.Music.updateUI(true);
-                    const audio = document.getElementById('bg-music');
-                    if (audio) {
-                        audio.play().catch(e => {
-                            console.log("Trình duyệt chặn tự động phát nhạc. Cần user tương tác.");
-                            window.Music.updateUI(false);
-                            localStorage.setItem('qd_music_state', 'false');
-                        });
-                    }
-                } else {
-                    window.Music.updateUI(false);
-                }
-            },
-            toggle: () => {
-                const audio = document.getElementById('bg-music');
-                if (!audio) return;
-
-                if (audio.paused) {
-                    audio.play();
-                    localStorage.setItem('qd_music_state', 'true');
-                    window.Music.updateUI(true);
-                    Utils.toast('Đã bật nhạc nền hệ thống', 'success');
-                } else {
-                    audio.pause();
-                    localStorage.setItem('qd_music_state', 'false');
-                    window.Music.updateUI(false);
-                    Utils.toast('Đã tắt nhạc nền', 'info');
-                }
-            },
-            updateUI: (isPlaying) => {
-                const text = document.getElementById('music-text');
-                const icon = document.getElementById('music-icon');
-                if (text) text.innerText = isPlaying ? 'Đang phát' : 'Đang tắt';
-                if (icon) {
-                    if (isPlaying) {
-                        icon.classList.add('fa-beat');
-                        icon.style.color = 'var(--color-success)';
-                    } else {
-                        icon.classList.remove('fa-beat');
-                        icon.style.color = 'var(--text-muted)';
-                    }
-                }
-            }
-        };
-
+        }
         window.UI = {
             openModal: (id) => { const el = document.getElementById(id); if(el) { el.style.display = 'flex'; void el.offsetWidth; el.classList.add('active'); } },
             closeModal: (id) => { 
@@ -9852,6 +10181,24 @@ tr:hover td { background: #f8fafc; }
                         const initial = State.currentUser.charAt(0).toUpperCase();
                         Utils.safeText('sidebar-avt', initial); Utils.safeText('profile-avatar-large', initial);
                         Utils.safeText('profile-uid', State.currentDocId.substring(0,10).toUpperCase());
+                        
+                        const roleText = document.getElementById('profile-role');
+                        const adminBtn = document.getElementById('admin-access-btn');
+                        const userRole = docData.role || (State.currentUser === 'admin' ? 'admin' : 'user');
+                        
+                        if(userRole === 'admin' || userRole === 'manager') {
+                            if(roleText) {
+                                roleText.innerText = userRole === 'admin' ? 'Quản trị viên' : 'Quản lý';
+                                roleText.className = 'font-bold text-danger';
+                            }
+                            if(adminBtn) adminBtn.classList.remove('hidden');
+                        } else {
+                            if(roleText) {
+                                roleText.innerText = 'Thành viên';
+                                roleText.className = 'font-bold text-primary';
+                            }
+                            if(adminBtn) adminBtn.classList.add('hidden');
+                        }
                         
                         document.getElementById('auth-gate').style.opacity = '0';
                         setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
@@ -10599,7 +10946,7 @@ tr:hover td { background: #f8fafc; }
                                 <h3 id="ticket-result-${i}">?</h3>
                             </div>
                             <div class="ticket-front">
-                                <div class="ticket-half half-left"><i class="fa-solid fa-ticket-alt"></i></div>
+                                <div class="ticket-half half-left"><i class="fa-solid fa-envelope-open-text"></i></div>
                                 <div class="ticket-half half-right"></div>
                             </div>
                         </div>
@@ -10686,7 +11033,7 @@ tr:hover td { background: #f8fafc; }
                     return window.Utils.toast(`Hệ thống từ chối: Số dư điểm không đủ để thực hiện quy đổi này.`, "error");
                 }
 
-                const typeName = type === 'spins' ? 'Lượt Vòng Quay' : 'Lượt Xé Thẻ';
+                const typeName = type === 'spins' ? 'Lượt Vòng Quay' : 'Lượt Mở Thẻ';
                 
                 try {
                     await db.runTransaction(async (transaction) => {
@@ -10734,7 +11081,7 @@ tr:hover td { background: #f8fafc; }
             getIcon: function(choice) {
                 if (choice === 'rock') return '<i class="fa-regular fa-hand-back-fist text-warning"></i>';
                 if (choice === 'paper') return '<i class="fa-regular fa-hand text-success"></i>';
-                if (choice === 'scissors') return '<i class="fa-regular fa-hand-scissors text-danger"></i>';
+                if (choice === 'scissors') return '<i class="fa-regular fa-hand-sparkles text-danger"></i>';
                 if (choice === 'timeout') return '<i class="fa-solid fa-hourglass-end text-muted"></i>';
                 return '?';
             },
@@ -10864,7 +11211,7 @@ tr:hover td { background: #f8fafc; }
                         if(mTitle) {
                             mTitle.innerText = "CHIẾN THẮNG!"; mTitle.className = "text-2xl mb-2 font-bold uppercase text-success";
                             mDesc.innerText = `Tuyệt vời! Bạn nhận được +${winR} Điểm Sự Kiện.`;
-                            mIcon.innerHTML = '<div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-success-bg); color: var(--color-success); font-size:36px; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-trophy fa-bounce"></i></div>';
+                            mIcon.innerHTML = '<div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-success-bg); color: var(--color-success); font-size:36px; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-fire fa-bounce"></i></div>';
                             mBtn.className = "btn btn-success w-full";
                         }
                     } else { 
@@ -11770,7 +12117,7 @@ tr:hover td { background: #f8fafc; }
                 if (targetUser === State.currentUser) return Utils.toast("Bạn không thể tự chuyển quà cho chính mình!", "error");
                 if (isNaN(amount) || amount <= 0) return Utils.toast("Số lượng chuyển phải lớn hơn 0!", "warning");
 
-                const typeName = type === 'spins' ? 'Lượt Quay' : 'Lượt Xé Vé';
+                const typeName = type === 'spins' ? 'Lượt Quay' : 'Lượt Mở Vé';
                 const currentBalance = type === 'spins' ? State.availableSpins : State.availableTickets;
 
                 if (amount > currentBalance) {
@@ -11844,31 +12191,21 @@ tr:hover td { background: #f8fafc; }
            ADVANCED UI LOGIC: PARTICLES & THEME MANAGER
            ===================================================================== */
         window.ThemeManager = {
-            current: 'light',
+            current: 'tet',
             init: () => {
-                const saved = localStorage.getItem('qd_theme') || 'light';
-                window.ThemeManager.setTheme(saved);
+                window.ThemeManager.setTheme('tet');
             },
             toggle: () => {
-                const themes = ['light', 'dark', 'cyberpunk', 'synthwave', 'dracula', 'neon'];
-                let currentIndex = themes.indexOf(window.ThemeManager.current);
-                let nextIndex = (currentIndex + 1) % themes.length;
-                window.ThemeManager.setTheme(themes[nextIndex]);
-                Utils.toast("Đã chuyển giao diện: " + themes[nextIndex].toUpperCase(), "success");
+                Utils.toast("Giao diện Tết đang được kích hoạt!", "success");
             },
             setTheme: (theme) => {
-                window.ThemeManager.current = theme;
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('qd_theme', theme);
+                window.ThemeManager.current = 'tet';
+                document.documentElement.setAttribute('data-theme', 'tet');
+                localStorage.setItem('qd_theme', 'tet');
                 
-                const icon = document.getElementById('theme-icon');
-                if (theme === 'dark') {
-                    icon.className = 'fa-solid fa-sun';
-                    if(window.ParticleSystem) window.ParticleSystem.color = 'rgba(255, 255, 255, 0.5)';
-                } else {
-                    icon.className = 'fa-solid fa-moon';
-                    if(window.ParticleSystem) window.ParticleSystem.color = 'rgba(79, 70, 229, 0.5)';
-                }
+                // Cập nhật text hiển thị nếu có
+                const tText = document.getElementById('theme-text');
+                if(tText) tText.textContent = "Tết 2026";
             }
         };
 
@@ -15093,5 +15430,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     </script>
+
+    <script>
+        // TET FLOWER ANIMATION
+        document.addEventListener("DOMContentLoaded", () => {
+            if(document.documentElement.getAttribute("data-theme") === "tet") {
+                const flowerCount = 20;
+                for(let i = 0; i < flowerCount; i++) {
+                    let flower = document.createElement("div");
+                    flower.className = "tet-flower";
+                    flower.style.left = Math.random() * 100 + "vw";
+                    flower.style.animationDuration = (Math.random() * 5 + 5) + "s";
+                    flower.style.animationDelay = Math.random() * 5 + "s";
+                    flower.style.opacity = Math.random();
+                    flower.style.transform = `scale(${Math.random() * 0.5 + 0.5})`;
+                    document.body.appendChild(flower);
+                }
+            }
+        });
+    </script>
 </body>
+
 </html>
