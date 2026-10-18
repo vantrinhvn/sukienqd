@@ -8938,35 +8938,58 @@ tr:hover td { background: #f8fafc; }
 }
 .lixi-card[data-state="closed"] .lixi-badge { background: rgba(0, 0, 0, .55); color: #ffb4b4; border-color: rgba(255, 120, 120, .6); }
 .lixi-card[data-state="closed"] .lixi-msg { color: #ffd0d0; }
-/* ----- tab "Vòng Quay" (mở qt.html trong tab hiện tại) ----- */
+/* ----- tab "Vòng Quay" (mở qt.html): cùng khung, cùng kích thước với thẻ lì xì ----- */
 .wheel-tab {
-    grid-column: 1 / -1; justify-self: stretch; box-sizing: border-box; width: 100%;
-    display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 18px; text-decoration: none; color: #fff;
-    background: radial-gradient(120% 140% at 0% 0%, var(--bg-elevated) 0%, var(--bg-body) 100%);
-    border: 2px solid rgba(255, 215, 0, .55); box-shadow: 0 6px 18px rgba(0, 0, 0, .3), inset 0 0 14px rgba(255, 215, 0, .1);
-    cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    grid-column: 1 / -1; justify-self: stretch; width: 100%; box-sizing: border-box;
+    position: relative; overflow: hidden; display: flex; flex-direction: column; border-radius: 22px; padding: 12px 14px 14px;
+    text-align: center; color: #fff; text-decoration: none; cursor: pointer;
+    background: radial-gradient(120% 90% at 50% 0%, var(--bg-elevated) 0%, var(--bg-body) 100%);
+    border: 2px solid rgba(255, 215, 0, .65);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .35), inset 0 0 18px rgba(255, 215, 0, .12);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
-.wheel-tab:hover { transform: translateY(-2px); border-color: rgba(255, 215, 0, .95); box-shadow: 0 10px 24px rgba(0, 0, 0, .38), 0 0 18px rgba(255, 215, 0, .25); }
-.wheel-tab:active { transform: translateY(0) scale(.99); }
-.wheel-tab:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
-.wheel-tab-ico {
-    flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; color: #7a0c0c; background: radial-gradient(circle at 35% 30%, #fff3a6, #ffd700 60%, #e0a800); box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+.wheel-tab:hover { transform: translateY(-2px); border-color: rgba(255, 215, 0, 1); box-shadow: 0 12px 28px rgba(0, 0, 0, .42), 0 0 20px rgba(255, 215, 0, .28), inset 0 0 18px rgba(255, 215, 0, .12); }
+.wheel-tab:active { transform: translateY(0) scale(.995); }
+.wheel-tab:focus-visible { outline: 3px solid #ffd700; outline-offset: 3px; }
+.wheel-tab .wheel-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; }
+.wheel-tab .wheel-title { margin: 0; font-size: 14px; letter-spacing: .2px; text-transform: uppercase; white-space: nowrap; min-width: 0; }
+.wheel-tab .wheel-badge {
+    font-size: 11px; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+    background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 215, 0, .5); color: #fef08a;
 }
-.wheel-tab-ico i { animation: wheelTabSpin 7s linear infinite; }
-.wheel-tab:hover .wheel-tab-ico i { animation-duration: 1.6s; }
+.wheel-tab-stage { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; margin-top: 6px; padding-bottom: 8px; box-sizing: border-box; }
+.wheel-mini { position: relative; width: 92px; height: 92px; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45)); }
+.wheel-mini svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.wheel-mini .wm-disc { transform-origin: 50px 50px; animation: wheelTabSpin 9s linear infinite; }
+.wheel-tab:hover .wheel-mini .wm-disc { animation-duration: 2s; }
+.wheel-mini .wm-a { fill: var(--bg-elevated); } .wheel-mini .wm-b { fill: var(--bg-surface); }
+.wheel-mini .wm-line { stroke: rgba(255, 215, 0, .9); stroke-width: 1.2; }
 @keyframes wheelTabSpin { to { transform: rotate(360deg); } }
-.wheel-tab-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; text-align: left; }
-.wheel-tab-title { font-size: 14px; font-weight: 800; letter-spacing: .2px; text-transform: uppercase; color: #ffd700; text-shadow: 0 1px 4px rgba(0, 0, 0, .5); white-space: nowrap; }
-.wheel-tab-sub { font-size: 12px; color: #fef08a; opacity: .92; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wheel-tab-go {
-    flex: 0 0 auto; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; white-space: nowrap;
-    background: rgba(255, 215, 0, .18); border: 1px solid rgba(255, 215, 0, .6); color: #fef08a;
-}
-.wheel-tab[data-state="locked"] .wheel-tab-go { background: rgba(0, 0, 0, .45); border-color: rgba(255, 120, 120, .6); color: #ffb4b4; }
-.wheel-tab[data-state="locked"] .wheel-tab-ico { filter: grayscale(.8) brightness(.8); }
-.wheel-tab[data-state="locked"] .wheel-tab-ico i { animation: none; }
-@media (prefers-reduced-motion: reduce) { .wheel-tab, .wheel-tab-ico i { animation: none !important; transition: none !important; } }
+.wheel-tab .wheel-msg { margin: 8px 0 0; min-height: 20px; font-size: 13px; color: #fef08a; font-weight: 700; }
+.wheel-tab[data-state="locked"] .wheel-mini { filter: grayscale(.85) brightness(.7) drop-shadow(0 6px 10px rgba(0, 0, 0, .45)); }
+.wheel-tab[data-state="locked"] .wheel-mini .wm-disc { animation: none; }
+.wheel-tab[data-state="locked"] .wheel-badge { background: rgba(0, 0, 0, .55); color: #ffb4b4; border-color: rgba(255, 120, 120, .6); }
+.wheel-tab[data-state="locked"] .wheel-msg { color: #ffd0d0; }
+@media (prefers-reduced-motion: reduce) { .wheel-tab, .wheel-mini .wm-disc { animation: none !important; transition: none !important; } }
+/* ----- tab "Rút Lì Xì" (mở tranht.html), cùng khung với thẻ Vòng Quay ----- */
+.rx-mini { position: relative; width: 120px; height: 92px; }
+.rx-mini .rx-env { position: absolute; bottom: 0; width: 46px; height: 64px; border-radius: 7px; background: linear-gradient(160deg, #ef3340, #a10000); border: 2px solid #ffd700; box-shadow: 0 6px 12px rgba(0,0,0,.45); overflow: hidden; }
+.rx-mini .rx-env::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 40%; background: linear-gradient(180deg, #ff5a66, #d4202e); clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.rx-mini .rx-env::after { content: 'Lộc'; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff6b0, #ffd700 60%, #d99a00); color: #b91c1c; font-size: 8px; font-weight: 900; line-height: 22px; text-align: center; }
+.rx-mini .rx-env:nth-child(1) { left: 2px; transform: rotate(-12deg); }
+.rx-mini .rx-env:nth-child(2) { left: 37px; bottom: 8px; z-index: 2; animation: rxBob 2.4s ease-in-out infinite; }
+.rx-mini .rx-env:nth-child(3) { right: 2px; transform: rotate(12deg); }
+.wheel-tab.rx-tab:hover .rx-mini .rx-env:nth-child(2) { animation-duration: .8s; }
+@keyframes rxBob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(-3deg); } }
+.wheel-tab.rx-tab[data-state="locked"] .rx-mini { filter: grayscale(.85) brightness(.7); }
+.wheel-tab.rx-tab[data-state="locked"] .rx-mini .rx-env { animation: none; }
+@media (prefers-reduced-motion: reduce) { .rx-mini .rx-env { animation: none !important; } }
+.shop-mini { display: flex; gap: 10px; }
+.shop-mini span { width: 54px; height: 54px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: rgba(0,0,0,.28); border: 2px solid rgba(255,215,0,.6); box-shadow: 0 6px 12px rgba(0,0,0,.35); animation: rxBob 2.6s ease-in-out infinite; }
+.shop-mini span:nth-child(2) { animation-delay: .3s; } .shop-mini span:nth-child(3) { animation-delay: .6s; }
+.wheel-tab.shop-tab:hover .shop-mini span { animation-duration: .9s; }
+@media (prefers-reduced-motion: reduce) { .shop-mini span { animation: none !important; } }
+
 @media (prefers-reduced-motion: reduce) {
     .lixi-card *, .lixi-card { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
@@ -9045,36 +9068,28 @@ tr:hover td { background: #f8fafc; }
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-point-shop">
-        <div class="modal-box text-center">
-            <button class="modal-close-btn" onclick="window.UI.closeModal('modal-point-shop')"><i class="fa-solid fa-xmark"></i></button>
-            <div class="flex-center mx-auto mb-4" style="width: 70px; height: 70px; border-radius: 20px; background: rgba(16, 185, 129, 0.15); color: var(--color-success); font-size: 32px; display: flex; align-items: center; justify-content: center;">
-                <i class="fa-solid fa-gifts"></i>
-            </div>
-            <h2 class="text-2xl mb-2">Trạm Quy Đổi Vật Phẩm</h2>
-            <p class="text-muted text-sm mb-6">Số dư hiện tại của bạn: <b class="text-success" id="shop-current-points">0</b> Điểm</p>
-
-            <div class="flex justify-between items-center p-4 mb-4 bg-elevated rounded-xl border-strong" style="border: 1px solid var(--border-strong);">
-                <div class="flex items-center gap-3">
-                    <div class="avatar-circle" style="width: 40px; height: 40px; background: var(--color-warning-bg); color: var(--color-warning); font-size: 18px;"><i class="fa-solid fa-fan"></i></div>
-                    <div class="text-left">
-                        <div class="font-bold text-main">1 Lượt Vòng Quay</div>
-                        <div class="text-xs text-muted">Giá: <span id="shop-spin-cost">100</span> Điểm</div>
-                    </div>
+    <!-- Trạm Quy Đổi Vật Phẩm (làm lại): danh mục do admin cấu hình -->
+    <div class="modal-overlay" id="modal-point-shop" style="z-index: 1060;">
+        <div class="modal-content ps2" role="dialog" aria-labelledby="ps2-title">
+            <div class="ps2-head">
+                <div class="ps2-title">
+                    <span class="ps2-logo" aria-hidden="true">🏪</span>
+                    <div><h2 id="ps2-title">Trạm Quy Đổi Vật Phẩm</h2><small>Dùng điểm lì xì đổi lượt rút lì xì</small></div>
                 </div>
-                <button class="btn btn-warning" style="padding: 10px 16px; font-size: 13px;" onclick="window.PointShop.attemptExchange('spins')">Đổi Ngay</button>
+                <button class="ps2-x" onclick="window.UI.closeModal('modal-point-shop')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
-            <div class="flex justify-between items-center p-4 mb-6 bg-elevated rounded-xl border-strong" style="border: 1px solid var(--border-strong);">
-                <div class="flex items-center gap-3">
-                    <div class="avatar-circle" style="width: 40px; height: 40px; background: var(--color-danger-bg); color: var(--color-danger); font-size: 18px;"><i class="fa-solid fa-envelope-open-text"></i></div>
-                    <div class="text-left">
-                        <div class="font-bold text-main">1 Lượt Mở Thẻ</div>
-                        <div class="text-xs text-muted">Giá: <span id="shop-ticket-cost">50</span> Điểm</div>
-                    </div>
-                </div>
-                <button class="btn btn-danger" style="padding: 10px 16px; font-size: 13px;" onclick="window.PointShop.attemptExchange('tickets')">Đổi Ngay</button>
+            <div class="ps2-balance">
+                <span>Số dư của bạn</span>
+                <b><span aria-hidden="true">💰</span> <span id="shop-current-points">0</span> điểm</b>
             </div>
+            <div class="ps2-closed" id="ps2-closed">🔒 Trạm Quy Đổi đang đóng cửa. Bạn vẫn xem được danh mục, vui lòng quay lại sau!</div>
+            <div class="ps2-body">
+                <div class="ps2-grid" id="ps2-grid"><div class="ps2-empty">Đang tải danh mục...</div></div>
+                <div class="ps2-orders" id="ps2-orders" style="display:none;"></div>
+            </div>
+            <div class="ps2-foot">Lượt rút lì xì được cộng ngay vào túi đồ. Lượt vòng quay chỉ nhận được khi trả lời đúng câu hỏi.</div>
+            <!-- Bảng xác nhận / thông báo kết quả mua -->
+            <div class="ps2-pop" id="ps2-pop" aria-live="assertive"><div class="ps2-pop-card" id="ps2-pop-card" role="alertdialog"></div></div>
         </div>
     </div>
 
@@ -9094,7 +9109,6 @@ tr:hover td { background: #f8fafc; }
                 <div class="form-group mb-0 flex-1 text-left">
                     <label class="form-label text-xs">Loại Quà Tặng</label>
                     <select id="transfer-type" class="form-control">
-                        <option value="spins">Lượt Vòng Quay</option>
                         <option value="tickets">Lượt Mở Thẻ</option>
                     </select>
                 </div>
@@ -9274,6 +9288,19 @@ tr:hover td { background: #f8fafc; }
         </div>
     </div>
 
+    <div class="modal-overlay" id="modal-msg-info">
+        <div class="modal-box">
+            <button class="modal-close-btn" onclick="window.UI.closeModal('modal-msg-info')"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl mb-4" style="text-align:left;">Chi tiết tin nhắn</h2>
+            <div class="mi-preview" id="mi-preview"></div>
+            <div class="mi-tabs">
+                <button class="mi-tab active" id="mi-tab-heart" onclick="window.Chat.infoTab('heart')">❤️ Thả tim (<span id="mi-n-heart">0</span>)</button>
+                <button class="mi-tab" id="mi-tab-seen" onclick="window.Chat.infoTab('seen')">👁 Đã xem (<span id="mi-n-seen">0</span>)</button>
+            </div>
+            <div class="mi-list" id="mi-list"></div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="modal-profile">
         <div class="modal-box text-center">
             <button class="modal-close-btn" onclick="window.UI.closeModal('modal-profile')"><i class="fa-solid fa-xmark"></i></button>
@@ -9367,33 +9394,56 @@ tr:hover td { background: #f8fafc; }
     <!-- Theme Switcher Button -->
     
 
-    <!-- Inventory Modal -->
+    <!-- Túi Quà Cá Nhân (làm lại): vật phẩm thật từ máy chủ + tiền thưởng đã trúng + lịch sử nhận quà -->
     <div class="modal-overlay" id="modal-inventory" style="z-index: 1050;">
-        <div class="modal-content" style="padding: 0; overflow: hidden; max-width: 600px;">
-            <div class="premium-modal-header">
-                <h2><i class="fa-solid fa-backpack mr-2"></i> Túi Quà Cá Nhân</h2>
-                <button class="close-btn" onclick="window.UI.closeModal('modal-inventory')"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="inventory-grid" id="inventory-render-area">
-                <div class="inventory-item">
-                    <div class="inventory-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
-                    <div class="inventory-name">Vé Xé Thưởng</div>
-                    <div class="inventory-qty">Số lượng: <span id="inv-tickets" class="font-bold text-danger">0</span></div>
+        <div class="modal-content inv2" role="dialog" aria-labelledby="inv2-title">
+            <div class="inv2-head">
+                <div class="inv2-title">
+                    <span class="inv2-bag" aria-hidden="true">🎒</span>
+                    <div>
+                        <h2 id="inv2-title">Túi Quà Cá Nhân</h2>
+                        <small id="inv2-user">Xuân Đinh Mùi 2027</small>
+                    </div>
                 </div>
-                <div class="inventory-item">
-                    <div class="inventory-icon" style="color: var(--brand-primary);"><i class="fa-solid fa-fan"></i></div>
-                    <div class="inventory-name">Lượt Vòng Quay</div>
-                    <div class="inventory-qty">Số lượng: <span id="inv-spins" class="font-bold text-primary">0</span></div>
-                </div>
-                <div class="inventory-item">
-                    <div class="inventory-icon" style="color: var(--color-success);"><i class="fa-solid fa-coins"></i></div>
-                    <div class="inventory-name">Điểm Tích Lũy</div>
-                    <div class="inventory-qty">Số lượng: <span id="inv-points" class="font-bold text-success">0</span></div>
-                </div>
+                <button class="inv2-x" onclick="window.UI.closeModal('modal-inventory')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div style="padding: 16px; text-align: center; border-top: 1px solid var(--border-strong); background: var(--bg-surface);">
-                <p class="text-xs text-muted m-0">Túi đồ sẽ được tự động đồng bộ với máy chủ.</p>
+
+            <div class="inv2-body">
+                <div class="inv2-items">
+                    <div class="inv2-item">
+                        <div class="inv2-ico" aria-hidden="true">💰</div>
+                        <b class="inv2-num" id="inv-points">0</b>
+                        <span class="inv2-lbl">Điểm lì xì</span>
+                        <button class="inv2-act" onclick="window.Inventory.openShop()">Đổi quà</button>
+                    </div>
+                    <div class="inv2-item">
+                        <div class="inv2-ico" aria-hidden="true">🧧</div>
+                        <b class="inv2-num" id="inv-tickets">0</b>
+                        <span class="inv2-lbl">Lượt rút lì xì</span>
+                        <a class="inv2-act" href="tranht.html" data-resume>Rút ngay</a>
+                    </div>
+                    <div class="inv2-item">
+                        <div class="inv2-ico" aria-hidden="true">🎡</div>
+                        <b class="inv2-num" id="inv-spins">0</b>
+                        <span class="inv2-lbl">Lượt vòng quay</span>
+                        <a class="inv2-act" href="qt.html" data-resume>Quay ngay</a>
+                    </div>
+                </div>
+
+                <div class="inv2-hist-head">
+                    <h3>Lịch sử nhận quà</h3>
+                    <div class="inv2-chips" role="tablist">
+                        <button class="inv2-chip active" data-f="all" onclick="window.Inventory.filter('all')">Tất cả</button>
+                        <button class="inv2-chip" data-f="money" onclick="window.Inventory.filter('money')">💵 Tiền</button>
+                        <button class="inv2-chip" data-f="lixi" onclick="window.Inventory.filter('lixi')">🧧 Lì xì</button>
+                        <button class="inv2-chip" data-f="wheel" onclick="window.Inventory.filter('wheel')">🎡 Vòng quay</button>
+                        <button class="inv2-chip" data-f="daily" onclick="window.Inventory.filter('daily')">💰 Điểm</button>
+                    </div>
+                </div>
+                <div class="inv2-list" id="inv2-list"><div class="inv2-empty">Đang tải...</div></div>
             </div>
+
+            <div class="inv2-foot"><span class="inv2-dot" id="inv2-dot"></span> Túi đồ tự động đồng bộ với máy chủ</div>
         </div>
     </div>
 
@@ -9524,13 +9574,31 @@ tr:hover td { background: #f8fafc; }
                         </div>
 
                         <a class="wheel-tab" id="wheel-tab" href="qt.html" data-state="open" aria-label="Mở Vòng Quay">
-                            <span class="wheel-tab-ico" aria-hidden="true"><i class="fa-solid fa-dharmachakra"></i></span>
-                            <span class="wheel-tab-text">
-                                <span class="wheel-tab-title">Vòng Quay</span>
-                                <span class="wheel-tab-sub" id="wheel-tab-sub">Lượt quay: --</span>
-                            </span>
-                            <span class="wheel-tab-go" id="wheel-tab-go">Quay ngay ›</span>
+                            <div class="wheel-head">
+                                <h3 class="wheel-title"><span aria-hidden="true">🎡</span> Vòng Quay</h3>
+                                <span class="wheel-badge" id="wheel-tab-sub">Lượt quay: --</span>
+                            </div>
+                            <div class="wheel-tab-stage"><div class="wheel-mini"><svg viewBox="0 0 100 100" aria-hidden="true"><g class="wm-disc"><path class="wm-line wm-a" d="M50 50 L50.00 2.00 A48 48 0 0 1 83.94 16.06 Z"/><path class="wm-line wm-b" d="M50 50 L83.94 16.06 A48 48 0 0 1 98.00 50.00 Z"/><path class="wm-line wm-a" d="M50 50 L98.00 50.00 A48 48 0 0 1 83.94 83.94 Z"/><path class="wm-line wm-b" d="M50 50 L83.94 83.94 A48 48 0 0 1 50.00 98.00 Z"/><path class="wm-line wm-a" d="M50 50 L50.00 98.00 A48 48 0 0 1 16.06 83.94 Z"/><path class="wm-line wm-b" d="M50 50 L16.06 83.94 A48 48 0 0 1 2.00 50.00 Z"/><path class="wm-line wm-a" d="M50 50 L2.00 50.00 A48 48 0 0 1 16.06 16.06 Z"/><path class="wm-line wm-b" d="M50 50 L16.06 16.06 A48 48 0 0 1 50.00 2.00 Z"/><circle cx="50" cy="50" r="48" fill="none" stroke="#ffd700" stroke-width="3"/><circle cx="50" cy="50" r="9" fill="#ffd700" stroke="#7a0c0c" stroke-width="2"/></g><path d="M43 -3 L57 -3 L50 9 Z" fill="#ffd700" stroke="#7a0c0c" stroke-width="1.2"/></svg></div></div>
+                            <p class="wheel-msg" id="wheel-tab-go">Chạm để quay thưởng ›</p>
                         </a>
+
+                        <a class="wheel-tab rx-tab" id="rx-tab" href="tranht.html" data-state="open" aria-label="Mở Rút Lì Xì May Mắn">
+                            <div class="wheel-head">
+                                <h3 class="wheel-title"><span aria-hidden="true">🧧</span> Rút Lì Xì May Mắn</h3>
+                                <span class="wheel-badge" id="rx-tab-sub">Lượt rút: --</span>
+                            </div>
+                            <div class="wheel-tab-stage"><div class="rx-mini" aria-hidden="true"><span class="rx-env"></span><span class="rx-env"></span><span class="rx-env"></span></div></div>
+                            <p class="wheel-msg" id="rx-tab-go">Chạm để mở lì xì ›</p>
+                        </a>
+
+                        <button type="button" class="wheel-tab rx-tab shop-tab" id="shop-tab" onclick="window.PointShop.open()" aria-label="Mở Trạm Quy Đổi Vật Phẩm" style="font: inherit;">
+                            <div class="wheel-head">
+                                <h3 class="wheel-title"><span aria-hidden="true">🏪</span> Trạm Quy Đổi</h3>
+                                <span class="wheel-badge">Đổi điểm lì xì</span>
+                            </div>
+                            <div class="wheel-tab-stage"><div class="shop-mini" aria-hidden="true"><span>💰</span><span>➜</span><span>🧧</span></div></div>
+                            <p class="wheel-msg">Chạm để đổi quà ›</p>
+                        </button>
 
                     </div>
                 </section>
@@ -10214,12 +10282,20 @@ tr:hover td { background: #f8fafc; }
                 localStorage.setItem('qd_theme_mode', 'tet');
                 Utils.safeText('theme-text', 'Giao diện Tết');
                 const icn = document.getElementById('theme-icon'); if(icn) icn.className = 'fa-solid fa-fire text-danger';
-                const c = localStorage.getItem('qd_chat_color'); if(c) document.documentElement.style.setProperty('--chat-bubble-me', c);
+                const c = localStorage.getItem('qd_chat_color'); if(c) window.Theme.applyChatColor(c);
             },
             toggle: () => {
                 Utils.toast(`Giao diện Tết đã được cố định!`, "success");
             },
-            setChatColor: (hex) => { document.documentElement.style.setProperty('--chat-bubble-me', hex); localStorage.setItem('qd_chat_color', hex); Utils.toast('Màu sắc tin nhắn đã được cập nhật.', "success"); window.UI.closeModal('modal-settings'); }
+            // Đặt màu nền tin nhắn của mình + tự chọn chữ đen/trắng cho dễ đọc
+            applyChatColor: (hex) => {
+                const r = document.documentElement.style; r.setProperty('--chat-bubble-me', hex); r.setProperty('--chat-me-bg', hex);
+                const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim()); if (!m) { r.setProperty('--chat-me-fg', '#ffffff'); return; }
+                const n = parseInt(m[1], 16), lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+                const L = 0.2126 * lin(n >> 16 & 255) + 0.7152 * lin(n >> 8 & 255) + 0.0722 * lin(n & 255);
+                r.setProperty('--chat-me-fg', L > 0.4 ? '#3a0000' : '#ffffff');
+            },
+            setChatColor: (hex) => { window.Theme.applyChatColor(hex); localStorage.setItem('qd_chat_color', hex); Utils.toast('Màu sắc tin nhắn đã được cập nhật.', "success"); window.UI.closeModal('modal-settings'); }
         }
         window.UI = {
             openModal: (id) => { const el = document.getElementById(id); if(el) { el.style.display = 'flex'; void el.offsetWidth; el.classList.add('active'); } },
@@ -10394,7 +10470,7 @@ tr:hover td { background: #f8fafc; }
                         }
                         
                         document.getElementById('auth-gate').style.opacity = '0';
-                        setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; if(window.HomeVideo) window.HomeVideo.start(); if(window.LiXi) window.LiXi.start(); if(window.WheelTab) window.WheelTab.start(); Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
+                        setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; if(window.HomeVideo) window.HomeVideo.start(); if(window.LiXi) window.LiXi.start(); if(window.WheelTab) window.WheelTab.start(); if(window.RxTab) window.RxTab.start(); Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
                     }
                 } catch(e) { 
                     console.error("Login Error:", e);
@@ -10759,8 +10835,51 @@ tr:hover td { background: #f8fafc; }
                 } 
             },
 
-            toggleHeart: (msgId, currentStatus) => {
-                db.collection("private_chat").doc(msgId).update({ heart: !currentStatus }).catch(e => console.log("Lỗi thả tim:", e));
+            // Thả / bỏ tim của CHÍNH MÌNH (mỗi người 1 tim, lưu tên trong mảng hearts)
+            toggleHeart: (msgId) => {
+                const m = (State.chatMsgs || {})[msgId]; if (!m || m.revoked || !State.currentUser) return;
+                const FV = firebase.firestore.FieldValue, mine = (m.hearts || []).includes(State.currentUser);
+                const upd = { hearts: mine ? FV.arrayRemove(State.currentUser) : FV.arrayUnion(State.currentUser) };
+                if (!mine) upd['heartAt.' + State.currentUser] = Date.now();
+                if (m.heart === true) upd.heart = false;   // bỏ kiểu tim cũ (1 tim chung) khi chuyển sang tim từng người
+                State.heartPop = mine ? null : msgId;
+                db.collection("private_chat").doc(msgId).update(upd).catch(e => { console.log("Lỗi thả tim:", e); Utils.toast("Không thả tim được, thử lại nhé.", "error"); });
+            },
+            // Danh sách người đã thả tim / đã xem 1 tin nhắn
+            heartList: (m) => {
+                const l = (m.hearts || []).slice();
+                if (!l.length && m.heart === true) l.push(null);   // tim kiểu cũ: không rõ ai
+                return l;
+            },
+            seenList: (m) => {
+                if (m.conversationId === 'general_room') return (m.readBy || []).filter(u => u && u !== m.from);
+                return m.read ? [m.to] : [];
+            },
+            showInfo: (msgId, tab) => {
+                const m = (State.chatMsgs || {})[msgId]; if (!m) return;
+                State.infoMsgId = msgId;
+                const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                document.getElementById('mi-preview').innerHTML = m.revoked ? '<i>Tin nhắn đã bị thu hồi</i>' : (m.text ? esc(m.text).replace(/\n/g, '<br>') : '🖼️ Ảnh đính kèm');
+                window.Chat.infoTab(tab || 'heart');
+                window.UI.openModal('modal-msg-info');
+            },
+            infoTab: (tab) => {
+                const m = (State.chatMsgs || {})[State.infoMsgId]; if (!m) return;
+                const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                const fmt = t => t ? new Date(t).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
+                const hearts = window.Chat.heartList(m), seen = window.Chat.seenList(m);
+                document.getElementById('mi-n-heart').textContent = hearts.length;
+                document.getElementById('mi-n-seen').textContent = seen.length;
+                document.getElementById('mi-tab-heart').classList.toggle('active', tab === 'heart');
+                document.getElementById('mi-tab-seen').classList.toggle('active', tab === 'seen');
+                const row = (u, when, icon) => {
+                    const name = u ? (u === State.currentUser ? 'Bạn' : (State.nicknames[u] || u)) : 'Ai đó (dữ liệu cũ)';
+                    return `<div class="mi-item"><div class="avatar-circle">${esc((u || '?').charAt(0).toUpperCase())}</div><div class="mi-name">${esc(name)}</div><div class="mi-when">${icon} ${esc(when)}</div></div>`;
+                };
+                let html;
+                if (tab === 'heart') html = hearts.length ? hearts.map(u => row(u, fmt((m.heartAt || {})[u]), '❤️')).join('') : '<div class="mi-empty">Chưa có ai thả tim tin nhắn này.</div>';
+                else html = seen.length ? seen.map(u => row(u, fmt(m.conversationId === 'general_room' ? (m.readAt || {})[u] : m.readTime), '👁')).join('') : '<div class="mi-empty">Chưa có ai xem tin nhắn này.</div>';
+                document.getElementById('mi-list').innerHTML = html;
             },
 
             load: () => {
@@ -10769,9 +10888,16 @@ tr:hover td { background: #f8fafc; }
                 
                 const roomId = State.chatTarget === 'general' ? 'general_room' : Utils.getRoomId(State.currentUser, State.chatTarget);
                 
+                State.chatFirstPaint = true;
                 State.chatListener = db.collection("private_chat").where("conversationId", "==", roomId).onSnapshot(snap => {
+                    // Chỉ tự cuộn xuống cuối khi đang ở gần cuối / lần đầu mở / mình vừa gửi -> không bị giật khi ai đó thả tim
+                    const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
+                    const prevTop = box.scrollTop, first = State.chatFirstPaint; State.chatFirstPaint = false;
+                    const iSent = snap.docChanges().some(c => c.type === 'added' && c.doc.data().from === State.currentUser);
+                    State.chatMsgs = {};
                     box.innerHTML = ""; if(snap.empty) { box.innerHTML = `<div class="text-center text-success mt-10"><i class="fa-solid fa-shield-heart text-5xl mb-4 opacity-50 block"></i>Kênh kết nối hoàn tất. Hãy gửi tin nhắn đầu tiên!</div>`; return; }
-                    let ms = []; snap.forEach(d => { const mData = d.data(); mData.id = d.id; ms.push(mData); }); ms.sort((a,b) => a.time - b.time);
+                    let ms = []; snap.forEach(d => { const mData = d.data(); mData.id = d.id; ms.push(mData); State.chatMsgs[d.id] = mData; }); ms.sort((a,b) => a.time - b.time);
+                    let html = '';
                     
                     const unreadUpdates = [];
 
@@ -10791,10 +10917,11 @@ tr:hover td { background: #f8fafc; }
                                 const readNames = readList.filter(u => u !== State.currentUser).map(u => State.nicknames[u] || u);
                                 if (readNames.length > 0) {
                                     const readStr = readNames.join(', ');
+                                    const safeStr = readStr.replace(/</g, '&lt;');
                                     if (readNames.length > 2) {
-                                        statusHtml = `<span class="ml-2 text-success" title="${readStr}"><i class="fa-solid fa-check-double"></i> Đã xem (${readNames.length})</span>`;
+                                        statusHtml = `<span class="ml-2 text-success msg-status-btn" title="Bấm để xem ai đã xem" onclick="window.Chat.showInfo('${m.id}','seen')"><i class="fa-solid fa-check-double"></i> Đã xem (${readNames.length}) ›</span>`;
                                     } else {
-                                        statusHtml = `<span class="ml-2 text-success" title="${readStr}"><i class="fa-solid fa-check-double"></i> Đã xem: ${readStr}</span>`;
+                                        statusHtml = `<span class="ml-2 text-success msg-status-btn" title="Bấm để xem chi tiết" onclick="window.Chat.showInfo('${m.id}','seen')"><i class="fa-solid fa-check-double"></i> Đã xem: ${safeStr}</span>`;
                                     }
                                 } else {
                                     statusHtml = `<span class="ml-2" style="opacity: 0.6;"><i class="fa-solid fa-check"></i> Đã gửi</span>`;
@@ -10808,16 +10935,18 @@ tr:hover td { background: #f8fafc; }
                             
                             if (isM) {
                                 if (m.read) {
-                                    statusHtml = `<span class="ml-2 text-success"><i class="fa-solid fa-check-double"></i> Đã đọc</span>`;
+                                    const rt = m.readTime ? ' lúc ' + new Date(m.readTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '';
+                                    statusHtml = `<span class="ml-2 text-success msg-status-btn" title="Bấm để xem chi tiết" onclick="window.Chat.showInfo('${m.id}','seen')"><i class="fa-solid fa-check-double"></i> Đã xem${rt}</span>`;
                                 } else {
                                     statusHtml = `<span class="ml-2" style="opacity: 0.6;"><i class="fa-solid fa-check"></i> Đã gửi</span>`;
                                 }
                             }
                         }
 
-                        let hasHeart = m.heart || false;
-                        let heartHtml = hasHeart ? `<div class="heart-reaction active" onclick="window.Chat.toggleHeart('${m.id}', true)">❤️</div>` : '';
-                        let heartBtn = `<i class="fa-regular fa-heart btn-heart-action" onclick="window.Chat.toggleHeart('${m.id}', ${hasHeart})"></i>`;
+                        const hearts = window.Chat.heartList(m), iHeart = hearts.includes(State.currentUser);
+                        let heartHtml = hearts.length ? `<div class="heart-reaction active ${iHeart ? 'mine' : ''} ${State.heartPop === m.id ? 'pop' : ''}" title="Bấm để xem ai đã thả tim" onclick="window.Chat.showInfo('${m.id}','heart')">❤️ <span class="hr-n">${hearts.length}</span></div>` : '';
+                        let heartBtn = `<i class="${iHeart ? 'fa-solid on' : 'fa-regular'} fa-heart btn-heart-action" title="${iHeart ? 'Bỏ tim' : 'Thả tim'}" onclick="window.Chat.toggleHeart('${m.id}')"></i>`;
+                        let infoBtn = `<i class="fa-solid fa-circle-info btn-heart-action" title="Xem ai đã thả tim / đã xem" onclick="window.Chat.showInfo('${m.id}')"></i>`;
                         let revokeBtn = (isM && !m.revoked) ? `<i class="fa-solid fa-rotate-left btn-heart-action" style="color: var(--color-danger); opacity: 0.7;" onclick="window.Chat.revokeMsg('${m.id}')" title="Thu hồi tin nhắn"></i>` : '';
 
                         let imgHtml = m.imageUrl ? `<img src="${m.imageUrl}" style="max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; border: 1px solid var(--border-strong);" onclick="window.Chat.viewImage(this.src)" title="Nhấn để phóng to">` : '';
@@ -10826,7 +10955,7 @@ tr:hover td { background: #f8fafc; }
                         
                         let senderNameHtml = '';
                         if (State.chatTarget === 'general' && !isM) {
-                             senderNameHtml = `<div class="text-xs font-bold mb-1" style="color: var(--color-info); text-transform: capitalize;">${m.from}</div>`;
+                             senderNameHtml = `<div class="msg-sender" style="color: var(--color-info);">${String(State.nicknames[m.from] || m.from).replace(/</g, '&lt;')}</div>`;
                         }
 
                         if (m.revoked) {
@@ -10835,27 +10964,36 @@ tr:hover td { background: #f8fafc; }
                             heartBtn = '';
                             heartHtml = '';
                             revokeBtn = '';
+                            infoBtn = '';
                         }
                         
-                        let actionsHtml = isM ? revokeBtn + heartBtn : heartBtn;
-                        let msgBubbleHtml = `<div class="msg-bubble-container"><div class="msg-bubble">${senderNameHtml}${textHtml}${imgHtml}</div>${heartHtml}</div>`;
+                        let actionsHtml = isM ? revokeBtn + infoBtn + heartBtn : heartBtn + infoBtn;
+                        // Nhấp đúp vào tin nhắn = thả / bỏ tim
+                        let msgBubbleHtml = `<div class="msg-bubble-container"><div class="msg-bubble" ${m.revoked ? '' : `ondblclick="window.Chat.toggleHeart('${m.id}')"`}>${senderNameHtml}${textHtml}${imgHtml}</div>${heartHtml}</div>`;
                         let layoutHtml = isM ? `${actionsHtml}${msgBubbleHtml}` : `${msgBubbleHtml}${actionsHtml}`;
-                        box.innerHTML += `<div class="msg-row ${isM?'me':'them'}"><div class="flex items-center gap-2">${layoutHtml}</div><div class="text-xs text-muted mt-2 font-bold ${isM?'text-right':'text-left'}">${tm}${statusHtml}</div></div>`;
+                        html += `<div class="msg-row ${isM?'me':'them'} ${heartHtml ? 'has-heart' : ''}"><div class="flex items-center gap-2">${layoutHtml}</div><div class="text-xs text-muted mt-2 font-bold ${isM?'text-right':'text-left'}">${tm}${statusHtml}</div></div>`;
 });
+                    box.innerHTML = html;
+                    State.heartPop = null;
+                    // cập nhật modal chi tiết nếu đang mở
+                    const mi = document.getElementById('modal-msg-info');
+                    if (mi && mi.classList.contains('active') && State.infoMsgId) window.Chat.infoTab(document.getElementById('mi-tab-seen').classList.contains('active') ? 'seen' : 'heart');
 
                     unreadUpdates.forEach(u => {
                         if (u.type === 'general') {
                             db.collection("private_chat").doc(u.id).update({
-                                readBy: firebase.firestore.FieldValue.arrayUnion(State.currentUser)
+                                readBy: firebase.firestore.FieldValue.arrayUnion(State.currentUser),
+                                ['readAt.' + State.currentUser]: Date.now()
                             }).catch(e => console.error("Lỗi cập nhật đã xem:", e));
                         } else {
                             db.collection("private_chat").doc(u.id).update({
-                                read: true
+                                read: true, readTime: Date.now()
                             }).catch(e => console.error("Lỗi cập nhật đã đọc:", e));
                         }
                     });
 
-                    setTimeout(() => box.scrollTop = box.scrollHeight, 100);
+                    if (first || nearBottom || iSent) setTimeout(() => box.scrollTop = box.scrollHeight, 100);
+                    else box.scrollTop = prevTop;
                 });
             },
             
@@ -10867,7 +11005,7 @@ tr:hover td { background: #f8fafc; }
                 const roomId = State.chatTarget === 'general' ? 'general_room' : Utils.getRoomId(State.currentUser, State.chatTarget);
                 const targetUser = State.chatTarget === 'general' ? 'all' : State.chatTarget;
                 
-                db.collection("private_chat").add({ conversationId: roomId, from: State.currentUser, to: targetUser, text: t, imageUrl: null, time: Date.now(), read: false, heart: false, readBy: [] }); 
+                db.collection("private_chat").add({ conversationId: roomId, from: State.currentUser, to: targetUser, text: t, imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [] }); 
             },
 
             revokeMsg: (msgId) => {
@@ -11190,76 +11328,216 @@ tr:hover td { background: #f8fafc; }
 
         /** MODULE CỬA HÀNG ĐIỂM (TÍCH HỢP FETCH GIÁ TỪ ADMIN) */
         window.PointShop = {
-            userPoints: 0,
-            spinCost: 100, 
-            ticketCost: 50,
-            
+            userPoints: 0, spinCost: 100, ticketCost: 50,
+            cfg: {}, items: [], counts: {}, daily: {}, orders: [], tab: 'items', qty: {}, confirmId: null, busy: false, owner: null, unsubs: [],
+            TYPE_NAME: { tickets: 'Lượt rút lì xì', spins: 'Lượt vòng quay', gift: 'Quà tặng' },
+            DEF: [
+                { id: 'tk1', icon: '🧧', name: '1 Lượt rút lì xì', type: 'tickets', amount: 1, cost: 50, stock: null, dailyLimit: null, active: true },
+                { id: 'tk5', icon: '🧧', name: 'Combo 5 lượt rút lì xì', type: 'tickets', amount: 5, cost: 220, stock: null, dailyLimit: 2, active: true },
+                { id: 'tk10', icon: '🧧', name: 'Combo 10 lượt rút lì xì', type: 'tickets', amount: 10, cost: 400, stock: null, dailyLimit: 1, active: true }
+            ],
+            esc: v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+            dayKey: () => { const d = new Date(), p = x => String(x).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); },
+            // Danh mục từ cấu hình admin (tương thích bản cũ chỉ có spinCost / ticketCost)
+            norm: function(cfg) {
+                cfg = cfg || {};
+                let list = Array.isArray(cfg.items) && cfg.items.length ? cfg.items : null;
+                if (!list) list = this.DEF.map(x => Object.assign({}, x, x.id === 'tk1' && cfg.ticketCost != null ? { cost: cfg.ticketCost } : {}, x.id === 'sp1' && cfg.spinCost != null ? { cost: cfg.spinCost } : {}));
+                return list.filter(x => (x.type || 'tickets') === 'tickets').map((x, i) => ({   // chỉ bán lượt rút lì xì
+                    id: x.id || ('i' + i), icon: x.icon || '🧧', name: String(x.name || ''), type: 'tickets',
+                    amount: Math.max(1, parseInt(x.amount) || 1), cost: Math.max(0, parseInt(x.cost) || 0),
+                    stock: x.stock == null || x.stock === '' ? null : Math.max(0, parseInt(x.stock) || 0),
+                    dailyLimit: x.dailyLimit == null || x.dailyLimit === '' ? null : Math.max(0, parseInt(x.dailyLimit) || 0),
+                    active: x.active !== false
+                }));
+            },
+
             init: function() {
                 db.collection("settings").doc("point_shop_config").onSnapshot(doc => {
-                    let isEnabled = true;
-                    if (doc.exists) {
-                        const data = doc.data();
-                        this.spinCost = data.spinCost !== undefined ? data.spinCost : 100;
-                        this.ticketCost = data.ticketCost !== undefined ? data.ticketCost : 50;
-                        isEnabled = data.isEnabled !== false;
-                        
-                        window.Utils.safeText('shop-spin-cost', this.spinCost);
-                        window.Utils.safeText('shop-ticket-cost', this.ticketCost);
-                    }
-                    window.AppCore.lockFeatureUI('pointshop', isEnabled);
+                    this.cfg = doc.exists ? doc.data() : {};
+                    this.items = this.norm(this.cfg);
+                    this.spinCost = this.cfg.spinCost !== undefined ? this.cfg.spinCost : 100;
+                    this.ticketCost = this.cfg.ticketCost !== undefined ? this.cfg.ticketCost : 50;
+                    window.AppCore.lockFeatureUI('pointshop', this.cfg.isEnabled !== false);
+                    this.render();
                 });
+                db.collection("point_shop_stock").doc("counts").onSnapshot(doc => { this.counts = (doc.exists && doc.data().counts) || {}; this.render(); }, e => console.warn('point_shop_stock', e));
+            },
+            // Nghe dữ liệu riêng của người dùng (giới hạn đổi trong ngày)
+            ensureUser: function() {
+                const me = window.State && window.State.currentUser;
+                if (me === this.owner) return;
+                this.unsubs.forEach(u => { try { u(); } catch (e) {} }); this.unsubs = []; this.daily = {}; this.orders = []; this.owner = me;
+                if (!me) return;
+                this.unsubs.push(db.collection('point_shop_daily').doc(me + '_' + this.dayKey()).onSnapshot(d => { this.daily = (d.exists && d.data().counts) || {}; this.render(); }, e => console.warn('point_shop_daily', e)));
             },
 
             updateUI: function(points) {
                 this.userPoints = points || 0;
                 window.Utils.safeText('user-points-display', this.userPoints);
-                window.Utils.safeText('shop-current-points', this.userPoints);
+                window.Utils.safeText('shop-current-points', Number(this.userPoints).toLocaleString('vi-VN'));
+                this.render();
+            },
+            open: function() { if (!this.items.length) this.items = this.norm(this.cfg); this.ensureUser(); this.confirmId = null; const p = document.getElementById('ps2-pop'); if (p) p.classList.remove('show'); this.render(); window.UI.openModal('modal-point-shop'); },
+            setTab: function(t) { this.tab = t; this.render(); },
+
+            // Số lượng tối đa còn đổi được của 1 vật phẩm (theo kho, giới hạn ngày, điểm)
+            maxQty: function(x) {
+                let m = 20;
+                if (x.stock != null) m = Math.min(m, x.stock - (this.counts[x.id] || 0));
+                if (x.dailyLimit != null) m = Math.min(m, x.dailyLimit - (this.daily[x.id] || 0));
+                if (x.cost > 0) m = Math.min(m, Math.floor(this.userPoints / x.cost));
+                return Math.max(0, m);
+            },
+            render: function() {
+                const box = document.getElementById('ps2-grid'), ob = document.getElementById('ps2-orders'); if (!box || !ob) return;
+                const closed = this.cfg.isEnabled === false, esc = this.esc;
+                const modal = document.querySelector('#modal-point-shop .ps2'); if (modal) modal.classList.toggle('closed', closed);
+                document.querySelectorAll('#modal-point-shop .ps2-tab').forEach(b => b.classList.toggle('active', b.dataset.t === this.tab));
+                box.style.display = this.tab === 'items' ? '' : 'none'; ob.style.display = this.tab === 'orders' ? '' : 'none';
+                const pend = this.orders.filter(o => o.status === 'pending').length, nEl = document.getElementById('ps2-order-n'); if (nEl) nEl.textContent = pend || '';
+
+                const list = this.items.filter(x => x.active);
+                box.innerHTML = list.length ? list.map(x => {
+                    const sold = this.counts[x.id] || 0, left = x.stock == null ? null : Math.max(0, x.stock - sold);
+                    const used = this.daily[x.id] || 0, dLeft = x.dailyLimit == null ? null : Math.max(0, x.dailyLimit - used);
+                    const soldout = left === 0, limited = dLeft === 0, max = this.maxQty(x);
+                    let q = Math.min(Math.max(1, this.qty[x.id] || 1), Math.max(1, max)); this.qty[x.id] = q;
+                    const total = x.cost * q;
+                    let btn, dis = false;
+                    if (closed) { btn = '🔒 Đang đóng'; dis = true; }
+                    else if (soldout) { btn = 'Hết hàng'; dis = true; }
+                    else if (limited) { btn = 'Hết lượt hôm nay'; dis = true; }
+                    else if (this.userPoints < total) { btn = 'Thiếu ' + (total - this.userPoints).toLocaleString('vi-VN') + ' điểm'; dis = true; }
+                    else if (this.busy === x.id) { btn = 'Đang đổi...'; dis = true; }
+                    else btn = 'Đổi ngay';
+                    const sub = x.type === 'gift' ? '🎁 Quà trao tay' : `Nhận +${x.amount * q} ${this.TYPE_NAME[x.type].toLowerCase()}`;
+                    const meta = [left != null ? `Kho: còn ${left}` : '', dLeft != null ? `Hôm nay: còn ${dLeft}/${x.dailyLimit}` : ''].filter(Boolean).map(t => `<span>${t}</span>`).join('');
+                    const tag = soldout ? '<span class="ps2-tag">HẾT</span>' : (x.type === 'gift' ? '<span class="ps2-tag">QUÀ TẾT</span>' : (x.amount > 1 ? '<span class="ps2-tag">COMBO</span>' : ''));
+                    return `<div class="ps2-item ${x.type === 'gift' ? 'gift' : ''} ${soldout ? 'soldout' : ''} ${limited ? 'limit' : ''}">${tag}
+                        <div class="ps2-ico" aria-hidden="true">${esc(x.icon)}</div>
+                        <div class="ps2-name">${esc(x.name)}</div>
+                        <div class="ps2-sub">${sub}</div>
+                        ${meta ? `<div class="ps2-meta">${meta}</div>` : ''}
+                        <div class="ps2-price">💰 ${total.toLocaleString('vi-VN')}</div>
+                        <div class="ps2-buy">
+                            <span class="ps2-qty"><button onclick="window.PointShop.setQty('${x.id}',-1)" ${q <= 1 ? 'disabled' : ''} aria-label="Giảm">−</button><b>${q}</b><button onclick="window.PointShop.setQty('${x.id}',1)" ${q >= max ? 'disabled' : ''} aria-label="Tăng">+</button></span>
+                            <button class="ps2-go" ${dis ? 'disabled' : ''} onclick="window.PointShop.buy('${x.id}')">${btn}</button>
+                        </div>
+                    </div>`;
+                }).join('') : '<div class="ps2-empty">Trạm Quy Đổi chưa có vật phẩm nào.</div>';
+
+                ob.innerHTML = this.orders.length ? this.orders.map(o => {
+                    const st = o.status === 'done' ? '<span class="ps2-st done">✅ Đã trao</span>' : o.status === 'rejected' ? `<span class="ps2-st rejected">↩ Hoàn ${Number(o.cost || 0).toLocaleString('vi-VN')} điểm</span>` : '<span class="ps2-st pending">⏳ Chờ trao</span>';
+                    return `<div class="ps2-order"><div class="o-ico">${esc(o.icon || '🎁')}</div><div class="o-main"><div class="o-name">${esc(o.itemName)}${o.qty > 1 ? ' ×' + o.qty : ''}</div><div class="o-sub">${new Date(o.time).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })} · −${Number(o.cost || 0).toLocaleString('vi-VN')} điểm</div></div>${st}</div>`;
+                }).join('') : '<div class="ps2-empty">Bạn chưa đổi quà tặng nào.<br>Lượt rút lì xì đổi xong được cộng thẳng vào túi đồ.</div>';
+            },
+            setQty: function(id, d) {
+                const x = this.items.find(i => i.id === id); if (!x) return;
+                this.qty[id] = Math.min(Math.max(1, (this.qty[id] || 1) + d), Math.max(1, this.maxQty(x)));
+                this.confirmId = null; this.render();
             },
 
-            attemptExchange: function(type) {
-                const cost = type === 'spins' ? this.spinCost : this.ticketCost;
-                this.exchange(type, cost);
+            // ===== Bảng xác nhận / kết quả =====
+            pop: function(cls, html) {
+                const p = document.getElementById('ps2-pop'), c = document.getElementById('ps2-pop-card'); if (!p || !c) return;
+                c.className = 'ps2-pop-card ' + (cls || ''); c.innerHTML = html; p.classList.add('show');
+                const b = c.querySelector('.yes') || c.querySelector('button'); if (b) setTimeout(() => b.focus(), 50);
             },
-
-            exchange: async function(type, cost) {
-                if (this.userPoints < cost) {
-                    return window.Utils.toast(`Hệ thống từ chối: Số dư điểm không đủ để thực hiện quy đổi này.`, "error");
+            closePop: function() { const p = document.getElementById('ps2-pop'); if (p && !this.busy) p.classList.remove('show'); },
+            fmt: n => Number(n || 0).toLocaleString('vi-VN'),
+            // Trừ điểm trên màn hình NGAY sau khi máy chủ xác nhận (không đợi đồng bộ)
+            applyLocal: function(r) {
+                const S = window.State || {};
+                S.availablePoints = r.newPoints;
+                if (r.x.type === 'tickets') S.availableTickets = (S.availableTickets || 0) + r.x.amount * r.qty;
+                if (r.x.type === 'spins') S.availableSpins = (S.availableSpins || 0) + r.x.amount * r.qty;
+                this.counts[r.x.id] = (this.counts[r.x.id] || 0) + r.qty;
+                this.daily[r.x.id] = (this.daily[r.x.id] || 0) + r.qty;
+                this.updateUI(r.newPoints);
+                try { window.Utils.safeText('ticket-count-val', S.availableTickets); window.Utils.safeText('spin-count-val', S.availableSpins); } catch (e) {}
+                try { if (window.Inventory) window.Inventory.refresh(); if (window.RxTab) { window.RxTab.n = S.availableTickets; window.RxTab.render(); } if (window.WheelTab) window.WheelTab.render(); } catch (e) {}
+                const bal = document.querySelector('#modal-point-shop .ps2-balance');
+                if (bal) {
+                    const b = bal.querySelector('b'); b.classList.remove('drop'); void b.offsetWidth; b.classList.add('drop');
+                    const f = document.createElement('span'); f.className = 'ps2-fly'; f.textContent = '−' + this.fmt(r.cost); bal.style.position = 'relative'; bal.appendChild(f); setTimeout(() => f.remove(), 1200);
                 }
-
-                const typeName = type === 'spins' ? 'Lượt Vòng Quay' : 'Lượt Mở Thẻ';
-                
+            },
+            // Bấm "Đổi ngay" -> hiện bảng xác nhận
+            buy: function(id) {
+                if (this.busy) return;
+                const x = this.items.find(i => i.id === id); if (!x) return;
+                const q = this.qty[id] || 1, cost = x.cost * q, after = this.userPoints - cost, esc = this.esc;
+                if (after < 0) return window.Utils.toast('Số dư điểm không đủ.', 'warning');
+                const get = x.type === 'gift' ? `🎁 ${esc(x.name)}${q > 1 ? ' ×' + q : ''} (Ban Quản Trị trao tay)` : `+${x.amount * q} ${this.TYPE_NAME[x.type].toLowerCase()}`;
+                this.pop('', `<div class="ps2-pop-ico">${esc(x.icon)}</div><h3>Xác nhận đổi quà?</h3><div class="ps2-pop-item">${esc(x.name)}${q > 1 ? ' ×' + q : ''}</div>
+                    <div class="ps2-pop-rows"><div><span>Bạn nhận</span><b>${get}</b></div><div class="minus"><span>Trừ điểm</span><b>−${this.fmt(cost)}</b></div>
+                    <div><span>Số dư hiện tại</span><b>${this.fmt(this.userPoints)}</b></div><div class="after"><span>Số dư sau khi đổi</span><b>${this.fmt(after)}</b></div></div>
+                    <div class="ps2-pop-btns"><button class="no" onclick="window.PointShop.closePop()">Hủy</button><button class="yes" onclick="window.PointShop.confirmBuy('${id}', ${q})">Xác nhận đổi</button></div>`);
+            },
+            confirmBuy: function(id, q) {
+                const x = this.items.find(i => i.id === id) || { icon: '🎁', name: '' };
+                this.pop('', `<div class="ps2-pop-spin"></div><h3>Đang xử lý...</h3><div class="ps2-pop-item">${this.esc(x.name)}${q > 1 ? ' ×' + q : ''}</div>`);
+                this.exchangeItem(id, q);
+            },
+            exchangeItem: async function(id, qty) {
+                const S = window.State, me = S && S.currentUser;
+                if (!me || !S.currentDocId) return window.Utils.toast('Phiên đăng nhập không hợp lệ.', 'error');
+                qty = Math.max(1, Math.min(20, parseInt(qty) || 1));
+                this.busy = id; this.render();
+                const FV = firebase.firestore.FieldValue, key = this.dayKey();
+                const accRef = db.collection("accounts").doc(S.currentDocId), cfgRef = db.collection("settings").doc("point_shop_config");
+                const stRef = db.collection("point_shop_stock").doc("counts"), dRef = db.collection("point_shop_daily").doc(me + '_' + key);
+                let got = null;
                 try {
-                    await db.runTransaction(async (transaction) => {
-                        const accRef = db.collection("accounts").doc(window.State.currentDocId);
-                        const doc = await transaction.get(accRef);
-                        
-                        const currentPoints = doc.data().points || 0;
-                        if (currentPoints < cost) throw "INSUFFICIENT_POINTS";
-
-                        transaction.update(accRef, {
-                            points: firebase.firestore.FieldValue.increment(-cost),
-                            [type]: firebase.firestore.FieldValue.increment(1)
-                        });
-                        
-                        const logRef = db.collection("point_history").doc();
-                        transaction.set(logRef, {
-                            user: window.State.currentUser,
-                            action: "exchange",
-                            detail: `Đổi ${cost} điểm lấy 1 ${typeName}`,
-                            pointsChanged: -cost,
-                            timestamp: Date.now()
-                        });
+                    await db.runTransaction(async (t) => {
+                        const acc = await t.get(accRef), c = await t.get(cfgRef), st = await t.get(stRef), dd = await t.get(dRef);
+                        const cfg = c.exists ? c.data() : {};
+                        if (cfg.isEnabled === false) throw 'CLOSED';
+                        const x = this.norm(cfg).find(i => i.id === id);
+                        if (!x || !x.active) throw 'GONE';
+                        const cost = x.cost * qty, pts = (acc.exists && acc.data().points) || 0;
+                        if (pts < cost) throw 'POINTS';
+                        const sold = ((st.exists && st.data().counts) || {})[id] || 0;
+                        if (x.stock != null && sold + qty > x.stock) throw 'STOCK';
+                        const used = ((dd.exists && dd.data().counts) || {})[id] || 0;
+                        if (x.dailyLimit != null && used + qty > x.dailyLimit) throw 'DAILY';
+                        const upd = { points: FV.increment(-cost) };
+                        if (x.type !== 'gift') upd[x.type] = FV.increment(x.amount * qty);
+                        t.update(accRef, upd);
+                        t.set(stRef, { counts: { [id]: FV.increment(qty) } }, { merge: true });
+                        t.set(dRef, { user: me, date: key, counts: { [id]: FV.increment(qty) } }, { merge: true });
+                        const what = x.type === 'gift' ? `${x.name}${qty > 1 ? ' ×' + qty : ''}` : `${x.amount * qty} ${x.type === 'spins' ? 'Lượt Vòng Quay' : 'Lượt Rút Lì Xì'}`;
+                        t.set(db.collection("point_history").doc(), { user: me, action: "exchange", detail: `Đổi ${cost} điểm lấy ${what}`, pointsChanged: -cost, itemId: id, itemType: x.type, qty: qty, timestamp: Date.now() });
+                        if (x.type === 'gift') t.set(db.collection("shop_orders").doc(), { user: me, itemId: id, itemName: x.name, icon: x.icon, qty: qty, cost: cost, status: 'pending', time: Date.now() });
+                        got = { x, cost, what, qty, newPoints: pts - cost };
                     });
-
-                    window.Utils.toast(`Quy đổi thành công 1 ${typeName}!`, "success");
+                    this.busy = false;
+                    this.applyLocal(got);   // trừ điểm ngay trên màn hình
+                    this.qty[id] = 1;
+                    const isGift = got.x.type === 'gift', esc = this.esc;
+                    this.pop('ok', `<div class="ps2-pop-ico">🎉</div><h3>Đổi quà thành công!</h3><div class="ps2-pop-item">${esc(got.x.icon)} ${esc(got.what)}</div>
+                        <div class="ps2-pop-rows"><div class="plus"><span>${isGift ? 'Trạng thái' : 'Đã cộng vào túi đồ'}</span><b>${isGift ? '⏳ Chờ trao quà' : '+' + got.x.amount * got.qty + ' lượt'}</b></div>
+                        <div class="minus"><span>Đã trừ</span><b>−${this.fmt(got.cost)} điểm</b></div><div class="after"><span>Số dư còn lại</span><b>${this.fmt(got.newPoints)} điểm</b></div></div>
+                        ${isGift ? '<p style="font-size:12px;color:#d1fae5;margin:-4px 0 12px;">Ban Quản Trị sẽ liên hệ trao quà cho bạn. Theo dõi ở tab "Đơn quà của tôi".</p>' : ''}
+                        <div class="ps2-pop-btns">${isGift ? `<button class="no" onclick="window.PointShop.closePop(); window.PointShop.setTab('orders')">Xem đơn quà</button>` : ''}<button class="yes" onclick="window.PointShop.closePop()">Tiếp tục đổi</button></div>`);
+                    window.Utils.toast(`🎉 Đổi thành công ${got.what}! −${this.fmt(got.cost)} điểm`, "success");
                 } catch (error) {
-                    if (error === "INSUFFICIENT_POINTS") {
-                        window.Utils.toast("Giao dịch thất bại: Số dư điểm dữ liệu của bạn không đủ.", "error");
-                    } else {
-                        window.Utils.toast("Lỗi xử lý luồng quy đổi máy chủ.", "error");
-                    }
+                    const msg = { CLOSED: 'Trạm Quy Đổi vừa đóng cửa.', GONE: 'Vật phẩm này không còn bán.', POINTS: 'Số dư điểm không đủ.', STOCK: 'Vật phẩm đã hết hàng.', DAILY: 'Bạn đã đạt giới hạn đổi vật phẩm này hôm nay.' }[error];
+                    if (!msg) console.error(error);
+                    this.busy = false;
+                    this.pop('err', `<div class="ps2-pop-ico">😢</div><h3>Đổi quà chưa thành công</h3><div class="ps2-pop-item">${msg || 'Lỗi kết nối máy chủ, vui lòng thử lại.'}</div>
+                        <p style="font-size:12px;color:#fecaca;margin:0 0 14px;">Bạn chưa bị trừ điểm.</p><div class="ps2-pop-btns"><button class="yes" onclick="window.PointShop.closePop()">Đã hiểu</button></div>`);
                 }
-            }
+                this.busy = false; this.render();
+            },
+            // tương thích code cũ
+            attemptExchange: function(type) {
+                const x = this.items.find(i => i.active && i.type === type && i.amount === 1) || this.items.find(i => i.active && i.type === type);
+                if (!x) return window.Utils.toast('Vật phẩm này hiện không bán.', 'warning');
+                this.exchangeItem(x.id, 1);
+            },
+            exchange: function(type) { this.attemptExchange(type); }
         };
 
         /** MODULE KÉO BÚA BAO MULTIPLAYER */
@@ -11610,7 +11888,7 @@ tr:hover td { background: #f8fafc; }
                     if(desc) {
                         if(featureId === 'wheel') desc.innerText = "Thử vận may với vòng quay 8 ô nhận ngay thẻ cào.";
                         else if(featureId === 'tranhthuong') desc.innerText = "Xé thẻ lật quà để rinh phần thưởng bí mật mỗi ngày.";
-                        else if(featureId === 'pointshop') desc.innerText = "Dùng điểm tích lũy để đổi lấy lượt quay và xé vé.";
+                        else if(featureId === 'pointshop') desc.innerText = "Dùng điểm lì xì đổi lượt rút lì xì.";
                     }
                 }
             },
@@ -11693,7 +11971,7 @@ tr:hover td { background: #f8fafc; }
                             document.getElementById('app-shell').style.display = 'none';
                             if(window.HomeVideo) window.HomeVideo.stop();
                             if(window.LiXi) window.LiXi.stop();
-                            if(window.WheelTab) window.WheelTab.stop();
+                            if(window.WheelTab) window.WheelTab.stop(); if(window.RxTab) window.RxTab.stop();
 
                             if (data.unlockRequestedAt) {
                                 document.getElementById('unlock-action-area').style.display = 'none';
@@ -11715,6 +11993,7 @@ tr:hover td { background: #f8fafc; }
                         State.availableSpins = data.spins || 0;
                         State.availableTickets = data.tickets || 0;
                         State.availablePoints = data.points || 0;
+                        if (window.Inventory) window.Inventory.refresh();
 
                         Utils.safeText('spin-count-val', State.availableSpins);
                         Utils.safeText('ticket-count-val', State.availableTickets);
@@ -12114,7 +12393,7 @@ tr:hover td { background: #f8fafc; }
                     let rewardSpins = 0; let rewardTickets = 0;
                     const rewardDoc = await db.collection("settings").doc("attendance_reward_items").get();
                     if (rewardDoc.exists && rewardDoc.data().isEnabled === true) {
-                        rewardSpins = rewardDoc.data().spins || 0;
+                        rewardSpins = 0;   // đã bỏ thưởng lượt quay (lượt quay chỉ có từ câu hỏi)
                         rewardTickets = rewardDoc.data().tickets || 0;
                         if(rewardSpins > 0 || rewardTickets > 0) {
                             const accRef = db.collection("accounts").doc(State.currentDocId);
@@ -12154,6 +12433,7 @@ tr:hover td { background: #f8fafc; }
                     window.AppCore.hasAttendedToday = true;
 
                     document.getElementById('popup-reward-spins').innerText = rewardSpins;
+                    try { const bx = document.getElementById('popup-reward-spins').closest('.rounded-xl'); if (bx) bx.style.display = 'none'; } catch (e) {}
                     document.getElementById('popup-reward-tickets').innerText = rewardTickets;
                     window.Sound.initCtx(); window.Sound.playWin();
                     window.UI.openModal('modal-attendance-reward');
@@ -16024,7 +16304,7 @@ document.addEventListener("DOMContentLoaded", () => {
         /* Mở qt.html ngay trong tab này: lưu phiên tạm (sessionStorage, chỉ tab này, tự hết hạn sau 10 phút)
            để khi quay lại user.html thì tự đăng nhập lại, không phải gõ lại mật khẩu. */
         document.addEventListener('click', function (e) {
-            var a = e.target && e.target.closest ? e.target.closest('#wheel-tab') : null;
+            var a = e.target && e.target.closest ? e.target.closest('#wheel-tab, #rx-tab, [data-resume]') : null;
             if (!a || e.defaultPrevented) return;
             try {
                 var u = window.State && window.State.currentUser, p = ($('login-pwd') || {}).value;
@@ -16042,23 +16322,76 @@ document.addEventListener("DOMContentLoaded", () => {
                 setTimeout(function () { var b = $('btn-login'); if (b && !b.disabled) b.click(); }, 700);
             } catch (err) {}
         });
+        /* ===== QVis: quyết định câu hỏi nào đang HIỆN cho người dùng (dùng chung admin.html & qt.html) =====
+           settings/wheel_config.quiz = { mode: 'all' (lần lượt theo thứ tự) | 'random', count (0 = tất cả), rotateMin, start: 'HH:MM', end: 'HH:MM' }
+           wheel_questions/{id}.showAt / hideAt (ms, tùy chọn) = hẹn giờ hiện / ẩn từng câu */
+        const QVis = {
+            cfg(q) {
+                q = q || {}; const mode = q.mode === 'random' ? 'random' : 'all', n = parseInt(q.count);
+                // count: số câu hiện cùng lúc, áp dụng cho CẢ 2 chế độ; 0 = hiện tất cả (mặc định: lần lượt = tất cả, ngẫu nhiên = 3)
+                return { mode, count: isNaN(n) ? (mode === 'random' ? 3 : 0) : Math.min(50, Math.max(0, n)), rotateMin: Math.max(0, parseInt(q.rotateMin) || 0), start: q.start || '', end: q.end || '' };
+            },
+            KEEP_MS: 60000,   // chế độ lần lượt: câu vừa có người trả lời đúng vẫn hiện thêm 60 giây rồi nhường chỗ cho câu kế tiếp
+            mins(hhmm) { const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; },
+            // Khung giờ hiện câu hỏi hằng ngày -> { open, next: thời điểm đóng/mở kế tiếp (ms) }
+            win(c, now) {
+                const s = this.mins(c.start), e = this.mins(c.end);
+                if (s == null || e == null || s === e) return { open: true, next: null };
+                const d = new Date(now), cur = d.getHours() * 60 + d.getMinutes();
+                const open = s < e ? (cur >= s && cur < e) : (cur >= s || cur < e);
+                const target = open ? e : s, t = new Date(now);
+                t.setHours(Math.floor(target / 60), target % 60, 0, 0);
+                if (t.getTime() <= now) t.setDate(t.getDate() + 1);
+                return { open, next: t.getTime() };
+            },
+            // Phiên đổi câu: mỗi rotateMin phút (hoặc mỗi ngày nếu = 0) -> mọi người cùng thấy 1 bộ câu hỏi
+            slot(c, now) {
+                if (c.rotateMin > 0) { const ms = c.rotateMin * 60000, k = Math.floor(now / ms); return { key: 'r' + k, start: k * ms, end: (k + 1) * ms }; }
+                const d = new Date(now); d.setHours(0, 0, 0, 0); const st = d.getTime(), e = new Date(st); e.setDate(e.getDate() + 1);
+                return { key: 'd' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(), start: st, end: e.getTime() };
+            },
+            inTime(q, now) { return q.active !== false && (!q.showAt || now >= q.showAt) && (!q.hideAt || now < q.hideAt); },
+            h(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; },
+            compute(all, quizCfg, now, me) {
+                const c = this.cfg(quizCfg), w = this.win(c, now), sl = this.slot(c, now);
+                let up = Infinity;
+                all.forEach(q => { if (q.active !== false && !q.claimedBy && q.showAt && q.showAt > now && (!q.hideAt || q.hideAt > q.showAt)) up = Math.min(up, q.showAt); });
+                let list = [];
+                if (w.open) {
+                    const pool = all.filter(q => this.inTime(q, now));
+                    if (c.mode === 'random') {
+                        // Bỏ câu đã có người xác thực ở phiên trước; câu vừa xác thực trong phiên này vẫn giữ nguyên chỗ
+                        list = pool.filter(q => !q.claimedBy || (q.claimedAt || 0) >= sl.start)
+                                   .sort((a, b) => this.h(a.id + '|' + sl.key) - this.h(b.id + '|' + sl.key));
+                        if (c.count > 0) list = list.slice(0, c.count);
+                    } else {
+                        list = pool.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                        // Lần lượt: chỉ N câu đầu chưa có người trả lời (câu vừa được trả lời giữ thêm 60 giây để mọi người thấy kết quả)
+                        if (c.count > 0) list = list.filter(q => !q.claimedBy || now - (q.claimedAt || 0) < this.KEEP_MS).slice(0, c.count);
+                    }
+                }
+                if (me) all.forEach(q => { if (q.claimedBy === me && q.ticketUsed !== true && !list.includes(q)) list.push(q); });   // vé chưa dùng của mình luôn hiện
+                return { list, cfg: c, open: w.open, next: w.next, slotEnd: c.mode === 'random' ? sl.end : null, upcoming: isFinite(up) ? up : null };
+            },
+            fmtClock(ms) { const d = new Date(ms), n = new Date(), p = x => String(x).padStart(2, '0'); const hm = p(d.getHours()) + ':' + p(d.getMinutes()); return d.toDateString() === n.toDateString() ? hm : hm + ' ' + p(d.getDate()) + '/' + p(d.getMonth() + 1); },
+            fmtLeft(ms) { ms = Math.max(0, ms); const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60, p = v => String(v).padStart(2, '0'); return (h ? h + ':' + p(m) : m) + ':' + p(x); }
+        };
         window.WheelTab = {
-            spins: null, cfg: null, started: false, unsub: null, unsubCfg: null, timer: null,
+            qs: null, cfg: null, started: false, unsub: null, unsubCfg: null, timer: null,
             start: function () {
                 var self = this;
                 if (this.started) return;
                 if (!window.State || !window.State.currentDocId || typeof db === 'undefined') return;
                 this.started = true;
                 try {
-                    this.unsub = db.collection('accounts').doc(window.State.currentDocId).onSnapshot(function (snap) {
-                        var d = snap && snap.exists ? snap.data() : {};
-                        self.spins = Number(d.spins) || 0; self.render();
-                    }, function (e) { console.warn('WheelTab acc', e); });
+                    this.unsub = db.collection('wheel_questions').onSnapshot(function (snap) {
+                        self.qs = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); self.render();
+                    }, function (e) { console.warn('WheelTab questions', e); self.qs = []; self.render(); });
                     this.unsubCfg = db.collection('settings').doc('wheel_config').onSnapshot(function (snap) {
                         self.cfg = snap && snap.exists ? snap.data() : {}; self.render();
                     }, function (e) { console.warn('WheelTab cfg', e); self.cfg = {}; self.render(); });
                 } catch (e) { console.warn('WheelTab start', e); }
-                this.timer = setInterval(function () { self.render(); }, 15000);
+                this.timer = setInterval(function () { self.render(); }, 5000);
             },
             stop: function () {
                 this.started = false;
@@ -16073,14 +16406,375 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             render: function () {
                 var tab = $('wheel-tab'); if (!tab) return;
-                var lock = this.locked(), n = this.spins;
+                var lock = this.locked(), me = window.State && window.State.currentUser, qs = this.qs, tickets = 0, open = 0;
+                (qs || []).forEach(function (q) { if (q.claimedBy === me && q.ticketUsed !== true) tickets++; });
+
+                // Chỉ đếm câu người dùng đang thực sự thấy (theo cài đặt hiển thị trong admin: số câu, ngẫu nhiên, hẹn giờ, khung giờ)
+                if (qs) QVis.compute(qs, this.cfg && this.cfg.quiz, Date.now(), null).list.forEach(function (q) { if (!q.claimedBy) open++; });
                 tab.dataset.state = lock ? 'locked' : 'open';
-                $('wheel-tab-go').textContent = lock ? '🔒 Đang khóa' : (n === 0 ? 'Xem vòng quay ›' : 'Quay ngay ›');
-                $('wheel-tab-sub').textContent = (n == null ? 'Lượt quay: --' : 'Lượt quay: ' + n) + (lock ? ' · vòng quay đang đóng' : '');
+                $('wheel-tab-sub').textContent = lock ? 'Đang khóa' : (qs == null ? 'Đang tải...' : (tickets > 0 ? 'Lượt quay: ' + tickets : (open > 0 ? open + ' câu hỏi đang mở' : 'Chưa có câu hỏi')));
+                $('wheel-tab-go').textContent = lock ? '🔒 Vòng quay đang đóng' : (tickets > 0 ? 'Chạm để quay thưởng ›' : (open > 0 ? 'Trả lời câu hỏi để nhận lượt quay ›' : 'Chạm để xem vòng quay ›'));
+            },
+            syncHeight: function () { // luôn cao bằng thẻ lì xì (thẻ lì xì đổi chiều cao theo trạng thái)
+                var tab = $('wheel-tab'), lx = $('lixi-card'); if (!tab || !lx) return;
+                tab.style.minHeight = lx.offsetHeight + 'px';
+                var rx = $('rx-tab'); if (rx) rx.style.minHeight = lx.offsetHeight + 'px';
+                var sh = $('shop-tab'); if (sh) sh.style.minHeight = lx.offsetHeight + 'px';
             }
         };
+
+        /* ===== Tab "Rút Lì Xì": hiện số lượt rút (tickets) + trạng thái đóng/mở (settings/tranhthuong_config), bấm để mở tranht.html ===== */
+        window.RxTab = {
+            n: null, cfg: null, started: false, unsub: null, unsubCfg: null, timer: null,
+            start: function () {
+                var self = this;
+                if (this.started) return;
+                if (!window.State || !window.State.currentDocId || typeof db === 'undefined') return;
+                this.started = true;
+                try {
+                    this.unsub = db.collection('accounts').doc(window.State.currentDocId).onSnapshot(function (snap) {
+                        var d = snap && snap.exists ? snap.data() : {};
+                        self.n = Number(d.tickets) || 0; self.render();
+                    }, function (e) { console.warn('RxTab acc', e); });
+                    this.unsubCfg = db.collection('settings').doc('tranhthuong_config').onSnapshot(function (snap) {
+                        self.cfg = snap && snap.exists ? snap.data() : {}; self.render();
+                    }, function (e) { console.warn('RxTab cfg', e); self.cfg = {}; self.render(); });
+                } catch (e) { console.warn('RxTab start', e); }
+                this.timer = setInterval(function () { self.render(); }, 15000);   // bắt kịp giờ hẹn đóng
+            },
+            stop: function () {
+                this.started = false;
+                ['unsub', 'unsubCfg'].forEach(function (k) { if (this[k]) { try { this[k](); } catch (e) {} this[k] = null; } }, this);
+                if (this.timer) { clearInterval(this.timer); this.timer = null; }
+            },
+            locked: function () {
+                var c = this.cfg || {};
+                if (c.isEnabled === false) return true;
+                var dl = ts(c.endDate, c.endTime);
+                return !!(dl && Date.now() >= dl);
+            },
+            render: function () {
+                var tab = $('rx-tab'); if (!tab) return;
+                var lock = this.locked(), n = this.n;
+                tab.dataset.state = lock ? 'locked' : 'open';
+                $('rx-tab-sub').textContent = n == null ? 'Lượt rút: --' : 'Lượt rút: ' + n;
+                $('rx-tab-go').textContent = lock ? '🔒 Đang đóng' : (n > 0 ? 'Chạm để mở lì xì ›' : 'Hết lượt rút · chạm để xem ›');
+            }
+        };
+        function bindSync() {
+            var lx = $('lixi-card'); if (!lx) return;
+            window.WheelTab.syncHeight();
+            if (window.ResizeObserver) new ResizeObserver(function () { window.WheelTab.syncHeight(); }).observe(lx);
+            window.addEventListener('resize', function () { window.WheelTab.syncHeight(); });
+            setInterval(function () { window.WheelTab.syncHeight(); }, 1000);   // dự phòng
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindSync); else bindSync();
     })();
     </script>
+    <style id="chat-react-style">
+    /* ===== CHAT: dễ đọc trên giao diện Tết + thả tim từng người + xem ai đã tim / đã xem ===== */
+    /* Bóng chữ của theme Tết làm nhòe chữ trong bong bóng chat -> tắt */
+    .msg-bubble, .msg-bubble * { text-shadow: none !important; }
+    .msg-bubble { font-weight: 500 !important; }
+    /* Tin của mình: màu tùy chọn (Cài đặt > màu tin nhắn) với chữ tự đổi đen/trắng theo nền; mặc định Tết = vàng kim + chữ đỏ đậm */
+    .msg-row.me .msg-bubble { background: var(--chat-me-bg, var(--brand-primary)) !important; color: var(--chat-me-fg, #ffffff) !important; }
+    [data-theme="tet"] .msg-row.me .msg-bubble { background: var(--chat-me-bg, linear-gradient(135deg, #fff6c2 0%, #ffd700 60%, #ffc400 100%)) !important; color: var(--chat-me-fg, #5a0000) !important; box-shadow: 0 4px 14px rgba(0,0,0,.35) !important; }
+    [data-theme="tet"] .msg-row.me .msg-bubble a { color: inherit !important; text-decoration: underline; }
+    /* Tin người khác: nền tối trong suốt, viền vàng nhạt, chữ trắng */
+    [data-theme="tet"] .msg-row.them .msg-bubble { background: rgba(0,0,0,.32) !important; border: 1px solid rgba(255,215,0,.35) !important; color: #ffffff !important; box-shadow: 0 4px 12px rgba(0,0,0,.25) !important; }
+    [data-theme="tet"] .msg-row.them .msg-bubble .msg-sender { color: #ffe066 !important; }
+    .msg-sender { font-size: 12px; font-weight: 800 !important; margin-bottom: 4px; }
+
+    /* Huy hiệu tim: ai đã thả tim -> hiện số; bấm để xem danh sách */
+    .heart-reaction { bottom: -12px; padding: 2px 8px 2px 6px; font-size: 12px; font-weight: 800; color: var(--text-main); background: var(--bg-elevated); box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+    .msg-row.me .heart-reaction { right: auto; left: 10px; }
+    .heart-reaction.mine { border-color: #ff4d6d !important; background: #ffe3e8 !important; color: #c9184a !important; }
+    .heart-reaction .hr-n { font-variant-numeric: tabular-nums; }
+    .msg-row.has-heart { margin-bottom: 10px; }
+    .btn-heart-action.on { color: #ff4d6d !important; opacity: 1 !important; }
+    .msg-status-btn { cursor: pointer; border-radius: 6px; padding: 0 4px; }
+    .msg-status-btn:hover { background: rgba(255,255,255,.1); }
+    @keyframes heartPop { 0% { transform: scale(.4); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+    .heart-reaction.pop { animation: heartPop .35s ease; }
+    .msg-bubble { cursor: default; user-select: text; }
+    /* Trên điện thoại không có hover -> luôn hiện nút thao tác (mờ) */
+    @media (hover: none) { .btn-heart-action { opacity: .6; } }
+
+    /* Modal chi tiết tin nhắn */
+    #modal-msg-info .modal-box { max-width: 420px; text-align: left; }
+    .mi-preview { padding: 10px 14px; border-radius: 14px; background: rgba(0,0,0,.25); border: 1px solid rgba(255,215,0,.3); font-size: 14px; line-height: 1.45; max-height: 90px; overflow: hidden; margin-bottom: 14px; word-break: break-word; }
+    .mi-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .mi-tab { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-main); font-weight: 800; cursor: pointer; }
+    .mi-tab.active { background: var(--brand-primary); color: #5a0000; border-color: var(--brand-primary); }
+    .mi-list { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .mi-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(0,0,0,.18); }
+    .mi-item .avatar-circle { width: 34px !important; height: 34px !important; min-width: 34px !important; max-width: 34px !important; padding: 0 !important; border-radius: 50% !important; font-size: 14px !important; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; }
+    .mi-name { flex: 1; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mi-when { font-size: 12px; opacity: .8; white-space: nowrap; }
+    .mi-empty { padding: 20px; text-align: center; opacity: .8; }
+    </style>
+    <style id="inventory-v2-style">
+    /* ===== TÚI QUÀ CÁ NHÂN (v2, giao diện Tết) ===== */
+    #modal-inventory .modal-content.inv2 { padding: 0 !important; overflow: hidden; max-width: 560px; width: calc(100% - 24px); max-height: calc(100vh - 32px); display: flex; flex-direction: column;
+        background: linear-gradient(180deg, var(--bg-surface, #c1121f) 0%, var(--bg-body, #780000) 100%) !important; border: 2px solid #ffd700 !important; border-radius: 24px !important; box-shadow: 0 30px 60px rgba(0,0,0,.6) !important; color: #fff; }
+    .inv2 *, .inv2 span, .inv2 p { text-shadow: none !important; }
+    .inv2-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; background: rgba(0,0,0,.22); border-bottom: 1px solid rgba(255,215,0,.35); }
+    .inv2-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .inv2-bag { width: 48px; height: 48px; flex: 0 0 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; background: radial-gradient(circle at 35% 30%, #fff3a6, #ffd700 60%, #e0a800); box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+    .inv2-head h2 { margin: 0 !important; font-size: 20px !important; line-height: 1.2; color: #ffd700 !important; text-shadow: 0 2px 4px rgba(0,0,0,.5) !important; }
+    .inv2-head small { display: block; font-size: 12px; color: #fef08a; opacity: .9; margin-top: 2px; }
+    .inv2-x { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; border: 1px solid rgba(255,215,0,.6); background: rgba(0,0,0,.25); color: #fff; cursor: pointer; font-size: 16px; transition: .2s; }
+    .inv2-x:hover { background: rgba(255,215,0,.2); transform: rotate(90deg); }
+    .inv2-body { padding: 16px 18px 6px; overflow-y: auto; flex: 1 1 auto; }
+
+    .inv2-items { margin-bottom: 4px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .inv2-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 14px 8px 12px; border-radius: 18px; text-align: center; background: rgba(0,0,0,.25); border: 1px solid rgba(255,215,0,.4); transition: transform .2s, border-color .2s; }
+    .inv2-item:hover { transform: translateY(-3px); border-color: #ffd700; }
+    .inv2-ico { font-size: 30px; line-height: 1; margin-bottom: 4px; filter: drop-shadow(0 3px 5px rgba(0,0,0,.4)); }
+    .inv2-num { font-size: 26px; font-weight: 900; color: #ffd700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .inv2-num.bump { animation: invBump .5s ease; }
+    @keyframes invBump { 40% { transform: scale(1.35); color: #fff; } }
+    .inv2-lbl { font-size: 12px; font-weight: 700; color: #fef08a; line-height: 1.3; margin-bottom: 4px; }
+    .inv2-act { margin-top: auto; position: relative; top: 8px; margin-bottom: 8px; display: inline-block; padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 900; text-decoration: none; cursor: pointer; border: none; color: #7a0c0c !important; background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); box-shadow: 0 3px 8px rgba(0,0,0,.3); white-space: nowrap; }
+    .inv2-act:hover { filter: brightness(1.08); }
+    .inv2-act.off { background: rgba(0,0,0,.35); color: #fef08a !important; box-shadow: none; }
+
+    .inv2-money { display: flex; align-items: center; gap: 14px; margin: 14px 0 6px; padding: 14px 16px; border-radius: 18px; background: linear-gradient(135deg, #fffbea, #fde68a); border: 2px dashed #d97706; color: #7a0c0c; }
+    .inv2-money-ico { font-size: 32px; }
+    .inv2-money-txt { display: flex; flex-direction: column; min-width: 0; }
+    .inv2-money-txt span { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: #92400e !important; }
+    .inv2-money-txt b { font-size: 26px; font-weight: 900; color: #b91c1c; line-height: 1.15; font-variant-numeric: tabular-nums; }
+    .inv2-money-txt small { font-size: 12px; color: #92400e; font-weight: 600; }
+
+    .inv2-hist-head { display: flex; flex-direction: column; gap: 8px; margin: 14px 0 8px; }
+    .inv2-hist-head h3 { margin: 0 !important; font-size: 15px !important; color: #ffd700 !important; text-shadow: none !important; }
+    .inv2-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+    .inv2-chips::-webkit-scrollbar { display: none; }
+    .inv2-chip { flex: 0 0 auto; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,215,0,.45); background: rgba(0,0,0,.2); color: #fff; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .inv2-chip.active { background: #ffd700; color: #7a0c0c; border-color: #ffd700; }
+    .inv2-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; }
+    .inv2-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.2); border: 1px solid rgba(255,215,0,.15); }
+    .inv2-row.money { border-color: rgba(255,215,0,.6); background: rgba(255,215,0,.1); }
+    .inv2-row-ico { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: rgba(255,215,0,.15); }
+    .inv2-row-main { flex: 1; min-width: 0; }
+    .inv2-row-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+    .inv2-row-prize { font-weight: 800; font-size: 14px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .inv2-row.money .inv2-row-prize { color: #ffd700; }
+    .inv2-row-time { font-size: 11px; color: #fef08a; opacity: .85; white-space: nowrap; }
+    .inv2-row-src { font-size: 12px; color: #fef08a; opacity: .9; margin-top: 2px; }
+    .inv2-row-wish { font-size: 12px; font-style: italic; color: #fff3c4; margin-top: 3px; line-height: 1.4; }
+    .inv2-row.revoked { opacity: .55; }
+    .inv2-row.revoked .inv2-row-prize { text-decoration: line-through; }
+    .inv2-empty { padding: 26px 10px; text-align: center; color: #fef08a; font-weight: 600; }
+    .inv2-more { align-self: center; margin-top: 4px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255,215,0,.5); background: transparent; color: #fff; font-weight: 800; font-size: 12px; cursor: pointer; }
+    .inv2-foot { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; font-size: 12px; color: #fef08a; background: rgba(0,0,0,.25); border-top: 1px solid rgba(255,215,0,.25); }
+    .inv2-dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 0 rgba(52,211,153,.7); animation: invPulse 2s infinite; }
+    .inv2-dot.off { background: #f87171; animation: none; }
+    @keyframes invPulse { 70% { box-shadow: 0 0 0 8px rgba(52,211,153,0); } 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); } }
+    @media (max-width: 420px) { .inv2-num { font-size: 22px; } .inv2-ico { font-size: 26px; } .inv2-act { padding: 6px 10px; } .inv2-body { padding: 14px 12px 6px; } }
+    @media (prefers-reduced-motion: reduce) { .inv2-num.bump, .inv2-dot { animation: none !important; } }
+    </style>
+    <script>
+    /* ===== TÚI QUÀ CÁ NHÂN v2 =====
+       - Điểm & lượt rút lì xì: tài khoản (accounts.points / tickets), cập nhật realtime theo State
+       - Lượt vòng quay: câu hỏi đã trả lời đúng mà chưa quay (wheel_questions.claimedBy == mình && ticketUsed != true), giống qt.html
+       - Lịch sử: tranhthuong_history (Rút lì xì), spin_history (Vòng quay), lixi_history (Lì xì điểm hằng ngày) */
+    (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var money = function (t) {   // "10.000 VNĐ" -> 10000 ; "20K" -> 20000 ; không phải tiền -> 0
+            var m = String(t || '').match(/(\d[\d.,]*)\s*(k(?!\p{L})|nghìn|ngàn)?\s*(vnđ|vnd|đồng|đ(?!\p{L}))?/iu);
+            if (!m || (!m[2] && !m[3])) return 0;
+            var n = parseInt(m[1].replace(/[.,]/g, ''), 10) || 0;
+            return m[2] ? n * 1000 : n;
+        };
+        var isWish = function (t) { return !t || /chuc may man|loi chuc|chuc tet|ti nua|them ti/.test(String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase()); };
+        var fmtMoney = function (n) { return Number(n || 0).toLocaleString('vi-VN') + 'đ'; };
+        var fmtTime = function (ts) {
+            if (!ts) return '';
+            var d = new Date(ts), p = function (x) { return String(x).padStart(2, '0'); };
+            return p(d.getHours()) + ':' + p(d.getMinutes()) + ' · ' + p(d.getDate()) + '/' + p(d.getMonth() + 1);
+        };
+        var SRC = { lixi: '🧧 Rút lì xì', wheel: '🎡 Vòng quay', daily: '💰 Lì xì hằng ngày' };
+
+        window.Inventory = {
+            owner: null, unsubs: [], data: { lixi: [], wheel: [], daily: [] }, spinTickets: 0, f: 'all', limit: 30, last: {},
+            // Bắt đầu nghe dữ liệu của tài khoản đang đăng nhập (tự khởi động lại khi đổi tài khoản)
+            ensure: function () {
+                var me = window.State && window.State.currentUser;
+                if (me === this.owner) return;
+                this.stop(); this.owner = me;
+                if (!me || typeof db === 'undefined') return;
+                var self = this, ok = function () { var d = $('inv2-dot'); if (d) d.classList.remove('off'); }, bad = function (e) { console.warn('Inventory', e); var d = document.querySelector('.inv2-dot'); if (d) d.classList.add('off'); };
+                var listen = function (q, key, map) {
+                    self.unsubs.push(q.onSnapshot(function (snap) { self.data[key] = snap.docs.map(function (d) { return map(d.data()); }); ok(); self.renderList(); }, bad));
+                };
+                listen(db.collection('tranhthuong_history').where('userId', '==', me), 'lixi', function (d) { return { src: 'lixi', prize: d.result, wish: d.wish, ts: d.timestamp }; });
+                listen(db.collection('spin_history').where('userId', '==', me), 'wheel', function (d) { return { src: 'wheel', prize: d.result, wish: d.wish, ts: d.timestamp }; });
+                listen(db.collection('lixi_history').where('user', '==', me), 'daily', function (d) { return { src: 'daily', prize: '+' + (d.amount || 0) + ' điểm lì xì', ts: d.timestamp, revoked: d.status === 'revoked' }; });
+                this.unsubs.push(db.collection('wheel_questions').where('claimedBy', '==', me).onSnapshot(function (snap) {
+                    self.spinTickets = snap.docs.filter(function (d) { return d.data().ticketUsed !== true; }).length; self.refresh();
+                }, bad));
+            },
+            stop: function () { this.unsubs.forEach(function (u) { try { u(); } catch (e) {} }); this.unsubs = []; this.data = { lixi: [], wheel: [], daily: [] }; this.spinTickets = 0; this.last = {}; },
+            setNum: function (id, v) {
+                var el = $(id); if (!el) return;
+                if (this.last[id] !== undefined && this.last[id] !== v) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+                this.last[id] = v; el.textContent = Number(v || 0).toLocaleString('vi-VN');
+            },
+            // Gọi mỗi khi tài khoản thay đổi (điểm / lượt)
+            refresh: function () {
+                this.ensure();
+                var S = window.State || {};
+                this.setNum('inv-points', S.availablePoints || 0);
+                this.setNum('inv-tickets', S.availableTickets || 0);
+                const spins = this.spinTickets;   // lượt quay chỉ có từ câu hỏi đã trả lời đúng
+                this.setNum('inv-spins', spins);
+                if (window.WheelTab && window.WheelTab.render) try { window.WheelTab.render(); } catch (e) {}
+                var u = $('inv2-user'); if (u) u.textContent = S.currentUser ? ('Chủ túi: ' + S.currentUser) : 'Xuân Đinh Mùi 2027';
+                document.querySelectorAll('#modal-inventory .inv2-item').forEach(function (it, i) {
+                    var n = [S.availablePoints, S.availableTickets, spins][i] || 0, a = it.querySelector('.inv2-act');
+                    if (a && i > 0) a.classList.toggle('off', n <= 0);
+                });
+            },
+            all: function () {
+                var d = this.data, arr = d.lixi.concat(d.wheel, d.daily);
+                arr.forEach(function (r) { r.money = isWish(r.prize) ? 0 : money(r.prize); r.isWish = r.src !== 'daily' && isWish(r.prize); });
+                return arr.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+            },
+            renderList: function () {
+                var list = $('inv2-list'); if (!list) return;
+                var arr = this.all(), f = this.f;
+                var rows = arr.filter(function (r) { return f === 'all' || (f === 'money' ? r.money > 0 : r.src === f); });
+                if (!rows.length) {
+                    list.innerHTML = '<div class="inv2-empty">' + (f === 'all' ? '🎁 Túi quà còn trống.<br>Rút lì xì hoặc quay vòng quay để nhận quà nhé!' : 'Chưa có quà nào ở mục này.') + '</div>';
+                    return;
+                }
+                var shown = rows.slice(0, this.limit);
+                list.innerHTML = shown.map(function (r) {
+                    var ico = r.money > 0 ? '💵' : (r.isWish ? '🎊' : (r.src === 'daily' ? '💰' : (r.src === 'wheel' ? '🎡' : '🎁')));
+                    var title = r.isWish ? 'Lời Chúc Tết' : r.prize;
+                    return '<div class="inv2-row' + (r.money > 0 ? ' money' : '') + (r.revoked ? ' revoked' : '') + '">' +
+                        '<div class="inv2-row-ico">' + ico + '</div><div class="inv2-row-main">' +
+                        '<div class="inv2-row-top"><span class="inv2-row-prize">' + esc(title) + '</span><span class="inv2-row-time">' + esc(fmtTime(r.ts)) + '</span></div>' +
+                        '<div class="inv2-row-src">' + SRC[r.src] + (r.revoked ? ' · đã bị thu hồi' : '') + '</div>' +
+                        (r.wish ? '<div class="inv2-row-wish">“' + esc(r.wish) + '”</div>' : '') +
+                        '</div></div>';
+                }).join('') + (rows.length > shown.length ? '<button class="inv2-more" onclick="window.Inventory.more()">Xem thêm (' + (rows.length - shown.length) + ')</button>' : '');
+            },
+            filter: function (f) {
+                this.f = f; this.limit = 30;
+                document.querySelectorAll('#modal-inventory .inv2-chip').forEach(function (c) { c.classList.toggle('active', c.dataset.f === f); });
+                this.renderList();
+            },
+            more: function () { this.limit += 30; this.renderList(); },
+            openShop: function () { window.UI.closeModal('modal-inventory'); setTimeout(function () { window.PointShop.open(); }, 250); }
+        };
+
+        // Tương thích với code cũ
+        window.SyncInventoryUI = function () { window.Inventory.refresh(); };
+        // Mở túi -> đảm bảo đã nghe dữ liệu + vẽ lại
+        document.addEventListener('click', function (e) {
+            var t = e.target && e.target.closest ? e.target.closest('[onclick*="modal-inventory"]') : null;
+            if (t && !t.closest('#modal-inventory')) { window.Inventory.refresh(); window.Inventory.renderList(); }
+        }, true);
+    })();
+    </script>
+    <style id="pointshop-v2-style">
+    /* ===== TRẠM QUY ĐỔI VẬT PHẨM v2 (giao diện Tết) ===== */
+    #modal-point-shop .modal-content.ps2 { padding: 0 !important; overflow: hidden; max-width: 620px; width: calc(100% - 24px); max-height: calc(100vh - 32px); display: flex; flex-direction: column;
+        background: linear-gradient(180deg, var(--bg-surface, #c1121f) 0%, var(--bg-body, #780000) 100%) !important; border: 2px solid #ffd700 !important; border-radius: 24px !important; box-shadow: 0 30px 60px rgba(0,0,0,.6) !important; color: #fff; text-align: left; }
+    .ps2 *, .ps2 span, .ps2 p { text-shadow: none !important; }
+    .ps2-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; background: rgba(0,0,0,.22); border-bottom: 1px solid rgba(255,215,0,.35); }
+    .ps2-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .ps2-logo { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: radial-gradient(circle at 35% 30%, #fff3a6, #ffd700 60%, #e0a800); box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+    .ps2-head h2 { margin: 0 !important; font-size: 19px !important; color: #ffd700 !important; text-shadow: 0 2px 4px rgba(0,0,0,.5) !important; }
+    .ps2-head small { display: block; font-size: 12px; color: #fef08a; margin-top: 2px; }
+    .ps2-x { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; border: 1px solid rgba(255,215,0,.6); background: rgba(0,0,0,.25); color: #fff; cursor: pointer; font-size: 16px; transition: .2s; }
+    .ps2-x:hover { background: rgba(255,215,0,.2); transform: rotate(90deg); }
+    .ps2-balance { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 14px 18px 0; padding: 12px 16px; border-radius: 16px; background: linear-gradient(135deg, #fffbea, #fde68a); color: #7a0c0c; }
+    .ps2-balance span { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: #92400e !important; }
+    .ps2-balance b { font-size: 22px; font-weight: 900; color: #b91c1c; font-variant-numeric: tabular-nums; }
+    .ps2-balance b span { font-size: inherit; text-transform: none; letter-spacing: 0; color: inherit !important; }
+    .ps2-closed { display: none; margin: 10px 18px 0; padding: 10px 14px; border-radius: 12px; background: rgba(0,0,0,.4); border: 1px solid rgba(255,140,140,.7); color: #ffd0d0; font-weight: 700; font-size: 13px; }
+    .ps2.closed .ps2-closed { display: block; }
+    .ps2-tabs { display: flex; gap: 8px; margin: 12px 18px 0; }
+    .ps2-tab { flex: 1; padding: 9px 10px; border-radius: 12px; border: 1px solid rgba(255,215,0,.5); background: rgba(0,0,0,.2); color: #fff; font-weight: 800; font-size: 13px; cursor: pointer; }
+    .ps2-tab.active { background: #ffd700; color: #7a0c0c; border-color: #ffd700; }
+    .ps2-tab span { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: #b91c1c; color: #fff !important; margin-left: 2px; }
+    .ps2-tab span:empty { display: none; }
+    .ps2-body { padding: 12px 18px 14px; overflow-y: auto; flex: 1 1 auto; }
+    .ps2-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+    .ps2-item { min-width: 0; }
+    .ps2-item { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 14px 12px 12px; border-radius: 18px; background: rgba(0,0,0,.25); border: 1px solid rgba(255,215,0,.4); transition: transform .2s, border-color .2s; }
+    .ps2-item:hover { transform: translateY(-3px); border-color: #ffd700; }
+    .ps2-item.gift { background: linear-gradient(160deg, rgba(255,215,0,.18), rgba(0,0,0,.25)); }
+    .ps2-item.soldout, .ps2-item.limit { opacity: .6; }
+    .ps2-tag { position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 999px; background: #ffd700; color: #7a0c0c; }
+    .ps2-item.soldout .ps2-tag { background: #444; color: #ffb4b4; }
+    .ps2-ico { font-size: 34px; line-height: 1; filter: drop-shadow(0 3px 5px rgba(0,0,0,.4)); }
+    .ps2-name { font-weight: 900; font-size: 15px; color: #fff; line-height: 1.25; }
+    .ps2-sub { font-size: 12px; color: #fef08a; font-weight: 600; }
+    .ps2-meta { display: flex; flex-wrap: wrap; gap: 4px; font-size: 11px; }
+    .ps2-meta span { padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.3); color: #fff3c4; font-weight: 700; }
+    .ps2-price { font-size: 18px; font-weight: 900; color: #ffd700; font-variant-numeric: tabular-nums; }
+    .ps2-buy { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; }
+    .ps2-qty { flex: 0 0 auto; }
+    .ps2-qty { display: inline-flex; align-items: center; border: 1px solid rgba(255,215,0,.55); border-radius: 999px; overflow: hidden; }
+    .ps2-qty button { width: 28px; height: 30px; border: none; background: rgba(0,0,0,.3); color: #fff; font-weight: 900; cursor: pointer; font-size: 15px; }
+    .ps2-qty button:disabled { opacity: .35; cursor: not-allowed; }
+    .ps2-qty b { min-width: 26px; text-align: center; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .ps2-go { flex: 1 1 96px; min-width: 0; padding: 8px 10px; border-radius: 999px; border: none; cursor: pointer; font-weight: 900; font-size: 13px; color: #7a0c0c; background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); box-shadow: 0 3px 8px rgba(0,0,0,.3); white-space: nowrap; }
+    .ps2-go.confirm { background: linear-gradient(135deg, #34d399, #059669); color: #fff; animation: psPulse 1s infinite; }
+    .ps2-go:disabled { background: rgba(0,0,0,.35); color: #fef08a; box-shadow: none; cursor: not-allowed; animation: none; }
+    @keyframes psPulse { 50% { box-shadow: 0 0 0 4px rgba(52,211,153,.35); } }
+    .ps2-empty { padding: 26px 10px; text-align: center; color: #fef08a; font-weight: 600; grid-column: 1 / -1; }
+    .ps2-orders { display: flex; flex-direction: column; gap: 8px; }
+    .ps2-order { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,215,0,.2); }
+    .ps2-order .o-ico { font-size: 24px; }
+    .ps2-order .o-main { flex: 1; min-width: 0; }
+    .ps2-order .o-name { font-weight: 800; font-size: 14px; }
+    .ps2-order .o-sub { font-size: 12px; color: #fef08a; }
+    .ps2-st { font-size: 11px; font-weight: 900; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+    .ps2-st.pending { background: #fde68a; color: #92400e; } .ps2-st.done { background: #bbf7d0; color: #065f46; } .ps2-st.rejected { background: #fecaca; color: #991b1b; }
+    .ps2-foot { padding: 10px 16px; font-size: 12px; color: #fef08a; text-align: center; background: rgba(0,0,0,.25); border-top: 1px solid rgba(255,215,0,.25); }
+    @media (max-width: 420px) { .ps2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .ps2-buy { flex-direction: column; align-items: stretch; } .ps2-qty { justify-content: space-between; } .ps2-qty button { flex: 0 0 34px; } .ps2-go { flex: 0 0 auto; white-space: normal; } .ps2-item { padding: 12px 9px 10px; } .ps2-name { font-size: 13px; } .ps2-qty button { width: 24px; } .ps2-go { font-size: 12px; padding: 8px 6px; } .ps2-body, .ps2-tabs { margin-left: 0; } .ps2-body { padding: 10px 12px; } }
+    @media (prefers-reduced-motion: reduce) { .ps2-go.confirm { animation: none; } }
+    </style>
+    <style id="pointshop-pop-style">
+    /* Bảng xác nhận + thông báo mua thành công (Trạm Quy Đổi) */
+    .ps2 { position: relative; }
+    .ps2-pop { position: absolute; inset: 0; z-index: 20; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(30,0,0,.72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+    .ps2-pop.show { display: flex; animation: psFade .2s ease; }
+    .ps2-pop-card { width: 100%; max-width: 340px; padding: 22px 20px 18px; border-radius: 22px; text-align: center; color: #fff; background: linear-gradient(180deg, #c1121f, #7a0000); border: 2px solid #ffd700; box-shadow: 0 24px 50px rgba(0,0,0,.6); animation: psPop .35s cubic-bezier(.68,-.55,.27,1.55); }
+    .ps2-pop-ico { font-size: 54px; line-height: 1; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
+    .ps2-pop-card h3 { margin: 0 0 4px !important; font-size: 20px !important; color: #ffd700 !important; text-shadow: none !important; }
+    .ps2-pop-item { font-weight: 800; font-size: 15px; margin-bottom: 12px; color: #fff; }
+    .ps2-pop-rows { text-align: left; border-radius: 14px; padding: 10px 14px; background: rgba(0,0,0,.28); border: 1px solid rgba(255,215,0,.3); margin-bottom: 14px; }
+    .ps2-pop-rows div { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; font-size: 14px; color: #fef08a; }
+    .ps2-pop-rows div b { color: #fff; font-variant-numeric: tabular-nums; }
+    .ps2-pop-rows .minus b { color: #ff8a8a; font-size: 16px; }
+    .ps2-pop-rows .after { border-top: 1px dashed rgba(255,215,0,.35); margin-top: 4px; padding-top: 8px; }
+    .ps2-pop-rows .after b { color: #ffd700; font-size: 17px; }
+    .ps2-pop-rows .plus b { color: #86efac; }
+    .ps2-pop-btns { display: flex; gap: 8px; }
+    .ps2-pop-btns button { flex: 1; padding: 11px 10px; border-radius: 999px; font-weight: 900; font-size: 14px; cursor: pointer; border: none; }
+    .ps2-pop-btns .no { background: rgba(0,0,0,.3); color: #fff; border: 1px solid rgba(255,215,0,.5); }
+    .ps2-pop-btns .yes { color: #7a0c0c; background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+    .ps2-pop-card.ok { background: linear-gradient(180deg, #0f7a4a, #064e2f); }
+    .ps2-pop-card.ok h3 { color: #fff3a6 !important; }
+    .ps2-pop-card.err { background: linear-gradient(180deg, #5a0000, #2a0000); border-color: #ff8a8a; }
+    .ps2-pop-spin { width: 46px; height: 46px; margin: 6px auto 14px; border-radius: 50%; border: 4px solid rgba(255,215,0,.25); border-top-color: #ffd700; animation: psSpin .8s linear infinite; }
+    .ps2-balance b.drop { animation: psDrop .7s ease; }
+    .ps2-fly { position: absolute; right: 26px; top: 10px; font-weight: 900; color: #ff4d4d; font-size: 18px; pointer-events: none; animation: psFly 1.1s ease forwards; }
+    @keyframes psFade { from { opacity: 0; } } @keyframes psPop { from { transform: scale(.7); opacity: 0; } }
+    @keyframes psSpin { to { transform: rotate(360deg); } }
+    @keyframes psDrop { 30% { transform: scale(1.25); color: #ff3b3b; } }
+    @keyframes psFly { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-34px); } }
+    @media (prefers-reduced-motion: reduce) { .ps2-pop-card, .ps2-pop.show, .ps2-fly, .ps2-balance b.drop { animation: none !important; } }
+    </style>
+    <script>document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && window.PointShop) { var p = document.getElementById('ps2-pop'); if (p && p.classList.contains('show')) { e.stopPropagation(); window.PointShop.closePop(); } } }, true);</script>
 </body>
 
 </html>
