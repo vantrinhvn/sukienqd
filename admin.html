@@ -275,6 +275,21 @@
         .wq-ans { font-family: var(--font-family-mono); font-size: 13px; color: var(--color-success); white-space: normal; word-break: break-word; }
         .wq-btns { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
         .wq-btns .btn { padding: 8px 12px; font-size: 12px; }
+        .wq-set { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; align-items: end; padding: 16px; margin-bottom: 20px; border-radius: var(--radius-md); background: var(--bg-base); border: 1px dashed var(--border-strong); }
+        .wq-set label, .wq-bank label { display: block; font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+        .wq-set .form-control, .wq-bank .form-control { padding: 10px; font-size: 14px; }
+        .wq-set-title { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-weight: 800; }
+        .wq-live { font-size: 13px; font-weight: 700; color: var(--color-success); }
+        .wq-bank { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; padding: 14px 16px; margin-bottom: 20px; border-radius: var(--radius-md); background: var(--color-warning-bg, rgba(245,158,11,.1)); border: 1px solid rgba(245,158,11,.35); }
+        .wq-sched { font-size: 12px; margin-top: 4px; color: var(--text-muted); }
+        .sh-table td { vertical-align: middle; }
+        .sh-table th:nth-child(3), .sh-table td:nth-child(3) { display: none; }   /* cột Loại: chỉ còn lượt rút lì xì */
+        .sh-table .form-control { padding: 8px 10px; font-size: 14px; }
+        .sh-table .sh-icon { text-align: center; font-size: 20px; padding: 4px; }
+        .sh-table tr.sh-off td { opacity: .5; }
+        .sh-table tr.sh-off td:last-child, .sh-table tr.sh-off td:nth-last-child(2) { opacity: 1; }
+        .sh-mv { display: inline-flex; flex-direction: column; gap: 2px; vertical-align: middle; }
+        .sh-mv button { border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); border-radius: 6px; width: 24px; height: 18px; line-height: 1; font-size: 10px; cursor: pointer; padding: 0; }
         .wq-note { font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
         @media (max-width: 768px) { .wq-form { grid-template-columns: 1fr; } }
 
@@ -418,8 +433,7 @@
                 <label class="form-label">Phân loại Vật phẩm</label>
                 <select id="spin-type" class="form-control" style="cursor: pointer; appearance: auto;">
                     <option value="points">Điểm Lì Xì (Points)</option>
-                    <option value="spins">Vòng Quay Thưởng (Lượt Quay)</option>
-                    <option value="tickets">Tranh Thưởng May Mắn (Lượt Xé)</option>
+                    <option value="tickets">Rút Lì Xì May Mắn (Lượt Rút)</option>
                 </select>
             </div>
 
@@ -554,7 +568,7 @@
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="tournament"> Giải Đấu</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="luckynumber"> Quay Số</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="wheel"> Vòng Quay</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="tranhthuong"> Tranh Thưởng</label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="tranhthuong"> Rút Lì Xì</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="lixi"> Lì Xì</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="rps"> Kéo Búa</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="invite"> Mã Mời</label>
@@ -613,7 +627,7 @@
                 </div>
                 <div class="flex-col flex-1">
                     <h2 class="text-xl m-0">Biến động Dữ liệu: <span id="history-target-name" class="text-info font-bold">User</span></h2>
-                    <div class="text-sm mt-1 text-muted">Số dư máy chủ hiện tại: <b class="text-success" id="history-real-points">0</b> Điểm | <b class="text-warning" id="history-real-spins">0</b> Quay | <b class="text-danger" id="history-real-tickets">0</b> Xé</div>
+                    <div class="text-sm mt-1 text-muted">Số dư máy chủ hiện tại: <b class="text-success" id="history-real-points">0</b> Điểm | <b class="text-warning" id="history-real-spins">0</b> Quay | <b class="text-danger" id="history-real-tickets">0</b> Rút Lì Xì</div>
                 </div>
                 <div>
                     <button class="btn btn-outline" style="padding: 10px 16px; border-color: var(--color-success); color: var(--color-success);" onclick="AdminActions.exportUserHistoryExcel()">
@@ -674,8 +688,8 @@
                     <span>Vòng Quay</span>
                 </div>
                 <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('tranhthuong')">
-                    <div class="m-menu-icon text-danger" style="background: var(--color-danger-bg);"><i class="fa-solid fa-ticket-alt"></i></div>
-                    <span>Tranh Thưởng</span>
+                    <div class="m-menu-icon text-danger" style="background: var(--color-danger-bg);"><i class="fa-solid fa-envelope"></i></div>
+                    <span>Rút Lì Xì</span>
                 </div>
                 <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('lixi')">
                     <div class="m-menu-icon text-danger" style="background: var(--color-danger-bg);"><i class="fa-solid fa-envelope-open-text"></i></div>
@@ -848,8 +862,8 @@
                                 <div class="flex-center rounded-md text-danger" style="width: 40px; height: 40px; background: var(--color-danger-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-ticket-alt"></i></div>
                                 <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
                             </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Tranh Thưởng</h4>
-                            <p class="text-muted text-xs m-0">Thiết lập cơ cấu phần thưởng cho phân hệ xé vé giải trí nhanh.</p>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Rút Lì Xì</h4>
+                            <p class="text-muted text-xs m-0">Thiết lập phần thưởng bên trong 6 bao lì xì may mắn (dùng lượt rút).</p>
                         </div>
                         <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('lixi')" style="display: flex; flex-direction: column; gap: 12px;">
                             <div class="flex justify-between items-center">
@@ -873,7 +887,7 @@
                                 <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
                             </div>
                             <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Mã Mời</h4>
-                            <p class="text-muted text-xs m-0">Bật/tắt tính năng, điều chỉnh mức thưởng lượt xé khi mời.</p>
+                            <p class="text-muted text-xs m-0">Bật/tắt tính năng, điều chỉnh mức thưởng lượt rút lì xì khi mời.</p>
                         </div>
                         <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('accounts')" style="display: flex; flex-direction: column; gap: 12px;">
                             <div class="flex justify-between items-center">
@@ -939,8 +953,8 @@
                     <div class="card mb-8" style="border-left: 4px solid var(--color-success); padding: 24px;">
                         <div class="flex justify-between items-start flex-wrap gap-6">
                             <div class="max-w-md">
-                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-tags text-success"></i> Bảng Giá Quy Đổi Vật Phẩm</h3>
-                                <p class="text-muted text-sm">Thiết lập số điểm lì xì cần thiết để người chơi có thể đổi lấy các lượt giải trí. Đoạn Script User sẽ nhận diện bảng giá này để tính toán tự động.</p>
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-store text-success"></i> Trạm Quy Đổi Vật Phẩm</h3>
+                                <p class="text-muted text-sm">Bật/tắt Trạm Quy Đổi (đổi điểm lì xì lấy lượt rút lì xì) ở trang người dùng. Khi đóng, người dùng vẫn xem được danh mục nhưng không đổi được.</p>
                                 
                                 <div class="mt-4 flex items-center gap-2">
                                     <span class="text-sm font-bold text-muted" id="shop-status-text">ĐANG MỞ CỬA</span>
@@ -950,31 +964,54 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="flex-col gap-4 bg-base p-5 rounded-lg border-strong flex-1 min-w-[300px]" style="background: var(--bg-base); border: 1px solid var(--border-strong);">
-                                <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
-                                    <div class="flex items-center gap-3">
-                                        <div class="btn-icon" style="background: var(--color-warning-bg); color: var(--color-warning); border:none;"><i class="fa-solid fa-dharmachakra"></i></div>
-                                        <span class="font-bold text-main">1 Lượt Vòng Quay</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <input type="number" id="cfg-shop-spin-cost" class="form-control text-center font-bold text-success" style="width: 100px; padding: 8px;" min="1" value="100">
-                                        <span class="text-muted text-sm font-bold">Điểm</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
-                                    <div class="flex items-center gap-3">
-                                        <div class="btn-icon" style="background: var(--color-danger-bg); color: var(--color-danger); border:none;"><i class="fa-solid fa-ticket-alt"></i></div>
-                                        <span class="font-bold text-main">1 Lượt Xé Thẻ</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <input type="number" id="cfg-shop-ticket-cost" class="form-control text-center font-bold text-success" style="width: 100px; padding: 8px;" min="1" value="50">
-                                        <span class="text-muted text-sm font-bold">Điểm</span>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <button class="btn btn-success" onclick="AdminActions.saveShopConfig()"><i class="fa-solid fa-save mr-2"></i> Lưu Bảng Giá</button>
-                                </div>
+                            <div class="lx-tiles flex-1" style="min-width: 280px;">
+                                <div class="lx-tile"><b id="sh-s-items">0</b><span>Vật phẩm đang bán</span></div>
+                                <div class="lx-tile"><b id="sh-s-today">0</b><span>Lượt đổi hôm nay</span></div>
+                                <div class="lx-tile"><b id="sh-s-points" style="color: var(--color-success);">0</b><span>Điểm đã thu hôm nay</span></div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Danh mục vật phẩm quy đổi (settings/point_shop_config.items; đã đổi: point_shop_stock/counts) -->
+                    <div class="card mb-8">
+                        <div class="card-header border-strong" style="border-bottom: 1px solid var(--border-strong); flex-wrap: wrap; gap: 12px;">
+                            <h3 class="card-title"><i class="fa-solid fa-gifts text-success"></i> Danh Mục Vật Phẩm Quy Đổi</h3>
+                            <span class="text-muted text-sm" id="sh-dirty-note"></span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap" style="margin: 16px 0 14px;">
+                            <span class="text-sm font-bold text-muted mr-2">Thêm nhanh:</span>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="ShopAdmin.addRow('tickets')"><i class="fa-solid fa-plus"></i> 🧧 Lượt rút lì xì</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="w-full sh-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 64px;">Biểu tượng</th>
+                                        <th style="min-width: 210px;">Tên vật phẩm</th>
+                                        <th style="width: 140px;">Loại</th>
+                                        <th style="width: 90px;">Nhận / lần</th>
+                                        <th style="width: 100px;">Giá (điểm)</th>
+                                        <th style="width: 100px;">Kho</th>
+                                        <th class="text-center" style="width: 100px;">Đã đổi / Còn</th>
+                                        <th style="width: 100px;">Giới hạn/ngày</th>
+                                        <th class="text-center" style="width: 60px;">Bán</th>
+                                        <th class="text-center" style="width: 96px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tb-shop-items">
+                                    <tr><td colspan="10" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải danh mục...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="wq-note">
+                            • Trạm Quy Đổi chỉ bán <b>lượt rút lì xì</b>, đổi xong được cộng thẳng vào tài khoản. Lượt vòng quay không bán (chỉ nhận khi trả lời đúng câu hỏi).<br>
+                            • <b>Nhận / lần</b>: số lượt người dùng nhận mỗi lần đổi (VD: combo 5 lượt). <b>Kho</b>: tổng số lần được đổi; để trống = không giới hạn. <b>Giới hạn/ngày</b>: số lần mỗi người được đổi một ngày; để trống = không giới hạn.<br>
+                            • Bỏ chọn <b>Bán</b> để tạm ẩn vật phẩm. Thứ tự hiển thị ở trang người dùng theo thứ tự trong bảng (dùng ▲▼ để sắp xếp).
+                        </p>
+                        <div class="flex justify-end gap-2 flex-wrap mt-6">
+                            <button class="btn btn-outline" onclick="ShopAdmin.resetCounts()"><i class="fa-solid fa-arrows-rotate mr-2"></i> Làm mới số đã đổi</button>
+                            <button class="btn btn-outline" onclick="ShopAdmin.resetDefaults()"><i class="fa-solid fa-rotate-left mr-2"></i> Về mặc định</button>
+                            <button class="btn btn-success" id="sh-save" onclick="ShopAdmin.save()"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Danh Mục</button>
                         </div>
                     </div>
 
@@ -1088,7 +1125,7 @@
                         <div class="flex justify-between items-start flex-wrap gap-6">
                             <div class="max-w-md">
                                 <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-gift text-warning"></i> Thưởng Vật Phẩm Điểm Danh</h3>
-                                <p class="text-muted text-sm">Bật/tắt và thiết lập số lượng Lượt Quay, Lượt Xé cộng thêm trực tiếp khi user điểm danh thành công trên bảng thông báo.</p>
+                                <p class="text-muted text-sm">Bật/tắt và thiết lập số Lượt Rút Lì Xì cộng thêm trực tiếp khi user điểm danh thành công trên bảng thông báo.</p>
                                 
                                 <div class="mt-4 flex items-center gap-2">
                                     <span class="text-sm font-bold text-muted" id="att-reward-status-text">ĐANG TẮT</span>
@@ -1099,7 +1136,7 @@
                                 </div>
                             </div>
                             <div class="flex-col gap-4 bg-base p-5 rounded-lg border-strong flex-1 min-w-[300px]" style="background: var(--bg-base); border: 1px solid var(--border-strong);">
-                                <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
+                                <div style="display:none;" class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
                                     <div class="flex items-center gap-3">
                                         <div class="btn-icon" style="background: var(--color-warning-bg); color: var(--color-warning); border:none;"><i class="fa-solid fa-dharmachakra"></i></div>
                                         <span class="font-bold text-main">+ Thêm Lượt Quay</span>
@@ -1112,7 +1149,7 @@
                                 <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
                                     <div class="flex items-center gap-3">
                                         <div class="btn-icon" style="background: var(--color-danger-bg); color: var(--color-danger); border:none;"><i class="fa-solid fa-ticket-alt"></i></div>
-                                        <span class="font-bold text-main">+ Thêm Lượt Xé</span>
+                                        <span class="font-bold text-main">+ Thêm Lượt Rút Lì Xì</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <input type="number" id="cfg-att-reward-tickets" class="form-control text-center font-bold text-danger" style="width: 100px; padding: 8px;" min="0" value="0">
@@ -1501,34 +1538,57 @@
                         </div>
                     </div>
 
+                    <!-- Phần thưởng Vòng Quay: mệnh giá + số lượng + tỉ lệ (settings/wheel_config.prizes, đếm đã trúng ở wheel_stock/counts) -->
                     <div class="card mb-8">
-                        <div class="card-header border-strong" style="border-bottom: 1px solid var(--border-strong);">
-                            <h3 class="card-title"><i class="fa-solid fa-dharmachakra text-primary"></i> Cấu hình Phần thưởng & Tỉ lệ (Vòng Quay)</h3>
-                            <div class="flex items-center gap-4">
-                                <div class="text-right">
-                                    <span class="text-sm font-bold text-muted mr-2">Trạng thái Tỉ lệ:</span>
-                                    <span class="badge badge-online px-4 py-2 text-sm" id="wheel-total-chance" style="background: rgba(14, 165, 233, 0.15); color: var(--color-info); border-color: var(--color-info);">Tổng: Đang tính...</span>
-                                </div>
-                            </div>
+                        <div class="card-header border-strong" style="border-bottom: 1px solid var(--border-strong); flex-wrap: wrap; gap: 12px;">
+                            <h3 class="card-title"><i class="fa-solid fa-dharmachakra text-primary"></i> Phần Thưởng Vòng Quay: Mệnh Giá, Số Lượng &amp; Tỉ Lệ</h3>
+                            <span class="badge badge-online px-4 py-2 text-sm" id="wheel-total-chance" style="background: var(--color-info-bg, rgba(14,165,233,.15)); color: var(--color-info); border-color: var(--color-info);">Tổng tỉ lệ: --</span>
                         </div>
+
+                        <div class="lx-tiles" style="margin: 20px 0;">
+                            <div class="lx-tile"><b id="wp-s-budget">0đ</b><span>Tổng tiền đặt giải</span></div>
+                            <div class="lx-tile"><b id="wp-s-paid" style="color: var(--color-danger);">0đ</b><span>Đã trúng (đã phát)</span></div>
+                            <div class="lx-tile"><b id="wp-s-left" style="color: var(--color-success);">0đ</b><span>Tiền còn lại</span></div>
+                            <div class="lx-tile"><b id="wp-s-wins">0</b><span>Lượt trúng tiền</span></div>
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-wrap" style="margin-bottom: 14px;">
+                            <span class="text-sm font-bold text-muted mr-2">Thêm nhanh ô:</span>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="WheelPrize.addRow('10.000 VNĐ')"><i class="fa-solid fa-plus"></i> 10.000đ</button>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="WheelPrize.addRow('20.000 VNĐ')"><i class="fa-solid fa-plus"></i> 20.000đ</button>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="WheelPrize.addRow('50.000 VNĐ')"><i class="fa-solid fa-plus"></i> 50.000đ</button>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="WheelPrize.addRow('Lời Chúc Tết')"><i class="fa-solid fa-plus"></i> 🧧 Lời Chúc Tết</button>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="WheelPrize.addRow('')"><i class="fa-solid fa-plus"></i> Phần thưởng khác</button>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="w-full">
                                 <thead>
                                     <tr>
-                                        <th class="text-center" style="width: 80px;">Ô số</th>
-                                        <th>Tên phần thưởng hiển thị</th>
-                                        <th style="width: 200px;">Tỉ lệ trúng tương đối</th>
+                                        <th class="text-center" style="width: 56px;">Ô số</th>
+                                        <th style="min-width: 190px;">Phần thưởng / Mệnh giá</th>
+                                        <th style="width: 150px;">Số lượng giải</th>
+                                        <th class="text-center" style="width: 90px;">Đã trúng</th>
+                                        <th class="text-center" style="width: 110px;">Còn lại</th>
+                                        <th style="width: 130px;">Tỉ lệ (trọng số)</th>
+                                        <th class="text-center" style="width: 90px;">% trúng</th>
+                                        <th class="text-center" style="width: 60px;"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="tb-wheel-config">
-                                    <tr><td colspan="3" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu cấu hình...</td></tr>
+                                    <tr><td colspan="8" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu cấu hình...</td></tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div class="flex justify-end mt-6">
-                            <button class="btn btn-primary" onclick="AdminActions.saveWheelConfig()">
-                                <i class="fa-solid fa-floppy-disk mr-2"></i> Lưu cấu hình Vòng quay
-                            </button>
+                        <p class="wq-note">
+                            • Mỗi dòng là <b>1 ô trên bánh xe</b>, theo thứ tự từ trên xuống. Nên để số ô chẵn và xen kẽ ô tiền với ô lời chúc cho đẹp mắt.<br>
+                            • <b>Số lượng</b>: tổng số lần ô đó được trúng. Để <b>trống</b> nghĩa là không giới hạn. Ô <b>hết giải</b> sẽ mờ đi trên bánh xe và không ra nữa, tỉ lệ được chia lại cho các ô còn giải.<br>
+                            • Ô tên <b>"Lời Chúc Tết"</b> (hoặc "Chúc May Mắn", "Tí nữa là được rồi"...) sẽ hiện cho người chơi một câu chúc Tết ngẫu nhiên. Nếu tất cả ô tiền đều hết, người chơi nhận lời chúc Tết.
+                        </p>
+                        <div class="flex justify-end gap-2 flex-wrap mt-6">
+                            <button class="btn btn-outline" onclick="WheelPrize.resetCounts()"><i class="fa-solid fa-arrows-rotate mr-2"></i> Làm mới số đã trúng</button>
+                            <button class="btn btn-outline" onclick="WheelPrize.resetDefaults()"><i class="fa-solid fa-rotate-left mr-2"></i> Về mặc định</button>
+                            <button class="btn btn-primary" onclick="WheelPrize.save()"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Phần Thưởng</button>
                         </div>
                     </div>
 
@@ -1545,6 +1605,53 @@
                                 <span class="badge badge-danger px-4 py-2 text-sm" id="wq-st-claimed">Đã xác thực: 0</span>
                             </div>
                         </div>
+                        <!-- Cài đặt hiển thị câu hỏi ở trang người dùng (settings/wheel_config.quiz) -->
+                        <div class="wq-set">
+                            <div class="wq-set-title">
+                                <span><i class="fa-solid fa-sliders text-success mr-2"></i> Cài đặt hiển thị câu hỏi ở trang người dùng</span>
+                                <span class="wq-live" id="wq-live">—</span>
+                            </div>
+                            <div>
+                                <label for="wq-mode">Chế độ hiển thị</label>
+                                <select id="wq-mode" class="form-control" style="appearance: auto; cursor: pointer;" onchange="WheelQ.onSetEdit()">
+                                    <option value="all">Lần lượt theo thứ tự</option>
+                                    <option value="random">🎲 Ngẫu nhiên</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="wq-count">Số câu hiện cùng lúc <span style="text-transform:none;font-weight:600;">(0 = tất cả)</span></label>
+                                <input type="number" id="wq-count" class="form-control" min="0" max="50" step="1" value="0" oninput="WheelQ.onSetEdit()">
+                            </div>
+                            <div class="wq-rand">
+                                <label for="wq-rotate">Đổi câu mới sau (phút)</label>
+                                <input type="number" id="wq-rotate" class="form-control" min="0" step="1" value="30" oninput="WheelQ.onSetEdit()" title="0 = giữ nguyên bộ câu hỏi cả ngày">
+                            </div>
+                            <div>
+                                <label for="wq-start">Hiện từ (hằng ngày)</label>
+                                <input type="time" id="wq-start" class="form-control" style="font-family: var(--font-family-mono);" oninput="WheelQ.onSetEdit()">
+                            </div>
+                            <div>
+                                <label for="wq-end">Đến (hằng ngày)</label>
+                                <input type="time" id="wq-end" class="form-control" style="font-family: var(--font-family-mono);" oninput="WheelQ.onSetEdit()">
+                            </div>
+                            <div>
+                                <button class="btn btn-success w-full" id="wq-set-save" onclick="WheelQ.saveSettings()"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu cài đặt</button>
+                            </div>
+                        </div>
+
+                        <!-- Thêm nhanh câu hỏi Tết có sẵn -->
+                        <div class="wq-bank">
+                            <div style="flex: 1 1 240px;">
+                                <div class="font-bold" style="margin-bottom: 4px;">🧧 Thêm nhanh câu hỏi Tết ngẫu nhiên</div>
+                                <div class="text-muted text-xs">Lấy ngẫu nhiên từ kho <b id="wq-bank-size">0</b> câu đố Tết có sẵn đáp án (bỏ qua câu đã có). Có thể sửa lại sau khi thêm.</div>
+                            </div>
+                            <div>
+                                <label for="wq-bank-n">Số câu</label>
+                                <select id="wq-bank-n" class="form-control" style="appearance: auto; width: 90px;"><option>3</option><option selected>5</option><option>10</option><option>20</option></select>
+                            </div>
+                            <button class="btn btn-warning" onclick="WheelQ.addRandom()"><i class="fa-solid fa-shuffle mr-2"></i> Thêm ngẫu nhiên</button>
+                        </div>
+
                         <div class="wq-form mb-6">
                             <div>
                                 <label for="wq-question">Câu hỏi</label>
@@ -1553,6 +1660,14 @@
                             <div>
                                 <label for="wq-answers">Đáp án đúng <span style="text-transform:none;font-weight:600;">(nhiều đáp án cách nhau bởi dấu |)</span></label>
                                 <input type="text" id="wq-answers" class="form-control" maxlength="400" placeholder="VD: Hà Nội | Thủ đô Hà Nội" autocomplete="off">
+                            </div>
+                            <div>
+                                <label for="wq-show">Hẹn giờ hiện <span style="text-transform:none;font-weight:600;">(để trống = hiện ngay)</span></label>
+                                <input type="datetime-local" id="wq-show" class="form-control" style="font-family: var(--font-family-mono);">
+                            </div>
+                            <div>
+                                <label for="wq-hide">Hẹn giờ ẩn <span style="text-transform:none;font-weight:600;">(để trống = không tự ẩn)</span></label>
+                                <input type="datetime-local" id="wq-hide" class="form-control" style="font-family: var(--font-family-mono);">
                             </div>
                             <div class="wq-actions">
                                 <button class="btn btn-primary" id="wq-save" onclick="WheelQ.save()"><i class="fa-solid fa-plus mr-2"></i> Thêm câu hỏi</button>
@@ -1575,7 +1690,8 @@
                                 </tbody>
                             </table>
                         </div>
-                        <p class="wq-note"><i class="fa-solid fa-circle-info mr-1"></i> Không phân biệt hoa/thường, dấu tiếng Việt và ký tự đặc biệt ("Hà Nội!" = "ha noi"). Đáp án được mã hóa (SHA-256) trong câu hỏi hiển thị cho người dùng; bản gốc chỉ lưu ở bộ sưu tập <code>wheel_question_keys</code> để admin xem. <b>Mở lại</b> = xóa người đã xác thực để câu hỏi tiếp tục được trả lời.</p>
+                        <p class="wq-note"><i class="fa-solid fa-circle-info mr-1"></i> Không phân biệt hoa/thường, dấu tiếng Việt và ký tự đặc biệt ("Hà Nội!" = "ha noi"). Đáp án được mã hóa (SHA-256) trong câu hỏi hiển thị cho người dùng; bản gốc chỉ lưu ở bộ sưu tập <code>wheel_question_keys</code> để admin xem. <b>Mở lại</b> = xóa người đã xác thực để câu hỏi tiếp tục được trả lời.<br>
+                            <i class="fa-solid fa-eye mr-1"></i> Badge <b>👁 Đang hiện</b> = câu người dùng đang thấy lúc này. <b>Số câu hiện cùng lúc</b> áp dụng cho cả 2 chế độ. Chế độ <b>lần lượt</b>: hiện N câu đầu tiên chưa có người trả lời; câu vừa được trả lời giữ thêm 60 giây rồi câu kế tiếp hiện lên. Ở chế độ <b>ngẫu nhiên</b>, mọi người cùng thấy một bộ câu hỏi, tự đổi bộ mới sau mỗi khoảng phút đã đặt (0 = đổi mỗi ngày); câu đã có người trả lời ở phiên trước sẽ được thay bằng câu khác.</p>
                     </div>
 
                     <div class="card p-0 overflow-hidden mb-0">
@@ -1603,20 +1719,20 @@
                 <section id="view-tranhthuong" class="view-section">
                     <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
-                            <h1 style="font-size: 28px; margin-bottom: 4px;">Quản Lý Tranh Thưởng</h1>
-                            <p class="text-muted">Cấu hình phần thưởng cho thẻ xé và xem lịch sử chi tiết.</p>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">🧧 Quản Lý Rút Lì Xì</h1>
+                            <p class="text-muted">Cấu hình phần thưởng trong bao lì xì và xem lịch sử rút chi tiết.</p>
                         </div>
                         <button class="btn btn-danger" style="padding: 14px 24px; box-shadow: none;" onclick="AdminActions.exportTranhThuongExcel()">
                             <i class="fa-solid fa-file-excel mr-2"></i> Xuất Tệp Excel (.XLS)
                         </button>
                     </div>
 
-                    <!-- Cấu hình Đóng/Mở và Hẹn giờ đóng Tranh Thưởng -->
+                    <!-- Cấu hình Đóng/Mở và Hẹn giờ đóng Rút Lì Xì (settings/tranhthuong_config) -->
                     <div class="card mb-8" style="border-left: 4px solid var(--color-danger); padding: 24px;">
                         <div class="flex justify-between items-start flex-wrap gap-6">
                             <div class="max-w-md">
-                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-calendar-xmark text-danger"></i> Cấu hình Đóng/Mở Xé Vé (Tranh Thưởng)</h3>
-                                <p class="text-muted text-sm">Bật/tắt trạng thái hoạt động hoặc lên lịch thời gian đóng Tranh Thưởng tự động. Hệ thống phía User sẽ nhận diện để khóa tính năng này.</p>
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-calendar-xmark text-danger"></i> Cấu hình Đóng/Mở Rút Lì Xì</h3>
+                                <p class="text-muted text-sm">Bật/tắt trạng thái hoạt động hoặc lên lịch thời gian đóng Rút Lì Xì tự động. Hệ thống phía User sẽ nhận diện để khóa tính năng này.</p>
                                 
                                 <div class="mt-4 flex items-center gap-2">
                                     <span class="text-sm font-bold text-muted" id="tt-status-text">ĐANG BẬT</span>
@@ -1642,40 +1758,62 @@
                         </div>
                     </div>
 
+                    <!-- Phần thưởng Rút Lì Xì: mệnh giá + số lượng + tỉ lệ (settings/tranhthuong_config.prizes, đếm đã trúng ở tranhthuong_stock/counts) -->
                     <div class="card mb-8">
-                        <div class="card-header border-strong" style="border-bottom: 1px solid var(--border-strong);">
-                            <h3 class="card-title"><i class="fa-solid fa-ticket-alt text-danger"></i> Cấu hình Phần thưởng & Tỉ lệ (Tranh Thưởng)</h3>
-                            <div class="flex items-center gap-4">
-                                <div class="text-right">
-                                    <span class="text-sm font-bold text-muted mr-2">Trạng thái Tỉ lệ:</span>
-                                    <span class="badge badge-online px-4 py-2 text-sm" id="tt-total-chance" style="background: rgba(239, 68, 68, 0.15); color: var(--color-danger); border-color: var(--color-danger);">Tổng: Đang tính...</span>
-                                </div>
-                            </div>
+                        <div class="card-header border-strong" style="border-bottom: 1px solid var(--border-strong); flex-wrap: wrap; gap: 12px;">
+                            <h3 class="card-title"><i class="fa-solid fa-sack-dollar text-danger"></i> Phần Thưởng Lì Xì: Mệnh Giá, Số Lượng &amp; Tỉ Lệ</h3>
+                            <span class="badge badge-online px-4 py-2 text-sm" id="tt-total-chance" style="background: rgba(239, 68, 68, 0.15); color: var(--color-danger); border-color: var(--color-danger);">Tổng tỉ lệ: --</span>
                         </div>
+
+                        <div class="lx-tiles" style="margin: 20px 0;">
+                            <div class="lx-tile"><b id="tt-s-budget">0đ</b><span>Tổng tiền đặt giải</span></div>
+                            <div class="lx-tile"><b id="tt-s-paid" style="color: var(--color-danger);">0đ</b><span>Đã trúng (đã phát)</span></div>
+                            <div class="lx-tile"><b id="tt-s-left" style="color: var(--color-success);">0đ</b><span>Tiền còn lại</span></div>
+                            <div class="lx-tile"><b id="tt-s-wins">0</b><span>Bao tiền đã trúng</span></div>
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-wrap" style="margin-bottom: 14px;">
+                            <span class="text-sm font-bold text-muted mr-2">Thêm nhanh mức tiền:</span>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="TTPrize.addRow('10.000 VNĐ')"><i class="fa-solid fa-plus"></i> 10.000đ</button>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="TTPrize.addRow('20.000 VNĐ')"><i class="fa-solid fa-plus"></i> 20.000đ</button>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="TTPrize.addRow('50.000 VNĐ')"><i class="fa-solid fa-plus"></i> 50.000đ</button>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="TTPrize.addRow('')"><i class="fa-solid fa-plus"></i> Phần thưởng khác</button>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="w-full">
                                 <thead>
                                     <tr>
-                                        <th class="text-center" style="width: 80px;">Ô số</th>
-                                        <th>Tên phần thưởng hiển thị (Cho 6 thẻ)</th>
-                                        <th style="width: 200px;">Tỉ lệ trúng tương đối</th>
+                                        <th class="text-center" style="width: 56px;">#</th>
+                                        <th style="min-width: 190px;">Phần thưởng / Mệnh giá</th>
+                                        <th style="width: 150px;">Số lượng giải</th>
+                                        <th class="text-center" style="width: 90px;">Đã trúng</th>
+                                        <th class="text-center" style="width: 110px;">Còn lại</th>
+                                        <th style="width: 130px;">Tỉ lệ (trọng số)</th>
+                                        <th class="text-center" style="width: 90px;">% trúng</th>
+                                        <th class="text-center" style="width: 60px;"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="tb-tt-config">
-                                    <tr><td colspan="3" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu cấu hình...</td></tr>
+                                    <tr><td colspan="8" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu cấu hình...</td></tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div class="flex justify-end mt-6">
-                            <button class="btn btn-danger" onclick="AdminActions.saveTranhThuongConfig()">
-                                <i class="fa-solid fa-floppy-disk mr-2"></i> Lưu cấu hình Tranh Thưởng
-                            </button>
+                        <p class="wq-note">
+                            • <b>Số lượng</b>: tổng số bao có phần thưởng đó. Để <b>trống</b> nghĩa là không giới hạn (ví dụ "Lời Chúc Tết").<br>
+                            • <b>Tỉ lệ</b>: trọng số tương đối, cột <b>% trúng</b> là xác suất thực khi tất cả còn giải. Mức nào <b>hết số lượng</b> sẽ không ra nữa, tỉ lệ được chia lại cho các mức còn giải.<br>
+                            • Phần thưởng tên <b>"Lời Chúc Tết"</b> (hoặc "Chúc May Mắn") sẽ hiện cho người chơi một câu chúc Tết ngẫu nhiên. Nếu tất cả mức tiền đều hết, người chơi nhận lời chúc Tết. Nên luôn giữ 1 phần thưởng không giới hạn.
+                        </p>
+                        <div class="flex justify-end gap-2 flex-wrap mt-6">
+                            <button class="btn btn-outline" onclick="TTPrize.resetCounts()"><i class="fa-solid fa-arrows-rotate mr-2"></i> Làm mới số đã trúng</button>
+                            <button class="btn btn-outline" onclick="TTPrize.resetDefaults()"><i class="fa-solid fa-rotate-left mr-2"></i> Về mặc định</button>
+                            <button class="btn btn-danger" onclick="TTPrize.save()"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Phần Thưởng</button>
                         </div>
                     </div>
 
                     <div class="card p-0 overflow-hidden mb-0">
                         <div class="card-header m-0 p-6" style="background: var(--color-danger-bg); border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
-                            <h3 class="card-title text-lg m-0 text-danger"><i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử Xé Phiếu (30 Ngày Trước)</h3>
+                            <h3 class="card-title text-lg m-0 text-danger"><i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử Rút Lì Xì (30 Ngày Trước)</h3>
                         </div>
                         <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
                             <table class="w-full">
@@ -1683,7 +1821,7 @@
                                     <tr>
                                         <th>Người Chơi</th>
                                         <th>Phần Thưởng Nhận Được</th>
-                                        <th class="text-center">Số Dư Lượt Xé</th>
+                                        <th class="text-center">Số Dư Lượt Rút</th>
                                         <th class="text-right">Thời Gian</th>
                                     </tr>
                                 </thead>
@@ -1910,8 +2048,8 @@
                     <div class="card mb-8" style="border-left: 4px solid var(--brand-primary); padding: 24px;">
                         <div class="flex justify-between items-center flex-wrap gap-6">
                             <div class="max-w-md">
-                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-gift text-primary"></i> Cấu hình Phần thưởng (Vé Xé)</h3>
-                                <p class="text-muted text-sm">Bật/Tắt chức năng nhập mã và thiết lập số lượt xé vé (tickets) được cộng cho cả người nhập lẫn người mời.</p>
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-gift text-primary"></i> Cấu hình Phần thưởng (Lượt Rút Lì Xì)</h3>
+                                <p class="text-muted text-sm">Bật/Tắt chức năng nhập mã và thiết lập số lượt rút lì xì (tickets) được cộng cho cả người nhập lẫn người mời.</p>
                             </div>
                             <div class="flex items-center gap-6 flex-wrap bg-base p-4 rounded-lg border-strong" style="background: var(--bg-base); border: 1px solid var(--border-strong); border-radius: var(--radius-md);">
                                 <div>
@@ -2011,7 +2149,7 @@
                                         <th>Mật Khẩu</th>
                                         <th class="text-center">Điểm Lì Xì</th>
                                         <th class="text-center">Lượt Vòng Quay</th>
-                                        <th class="text-center">Lượt Tranh Thưởng</th>
+                                        <th class="text-center">Lượt Rút Lì Xì</th>
                                         <th>Trạng thái</th>
                                         <th class="text-right">Quản trị</th>
                                     </tr>
@@ -2083,22 +2221,18 @@
             accountConfig: null, 
             activeDeleteAction: null,
             defaultWheelPrizes: [
-                { text: "10.000 VNĐ", chance: 5 },
-                { text: "Tí nữa là được rồi", chance: 25 },
-                { text: "Thẻ Cào 20K", chance: 5 },
-                { text: "Thêm tí nữa", chance: 25 },
-                { text: "Thêm 1 Lượt", chance: 10 },
-                { text: "Áo QD Elite", chance: 2 },
-                { text: "20.000 VNĐ", chance: 3 },
-                { text: "Tí nữa là được rồi", chance: 25 }
+                { id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 12 },
+                { id: 'w1', text: 'Lời Chúc Tết', qty: null, chance: 27 },
+                { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 6 },
+                { id: 'w2', text: 'Lời Chúc Tết', qty: null, chance: 27 },
+                { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 },
+                { id: 'w3', text: 'Lời Chúc Tết', qty: null, chance: 26 }
             ],
             defaultTranhThuongPrizes: [
-                { text: "10.000 VNĐ", chance: 10 },
-                { text: "Chúc May Mắn", chance: 30 },
-                { text: "Thẻ Cào 20K", chance: 10 },
-                { text: "Áo QD Elite", chance: 5 },
-                { text: "20.000 VNĐ", chance: 15 },
-                { text: "Thêm 1 Lượt", chance: 30 }
+                { id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 15 },
+                { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 8 },
+                { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 },
+                { id: 'luck', text: 'Lời Chúc Tết', qty: null, chance: 75 }
             ]
         };
 
@@ -2278,6 +2412,323 @@
         // Tự động kiểm tra và điền tài khoản đã ghi nhớ khi vừa mở trang
         document.addEventListener('DOMContentLoaded', () => {
             Auth.initRemember();
+        });
+
+        /* ===== TRẠM QUY ĐỔI VẬT PHẨM (admin) =====
+           settings/point_shop_config : { isEnabled, items: [{ id, icon, name, type: 'tickets'|'spins'|'gift', amount, cost, stock|null, dailyLimit|null, active }] }
+           point_shop_stock/counts    : { counts: { <id>: số lần đã đổi } }        (phía user tăng trong giao dịch)
+           shop_orders                : { user, itemId, itemName, icon, qty, cost, status: 'pending'|'done'|'rejected', time, ... }
+           point_history              : log đổi điểm (action 'exchange') -> thống kê hôm nay */
+        const ShopAdmin = (() => {
+            const TYPES = { tickets: '🧧 Lượt rút' };   // chỉ bán lượt rút lì xì (đã bỏ lượt vòng quay & quà trao tay)
+            const DEF = [
+                { id: 'tk1', icon: '🧧', name: '1 Lượt rút lì xì', type: 'tickets', amount: 1, cost: 50, stock: null, dailyLimit: null, active: true },
+                { id: 'tk5', icon: '🧧', name: 'Combo 5 lượt rút lì xì', type: 'tickets', amount: 5, cost: 220, stock: null, dailyLimit: 2, active: true },
+                { id: 'tk10', icon: '🧧', name: 'Combo 10 lượt rút lì xì', type: 'tickets', amount: 10, cost: 400, stock: null, dailyLimit: 1, active: true }
+            ];
+            let counts = {}, orders = [], dirty = false, started = false, today = { n: 0, pts: 0 };
+            const $ = id => document.getElementById(id);
+            const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const numOrNull = v => { v = String(v == null ? '' : v).trim(); if (v === '') return null; const n = parseInt(v); return isNaN(n) || n < 0 ? NaN : n; };
+            // Danh mục từ cấu hình (tương thích bản cũ chỉ có spinCost / ticketCost)
+            const norm = (cfg) => {
+                cfg = cfg || {};
+                let list = Array.isArray(cfg.items) && cfg.items.length ? cfg.items : null;
+                if (!list) list = DEF.map(x => Object.assign({}, x, x.id === 'tk1' && cfg.ticketCost != null ? { cost: cfg.ticketCost } : {}, x.id === 'sp1' && cfg.spinCost != null ? { cost: cfg.spinCost } : {}));
+                return list.filter(x => (x.type || 'tickets') === 'tickets').map((x, i) => ({
+                    id: x.id || ('i' + i), icon: x.icon || '🧧', name: String(x.name || ''), type: 'tickets',
+                    amount: Math.max(1, parseInt(x.amount) || 1), cost: Math.max(0, parseInt(x.cost) || 0),
+                    stock: x.stock == null || x.stock === '' ? null : Math.max(0, parseInt(x.stock) || 0),
+                    dailyLimit: x.dailyLimit == null || x.dailyLimit === '' ? null : Math.max(0, parseInt(x.dailyLimit) || 0),
+                    active: x.active !== false
+                }));
+            };
+            const rows = () => Array.from(document.querySelectorAll('#tb-shop-items tr[data-id]'));
+            const rowHtml = (x) => `<tr data-id="${esc(x.id)}" class="${x.active ? '' : 'sh-off'}">
+                <td><input class="form-control sh-icon" maxlength="4" value="${esc(x.icon)}" oninput="ShopAdmin.onEdit()"></td>
+                <td><input class="form-control sh-name" maxlength="50" value="${esc(x.name)}" placeholder="Tên hiển thị" oninput="ShopAdmin.onEdit()"></td>
+                <td><select class="form-control sh-type" style="appearance: auto;" onchange="ShopAdmin.onEdit()">${Object.keys(TYPES).map(k => `<option value="${k}" ${k === x.type ? 'selected' : ''}>${TYPES[k]}</option>`).join('')}</select></td>
+                <td><input type="number" class="form-control sh-amount" min="1" step="1" value="${x.amount}" oninput="ShopAdmin.onEdit()"></td>
+                <td><input type="number" class="form-control sh-cost" min="0" step="1" value="${x.cost}" oninput="ShopAdmin.onEdit()" style="font-family: var(--font-family-mono); font-weight: 700; color: var(--color-success);"></td>
+                <td><input type="number" class="form-control sh-stock" min="0" step="1" value="${x.stock == null ? '' : x.stock}" placeholder="∞" oninput="ShopAdmin.onEdit()"></td>
+                <td class="text-center sh-left"></td>
+                <td><input type="number" class="form-control sh-daily" min="0" step="1" value="${x.dailyLimit == null ? '' : x.dailyLimit}" placeholder="∞" oninput="ShopAdmin.onEdit()"></td>
+                <td class="text-center"><input type="checkbox" class="sh-active" ${x.active ? 'checked' : ''} onchange="ShopAdmin.onEdit()" style="width: 18px; height: 18px; cursor: pointer;"></td>
+                <td class="text-center" style="white-space: nowrap;"><span class="sh-mv"><button title="Lên" onclick="ShopAdmin.move(this,-1)">▲</button><button title="Xuống" onclick="ShopAdmin.move(this,1)">▼</button></span>
+                    <button class="btn-icon" style="width: 34px; height: 34px; color: var(--color-danger); border-color: rgba(239,68,68,.3); vertical-align: middle;" title="Xóa" onclick="ShopAdmin.removeRow(this)"><i class="fa-solid fa-trash-can"></i></button></td>
+            </tr>`;
+            const read = (tr) => ({
+                id: tr.dataset.id, icon: tr.querySelector('.sh-icon').value.trim() || '🎁', name: tr.querySelector('.sh-name').value.trim(),
+                type: tr.querySelector('.sh-type').value, amount: parseInt(tr.querySelector('.sh-amount').value), cost: parseInt(tr.querySelector('.sh-cost').value),
+                stock: numOrNull(tr.querySelector('.sh-stock').value), dailyLimit: numOrNull(tr.querySelector('.sh-daily').value), active: tr.querySelector('.sh-active').checked
+            });
+            const render = (list) => { const tb = $('tb-shop-items'); if (!tb) return; tb.innerHTML = list.length ? list.map(rowHtml).join('') : '<tr><td colspan="10" class="text-center text-muted py-8">Chưa có vật phẩm. Bấm "Thêm nhanh" ở trên.</td></tr>'; recalc(); };
+            const recalc = () => {
+                let selling = 0;
+                rows().forEach(tr => {
+                    const r = read(tr), sold = counts[r.id] || 0, cell = tr.querySelector('.sh-left');
+                    tr.classList.toggle('sh-off', !r.active);
+                    tr.querySelector('.sh-amount').disabled = r.type === 'gift';
+                    if (r.active) selling++;
+                    cell.innerHTML = r.stock == null || isNaN(r.stock) ? `<b>${sold}</b> / <span class="text-muted">∞</span>`
+                        : (r.stock - sold > 0 ? `<b>${sold}</b> / <span class="badge badge-online" style="font-size: 12px;">${r.stock - sold}</span>` : `<b>${sold}</b> / <span class="badge badge-danger" style="font-size: 11px;">HẾT</span>`);
+                });
+                if ($('sh-s-items')) $('sh-s-items').textContent = selling;
+                const note = $('sh-dirty-note'); if (note) note.innerHTML = dirty ? '<span class="text-warning font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Có thay đổi chưa lưu</span>' : '';
+            };
+            const statusBadge = (o) => o.status === 'done' ? `<span class="badge badge-online" style="text-transform:none">✅ Đã trao</span>${o.doneBy ? `<div class="text-xs text-muted mt-1">bởi ${esc(o.doneBy)}</div>` : ''}`
+                : o.status === 'rejected' ? `<span class="badge badge-danger" style="text-transform:none">↩ Đã từ chối · hoàn ${o.cost} điểm</span>`
+                : '<span class="badge badge-warning" style="text-transform:none">⏳ Chờ trao</span>';
+            const api = {
+                TYPES, norm,
+                init: () => {
+                    if (started) return; started = true;
+                    db.collection('point_shop_stock').doc('counts').onSnapshot(d => { counts = (d.exists && d.data().counts) || {}; recalc(); }, e => console.warn('point_shop_stock', e));
+                    const d0 = new Date(); d0.setHours(0, 0, 0, 0);
+                    db.collection('point_history').where('timestamp', '>=', d0.getTime()).onSnapshot(snap => {
+                        today = { n: 0, pts: 0 };
+                        snap.forEach(doc => { const d = doc.data(); if (d.action === 'exchange') { today.n++; today.pts += Math.abs(d.pointsChanged || 0); } });
+                        if ($('sh-s-today')) { $('sh-s-today').textContent = today.n; $('sh-s-points').textContent = today.pts.toLocaleString('vi-VN'); }
+                    }, e => console.warn('point_history today', e));
+                },
+                onConfig: (cfg) => { api.init(); if (!dirty) render(norm(cfg)); },
+                onEdit: () => { dirty = true; recalc(); },
+                addRow: (type) => {
+                    const tb = $('tb-shop-items'); if (!tb) return; if (!rows().length) tb.innerHTML = '';
+                    const preset = { icon: '🧧', name: 'Lượt rút lì xì', cost: 50 }; type = 'tickets';
+                    tb.insertAdjacentHTML('beforeend', rowHtml(Object.assign({ id: 'i' + Date.now().toString(36), type, amount: 1, stock: null, dailyLimit: null, active: true }, preset)));
+                    dirty = true; recalc(); const last = rows().pop(); if (last) last.querySelector('.sh-name').focus();
+                },
+                removeRow: (btn) => { btn.closest('tr').remove(); dirty = true; recalc(); },
+                move: (btn, dir) => {
+                    const tr = btn.closest('tr'), sib = dir < 0 ? tr.previousElementSibling : tr.nextElementSibling; if (!sib) return;
+                    if (dir < 0) tr.parentNode.insertBefore(tr, sib); else tr.parentNode.insertBefore(sib, tr);
+                    dirty = true; recalc();
+                },
+                resetDefaults: () => { if (!confirm('Đưa danh mục về mặc định? Bấm "Lưu Danh Mục" để áp dụng.')) return; render(norm({ items: DEF })); dirty = true; recalc(); },
+                resetCounts: () => {
+                    if (!confirm('Đặt lại số "Đã đổi" của tất cả vật phẩm về 0? (Kho sẽ đầy lại. Lịch sử và đơn quà vẫn giữ.)')) return;
+                    db.collection('point_shop_stock').doc('counts').set({ counts: {}, resetAt: Date.now() }).then(() => Utils.toast('Đã làm mới số đã đổi!', 'success')).catch(() => Utils.toast('Lỗi làm mới.', 'error'));
+                },
+                save: () => {
+                    const items = [];
+                    for (const [i, tr] of rows().entries()) {
+                        const r = read(tr);
+                        if (!r.name) return Utils.toast(`Tên vật phẩm dòng ${i + 1} đang trống!`, 'warning');
+                        if (isNaN(r.cost) || r.cost < 0) return Utils.toast(`Giá dòng ${i + 1} không hợp lệ!`, 'warning');
+                        if (r.type !== 'gift' && (isNaN(r.amount) || r.amount < 1)) return Utils.toast(`"Nhận / lần" dòng ${i + 1} phải từ 1 trở lên!`, 'warning');
+                        if (Number.isNaN(r.stock) || Number.isNaN(r.dailyLimit)) return Utils.toast(`Kho / giới hạn dòng ${i + 1} không hợp lệ (để trống = không giới hạn).`, 'warning');
+                        items.push({ id: r.id, icon: r.icon.slice(0, 4), name: r.name, type: r.type, amount: r.type === 'gift' ? 1 : r.amount, cost: r.cost, stock: r.stock, dailyLimit: r.dailyLimit, active: r.active });
+                    }
+                    // giữ spinCost / ticketCost cho các trang cũ
+                    const tk = items.find(x => x.type === 'tickets' && x.amount === 1 && x.active);
+                    const extra = {}; if (tk) extra.ticketCost = tk.cost;
+                    db.collection('settings').doc('point_shop_config').set(Object.assign({ items }, extra), { merge: true })
+                        .then(() => { dirty = false; recalc(); Utils.toast('Đã lưu danh mục Trạm Quy Đổi!', 'success'); })
+                        .catch(() => Utils.toast('Lỗi lưu danh mục.', 'error'));
+                },
+                renderOrders: () => {
+                    const tb = $('tb-shop-orders'); if (!tb) return;
+                    const pending = orders.filter(o => o.status === 'pending').length;
+                    if ($('sh-pending-badge')) $('sh-pending-badge').textContent = pending + ' chờ trao';
+                    if ($('sh-s-pending')) $('sh-s-pending').textContent = pending;
+                    const f = ($('sh-o-filter') || {}).value || 'pending', u = (($('sh-o-user') || {}).value || '').trim().toLowerCase();
+                    const list = orders.filter(o => (f === 'all' || o.status === f) && (!u || String(o.user || '').toLowerCase().includes(u)));
+                    if (!list.length) { tb.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-8">${f === 'pending' ? 'Không có đơn nào chờ trao. 🎉' : 'Không có đơn nào.'}</td></tr>`; return; }
+                    tb.innerHTML = list.map(o => `<tr><td class="text-muted text-sm">${esc(new Date(o.time).toLocaleString('vi-VN'))}</td><td><b>${esc(o.user)}</b></td>` +
+                        `<td>${esc(o.icon || '🎁')} ${esc(o.itemName)}${o.qty > 1 ? ` <b>×${o.qty}</b>` : ''}</td><td class="text-center font-bold" style="font-family: var(--font-family-mono);">${(o.cost || 0).toLocaleString('vi-VN')}</td>` +
+                        `<td>${statusBadge(o)}</td><td class="text-right">${o.status === 'pending' ? `<div class="wq-btns"><button class="btn btn-success" onclick="ShopAdmin.markDone('${o.id}')"><i class="fa-solid fa-check"></i> Đã trao</button><button class="btn btn-outline" onclick="ShopAdmin.reject('${o.id}')"><i class="fa-solid fa-rotate-left"></i> Từ chối</button></div>` : ''}</td></tr>`).join('');
+                },
+                markDone: async (id) => {
+                    try { await db.collection('shop_orders').doc(id).update({ status: 'done', doneAt: Date.now(), doneBy: (State.currentUser || 'admin') }); Utils.toast('Đã đánh dấu ĐÃ TRAO quà.', 'success'); }
+                    catch (e) { console.error(e); Utils.toast('Không cập nhật được đơn.', 'error'); }
+                },
+                reject: async (id) => {
+                    const o = orders.find(x => x.id === id); if (!o) return;
+                    if (!confirm(`Từ chối đơn "${o.itemName}${o.qty > 1 ? ' ×' + o.qty : ''}" của ${o.user} và hoàn lại ${o.cost} điểm?`)) return;
+                    try {
+                        const acc = await db.collection('accounts').where('user', '==', o.user).limit(1).get();
+                        if (acc.empty) return Utils.toast('Không tìm thấy tài khoản ' + o.user, 'error');
+                        const oRef = db.collection('shop_orders').doc(id), aRef = acc.docs[0].ref, FV = firebase.firestore.FieldValue;
+                        await db.runTransaction(async t => {
+                            const od = await t.get(oRef);
+                            if (!od.exists || od.data().status !== 'pending') throw 'DONE';
+                            t.update(oRef, { status: 'rejected', rejectedAt: Date.now() });
+                            t.update(aRef, { points: FV.increment(o.cost || 0) });
+                            if (o.itemId) t.set(db.collection('point_shop_stock').doc('counts'), { counts: { [o.itemId]: FV.increment(-(o.qty || 1)) } }, { merge: true });
+                            t.set(db.collection('point_history').doc(), { user: o.user, action: 'refund', detail: `Hoàn điểm: đơn "${o.itemName}" bị từ chối`, pointsChanged: o.cost || 0, timestamp: Date.now() });
+                        });
+                        Utils.toast(`Đã từ chối và hoàn ${o.cost} điểm cho ${o.user}.`, 'success');
+                    } catch (e) { if (e === 'DONE') Utils.toast('Đơn này đã được xử lý rồi.', 'warning'); else { console.error(e); Utils.toast('Không xử lý được đơn.', 'error'); } }
+                }
+            };
+            return api;
+        })();
+
+        /* ===== PHẦN THƯỞNG CÓ SỐ LƯỢNG (dùng chung cho Rút Lì Xì & Vòng Quay) =====
+           <cfgDoc>.prizes   : [{ id, text, qty (null = không giới hạn), chance }]
+           <stockColl>/counts : { counts: { <id>: số lần đã trúng } }  (phía user tăng trong giao dịch)
+           Phần thưởng tên "Lời Chúc Tết" / "Chúc May Mắn" / "Tí nữa..." -> người chơi nhận 1 câu chúc Tết ngẫu nhiên */
+        const PrizeAdmin = (o) => {
+            const DEF = o.DEF;
+            let counts = {}, dirty = false, started = false;
+            const $ = id => document.getElementById(id);
+            const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const fmt = n => Number(n || 0).toLocaleString('vi-VN') + 'đ';
+            const norm = (list) => (list && list.length ? list : DEF).map((p, i) => ({
+                id: p.id || ('p' + i), text: String(p.text || ''),
+                qty: (p.qty === '' || p.qty == null || isNaN(parseInt(p.qty))) ? null : Math.max(0, parseInt(p.qty)),
+                chance: parseFloat(p.chance) || 0
+            }));
+            // "10.000 VNĐ" -> 10000 ; "20K" -> 20000 ; không phải tiền -> 0
+            const money = (t) => {
+                const m = String(t || '').match(/(\d[\d.,]*)\s*(k(?!\p{L})|nghìn|ngàn)?\s*(vnđ|vnd|đồng|đ(?!\p{L}))?/iu);
+                if (!m || (!m[2] && !m[3])) return 0;
+                const n = parseInt(m[1].replace(/[.,]/g, '')) || 0;
+                return m[2] ? n * 1000 : n;
+            };
+            const isWish = (t) => /chuc may man|loi chuc|chuc tet|ti nua|them ti/.test(String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase());
+            const rows = () => Array.from(document.querySelectorAll('#' + o.tbody + ' tr[data-id]'));
+            const readRow = (tr) => ({
+                id: tr.dataset.id,
+                text: tr.querySelector('.pz-text').value.trim(),
+                qtyRaw: tr.querySelector('.pz-qty').value.trim(),
+                chance: parseFloat(tr.querySelector('.pz-chance').value) || 0
+            });
+            const N = o.name;
+            const rowHtml = (p) => `<tr data-id="${esc(p.id)}">
+                <td class="text-center font-bold text-muted pz-idx"></td>
+                <td><input type="text" class="form-control pz-text" maxlength="40" value="${esc(p.text)}" placeholder="VD: 10.000 VNĐ" style="padding: 10px; font-size: 14px;" oninput="${N}.onEdit()"><div class="pz-tag text-xs" style="margin-top: 4px;"></div></td>
+                <td><input type="number" class="form-control pz-qty" min="0" step="1" value="${p.qty == null ? '' : p.qty}" placeholder="∞ Vô hạn" style="padding: 10px; font-size: 14px; font-family: var(--font-family-mono);" oninput="${N}.onEdit()"></td>
+                <td class="text-center font-bold pz-won" style="font-family: var(--font-family-mono);">0</td>
+                <td class="text-center pz-left"></td>
+                <td><input type="number" class="form-control pz-chance" min="0" step="0.1" value="${p.chance}" style="padding: 10px; font-size: 14px; font-family: var(--font-family-mono);" oninput="${N}.onEdit()"></td>
+                <td class="text-center font-bold pz-pct" style="font-family: var(--font-family-mono);">-</td>
+                <td class="text-center"><button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239,68,68,.3);" title="Xóa phần thưởng này" onclick="${N}.removeRow(this)"><i class="fa-solid fa-trash-can"></i></button></td>
+            </tr>`;
+            const render = (list) => {
+                const tb = $(o.tbody); if (!tb) return;
+                tb.innerHTML = list.length ? list.map(rowHtml).join('') : '<tr><td colspan="8" class="text-center text-muted py-8">Chưa có phần thưởng nào. Bấm "Thêm nhanh" ở trên.</td></tr>';
+                recalc();
+            };
+            // Cập nhật % trúng, đã trúng / còn lại và thống kê tiền (không vẽ lại ô nhập)
+            const recalc = () => {
+                const rs = rows(); let total = 0;
+                rs.forEach(tr => total += readRow(tr).chance);
+                let budget = 0, paid = 0, wins = 0, unlimitedMoney = false;
+                rs.forEach((tr, i) => {
+                    const r = readRow(tr), won = counts[r.id] || 0, qty = r.qtyRaw === '' ? null : Math.max(0, parseInt(r.qtyRaw) || 0), val = money(r.text);
+                    tr.querySelector('.pz-idx').textContent = i + 1;
+                    tr.querySelector('.pz-won').textContent = won;
+                    tr.querySelector('.pz-tag').innerHTML = isWish(r.text) ? '<span class="text-warning">🧧 Hiện câu chúc Tết ngẫu nhiên</span>' : (val ? `<span class="text-success">💰 Tiền thưởng ${fmt(val)}</span>` : '');
+                    const left = tr.querySelector('.pz-left');
+                    if (qty == null) left.innerHTML = '<span class="text-muted">∞</span>';
+                    else {
+                        const l = Math.max(0, qty - won);
+                        left.innerHTML = l > 0 ? `<span class="badge" style="background: var(--color-success-bg, rgba(16,185,129,.15)); color: var(--color-success); font-size: 13px;">${l} / ${qty}</span>`
+                                               : `<span class="badge" style="background: var(--color-danger-bg); color: var(--color-danger); font-size: 12px;">HẾT GIẢI</span>`;
+                    }
+                    tr.querySelector('.pz-pct').textContent = total > 0 ? (Math.round(r.chance / total * 1000) / 10) + '%' : '-';
+                    if (val > 0) {
+                        paid += won * val; wins += won;
+                        if (qty == null) unlimitedMoney = true; else budget += qty * val;
+                    }
+                });
+                const tc = $(o.total); if (tc) tc.textContent = `Tổng tỉ lệ: ${Math.round(total * 10) / 10}`;
+                if ($(o.stat + 'budget')) {
+                    $(o.stat + 'budget').textContent = unlimitedMoney ? fmt(budget) + ' + ∞' : fmt(budget);
+                    $(o.stat + 'paid').textContent = fmt(paid);
+                    $(o.stat + 'left').textContent = unlimitedMoney ? '∞' : fmt(Math.max(0, budget - paid));
+                    $(o.stat + 'wins').textContent = wins;
+                }
+            };
+            const api = {
+                DEF, norm,
+                init: () => {
+                    if (started) return; started = true;
+                    db.collection(o.stockColl).doc('counts').onSnapshot(doc => { counts = (doc.exists && doc.data().counts) || {}; recalc(); },
+                        e => console.warn(o.stockColl, e));
+                },
+                onConfig: (data) => {
+                    api.init();
+                    if (dirty) return;   // đang sửa dở thì không ghi đè ô nhập
+                    render(norm(data && data.prizes));
+                },
+                onEdit: () => { dirty = true; recalc(); },
+                recalc,
+                addRow: (text) => {
+                    const tb = $(o.tbody); if (!tb) return;
+                    if (!rows().length) tb.innerHTML = '';
+                    const money_ = money(text) > 0;
+                    tb.insertAdjacentHTML('beforeend', rowHtml({ id: 'p' + Date.now().toString(36), text: text, qty: money_ ? 10 : null, chance: money_ ? 5 : 20 }));
+                    dirty = true; recalc();
+                    const last = rows().pop(); if (last) last.querySelector(money_ ? '.pz-qty' : '.pz-text').focus();
+                },
+                removeRow: (btn) => {
+                    if (rows().length <= 1) return Utils.toast('Cần ít nhất 1 phần thưởng.', 'warning');
+                    btn.closest('tr').remove(); dirty = true; recalc();
+                },
+                resetDefaults: () => {
+                    if (!confirm(`Đưa bảng phần thưởng ${o.label} về mặc định (${o.defLabel})? Bấm "Lưu Phần Thưởng" để áp dụng.`)) return;
+                    render(norm(DEF)); dirty = true;
+                },
+                resetCounts: () => {
+                    if (!confirm(`Đặt lại số "Đã trúng" của ${o.label} về 0? (Số lượng giải sẽ đầy lại, lịch sử vẫn được giữ.)`)) return;
+                    db.collection(o.stockColl).doc('counts').set({ counts: {}, resetAt: Date.now() })
+                        .then(() => Utils.toast('Đã làm mới số đã trúng!', 'success'))
+                        .catch(() => Utils.toast('Lỗi làm mới số đã trúng.', 'error'));
+                },
+                save: () => {
+                    const rs = rows(); if (!rs.length) return Utils.toast('Cần ít nhất 1 phần thưởng.', 'warning');
+                    if (o.minRows && rs.length < o.minRows) return Utils.toast(`Cần ít nhất ${o.minRows} ô phần thưởng.`, 'warning');
+                    const prizes = []; let total = 0, hasUnlimited = false;
+                    for (let i = 0; i < rs.length; i++) {
+                        const r = readRow(rs[i]);
+                        if (!r.text) return Utils.toast(`Tên phần thưởng dòng ${i + 1} đang trống!`, 'warning');
+                        if (r.chance < 0) return Utils.toast(`Tỉ lệ dòng ${i + 1} không được âm!`, 'warning');
+                        let qty = null;
+                        if (r.qtyRaw !== '') {
+                            qty = parseInt(r.qtyRaw);
+                            if (isNaN(qty) || qty < 0) return Utils.toast(`Số lượng dòng ${i + 1} không hợp lệ!`, 'warning');
+                        } else if (r.chance > 0) hasUnlimited = true;
+                        total += r.chance;
+                        prizes.push({ id: r.id, text: r.text, qty: qty, chance: r.chance });
+                    }
+                    if (total <= 0) return Utils.toast('Tổng tỉ lệ phải lớn hơn 0!', 'warning');
+                    if (!hasUnlimited) Utils.toast('Lưu ý: không có phần thưởng nào "không giới hạn". Khi hết giải, người chơi sẽ nhận "Lời Chúc Tết".', 'warning');
+                    db.collection('settings').doc(o.cfgDoc).set({ prizes: prizes }, { merge: true })
+                        .then(() => { dirty = false; Utils.toast(`Đã lưu phần thưởng ${o.label}!`, 'success'); })
+                        .catch(() => Utils.toast(`Lỗi lưu cấu hình ${o.label}.`, 'error'));
+                }
+            };
+            return api;
+        };
+
+        const TTPrize = PrizeAdmin({
+            name: 'TTPrize', label: 'Rút Lì Xì', cfgDoc: 'tranhthuong_config', stockColl: 'tranhthuong_stock',
+            tbody: 'tb-tt-config', total: 'tt-total-chance', stat: 'tt-s-',
+            defLabel: '10.000đ, 20.000đ, 50.000đ, Lời Chúc Tết',
+            DEF: [
+                { id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 15 },
+                { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 8 },
+                { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 },
+                { id: 'luck', text: 'Lời Chúc Tết', qty: null, chance: 75 }
+            ]
+        });
+
+        // Vòng Quay: mỗi dòng là 1 ô trên bánh xe (nên để số ô chẵn, xen kẽ tiền / lời chúc)
+        const WheelPrize = PrizeAdmin({
+            name: 'WheelPrize', label: 'Vòng Quay', cfgDoc: 'wheel_config', stockColl: 'wheel_stock', minRows: 2,
+            tbody: 'tb-wheel-config', total: 'wheel-total-chance', stat: 'wp-s-',
+            defLabel: '6 ô: 10.000đ, 20.000đ, 50.000đ xen kẽ Lời Chúc Tết',
+            DEF: [
+                { id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 12 },
+                { id: 'w1', text: 'Lời Chúc Tết', qty: null, chance: 27 },
+                { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 6 },
+                { id: 'w2', text: 'Lời Chúc Tết', qty: null, chance: 27 },
+                { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 },
+                { id: 'w3', text: 'Lời Chúc Tết', qty: null, chance: 26 }
+            ]
         });
 
         /* ===== QUẢN LÝ LÌ XÌ (admin) =====
@@ -2648,12 +3099,104 @@ const QHash = (() => {
 })();
 
 
+/* ===== QVis: quyết định câu hỏi nào đang HIỆN cho người dùng (dùng chung admin.html & qt.html) =====
+   settings/wheel_config.quiz = { mode: 'all' (lần lượt theo thứ tự) | 'random', count (0 = tất cả), rotateMin, start: 'HH:MM', end: 'HH:MM' }
+   wheel_questions/{id}.showAt / hideAt (ms, tùy chọn) = hẹn giờ hiện / ẩn từng câu */
+const QVis = {
+    cfg(q) {
+        q = q || {}; const mode = q.mode === 'random' ? 'random' : 'all', n = parseInt(q.count);
+        // count: số câu hiện cùng lúc, áp dụng cho CẢ 2 chế độ; 0 = hiện tất cả (mặc định: lần lượt = tất cả, ngẫu nhiên = 3)
+        return { mode, count: isNaN(n) ? (mode === 'random' ? 3 : 0) : Math.min(50, Math.max(0, n)), rotateMin: Math.max(0, parseInt(q.rotateMin) || 0), start: q.start || '', end: q.end || '' };
+    },
+    KEEP_MS: 60000,   // chế độ lần lượt: câu vừa có người trả lời đúng vẫn hiện thêm 60 giây rồi nhường chỗ cho câu kế tiếp
+    mins(hhmm) { const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; },
+    // Khung giờ hiện câu hỏi hằng ngày -> { open, next: thời điểm đóng/mở kế tiếp (ms) }
+    win(c, now) {
+        const s = this.mins(c.start), e = this.mins(c.end);
+        if (s == null || e == null || s === e) return { open: true, next: null };
+        const d = new Date(now), cur = d.getHours() * 60 + d.getMinutes();
+        const open = s < e ? (cur >= s && cur < e) : (cur >= s || cur < e);
+        const target = open ? e : s, t = new Date(now);
+        t.setHours(Math.floor(target / 60), target % 60, 0, 0);
+        if (t.getTime() <= now) t.setDate(t.getDate() + 1);
+        return { open, next: t.getTime() };
+    },
+    // Phiên đổi câu: mỗi rotateMin phút (hoặc mỗi ngày nếu = 0) -> mọi người cùng thấy 1 bộ câu hỏi
+    slot(c, now) {
+        if (c.rotateMin > 0) { const ms = c.rotateMin * 60000, k = Math.floor(now / ms); return { key: 'r' + k, start: k * ms, end: (k + 1) * ms }; }
+        const d = new Date(now); d.setHours(0, 0, 0, 0); const st = d.getTime(), e = new Date(st); e.setDate(e.getDate() + 1);
+        return { key: 'd' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(), start: st, end: e.getTime() };
+    },
+    inTime(q, now) { return q.active !== false && (!q.showAt || now >= q.showAt) && (!q.hideAt || now < q.hideAt); },
+    h(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; },
+    compute(all, quizCfg, now, me) {
+        const c = this.cfg(quizCfg), w = this.win(c, now), sl = this.slot(c, now);
+        let up = Infinity;
+        all.forEach(q => { if (q.active !== false && !q.claimedBy && q.showAt && q.showAt > now && (!q.hideAt || q.hideAt > q.showAt)) up = Math.min(up, q.showAt); });
+        let list = [];
+        if (w.open) {
+            const pool = all.filter(q => this.inTime(q, now));
+            if (c.mode === 'random') {
+                // Bỏ câu đã có người xác thực ở phiên trước; câu vừa xác thực trong phiên này vẫn giữ nguyên chỗ
+                list = pool.filter(q => !q.claimedBy || (q.claimedAt || 0) >= sl.start)
+                           .sort((a, b) => this.h(a.id + '|' + sl.key) - this.h(b.id + '|' + sl.key));
+                if (c.count > 0) list = list.slice(0, c.count);
+            } else {
+                list = pool.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                // Lần lượt: chỉ N câu đầu chưa có người trả lời (câu vừa được trả lời giữ thêm 60 giây để mọi người thấy kết quả)
+                if (c.count > 0) list = list.filter(q => !q.claimedBy || now - (q.claimedAt || 0) < this.KEEP_MS).slice(0, c.count);
+            }
+        }
+        if (me) all.forEach(q => { if (q.claimedBy === me && q.ticketUsed !== true && !list.includes(q)) list.push(q); });   // vé chưa dùng của mình luôn hiện
+        return { list, cfg: c, open: w.open, next: w.next, slotEnd: c.mode === 'random' ? sl.end : null, upcoming: isFinite(up) ? up : null };
+    },
+    fmtClock(ms) { const d = new Date(ms), n = new Date(), p = x => String(x).padStart(2, '0'); const hm = p(d.getHours()) + ':' + p(d.getMinutes()); return d.toDateString() === n.toDateString() ? hm : hm + ' ' + p(d.getDate()) + '/' + p(d.getMonth() + 1); },
+    fmtLeft(ms) { ms = Math.max(0, ms); const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60, p = v => String(v).padStart(2, '0'); return (h ? h + ':' + p(m) : m) + ':' + p(x); }
+};
+
+        // Kho câu đố Tết có sẵn (đáp án cách nhau bởi |, so khớp không phân biệt dấu/hoa thường)
+        const WQ_BANK = [
+            ['Năm 2027 âm lịch là năm con gì?', 'Dê | Con dê | Mùi | Đinh Mùi | Năm Mùi'],
+            ['Năm 2026 âm lịch là năm con gì?', 'Ngựa | Con ngựa | Ngọ | Bính Ngọ | Năm Ngọ'],
+            ['Tết Nguyên Đán bắt đầu vào ngày mùng mấy tháng Giêng âm lịch?', '1 | Mùng 1 | Mồng 1 | Một | Mùng một | Mồng một'],
+            ['Bánh truyền thống hình vuông gói lá dong ngày Tết miền Bắc là bánh gì?', 'Bánh chưng | Chưng'],
+            ['Bánh truyền thống hình trụ dài ngày Tết miền Nam là bánh gì?', 'Bánh tét | Tét'],
+            ['Ông Công Ông Táo về trời vào ngày nào tháng Chạp âm lịch?', '23 | Ngày 23 | 23 tháng Chạp | 23 tháng 12 | Hăm ba'],
+            ['Ông Táo cưỡi con vật gì để về chầu trời?', 'Cá chép | Cá'],
+            ['Hoa đặc trưng ngày Tết của miền Bắc là hoa gì?', 'Hoa đào | Đào | Cành đào'],
+            ['Hoa đặc trưng ngày Tết của miền Nam là hoa gì?', 'Hoa mai | Mai | Mai vàng | Hoa mai vàng'],
+            ['Mâm ngũ quả ngày Tết gồm bao nhiêu loại quả?', '5 | Năm | 5 loại | Năm loại'],
+            ['Người đầu tiên bước vào nhà sau giao thừa gọi là tục gì?', 'Xông đất | Xông nhà | Đạp đất'],
+            ['Thời khắc chuyển giao giữa năm cũ và năm mới gọi là gì?', 'Giao thừa | Đêm giao thừa'],
+            ['Tháng cuối cùng của năm âm lịch được gọi là tháng gì?', 'Tháng Chạp | Chạp'],
+            ['Tháng đầu tiên của năm âm lịch được gọi là tháng gì?', 'Tháng Giêng | Giêng'],
+            ['Phong bao màu đỏ đựng tiền mừng tuổi ngày Tết gọi là gì?', 'Lì xì | Bao lì xì | Phong bao | Bao đỏ'],
+            ['Điền vào chỗ trống: "Thịt mỡ, dưa hành, câu đối đỏ. Cây nêu, tràng pháo, bánh ... xanh"', 'Chưng | Bánh chưng'],
+            ['12 con giáp gồm bao nhiêu con vật?', '12 | Mười hai'],
+            ['Con giáp đứng đầu tiên trong 12 con giáp là con gì?', 'Chuột | Con chuột | Tý | Tí'],
+            ['Con giáp đứng cuối cùng trong 12 con giáp là con gì?', 'Lợn | Con lợn | Heo | Con heo | Hợi'],
+            ['Trong 12 con giáp của Việt Nam, con Mèo thay cho con vật nào?', 'Thỏ | Con thỏ'],
+            ['Cây dựng trước sân nhà ngày Tết để xua đuổi tà ma gọi là cây gì?', 'Cây nêu | Nêu'],
+            ['Đầu năm người ta thường đến xin chữ của ai?', 'Ông đồ | Thầy đồ | Ông đồ già'],
+            ['Món thịt kho với trứng vịt ngày Tết của miền Nam thường gọi là gì?', 'Thịt kho trứng | Thịt kho tàu | Thịt kho hột vịt | Thịt kho'],
+            ['Hoàn thành câu: "Mùng 1 Tết cha, mùng 2 Tết ..., mùng 3 Tết thầy"', 'Mẹ'],
+            ['Rằm tháng Giêng còn được gọi là Tết gì?', 'Nguyên Tiêu | Tết Nguyên Tiêu | Thượng Nguyên | Tết Thượng Nguyên'],
+            ['Bánh chưng được gói bằng loại lá gì?', 'Lá dong | Dong'],
+            ['Theo truyền thuyết, hoàng tử nào đã làm ra bánh chưng, bánh giầy?', 'Lang Liêu | Hoàng tử Lang Liêu'],
+            ['Món dưa muối thường ăn kèm bánh chưng, thịt mỡ ngày Tết miền Bắc là gì?', 'Dưa hành | Hành muối | Hành củ muối'],
+            ['Tết Nguyên Đán còn được gọi ngắn gọn là Tết gì?', 'Tết Ta | Tết Âm lịch | Tết Cổ truyền | Tết Âm'],
+            ['Năm 2027 là năm Đinh ...? (điền con giáp)', 'Mùi | Dê']
+        ];
+
         /* ===== Câu hỏi nhận lượt quay: wheel_questions (công khai, đáp án đã băm) + wheel_question_keys (đáp án gốc cho admin) ===== */
         const WheelQ = (() => {
             const $ = id => document.getElementById(id);
             const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
             const fmtTime = ts => ts ? new Date(ts).toLocaleString('vi-VN') : '';
-            let qs = [], keys = {}, editing = null, started = false, busy = false;
+            let qs = [], keys = {}, editing = null, started = false, busy = false, quizCfg = {}, setDirty = false, visSig = '';
+            const toInput = ms => { if (!ms) return ''; const d = new Date(ms); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
+            const fromInput = v => { if (!v) return null; const t = new Date(v).getTime(); return isNaN(t) ? null : t; };
+            const visible = () => QVis.compute(qs, quizCfg, Date.now(), null);
 
             const parseAnswers = raw => {
                 const seen = new Set(), out = [];
@@ -2677,13 +3220,19 @@ const QHash = (() => {
                 const tb = $('tb-wq'); if (!tb) return;
                 const claimed = qs.filter(q => q.claimedBy).length, open = qs.filter(q => q.active !== false && !q.claimedBy).length;
                 $('wq-st-total').textContent = 'Tổng: ' + qs.length; $('wq-st-open').textContent = 'Đang mở: ' + open; $('wq-st-claimed').textContent = 'Đã xác thực: ' + claimed;
+                const vis = visible(), visIds = new Set(vis.list.map(q => q.id)), now = Date.now();
+                visSig = vis.list.map(q => q.id).join() + '|' + vis.open; updateLive(vis);
                 if (!qs.length) { tb.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-8">Chưa có câu hỏi nào. Hãy thêm câu hỏi đầu tiên ở trên.</td></tr>'; return; }
                 tb.innerHTML = qs.map((q, i) => {
                     const ans = keys[q.id] ? keys[q.id].join('  |  ') : '';
                     let st;
                     if (q.claimedBy) st = `<span class="badge badge-danger" style="text-transform:none">✅ ${esc(q.claimedBy)}</span><div class="text-muted text-xs mt-1">${esc(fmtTime(q.claimedAt))} · ${q.ticketUsed ? 'đã quay' : 'chưa quay'}</div>`;
                     else if (q.active === false) st = '<span class="badge badge-offline">Đang ẩn</span>';
+                    else if (q.showAt && now < q.showAt) st = `<span class="badge badge-warning" style="text-transform:none">⏰ Chờ hiện</span>`;
+                    else if (q.hideAt && now >= q.hideAt) st = '<span class="badge badge-offline">Hết giờ</span>';
                     else st = '<span class="badge badge-online">Đang mở</span>';
+                    if (visIds.has(q.id)) st += ' <span class="badge badge-online" style="text-transform:none">👁 Đang hiện</span>';
+                    if (q.showAt || q.hideAt) st += `<div class="wq-sched">${q.showAt ? '⏰ Hiện: ' + esc(fmtTime(q.showAt)) : ''}${q.showAt && q.hideAt ? '<br>' : ''}${q.hideAt ? '⛔ Ẩn: ' + esc(fmtTime(q.hideAt)) : ''}</div>`;
                     const id = esc(q.id);
                     return `<tr><td class="text-center text-muted">${i + 1}</td><td class="wq-q">${esc(q.question)}</td><td class="wq-ans">${ans ? esc(ans) : '<span class="text-muted">—</span>'}</td><td>${st}</td>` +
                         `<td><div class="wq-btns"><button class="btn btn-outline" onclick="WheelQ.edit('${id}')"><i class="fa-solid fa-pen"></i> Sửa</button>` +
@@ -2693,8 +3242,35 @@ const QHash = (() => {
                 }).join('');
             };
 
+            // Dòng tóm tắt "người dùng đang thấy gì"
+            const updateLive = (vis) => {
+                const el = $('wq-live'); if (!el) return;
+                const now = Date.now(), c = vis.cfg; let t;
+                if (!vis.open) t = `⏸ Ngoài khung giờ · câu hỏi hiện lúc ${QVis.fmtClock(vis.next)} (còn ${QVis.fmtLeft(vis.next - now)})`;
+                else {
+                    const n = vis.list.length;
+                    t = `👁 Người dùng đang thấy ${n} câu (${c.mode === 'random' ? 'ngẫu nhiên' : 'lần lượt'}${c.count > 0 ? ', tối đa ' + c.count + ' câu' : ', tất cả'})`;
+                    if (c.mode === 'random') t += c.rotateMin > 0 ? ` · đổi bộ mới sau ${QVis.fmtLeft(vis.slotEnd - now)}` : ' · đổi bộ mới mỗi ngày';
+                    if (vis.next) t += ` · đóng lúc ${QVis.fmtClock(vis.next)}`;
+                    if (vis.upcoming) t += ` · câu hẹn giờ tiếp theo: ${QVis.fmtClock(vis.upcoming)}`;
+                }
+                el.textContent = t; el.style.color = vis.open ? 'var(--color-success)' : 'var(--color-warning)';
+            };
+            const paintSettings = () => {
+                const c = QVis.cfg(quizCfg);
+                $('wq-mode').value = c.mode; $('wq-count').value = c.count; $('wq-rotate').value = quizCfg && quizCfg.rotateMin != null ? c.rotateMin : 30;
+                $('wq-start').value = c.start; $('wq-end').value = c.end; toggleRand(); paintDirty();
+            };
+            // "Đổi câu mới sau" chỉ dùng cho chế độ ngẫu nhiên
+            const toggleRand = () => document.querySelectorAll('.wq-rand').forEach(el => { const on = $('wq-mode').value === 'random'; el.style.opacity = on ? '1' : '.4'; el.querySelector('input').disabled = !on; });
+            const paintDirty = () => {
+                const b = $('wq-set-save'); if (!b) return;
+                b.innerHTML = setDirty ? '<i class="fa-solid fa-triangle-exclamation mr-2"></i> Chưa lưu: bấm để lưu' : '<i class="fa-solid fa-floppy-disk mr-2"></i> Lưu cài đặt';
+                b.className = setDirty ? 'btn btn-warning w-full' : 'btn btn-success w-full';
+            };
+
             const resetForm = () => {
-                editing = null; $('wq-question').value = ''; $('wq-answers').value = '';
+                editing = null; $('wq-question').value = ''; $('wq-answers').value = ''; $('wq-show').value = ''; $('wq-hide').value = '';
                 $('wq-save').innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Thêm câu hỏi'; $('wq-cancel').style.display = 'none';
             };
 
@@ -2709,19 +3285,24 @@ const QHash = (() => {
                         keys = {}; snap.docs.forEach(d => { keys[d.id] = Array.isArray(d.data().answers) ? d.data().answers : []; }); render();
                     }, err => console.error(err));
                     ['wq-question', 'wq-answers'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') WheelQ.save(); }));
+                    $('wq-bank-size').textContent = WQ_BANK.length;
+                    // Mỗi giây: cập nhật đếm ngược; nếu bộ câu đang hiện thay đổi (đổi phiên / tới giờ hẹn) thì vẽ lại bảng
+                    setInterval(() => { const v = visible(); if (v.list.map(q => q.id).join() + '|' + v.open !== visSig) render(); else updateLive(v); }, 1000);
                 },
                 save: async () => {
                     if (busy) return;
                     const question = $('wq-question').value.trim().replace(/\s+/g, ' '), answers = parseAnswers($('wq-answers').value);
                     if (!question) return Utils.toast('Vui lòng nhập câu hỏi.', 'warning');
                     if (!answers.length) return Utils.toast('Vui lòng nhập ít nhất 1 đáp án đúng.', 'warning');
+                    const showAt = fromInput($('wq-show').value), hideAt = fromInput($('wq-hide').value);
+                    if (showAt && hideAt && hideAt <= showAt) return Utils.toast('Giờ ẩn phải sau giờ hiện.', 'warning');
                     busy = true;
                     try {
                         const isEdit = !!editing, id = editing || db.collection('wheel_questions').doc().id;
                         const answerHashes = answers.map(a => QHash.hash(id, a));
                         const batch = db.batch();
-                        if (isEdit) batch.update(db.collection('wheel_questions').doc(id), { question, answerHashes });
-                        else batch.set(db.collection('wheel_questions').doc(id), { question, answerHashes, active: true, createdAt: Date.now(), claimedBy: null, claimedAt: null, ticketUsed: null });
+                        if (isEdit) batch.update(db.collection('wheel_questions').doc(id), { question, answerHashes, showAt, hideAt });
+                        else batch.set(db.collection('wheel_questions').doc(id), { question, answerHashes, showAt, hideAt, active: true, createdAt: Date.now(), claimedBy: null, claimedAt: null, ticketUsed: null });
                         batch.set(db.collection('wheel_question_keys').doc(id), { answers, updatedAt: Date.now() });
                         await batch.commit();
                         Utils.toast(isEdit ? 'Đã lưu chỉnh sửa câu hỏi.' : 'Đã thêm câu hỏi mới.', 'success');
@@ -2732,10 +3313,51 @@ const QHash = (() => {
                 edit: id => {
                     const q = qs.find(x => x.id === id); if (!q) return;
                     editing = id; $('wq-question').value = q.question || ''; $('wq-answers').value = (keys[id] || []).join(' | ');
+                    $('wq-show').value = toInput(q.showAt); $('wq-hide').value = toInput(q.hideAt);
                     $('wq-save').innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i> Lưu chỉnh sửa'; $('wq-cancel').style.display = '';
                     $('wq-question').focus(); $('wq-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 },
                 cancelEdit: () => resetForm(),
+                onConfig: (data) => {
+                    quizCfg = (data && data.quiz) || {};
+                    if (!setDirty && $('wq-mode')) paintSettings();
+                    if (started) render();
+                },
+                onSetEdit: () => { setDirty = true; toggleRand(); paintDirty(); },
+                saveSettings: async () => {
+                    const mode = $('wq-mode').value === 'random' ? 'random' : 'all';
+                    const count = parseInt($('wq-count').value), rotateMin = parseInt($('wq-rotate').value);
+                    const start = $('wq-start').value, end = $('wq-end').value;
+                    if (isNaN(count) || count < 0 || count > 50) return Utils.toast('Số câu hiện cùng lúc phải từ 0 đến 50 (0 = tất cả).', 'warning');
+                    if (mode === 'random' && (isNaN(rotateMin) || rotateMin < 0)) return Utils.toast('Số phút đổi câu không hợp lệ (0 = đổi mỗi ngày).', 'warning');
+                    if ((start && !end) || (!start && end)) return Utils.toast('Khung giờ cần nhập đủ cả giờ bắt đầu và giờ kết thúc (hoặc để trống cả hai).', 'warning');
+                    if (start && start === end) return Utils.toast('Giờ bắt đầu và kết thúc không được trùng nhau.', 'warning');
+                    try {
+                        await db.collection('settings').doc('wheel_config').set({ quiz: { mode, count: count, rotateMin: isNaN(rotateMin) ? 30 : rotateMin, start, end } }, { merge: true });
+                        setDirty = false; paintDirty(); Utils.toast('Đã lưu cài đặt hiển thị câu hỏi!', 'success');
+                    } catch (e) { console.error(e); Utils.toast('Không lưu được cài đặt.', 'error'); }
+                },
+                addRandom: async () => {
+                    if (busy) return;
+                    const n = parseInt($('wq-bank-n').value) || 5;
+                    const have = new Set(qs.map(q => QHash.norm(q.question)));
+                    const pool = WQ_BANK.filter(([q]) => !have.has(QHash.norm(q)));
+                    if (!pool.length) return Utils.toast('Đã thêm hết câu hỏi trong kho có sẵn.', 'warning');
+                    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+                    const pick = pool.slice(0, n);
+                    busy = true;
+                    try {
+                        const batch = db.batch(), t0 = Date.now();
+                        pick.forEach(([question, raw], k) => {
+                            const id = db.collection('wheel_questions').doc().id, answers = parseAnswers(raw);
+                            batch.set(db.collection('wheel_questions').doc(id), { question, answerHashes: answers.map(a => QHash.hash(id, a)), showAt: null, hideAt: null, active: true, createdAt: t0 + k, claimedBy: null, claimedAt: null, ticketUsed: null });
+                            batch.set(db.collection('wheel_question_keys').doc(id), { answers, updatedAt: t0 });
+                        });
+                        await batch.commit();
+                        Utils.toast(`Đã thêm ${pick.length} câu hỏi Tết ngẫu nhiên!`, 'success');
+                    } catch (e) { console.error(e); Utils.toast('Không thêm được câu hỏi, vui lòng thử lại.', 'error'); }
+                    busy = false;
+                },
                 toggle: async id => {
                     const q = qs.find(x => x.id === id); if (!q) return;
                     try { await db.collection('wheel_questions').doc(id).update({ active: q.active === false }); Utils.toast(q.active === false ? 'Đã hiện câu hỏi.' : 'Đã ẩn câu hỏi.', 'success'); }
@@ -3029,6 +3651,7 @@ const QHash = (() => {
 
                 /** ĐỒNG BỘ: CẤU HÌNH CỬA HÀNG ĐIỂM */
                 db.collection("settings").doc("point_shop_config").onSnapshot(doc => {
+                    try { ShopAdmin.onConfig(doc.exists ? doc.data() : null); } catch (e) { console.error('ShopAdmin', e); }
                     const toggle = document.getElementById('cfg-shop-toggle');
                     const statusText = document.getElementById('shop-status-text');
                     const spinInput = document.getElementById('cfg-shop-spin-cost');
@@ -3094,12 +3717,8 @@ const QHash = (() => {
                 });
                 
                 db.collection("settings").doc("wheel_config").onSnapshot(doc => {
-                    let prizes = State.defaultWheelPrizes; if(doc.exists && doc.data().prizes) { prizes = doc.data().prizes; }
-                    const tbody = document.getElementById('tb-wheel-config'); if(!tbody) return; tbody.innerHTML = "";
-                    prizes.forEach((p, i) => {
-                        tbody.innerHTML += `<tr><td class="text-center font-bold text-muted">${i + 1}</td><td><input type="text" class="form-control cfg-prize-text" value="${p.text}" style="padding: 10px; font-size: 14px;"></td><td><div class="flex items-center gap-2"><input type="number" class="form-control cfg-prize-chance" value="${p.chance}" min="0" step="0.1" style="padding: 10px; font-size: 14px; font-family: var(--font-family-mono);" oninput="AdminActions.calcTotalChance()"></div></td></tr>`;
-                    });
-                    AdminActions.calcTotalChance(); 
+                    WheelPrize.onConfig(doc.exists ? doc.data() : null);
+                    try { WheelQ.onConfig(doc.exists ? doc.data() : null); } catch (e) { console.error('WheelQ.onConfig', e); }
                     
                     const toggle = document.getElementById('cfg-wheel-toggle');
                     const statusText = document.getElementById('wheel-status-text');
@@ -3493,7 +4112,7 @@ const QHash = (() => {
                     const tbodyTT = document.getElementById('tb-tt-history-list');
                     if(tbodyTT) tbodyTT.innerHTML = "";
                     State.tranhThuongHistoryCache = [];
-                    if(snap.empty) { if(tbodyTT) tbodyTT.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Chưa có lịch sử xé phiếu.</td></tr>`; return; }
+                    if(snap.empty) { if(tbodyTT) tbodyTT.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Chưa có lịch sử rút lì xì.</td></tr>`; return; }
                     let recordsTT = [];
                     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
                     snap.forEach(doc => { const d = doc.data(); if(d.timestamp >= thirtyDaysAgo) { recordsTT.push(d); } });
@@ -3508,11 +4127,7 @@ const QHash = (() => {
                 });
 
                 db.collection("settings").doc("tranhthuong_config").onSnapshot(doc => {
-                    let prizes = State.defaultTranhThuongPrizes; 
-                    if(doc.exists && doc.data().prizes) { prizes = doc.data().prizes; }
-                    const tbody = document.getElementById('tb-tt-config'); if(!tbody) return; tbody.innerHTML = "";
-                    prizes.forEach((p, i) => { tbody.innerHTML += `<tr><td class="text-center font-bold text-muted">${i + 1}</td><td><input type="text" class="form-control cfg-tt-prize-text" value="${p.text}" style="padding: 10px; font-size: 14px;"></td><td><div class="flex items-center gap-2"><input type="number" class="form-control cfg-tt-prize-chance" value="${p.chance}" min="0" step="0.1" style="padding: 10px; font-size: 14px; font-family: var(--font-family-mono);" oninput="AdminActions.calcTotalChanceTT()"></div></td></tr>`; });
-                    AdminActions.calcTotalChanceTT(); 
+                    TTPrize.onConfig(doc.exists ? doc.data() : null);
                     
                     const toggleTT = document.getElementById('cfg-tt-toggle');
                     const statusTextTT = document.getElementById('tt-status-text');
@@ -3935,13 +4550,13 @@ const QHash = (() => {
             },
 
             saveAttendanceRewardConfig: () => {
-                const spins = parseInt(document.getElementById('cfg-att-reward-spins').value) || 0;
+                const spins = 0;   // đã bỏ thưởng lượt quay (lượt quay chỉ có từ câu hỏi)
                 const tickets = parseInt(document.getElementById('cfg-att-reward-tickets').value) || 0;
                 
                 if (spins < 0 || tickets < 0) return Utils.toast("Số lượng thưởng không được âm!", "warning");
 
                 db.collection("settings").doc("attendance_reward_items").set({ spins: spins, tickets: tickets }, { merge: true })
-                  .then(() => Utils.toast(`Đã lưu cấu hình thưởng: +${spins} Quay, +${tickets} Xé!`, "success"))
+                  .then(() => Utils.toast(`Đã lưu cấu hình thưởng: +${tickets} Lượt Rút Lì Xì!`, "success"))
                   .catch(e => Utils.toast("Lỗi lưu DB", "error"));
             },
 
@@ -4011,7 +4626,7 @@ const QHash = (() => {
             toggleTranhThuongFeature: (checkbox) => {
                 const isEnabled = checkbox.checked;
                 db.collection("settings").doc("tranhthuong_config").set({ isEnabled: isEnabled }, { merge: true })
-                  .then(() => Utils.toast(isEnabled ? "Đã MỞ chức năng Tranh Thưởng!" : "Đã KHÓA chức năng Tranh Thưởng!", "success"))
+                  .then(() => Utils.toast(isEnabled ? "Đã MỞ chức năng Rút Lì Xì!" : "Đã KHÓA chức năng Rút Lì Xì!", "success"))
                   .catch(err => { Utils.toast("Lỗi lưu cấu hình", "error"); checkbox.checked = !isEnabled; });
             },
 
@@ -4047,7 +4662,7 @@ const QHash = (() => {
                     endDate: date,
                     endTime: time
                 }, { merge: true }).then(() => {
-                    Utils.toast("Đã lưu cấu hình lịch trình Tranh Thưởng!", "success");
+                    Utils.toast("Đã lưu cấu hình lịch trình Rút Lì Xì!", "success");
                 }).catch(err => Utils.toast("Lỗi lưu lịch trình.", "error"));
             },
 saveRegistrationConfig: () => {
@@ -4229,41 +4844,11 @@ saveRegistrationConfig: () => {
                 db.collection("lucky_numbers").doc(user).update({ canEdit: true }).then(() => Utils.toast(`Đã cấp phép sửa số cho thành viên: ${user}`, "success")).catch(e => Utils.toast("Lỗi cấp phép trên CSDL.", "error"));
             },
 
-            calcTotalChance: () => {
-                const chances = document.querySelectorAll('.cfg-prize-chance'); let total = 0;
-                chances.forEach(inp => total += parseFloat(inp.value) || 0);
-                const display = document.getElementById('wheel-total-chance');
-                if(display) { total = Math.round(total * 10) / 10; display.innerText = `Tổng số: ${total}`; display.style.color = "var(--color-info)"; display.style.borderColor = "var(--color-info)"; display.style.background = "var(--color-info-bg)"; }
-            },
+            calcTotalChance: () => WheelPrize.recalc(),
+            saveWheelConfig: () => WheelPrize.save(),
 
-            saveWheelConfig: () => {
-                const textInputs = document.querySelectorAll('.cfg-prize-text'); const chanceInputs = document.querySelectorAll('.cfg-prize-chance');
-                let prizes = []; let totalChance = 0;
-                for(let i = 0; i < textInputs.length; i++) {
-                    const txt = textInputs[i].value.trim(); const percent = parseFloat(chanceInputs[i].value) || 0;
-                    if(!txt) return Utils.toast(`Tên phần thưởng ô số ${i+1} đang bị trống!`, "warning");
-                    totalChance += percent; prizes.push({ text: txt, chance: percent });
-                }
-                db.collection("settings").doc("wheel_config").set({ prizes: prizes }, { merge: true }).then(() => Utils.toast("Cập nhật phần thưởng & Tỉ lệ vòng quay thành công!", "success")).catch(err => Utils.toast("Lỗi lưu cấu hình Vòng Quay.", "error"));
-            },
-
-            calcTotalChanceTT: () => {
-                const chances = document.querySelectorAll('.cfg-tt-prize-chance'); let total = 0;
-                chances.forEach(inp => total += parseFloat(inp.value) || 0);
-                const display = document.getElementById('tt-total-chance');
-                if(display) { total = Math.round(total * 10) / 10; display.innerText = `Tổng số: ${total}`; }
-            },
-
-            saveTranhThuongConfig: () => {
-                const textInputs = document.querySelectorAll('.cfg-tt-prize-text'); const chanceInputs = document.querySelectorAll('.cfg-tt-prize-chance');
-                let prizes = []; let totalChance = 0;
-                for(let i = 0; i < textInputs.length; i++) {
-                    const txt = textInputs[i].value.trim(); const percent = parseFloat(chanceInputs[i].value) || 0;
-                    if(!txt) return Utils.toast(`Tên phần thưởng ô số ${i+1} đang bị trống!`, "warning");
-                    totalChance += percent; prizes.push({ text: txt, chance: percent });
-                }
-                db.collection("settings").doc("tranhthuong_config").set({ prizes: prizes }, { merge: true }).then(() => Utils.toast("Cập nhật cấu hình Tranh Thưởng thành công!", "success")).catch(err => Utils.toast("Lỗi lưu cấu hình Tranh Thưởng.", "error"));
-            },
+            calcTotalChanceTT: () => TTPrize.recalc(),
+            saveTranhThuongConfig: () => TTPrize.save(),
 
             openSpinModal: (docId, username) => {
                 document.getElementById('spin-target-id').value = docId; document.getElementById('spin-target-name').innerText = username;
@@ -4331,7 +4916,7 @@ saveRegistrationConfig: () => {
                         if (d.action === "exchange" && d.detail) {
                             if (d.detail.includes("Vòng Quay")) {
                                 logs.push({ time: d.timestamp + 1, type: 'spins', action: 'add', amount: 1, reason: 'Quy đổi từ Cửa Hàng' });
-                            } else if (d.detail.includes("Xé Thẻ")) {
+                            } else if ((d.detail.includes("Xé Thẻ") || d.detail.includes("Lì Xì"))) {
                                 logs.push({ time: d.timestamp + 1, type: 'tickets', action: 'add', amount: 1, reason: 'Quy đổi từ Cửa Hàng' });
                             }
                         }
@@ -4344,7 +4929,7 @@ saveRegistrationConfig: () => {
 
                     const ttSnap = await db.collection("tranhthuong_history").where("userId", "==", username).get();
                     ttSnap.forEach(doc => {
-                        logs.push({ time: doc.data().timestamp, type: 'tickets', action: 'add', amount: -1, reason: `Xé Thẻ Tranh Thưởng (Trúng: ${doc.data().result})` });
+                        logs.push({ time: doc.data().timestamp, type: 'tickets', action: 'add', amount: -1, reason: `Rút Lì Xì (Trúng: ${doc.data().result})` });
                     });
 
                     const transferFromSnap = await db.collection("transfer_history").where("from", "==", username).get();
@@ -4439,7 +5024,7 @@ saveRegistrationConfig: () => {
                         const timeStr = new Date(log.time).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'});
                         const typeBadge = log.type === 'spins' 
                             ? `<span class="badge badge-warning"><i class="fa-solid fa-dharmachakra mr-1"></i> Lượt Quay</span>` 
-                            : log.type === 'tickets' ? `<span class="badge badge-danger"><i class="fa-solid fa-ticket-alt mr-1"></i> Lượt Xé</span>`
+                            : log.type === 'tickets' ? `<span class="badge badge-danger"><i class="fa-solid fa-envelope mr-1"></i> Lượt Rút</span>`
                             : `<span class="badge badge-online" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success); border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-coins mr-1"></i> Điểm Lì Xì</span>`;
                         
                         let amountHtml = '';
@@ -4479,7 +5064,7 @@ saveRegistrationConfig: () => {
                 let htmlTableStr = `<table border="1"><thead><tr><th bgcolor="#0ea5e9"><font color="#ffffff">STT</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Thời Gian</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Loại Tài Sản</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Giao Dịch</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Số Dư</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Nội Dung Biến Động</font></th></tr></thead><tbody>`;
                 State.currentUserHistoryCache.forEach((log, index) => { 
                     const timeStr = new Date(log.time).toLocaleString('vi-VN');
-                    let typeStr = log.type === 'spins' ? 'Lượt Quay' : (log.type === 'tickets' ? 'Lượt Xé' : 'Điểm');
+                    let typeStr = log.type === 'spins' ? 'Lượt Quay' : (log.type === 'tickets' ? 'Lượt Rút Lì Xì' : 'Điểm');
                     let amountStr = log.amount > 0 ? `+${log.amount}` : log.amount;
                     htmlTableStr += `<tr><td align="center">${index + 1}</td><td align="center">${timeStr}</td><td align="center">${typeStr}</td><td align="center">${amountStr}</td><td align="center">${log.balanceAfter}</td><td>${log.reason}</td></tr>`; 
                 });
@@ -4508,10 +5093,10 @@ exportAttendanceExcel: () => {
             },
 
             exportTranhThuongExcel: () => {
-                if(State.tranhThuongHistoryCache.length === 0) return Utils.toast("Không có lịch sử Tranh thưởng trong 30 ngày qua.", "warning");
+                if(State.tranhThuongHistoryCache.length === 0) return Utils.toast("Không có lịch sử Rút Lì Xì trong 30 ngày qua.", "warning");
                 let htmlTableStr = `<table border="1"><thead><tr><th bgcolor="#ef4444"><font color="#ffffff">STT</font></th><th bgcolor="#ef4444"><font color="#ffffff">Tài Khoản Chơi</font></th><th bgcolor="#ef4444"><font color="#ffffff">Phần Thưởng Trúng</font></th><th bgcolor="#ef4444"><font color="#ffffff">Thời Gian</font></th></tr></thead><tbody>`;
                 State.tranhThuongHistoryCache.forEach((row, index) => { const timeFmt = new Date(row.timestamp).toLocaleString('vi-VN'); htmlTableStr += `<tr><td align="center">${index + 1}</td><td>${row.userId}</td><td>${row.result}</td><td align="center">${timeFmt}</td></tr>`; });
-                htmlTableStr += `</tbody></table>`; AdminActions.downloadXLS(htmlTableStr, "Lich_Su_Tranh_Thuong_30Ngay");
+                htmlTableStr += `</tbody></table>`; AdminActions.downloadXLS(htmlTableStr, "Lich_Su_Rut_Li_Xi_30Ngay");
             },
 
             downloadXLS: (tableHtmlContent, fileNamePrefix) => {
