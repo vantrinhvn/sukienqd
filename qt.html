@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="dark">
+<html lang="vi" data-theme="tet">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#f59e0b">
+    <meta name="theme-color" content="#780000">
     <meta name="description" content="QD Elite - Vòng Quay May Mắn (Lucky Wheel System)">
     <meta name="robots" content="noindex, nofollow">
     
-    <title>QD Elite - Vòng Quay Thưởng v2.0</title>
+    <title>QD Elite - Vòng Quay Xuân Đinh Mùi 2027</title>
+    <script>try{var _tc=localStorage.getItem("qd_tet_color");if(_tc==="dao"||_tc==="chung")document.documentElement.setAttribute("data-tet-color",_tc);}catch(e){}</script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -174,6 +175,77 @@
         .flex { display: flex; } .items-center { align-items: center; } .gap-3 { gap: 12px; } .w-full { width: 100%; } .text-center { text-align: center; } .flex-col { display: flex; flex-direction: column; }
         @media (max-width: 480px) { .wheel-container { width: 320px; height: 320px; } .title-box h1 { font-size: 28px; } .btn-spin { padding: 18px 50px; font-size: 18px; } }
         .hidden-mobile { display: inline-block; } @media (max-width: 768px) { .hidden-mobile { display: none; } }
+
+        /* =====================================================================
+           GIAO DIỆN TẾT - Xuân Đinh Mùi 2027 (đồng bộ với user.html: đỏ / hoa đào / bánh chưng)
+           ===================================================================== */
+        html[data-theme="tet"] {
+            --bg-body: #780000; --bg-surface: #c1121f; --bg-elevated: #a10000;
+            --border-strong: #ffd700; --text-main: #ffffff; --text-muted: #fef08a;
+            --color-warning: #ffd700; --color-warning-glow: rgba(255, 215, 0, 0.5);
+            --color-danger-bg: rgba(255, 255, 255, 0.15);
+            --tet-deep: #4a0000; --tet-a: #a10000; --tet-b: #c1121f;
+        }
+        html[data-theme="tet"][data-tet-color="dao"] { --bg-body: #7a1038; --bg-surface: #c9255f; --bg-elevated: #a81c52; --tet-deep: #4a0622; --tet-a: #a81c52; --tet-b: #c9255f; }
+        html[data-theme="tet"][data-tet-color="chung"] { --bg-body: #05452a; --bg-surface: #0c7a47; --bg-elevated: #0a6b40; --tet-deep: #022b1a; --tet-a: #0a6b40; --tet-b: #0c7a47; }
+        html[data-theme="tet"] body {
+            background-image: radial-gradient(circle at 50% -10%, rgba(255, 215, 0, 0.28) 0%, transparent 55%), linear-gradient(180deg, var(--bg-body) 0%, var(--tet-deep) 100%);
+            background-attachment: fixed;
+        }
+        html[data-theme="tet"] .app-header { background-color: rgba(60, 0, 0, 0.55); border-bottom: 2px solid rgba(255, 215, 0, 0.6); }
+        html[data-theme="tet"] .header-brand { color: #ffd700; text-shadow: 1px 2px 4px rgba(0, 0, 0, .7); }
+        html[data-theme="tet"] .btn-outline { border-color: rgba(255, 215, 0, .7); color: #fff; background: rgba(0, 0, 0, .18); }
+        html[data-theme="tet"] .btn-outline:hover:not(:disabled) { background: rgba(255, 215, 0, .2); border-color: #ffd700; }
+        html[data-theme="tet"] .title-box h1 { background: linear-gradient(to right, #fff3a6, #ffd700, #ffb300); -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, .55)); }
+        html[data-theme="tet"] .title-box p { color: #fef08a; text-shadow: 1px 1px 3px rgba(0, 0, 0, .6); }
+        html[data-theme="tet"] .title-box .tet-sub { display: block; margin-bottom: 6px; font-size: 15px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #ffe066; text-shadow: 1px 1px 3px rgba(0,0,0,.6); }
+        html[data-theme="tet"] .spin-counter { background: rgba(0, 0, 0, .28); border-color: rgba(255, 215, 0, .6); color: #ffd700; }
+        html[data-theme="tet"] .wheel-container { background: linear-gradient(135deg, var(--tet-b), var(--tet-deep)); border-color: #ffd700; box-shadow: 0 20px 50px rgba(0, 0, 0, .65), inset 0 0 18px rgba(255, 215, 0, .25); }
+        html[data-theme="tet"] .wheel-container.ready { box-shadow: 0 0 55px rgba(255, 215, 0, .45), inset 0 0 22px rgba(255, 215, 0, .25); }
+        html[data-theme="tet"] canvas { background: var(--tet-a); }
+        html[data-theme="tet"] .btn-spin { background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); color: #7a0c0c; border: 2px solid #fff; box-shadow: 0 10px 30px rgba(255, 215, 0, .45); text-shadow: none; }
+        html[data-theme="tet"] .btn-spin:hover:not(:disabled) { box-shadow: 0 15px 40px rgba(255, 215, 0, .7); }
+        html[data-theme="tet"] .btn-spin:disabled { background: rgba(0, 0, 0, .35); color: #fef08a; border: 1px solid rgba(255, 215, 0, .5); }
+        html[data-theme="tet"] .btn-warning { background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); color: #7a0c0c; box-shadow: 0 8px 20px rgba(255, 215, 0, .4); }
+        html[data-theme="tet"] .modal-box { background: linear-gradient(to bottom, var(--tet-b), var(--tet-a)); border: 2px solid #ffd700; }
+        html[data-theme="tet"] .modal-close { background: rgba(0, 0, 0, .25); color: #fff; }
+        html[data-theme="tet"] .history-item { background: rgba(0, 0, 0, .2); border-bottom-color: rgba(255, 215, 0, .15); }
+        html[data-theme="tet"] .history-item:hover { background: rgba(255, 215, 0, .12); border-color: rgba(255, 215, 0, .5); }
+        html[data-theme="tet"] .toast { background: var(--tet-a); border-color: #ffd700; }
+        html[data-theme="tet"] .toast.success { color: #b9ffcf; } html[data-theme="tet"] .toast.warning { color: #ffe066; } html[data-theme="tet"] .toast.error { color: #ffc9c9; }
+
+        /* ----- Câu hỏi nhận lượt quay ----- */
+        .quiz-panel { width: 100%; max-width: 640px; margin: 0 auto 36px; padding: 18px 18px 14px; border-radius: 20px; text-align: left;
+            background: rgba(0, 0, 0, .25); border: 1px solid rgba(255, 215, 0, .5); box-shadow: 0 10px 28px rgba(0, 0, 0, .35); }
+        .quiz-title { font-size: 18px; font-weight: 900; color: #ffd700; text-shadow: 1px 2px 4px rgba(0,0,0,.6); display: flex; align-items: center; gap: 8px; }
+        .quiz-sub { margin: 6px 0 12px; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        .quiz-sub b { color: #fff; }
+        .quiz-list { display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; padding-right: 4px; }
+        .quiz-empty { padding: 14px; text-align: center; font-size: 14px; color: var(--text-muted); }
+        .quiz-item { padding: 12px 14px; border-radius: 14px; background: rgba(0, 0, 0, .22); border: 1px solid rgba(255, 215, 0, .25); }
+        .quiz-q { font-size: 15px; font-weight: 800; line-height: 1.45; color: #fff; }
+        .quiz-q .quiz-no { display: inline-block; min-width: 22px; margin-right: 6px; padding: 1px 7px; border-radius: 999px; background: #ffd700; color: #7a0c0c; font-size: 12px; text-align: center; }
+        .quiz-form { display: flex; gap: 8px; margin-top: 10px; }
+        .quiz-input { flex: 1 1 auto; min-width: 0; padding: 11px 14px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, .55); background: rgba(0, 0, 0, .3); color: #fff; font-size: 15px; font-weight: 600; outline: none; }
+        .quiz-input::placeholder { color: rgba(254, 240, 138, .55); font-weight: 500; }
+        .quiz-input:focus { border-color: #ffd700; box-shadow: 0 0 0 3px rgba(255, 215, 0, .25); }
+        .quiz-input:disabled { opacity: .55; }
+        .quiz-btn { flex: 0 0 auto; padding: 11px 18px; border-radius: 999px; border: none; cursor: pointer; font-weight: 900; font-size: 14px; color: #7a0c0c; background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); }
+        .quiz-btn:disabled { opacity: .5; cursor: not-allowed; filter: grayscale(.6); }
+        .quiz-state { margin-top: 8px; font-size: 13px; font-weight: 800; }
+        .quiz-item.mine { border-color: #34d399; background: rgba(16, 185, 129, .16); }
+        .quiz-item.mine .quiz-state { color: #a7f3d0; }
+        .quiz-item.taken { opacity: .75; }
+        .quiz-item.taken .quiz-state { color: #fecaca; }
+        .quiz-item.shake { animation: quizShake .4s; }
+        @keyframes quizShake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+        @media (max-width: 480px) { .quiz-form { flex-direction: column; } .quiz-btn { width: 100%; } }
+
+        /* Trạng thái đóng cửa (admin tắt / quá giờ hẹn) */
+        .wheel-lock { display: none; margin: 16px auto 0; max-width: 460px; padding: 12px 18px; border-radius: 16px; font-weight: 800; font-size: 15px; line-height: 1.4;
+            background: rgba(0, 0, 0, .45); border: 1px solid rgba(255, 120, 120, .7); color: #ffd0d0; }
+        .wheel-container.locked { filter: grayscale(.7) brightness(.7); }
+        .wheel-container.locked::after { content: '🔒'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 64px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.7)); z-index: 11; }
     </style>
 </head>
 <body>
@@ -182,29 +254,37 @@
 
     <header class="app-header">
         <div class="header-brand">
-            <i class="fa-solid fa-dharmachakra"></i> VÒNG QUAY MAY MẮN 
+            <span aria-hidden="true">🧧</span> VÒNG QUAY XUÂN ĐINH MÙI 2027
         </div>
         <div class="flex gap-3">
             <button class="btn btn-outline" onclick="History.openModal()" style="border-radius: var(--radius-full);">
                 <i class="fa-solid fa-clock-rotate-left"></i> <span class="hidden-mobile">Lịch Sử</span>
             </button>
-            <button class="btn btn-outline" onclick="window.location.href='user.html'" style="border-radius: var(--radius-full); padding: 12px 16px;" title="Về trang chủ">
-                <i class="fa-solid fa-house"></i>
+            <button class="btn btn-outline" onclick="window.location.href='user.html'" style="border-radius: var(--radius-full);" title="Về trang chủ">
+                <i class="fa-solid fa-house"></i> <span class="hidden-mobile">Trang Chủ</span>
             </button>
         </div>
     </header>
 
     <main class="wheel-wrapper">
         <div class="title-box">
-            <h1>Thử Vận May Cùng QD</h1>
-            <p>Xin chào <b class="text-warning" id="player-name">User</b>! Vòng quay siêu cấp đã sẵn sàng.</p>
+            <span class="tet-sub">Xuân Đinh Mùi 2027</span>
+            <h1>Thử Vận May Đầu Xuân</h1>
+            <p>Xin chào <b class="text-warning" id="player-name">User</b>! Trả lời đúng câu hỏi để nhận lượt quay!</p>
             
             <div class="spin-counter" id="spin-counter-box">
                 <i class="fa-solid fa-bolt"></i> 
-                <span>Lượt quay khả dụng:</span> 
+                <span>Lượt quay từ câu hỏi:</span> 
                 <span id="spin-count-val" style="font-size: 22px; margin-left: 5px;"><i class="fa-solid fa-spinner fa-spin"></i></span>
             </div>
+            <div class="wheel-lock" id="wheel-lock" role="status" aria-live="polite"></div>
         </div>
+
+        <section class="quiz-panel" id="quiz-panel" aria-live="polite">
+            <h2 class="quiz-title"><span aria-hidden="true">🧠</span> Câu hỏi nhận lượt quay</h2>
+            <p class="quiz-sub">Trả lời đúng để nhận <b>1 lượt quay</b>. Mỗi câu hỏi chỉ <b>người trả lời đúng sớm nhất</b> được xác thực.</p>
+            <div class="quiz-list" id="quiz-list"><div class="quiz-empty">Đang tải câu hỏi...</div></div>
+        </section>
 
         <div class="wheel-container" id="wheel-container-ui">
             <div class="wheel-pointer"></div>
@@ -271,6 +351,7 @@
             currentUser: localStorage.getItem('qd_current_username'),
             currentDocId: null,
             availableSpins: 0,
+            cfg: null,
             prizes: [
                 { text: "10.000 VNĐ", chance: 5 },
                 { text: "Tí nữa là được rồi", chance: 25 },
@@ -364,7 +445,9 @@
                     const endAngle = startAngle + sliceAngle;
                     
                     // Chỉnh màu xen kẽ cho bánh xe (Tối bóng)
-                    const sliceColor = i % 2 === 0 ? "#18181b" : "#27272a";
+                    const tc = document.documentElement.getAttribute("data-tet-color");
+                    const pal = tc === "chung" ? ["#0a6b40", "#0f8a55"] : (tc === "dao" ? ["#a81c52", "#d03070"] : ["#a10000", "#d4202e"]);
+                    const sliceColor = pal[i % 2];
 
                     // Vẽ nền ô
                     this.ctx.beginPath();
@@ -374,7 +457,7 @@
                     this.ctx.fill();
                     
                     // Vẽ viền (Vàng rực)
-                    this.ctx.strokeStyle = "rgba(245, 158, 11, 0.4)"; 
+                    this.ctx.strokeStyle = "rgba(255, 215, 0, 0.85)"; 
                     this.ctx.lineWidth = 3;
                     this.ctx.stroke();
 
@@ -404,9 +487,9 @@
                 // Trục giữa (Hub)
                 this.ctx.beginPath();
                 this.ctx.arc(centerX, centerY, 35, 0, 2 * Math.PI);
-                this.ctx.fillStyle = "#f59e0b"; // Cam vàng
+                this.ctx.fillStyle = "#ffd700"; // Vàng
                 this.ctx.fill();
-                this.ctx.strokeStyle = "#121217";
+                this.ctx.strokeStyle = "#7a0c0c";
                 this.ctx.lineWidth = 6;
                 this.ctx.stroke();
                 
@@ -417,11 +500,57 @@
                 this.ctx.fillText("\uf005", centerX, centerY);
             },
 
+            /* ----- đóng/mở theo cấu hình admin (settings/wheel_config: isEnabled, endDate, endTime) ----- */
+            closedBy: function(c) {
+                c = c || {};
+                if (c.isEnabled === false) return 'off';
+                if (c.endDate && c.endTime) {
+                    const dl = new Date(c.endDate + 'T' + c.endTime).getTime();
+                    if (!isNaN(dl) && Date.now() >= dl) return 'expired';
+                }
+                return null;
+            },
+            isClosed: function() { return !!this.closedBy(State.cfg); },
+            refreshLock: function() {
+                const why = this.closedBy(State.cfg), box = document.getElementById('wheel-lock'), cont = document.getElementById('wheel-container-ui');
+                if (!box || !cont) return;
+                cont.classList.toggle('locked', !!why);
+                box.style.display = why ? 'block' : 'none';
+                if (why) box.textContent = why === 'expired' ? '🔒 Vòng quay đã hết hạn (quá thời gian hẹn của Ban Quản Trị).' : '🔒 Vòng quay đang đóng. Vui lòng quay lại sau!';
+                if (!this.isSpinning) {
+                    if (why) { this.spinBtn.disabled = true; this.spinBtn.innerHTML = `<i class="fa-solid fa-lock mr-2"></i> VÒNG QUAY ĐANG ĐÓNG`; }
+                    else {
+                        const none = State.availableSpins <= 0;
+                        this.spinBtn.disabled = none;
+                        this.spinBtn.innerHTML = none ? `<i class="fa-solid fa-circle-question mr-2"></i> TRẢ LỜI CÂU HỎI ĐỂ QUAY` : `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
+                    }
+                }
+            },
+            // Dùng 1 lượt quay (vé từ câu hỏi đã xác thực) trong giao dịch: kiểm tra lại đóng/mở + vé còn hiệu lực
+            consumeSpin: function() {
+                const mine = Quiz.tickets()[0];
+                if (!mine) return Promise.reject({ code: 'NOSPIN' });
+                const qRef = db.collection("wheel_questions").doc(mine.id), cfgRef = db.collection("settings").doc("wheel_config");
+                return db.runTransaction(async (tx) => {
+                    const q = await tx.get(qRef), c = await tx.get(cfgRef);
+                    if (Wheel.closedBy(c.exists ? c.data() : {})) throw { code: 'CLOSED' };
+                    const d = q.exists ? q.data() : null;
+                    if (!d || d.claimedBy !== State.currentUser || d.ticketUsed === true) throw { code: 'NOSPIN' };
+                    tx.update(qRef, { ticketUsed: true, usedAt: Date.now() });
+                }).then(() => { Wheel.lastQuestionId = mine.id; });
+            },
+
             startSpin: function() {
                 if (this.isSpinning) return;
+
+                if (this.isClosed()) {
+                    Utils.toast("Vòng quay đang đóng, vui lòng quay lại sau!", "warning");
+                    this.refreshLock();
+                    return;
+                }
                 
                 if (State.availableSpins <= 0) {
-                    Utils.toast("Từ chối: Bạn đã hết lượt quay! Hãy điểm danh ngày hôm nay để nhận thêm.", "warning");
+                    Utils.toast("Bạn chưa có lượt quay! Hãy trả lời đúng một câu hỏi bên dưới để nhận lượt quay.", "warning");
                     return;
                 }
 
@@ -433,9 +562,7 @@
                 this.spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TÍNH TOÁN...`;
 
                 // Trừ lượt trên Firestore (spins)
-                db.collection("accounts").doc(State.currentDocId).update({
-                    spins: firebase.firestore.FieldValue.increment(-1)
-                }).then(() => {
+                this.consumeSpin().then(() => {
                     
                     let totalChance = 0;
                     State.prizes.forEach(p => totalChance += (parseFloat(p.chance) || 0));
@@ -504,9 +631,12 @@
                     }, 5000);
 
                 }).catch(err => {
-                    Utils.toast("Lỗi xác thực dữ liệu lượt quay với máy chủ. Vui lòng thử lại sau.", "error");
+                    if (err && err.code === 'CLOSED') Utils.toast("Vòng quay vừa đóng cửa, lượt quay của bạn không bị trừ.", "warning");
+                    else if (err && err.code === 'NOSPIN') Utils.toast("Bạn đã hết lượt quay!", "warning");
+                    else Utils.toast("Lỗi xác thực dữ liệu lượt quay với máy chủ. Vui lòng thử lại sau.", "error");
                     this.isSpinning = false; this.spinBtn.disabled = false;
                     this.spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
+                    this.refreshLock();
                 });
             },
 
@@ -525,6 +655,7 @@
                 db.collection("spin_history").add({
                     userId: State.currentUser,
                     result: resultText,
+                    questionId: Wheel.lastQuestionId || null,
                     timestamp: Date.now()
                 }).catch(err => console.error("Lỗi lưu lịch sử:", err));
             },
@@ -633,6 +764,115 @@
             }
         };
 
+/* ===== Băm đáp án (SHA-256 thuần JS, chạy được cả khi không có crypto.subtle) ===== */
+const QHash = (() => {
+    const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+    function sha256(str) {
+        const msg = Array.from(new TextEncoder().encode(str)), l = msg.length;
+        msg.push(0x80); while (msg.length % 64 !== 56) msg.push(0);
+        const hi = Math.floor(l * 8 / 4294967296), lo = (l * 8) >>> 0;
+        [hi, lo].forEach(v => { msg.push((v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255); });
+        let h = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+        for (let i = 0; i < msg.length; i += 64) {
+            const w = new Array(64);
+            for (let t = 0; t < 16; t++) w[t] = (msg[i + 4 * t] << 24) | (msg[i + 4 * t + 1] << 16) | (msg[i + 4 * t + 2] << 8) | msg[i + 4 * t + 3];
+            for (let t = 16; t < 64; t++) {
+                const s0 = rotr(w[t - 15], 7) ^ rotr(w[t - 15], 18) ^ (w[t - 15] >>> 3), s1 = rotr(w[t - 2], 17) ^ rotr(w[t - 2], 19) ^ (w[t - 2] >>> 10);
+                w[t] = (w[t - 16] + s0 + w[t - 7] + s1) | 0;
+            }
+            let [a, b, c, d, e, f, g, hh] = h;
+            for (let t = 0; t < 64; t++) {
+                const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25), ch = (e & f) ^ (~e & g), t1 = (hh + S1 + ch + K[t] + w[t]) | 0;
+                const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22), mj = (a & b) ^ (a & c) ^ (b & c), t2 = (S0 + mj) | 0;
+                hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+            }
+            h = [(h[0] + a) | 0, (h[1] + b) | 0, (h[2] + c) | 0, (h[3] + d) | 0, (h[4] + e) | 0, (h[5] + f) | 0, (h[6] + g) | 0, (h[7] + hh) | 0];
+        }
+        return h.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+    }
+    // "Hà Nội!" == "ha noi": bỏ dấu, bỏ ký tự đặc biệt, không phân biệt hoa/thường
+    const norm = (s) => String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/đ/g, 'd').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    const hash = (qid, answer) => sha256('qd-wheel|' + qid + '|' + norm(answer));
+    return { sha256, norm, hash };
+})();
+
+        /** 6b. CÂU HỎI NHẬN LƯỢT QUAY: trả lời đúng -> xác thực (chỉ người sớm nhất) -> nhận 1 lượt quay */
+        const Quiz = {
+            list: [], drafts: {}, cooldownUntil: 0, pending: {},
+            esc: (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+            tickets: function() { return this.list.filter(q => q.claimedBy === State.currentUser && q.ticketUsed !== true); },
+
+            onData: function() {
+                const n = this.tickets().length;
+                State.availableSpins = n;
+                document.getElementById('spin-count-val').innerText = n;
+                document.getElementById('spin-counter-box').classList.toggle('glow', n > 0);
+                document.getElementById('wheel-container-ui').classList.toggle('ready', n > 0);
+                this.render();
+                Wheel.refreshLock();
+            },
+
+            render: function() {
+                const box = document.getElementById('quiz-list'); if (!box) return;
+                const ae = document.activeElement, keep = ae && ae.classList && ae.classList.contains('quiz-input') ? { id: ae.dataset.qid, pos: ae.selectionStart } : null;
+                const closed = Wheel.isClosed(); this._closed = closed;
+                if (!this.list.length) { box.innerHTML = '<div class="quiz-empty">Hiện chưa có câu hỏi nào. Quay lại sau nhé!</div>'; return; }
+                box.innerHTML = this.list.map((q, i) => {
+                    const me = q.claimedBy === State.currentUser, taken = !!q.claimedBy && !me;
+                    let body;
+                    if (me) body = `<div class="quiz-state">${q.ticketUsed === true ? '✅ Bạn đã trả lời đúng — lượt quay đã sử dụng' : '🎟️ Bạn đã trả lời đúng! Đang giữ 1 lượt quay — bấm BẮT ĐẦU QUAY'}</div>`;
+                    else if (taken) body = `<div class="quiz-state">🔒 Đã có người xác thực sớm hơn: <b>${this.esc(q.claimedBy)}</b></div>`;
+                    else body = `<div class="quiz-form"><input class="quiz-input" type="text" data-qid="${q.id}" maxlength="120" autocomplete="off" placeholder="${closed ? 'Vòng quay đang đóng' : 'Nhập đáp án...'}" value="${this.esc(this.drafts[q.id] || '')}" ${closed ? 'disabled' : ''} oninput="Quiz.drafts['${q.id}']=this.value" onkeydown="if(event.key==='Enter')Quiz.submit('${q.id}')"><button class="quiz-btn" data-qbtn="${q.id}" ${closed ? 'disabled' : ''} onclick="Quiz.submit('${q.id}')">Xác thực</button></div>`;
+                    return `<div class="quiz-item ${me ? 'mine' : ''} ${taken ? 'taken' : ''}" id="quiz-${q.id}"><div class="quiz-q"><span class="quiz-no">${i + 1}</span>${this.esc(q.question)}</div>${body}</div>`;
+                }).join('');
+                if (keep) { const el = box.querySelector(`.quiz-input[data-qid="${keep.id}"]`); if (el) { el.focus(); try { el.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
+            },
+
+            submit: async function(qid) {
+                if (this.pending[qid]) return;
+                if (Wheel.isClosed()) { Utils.toast("Vòng quay đang đóng, chưa thể xác thực câu hỏi.", "warning"); return; }
+                const wait = this.cooldownUntil - Date.now();
+                if (wait > 0) { Utils.toast(`Bạn vừa trả lời sai, vui lòng đợi ${Math.ceil(wait / 1000)} giây rồi thử lại.`, "warning"); return; }
+                const q = this.list.find(x => x.id === qid); if (!q) return;
+                if (q.claimedBy) { Utils.toast(`Câu hỏi này đã được ${q.claimedBy} xác thực trước bạn.`, "warning"); return; }
+                const val = this.drafts[qid] || '';
+                if (!QHash.norm(val)) { Utils.toast("Vui lòng nhập đáp án.", "warning"); return; }
+                const h = QHash.hash(qid, val);
+                if (!(q.answerHashes || []).includes(h)) {
+                    this.cooldownUntil = Date.now() + 4000;
+                    const el = document.getElementById('quiz-' + qid); if (el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+                    Utils.toast("Chưa đúng rồi, hãy thử lại sau vài giây!", "error");
+                    return;
+                }
+                this.pending[qid] = true;
+                const ref = db.collection("wheel_questions").doc(qid), cfgRef = db.collection("settings").doc("wheel_config");
+                try {
+                    // Giao dịch: chỉ người ghi thành công ĐẦU TIÊN được xác thực câu hỏi
+                    await db.runTransaction(async (tx) => {
+                        const snap = await tx.get(ref), c = await tx.get(cfgRef);
+                        if (Wheel.closedBy(c.exists ? c.data() : {})) throw { code: 'CLOSED' };
+                        const d = snap.exists ? snap.data() : null;
+                        if (!d || d.active === false) throw { code: 'GONE' };
+                        if (d.claimedBy) throw { code: 'TAKEN', by: d.claimedBy };
+                        if (!(d.answerHashes || []).includes(h)) throw { code: 'WRONG' };
+                        tx.update(ref, { claimedBy: State.currentUser, claimedAt: Date.now(), ticketUsed: false });
+                    });
+                    delete this.drafts[qid];
+                    Sound.playWin();
+                    Utils.toast("🎉 Chính xác! Bạn là người đầu tiên — nhận 1 lượt quay!", "success");
+                    const wc = document.getElementById('wheel-container-ui'); if (wc && wc.scrollIntoView) wc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } catch (err) {
+                    const c = err && err.code;
+                    if (c === 'TAKEN') Utils.toast(`Rất tiếc! ${err.by} đã xác thực câu hỏi này trước bạn.`, "warning");
+                    else if (c === 'CLOSED') Utils.toast("Vòng quay vừa đóng cửa.", "warning");
+                    else if (c === 'GONE') Utils.toast("Câu hỏi này không còn khả dụng.", "warning");
+                    else if (c === 'WRONG') Utils.toast("Đáp án vừa được thay đổi, hãy thử lại.", "warning");
+                    else { console.error(err); Utils.toast("Không xác thực được, vui lòng thử lại.", "error"); }
+                } finally { delete this.pending[qid]; }
+            }
+        };
+
         /** 7. APPLICATION BOOTSTRAP */
         const AppCore = {
             init: () => {
@@ -646,6 +886,8 @@
 
                 // Sync Cấu hình Wheel (Prizes)
                 db.collection("settings").doc("wheel_config").onSnapshot(doc => {
+                    State.cfg = doc.exists ? doc.data() : {};
+                    Wheel.refreshLock();
                     if(doc.exists && doc.data().prizes) {
                         State.prizes = doc.data().prizes;
                         Wheel.drawGraphics();
@@ -654,37 +896,15 @@
                     }
                 });
 
-                // Sync Lượt quay realtime
-                db.collection("accounts").where("user", "==", State.currentUser).onSnapshot(snap => {
-                    if(!snap.empty) {
-                        const accountDoc = snap.docs[0];
-                        State.currentDocId = accountDoc.id;
-                        State.availableSpins = accountDoc.data().spins || 0;
-                        
-                        document.getElementById('spin-count-val').innerText = State.availableSpins;
-                        
-                        const counterBox = document.getElementById('spin-counter-box');
-                        const wheelCont = document.getElementById('wheel-container-ui');
-                        if(State.availableSpins > 0) {
-                            counterBox.classList.add('glow');
-                            wheelCont.classList.add('ready');
-                        } else {
-                            counterBox.classList.remove('glow');
-                            wheelCont.classList.remove('ready');
-                        }
-                        
-                        if(!Wheel.isSpinning) {
-                            const btn = document.getElementById('spinBtn');
-                            if(State.availableSpins <= 0) {
-                                btn.disabled = true;
-                                btn.innerHTML = `<i class="fa-solid fa-ban mr-2"></i> ĐÃ HẾT LƯỢT`;
-                            } else {
-                                btn.disabled = false;
-                                btn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
-                            }
-                        }
-                    }
+                // Sync câu hỏi nhận lượt quay realtime (thay cho lượt quay lưu trong tài khoản)
+                db.collection("wheel_questions").onSnapshot(snap => {
+                    Quiz.list = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(q => q.active !== false || q.claimedBy === State.currentUser).sort((x, y) => (x.createdAt || 0) - (y.createdAt || 0));
+                    Quiz.onData();
+                }, err => {
+                    console.error(err);
+                    document.getElementById('quiz-list').innerHTML = '<div class="quiz-empty">Không tải được câu hỏi. Vui lòng tải lại trang.</div>';
                 });
+                setInterval(() => { Wheel.refreshLock(); if (Wheel.isClosed() !== Quiz._closed) Quiz.render(); }, 1000);   // bắt kịp giờ hẹn đóng cửa
             }
         };
 
