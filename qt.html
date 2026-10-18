@@ -221,6 +221,11 @@
         .quiz-sub { margin: 6px 0 12px; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
         .quiz-sub b { color: #fff; }
         .quiz-list { display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; padding-right: 4px; }
+        .quiz-meta { margin: -4px 0 12px; font-size: 13px; font-weight: 800; color: #ffe066; display: flex; flex-wrap: wrap; gap: 6px; }
+        .quiz-meta:empty { display: none; }
+        .quiz-meta span { padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.28); border: 1px solid rgba(255,215,0,.35); }
+        .quiz-wait { padding: 22px 14px; text-align: center; font-size: 15px; font-weight: 800; color: #fff3c4; line-height: 1.6; }
+        .quiz-wait b { display: block; margin-top: 6px; font-size: 30px; color: #ffd700; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
         .quiz-empty { padding: 14px; text-align: center; font-size: 14px; color: var(--text-muted); }
         .quiz-item { padding: 12px 14px; border-radius: 14px; background: rgba(0, 0, 0, .22); border: 1px solid rgba(255, 215, 0, .25); }
         .quiz-q { font-size: 15px; font-weight: 800; line-height: 1.45; color: #fff; }
@@ -240,6 +245,17 @@
         .quiz-item.shake { animation: quizShake .4s; }
         @keyframes quizShake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
         @media (max-width: 480px) { .quiz-form { flex-direction: column; } .quiz-btn { width: 100%; } }
+
+        /* Giải còn lại + lời chúc Tết */
+        .stock-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+        .stock-strip:empty { display: none; }
+        .stock-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; color: #7a0c0c; background: linear-gradient(135deg, #fff3a6, #ffd700); box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+        .stock-chip small { font-weight: 700; opacity: .8; }
+        .stock-chip.out { background: rgba(0,0,0,.35); color: #fca5a5; text-decoration: line-through; box-shadow: none; }
+        .prize-box.is-wish { background: linear-gradient(180deg, #fffbea, #fde68a) !important; border: 2px dashed #d97706 !important; }
+        .prize-box.is-wish h3 { color: #b91c1c !important; font-size: 19px !important; line-height: 1.55; text-transform: none !important; letter-spacing: 0 !important; font-weight: 800 !important; text-shadow: none !important; }
+        .prize-box.is-wish h3::before { content: '❝ '; color: #d97706; } .prize-box.is-wish h3::after { content: ' ❞'; color: #d97706; }
+        .history-wish { display: block; margin-top: 4px; font-size: 13px; line-height: 1.45; color: #fff3c4; font-style: italic; text-transform: none; font-weight: 600; }
 
         /* Trạng thái đóng cửa (admin tắt / quá giờ hẹn) */
         .wheel-lock { display: none; margin: 16px auto 0; max-width: 460px; padding: 12px 18px; border-radius: 16px; font-weight: 800; font-size: 15px; line-height: 1.4;
@@ -274,15 +290,17 @@
             
             <div class="spin-counter" id="spin-counter-box">
                 <i class="fa-solid fa-bolt"></i> 
-                <span>Lượt quay từ câu hỏi:</span> 
+                <span>Lượt quay của bạn:</span> 
                 <span id="spin-count-val" style="font-size: 22px; margin-left: 5px;"><i class="fa-solid fa-spinner fa-spin"></i></span>
             </div>
+            <div class="stock-strip" id="stock-strip" aria-label="Giải thưởng còn lại"></div>
             <div class="wheel-lock" id="wheel-lock" role="status" aria-live="polite"></div>
         </div>
 
         <section class="quiz-panel" id="quiz-panel" aria-live="polite">
             <h2 class="quiz-title"><span aria-hidden="true">🧠</span> Câu hỏi nhận lượt quay</h2>
             <p class="quiz-sub">Trả lời đúng để nhận <b>1 lượt quay</b>. Mỗi câu hỏi chỉ <b>người trả lời đúng sớm nhất</b> được xác thực.</p>
+            <div class="quiz-meta" id="quiz-meta"></div>
             <div class="quiz-list" id="quiz-list"><div class="quiz-empty">Đang tải câu hỏi...</div></div>
         </section>
 
@@ -298,19 +316,17 @@
 
     <div class="modal-overlay" id="modal-result">
         <div class="modal-box text-center">
-            <div style="font-size: 80px; color: var(--color-warning); margin-bottom: 10px; text-shadow: 0 0 40px var(--color-warning-glow); animation: floatIcon 3s ease-in-out infinite;">
-                <i class="fa-solid fa-trophy"></i>
-            </div>
+            <div id="resultIcon" style="font-size: 80px; color: var(--color-warning); margin-bottom: 10px; text-shadow: 0 0 40px var(--color-warning-glow); animation: floatIcon 3s ease-in-out infinite; line-height: 1;">🏆</div>
             
-            <h2 style="font-size: 32px; margin-bottom: 5px; color: #fff; font-weight: 900; letter-spacing: 1px;">XIN CHÚC MỪNG!</h2>
-            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 20px;">Bạn vừa quay trúng phần thưởng:</p>
+            <h2 id="resultTitle" style="font-size: 32px; margin-bottom: 5px; color: #fff; font-weight: 900; letter-spacing: 1px;">XIN CHÚC MỪNG!</h2>
+            <p id="resultSub" style="color: var(--text-muted); font-size: 15px; margin-bottom: 20px;">Bạn vừa quay trúng phần thưởng:</p>
             
-            <div style="padding: 25px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05)); border-radius: var(--radius-lg); border: 1px solid rgba(245, 158, 11, 0.5); margin-bottom: 30px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
+            <div class="prize-box" id="prizeBox" style="padding: 25px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05)); border-radius: var(--radius-lg); border: 1px solid rgba(245, 158, 11, 0.5); margin-bottom: 30px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
                 <h3 id="prizeText" style="font-size: 30px; color: var(--color-warning); margin: 0; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 15px rgba(245,158,11,0.5);">Tên Phần Thưởng</h3>
             </div>
             
             <button class="btn btn-warning w-full" style="padding: 18px; font-size: 16px; border-radius: var(--radius-full);" onclick="Wheel.closeResultModal()">
-                <i class="fa-solid fa-check mr-2"></i> XÁC NHẬN NHẬN QUÀ
+                <span id="resultBtn">XÁC NHẬN NHẬN QUÀ</span>
             </button>
         </div>
     </div>
@@ -351,16 +367,45 @@
             currentUser: localStorage.getItem('qd_current_username'),
             currentDocId: null,
             availableSpins: 0,
+            accountSpins: 0,     // lượt quay trong tài khoản (đổi ở Trạm Quy Đổi, điểm danh, mã mời, admin cộng)
+            accountDocId: null,
             cfg: null,
+            // Mặc định: admin cấu hình tại "Quản Lý Vòng Quay" (settings/wheel_config). qty = null là không giới hạn
             prizes: [
-                { text: "10.000 VNĐ", chance: 5 },
-                { text: "Tí nữa là được rồi", chance: 25 },
-                { text: "Thẻ Cào 20K", chance: 5 },
-                { text: "Thêm tí nữa", chance: 25 },
-                { text: "Thêm 1 Lượt", chance: 10 },
-                { text: "Áo QD Elite", chance: 2 },
-                { text: "20.000 VNĐ", chance: 3 },
-                { text: "Tí nữa là được rồi", chance: 25 }
+                { id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 12 },
+                { id: 'w1', text: 'Lời Chúc Tết', qty: null, chance: 27 },
+                { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 6 },
+                { id: 'w2', text: 'Lời Chúc Tết', qty: null, chance: 27 },
+                { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 },
+                { id: 'w3', text: 'Lời Chúc Tết', qty: null, chance: 26 }
+            ],
+            counts: {},   // số lần đã trúng mỗi ô (wheel_stock/counts)
+            wishes: ["An khang thịnh vượng", "Vạn sự như ý", "Tấn tài tấn lộc", "Phát tài phát lộc", "Tiền vô như nước", "Mã đáo thành công", "Phúc lộc đầy nhà", "Xuân sang phú quý"],
+            tetWishes: [
+                "Năm Đinh Mùi chúc bạn hiền như cừu non, giàu như cừu vàng, may mắn bám theo suốt cả năm!",
+                "Chúc bạn 12 tháng phú quý, 365 ngày phát tài, 8.760 giờ sung túc, 525.600 phút thành công!",
+                "Tiền vào như nước sông Đà, tiền ra nhỏ giọt như cà phê phin. Năm mới phát tài nhé!",
+                "Đầu năm buôn may bán đắt, giữa năm phát tài phát lộc, cuối năm rủng rỉnh hầu bao!",
+                "Cung chúc tân xuân: Vạn sự như ý, tỷ sự như mơ, triệu triệu bất ngờ!",
+                "Tết này chúc bạn: ăn không lo béo, tiêu không lo nghèo, việc gì cũng thuận, ai gặp cũng thương.",
+                "Mai vàng nở rộ trước sân, chúc bạn năm mới muôn phần ấm êm, sum vầy bên những người thân yêu.",
+                "Chúc bạn tiền nhiều như lá mùa thu, tình ngọt như mứt Tết, sức khỏe bền như bánh chưng xanh!",
+                "Xuân này hơn hẳn xuân qua, phúc lộc đầy nhà, an khang thịnh vượng, vạn sự hanh thông.",
+                "Chúc gia đình bạn tân niên vạn phúc, cha mẹ mạnh khỏe, con cháu thảo hiền, nhà nhà sum vầy.",
+                "Phúc như Đông Hải, thọ tỷ Nam Sơn. Chúc bạn một năm mới Phúc - Lộc - Thọ - An - Khang!",
+                "Năm Mùi chúc bạn: mùi nào cũng thơm, cơm nào cũng ngon, tiền nào cũng về túi!",
+                "Hoa đào khoe sắc, mai vàng đón xuân. Chúc bạn vạn sự hanh thông, tấn tài tấn lộc!",
+                "Chúc mọi ước mơ của bạn thành hiện thực, mọi nỗ lực đều được đền đáp xứng đáng trong năm mới.",
+                "Bánh chưng xanh, câu đối đỏ, dưa hành đầy mâm. Chúc bạn năm mới đủ đầy, rộn ràng tiếng cười!",
+                "Năm mới công việc suôn sẻ, sếp thương đồng nghiệp quý, lương thưởng tăng vèo vèo!",
+                "Vòng quay tuy nhỏ nhưng chở cả bầu trời may mắn. Chúc bạn một năm thật rực rỡ!",
+                "Tết đến xuân về, chúc bạn đi đâu cũng gặp may, làm gì cũng thành công, nhìn đâu cũng thấy lộc.",
+                "Chúc bạn năm mới tình duyên phơi phới, tiền tài phơi phới, niềm vui cũng phơi phới!",
+                "Năm mới bắn đâu trúng đó, headshot liên tục, leo rank nhanh như diều gặp gió!",
+                "Chúc cả team năm mới đồng lòng như một, trận nào cũng Top 1, mùa giải nào cũng lên đỉnh!",
+                "Pháo hoa rực rỡ, tiếng cười vang xa. Chúc bạn một năm bình an, hạnh phúc ngập tràn.",
+                "Chúc bạn sức khỏe như voi, tiền tiêu như suối, niềm vui chẳng bao giờ vơi!",
+                "Xuân về trên khắp mọi nhà, chúc bạn an khang, chúc bạn thịnh vượng, chúc bạn vạn sự cát tường!"
             ]
         };
 
@@ -468,10 +513,13 @@
                     this.ctx.textAlign = "right";
                     this.ctx.textBaseline = "middle";
                     
-                    const prizeText = State.prizes[i].text;
+                    const out = this.isOut(State.prizes[i], State.counts);
+                    const wishSlice = this.isWishPrize(State.prizes[i].text);
+                    const prizeText = (wishSlice ? '🧧 ' : '') + State.prizes[i].text + (out ? ' (hết)' : '');
                     
-                    // Highlight phần thưởng lớn
-                    if(prizeText.includes("VNĐ") || prizeText.includes("20K")) {
+                    // Highlight phần thưởng lớn; ô hết giải thì mờ
+                    if (out) this.ctx.fillStyle = "rgba(255,255,255,0.45)";
+                    else if(/VNĐ|VND|\d\s*K\b|Áo/i.test(prizeText)) {
                         this.ctx.fillStyle = "#fde047"; // Vàng sáng
                     } else {
                         this.ctx.fillStyle = "#f4f4f5"; // Trắng
@@ -480,8 +528,13 @@
                     this.ctx.font = "bold 22px 'Plus Jakarta Sans'";
                     this.ctx.shadowColor = "rgba(0,0,0,0.8)";
                     this.ctx.shadowBlur = 6;
+                    this.ctx.font = (prizeText.length > 16 ? "bold 18px" : "bold 22px") + " 'Plus Jakarta Sans'";
                     this.ctx.fillText(prizeText, radius - 35, 0);
                     this.ctx.restore();
+                    if (out) {   // phủ tối ô đã hết giải
+                        this.ctx.beginPath(); this.ctx.moveTo(centerX, centerY); this.ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                        this.ctx.fillStyle = "rgba(0,0,0,0.45)"; this.ctx.fill();
+                    }
                 }
                 
                 // Trục giữa (Hub)
@@ -498,6 +551,47 @@
                 this.ctx.textAlign = "center";
                 this.ctx.textBaseline = "middle";
                 this.ctx.fillText("\uf005", centerX, centerY);
+            },
+
+            normPrizes: function(list) {
+                const src = (list && list.length) ? list : [
+                    { id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 12 }, { id: 'w1', text: 'Lời Chúc Tết', qty: null, chance: 27 },
+                    { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 6 }, { id: 'w2', text: 'Lời Chúc Tết', qty: null, chance: 27 },
+                    { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 }, { id: 'w3', text: 'Lời Chúc Tết', qty: null, chance: 26 }];
+                return src.map((p, i) => ({
+                    id: p.id || ('p' + i), text: String(p.text || ''),
+                    qty: (p.qty === '' || p.qty == null || isNaN(parseInt(p.qty))) ? null : Math.max(0, parseInt(p.qty)),
+                    chance: parseFloat(p.chance) || 0
+                }));
+            },
+            isOut: (p, counts) => p.qty != null && (counts[p.id] || 0) >= p.qty,
+            // Chọn ô theo tỉ lệ, CHỈ trong các ô còn số lượng. Trả về chỉ số ô (hoặc -1 nếu hết sạch)
+            pickIndex: function(prizes, counts) {
+                const avail = [];
+                prizes.forEach((p, i) => { if (p.chance > 0 && !this.isOut(p, counts)) avail.push(i); });
+                if (!avail.length) return -1;
+                let total = 0; avail.forEach(i => total += prizes[i].chance);
+                const rand = Math.random() * total; let sum = 0;
+                for (const i of avail) { sum += prizes[i].chance; if (rand <= sum) return i; }
+                return avail[avail.length - 1];
+            },
+            // Ô không phải tiền/quà ("Lời Chúc Tết", "Chúc May Mắn", "Tí nữa là được rồi"...) -> hiện câu chúc Tết
+            isWishPrize: function(text) {
+                const t = String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase();
+                return !text || /chuc may man|loi chuc|chuc tet|ti nua|them ti/.test(t);
+            },
+            randomWish: function() {
+                const w = State.tetWishes; let i = Math.floor(Math.random() * w.length);
+                if (w.length > 1 && i === this._lastWish) i = (i + 1) % w.length;
+                this._lastWish = i; return w[i];
+            },
+            renderStock: function() {
+                const box = document.getElementById('stock-strip'); if (!box) return;
+                const seen = {};
+                box.innerHTML = State.prizes.filter(p => p.qty != null && p.qty > 0 && !seen[p.id] && (seen[p.id] = 1)).map(p => {
+                    const left = Math.max(0, p.qty - (State.counts[p.id] || 0));
+                    return `<span class="stock-chip ${left ? '' : 'out'}">💰 ${Quiz.esc(p.text)} <small>${left ? `còn ${left}/${p.qty}` : 'hết'}</small></span>`;
+                }).join('');
             },
 
             /* ----- đóng/mở theo cấu hình admin (settings/wheel_config: isEnabled, endDate, endTime) ----- */
@@ -527,17 +621,42 @@
                 }
             },
             // Dùng 1 lượt quay (vé từ câu hỏi đã xác thực) trong giao dịch: kiểm tra lại đóng/mở + vé còn hiệu lực
+            // Thứ tự dùng lượt: vé từ câu hỏi trước, hết vé thì dùng lượt quay trong tài khoản
             consumeSpin: function() {
                 const mine = Quiz.tickets()[0];
-                if (!mine) return Promise.reject({ code: 'NOSPIN' });
+                if (!mine) return this.consumeAccountSpin();
                 const qRef = db.collection("wheel_questions").doc(mine.id), cfgRef = db.collection("settings").doc("wheel_config");
+                const stockRef = db.collection("wheel_stock").doc("counts");
+                // Giao dịch: kiểm tra đóng/mở + vé còn hiệu lực + còn số lượng giải; chọn ô trúng và cộng "đã trúng" cho ô đó
                 return db.runTransaction(async (tx) => {
-                    const q = await tx.get(qRef), c = await tx.get(cfgRef);
-                    if (Wheel.closedBy(c.exists ? c.data() : {})) throw { code: 'CLOSED' };
+                    const q = await tx.get(qRef), c = await tx.get(cfgRef), st = await tx.get(stockRef);
+                    const cfg = c.exists ? c.data() : {};
+                    if (Wheel.closedBy(cfg)) throw { code: 'CLOSED' };
                     const d = q.exists ? q.data() : null;
                     if (!d || d.claimedBy !== State.currentUser || d.ticketUsed === true) throw { code: 'NOSPIN' };
+                    const prizes = Wheel.normPrizes(cfg.prizes), counts = (st.exists && st.data().counts) || {};
+                    const idx = Wheel.pickIndex(prizes, counts);
                     tx.update(qRef, { ticketUsed: true, usedAt: Date.now() });
-                }).then(() => { Wheel.lastQuestionId = mine.id; });
+                    if (idx >= 0 && prizes[idx].qty != null) tx.set(stockRef, { counts: { [prizes[idx].id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
+                    return { idx, prizes };
+                }).then((r) => { Wheel.lastQuestionId = mine.id; return r; });
+            },
+            consumeAccountSpin: function() {
+                if (!State.accountDocId || State.accountSpins <= 0) return Promise.reject({ code: 'NOSPIN' });
+                const accRef = db.collection("accounts").doc(State.accountDocId), cfgRef = db.collection("settings").doc("wheel_config");
+                const stockRef = db.collection("wheel_stock").doc("counts");
+                return db.runTransaction(async (tx) => {
+                    const a = await tx.get(accRef), c = await tx.get(cfgRef), st = await tx.get(stockRef);
+                    const cfg = c.exists ? c.data() : {};
+                    if (Wheel.closedBy(cfg)) throw { code: 'CLOSED' };
+                    const left = (a.exists && a.data().spins) || 0;
+                    if (left <= 0) throw { code: 'NOSPIN' };
+                    const prizes = Wheel.normPrizes(cfg.prizes), counts = (st.exists && st.data().counts) || {};
+                    const idx = Wheel.pickIndex(prizes, counts);
+                    tx.update(accRef, { spins: firebase.firestore.FieldValue.increment(-1) });
+                    if (idx >= 0 && prizes[idx].qty != null) tx.set(stockRef, { counts: { [prizes[idx].id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
+                    return { idx, prizes, remain: left - 1 };
+                }).then((r) => { Wheel.lastQuestionId = null; Wheel.lastRemain = r.remain; return r; });
             },
 
             startSpin: function() {
@@ -550,7 +669,7 @@
                 }
                 
                 if (State.availableSpins <= 0) {
-                    Utils.toast("Bạn chưa có lượt quay! Hãy trả lời đúng một câu hỏi bên dưới để nhận lượt quay.", "warning");
+                    Utils.toast("Bạn chưa có lượt quay! Hãy trả lời đúng câu hỏi bên dưới hoặc đổi điểm ở Trạm Quy Đổi.", "warning");
                     return;
                 }
 
@@ -562,25 +681,14 @@
                 this.spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TÍNH TOÁN...`;
 
                 // Trừ lượt trên Firestore (spins)
-                this.consumeSpin().then(() => {
-                    
-                    let totalChance = 0;
-                    State.prizes.forEach(p => totalChance += (parseFloat(p.chance) || 0));
-
-                    let winningIndex = 0;
-
-                    if (totalChance <= 0) {
-                        winningIndex = Math.floor(Math.random() * State.prizes.length);
-                    } else {
-                        const rand = Math.random() * totalChance;
-                        let sum = 0;
-                        for(let i = 0; i < State.prizes.length; i++) {
-                            sum += parseFloat(State.prizes[i].chance) || 0;
-                            if(rand <= sum) {
-                                winningIndex = i;
-                                break;
-                            }
-                        }
+                this.consumeSpin().then(({ idx, prizes }) => {
+                    // Đồng bộ bánh xe nếu admin vừa đổi ô
+                    if (prizes.map(p => p.id).join() !== State.prizes.map(p => p.id).join()) { State.prizes = prizes; this.drawGraphics(); }
+                    let winningIndex = idx;
+                    this.forceWish = idx < 0;   // hết sạch giải -> vẫn quay vào 1 ô lời chúc / bất kỳ
+                    if (idx < 0) {
+                        const wishIdx = State.prizes.map((p, i) => this.isWishPrize(p.text) ? i : -1).filter(i => i >= 0);
+                        winningIndex = wishIdx.length ? wishIdx[Math.floor(Math.random() * wishIdx.length)] : Math.floor(Math.random() * State.prizes.length);
                     }
                     
                     const slices = State.prizes.length;
@@ -643,8 +751,17 @@
             processResult: function(winIndex) {
                 Sound.playWin();
 
-                const resultText = State.prizes[winIndex].text;
-                document.getElementById('prizeText').innerText = resultText;
+                const rawText = State.prizes[winIndex].text;
+                const isWish = this.forceWish || this.isWishPrize(rawText);
+                const resultText = isWish ? "Lời Chúc Tết" : rawText;
+                const wish = isWish ? this.randomWish() : null;
+
+                document.getElementById('resultIcon').textContent = isWish ? '🧧' : '🏆';
+                document.getElementById('resultTitle').textContent = isWish ? 'LỘC ĐẦU XUÂN!' : 'XIN CHÚC MỪNG!';
+                document.getElementById('resultSub').textContent = isWish ? 'Vòng quay gửi đến bạn lời chúc Tết:' : `Bạn vừa quay trúng phần thưởng (${State.wishes[Math.floor(Math.random() * State.wishes.length)]}!):`;
+                document.getElementById('prizeBox').classList.toggle('is-wish', isWish);
+                document.getElementById('prizeText').innerText = isWish ? wish : resultText;
+                document.getElementById('resultBtn').textContent = isWish ? 'NHẬN LỘC' : 'XÁC NHẬN NHẬN QUÀ';
                 
                 const modal = document.getElementById('modal-result');
                 modal.style.display = 'flex'; 
@@ -655,9 +772,13 @@
                 db.collection("spin_history").add({
                     userId: State.currentUser,
                     result: resultText,
+                    prizeId: this.forceWish ? null : (State.prizes[winIndex].id || null),
+                    wish: wish,
                     questionId: Wheel.lastQuestionId || null,
+                    source: Wheel.lastQuestionId ? 'question' : 'account',
                     timestamp: Date.now()
                 }).catch(err => console.error("Lỗi lưu lịch sử:", err));
+                this.forceWish = false;
             },
 
             closeResultModal: function() {
@@ -732,8 +853,9 @@
                             let iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); color: var(--color-warning); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-solid fa-gift"></i></div>`;
                             let textClass = "";
                             
-                            if(item.result.includes("Tí nữa") || item.result.includes("May Mắn")) {
-                                iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.05); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-regular fa-face-frown"></i></div>`;
+                            const wishItem = Wheel.isWishPrize(item.result);
+                            if (wishItem) {
+                                iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 215, 0, 0.15); display: flex; align-items: center; justify-content: center; font-size: 20px;">🧧</div>`;
                             }
                             if(item.result.includes("VNĐ") || item.result.includes("20K")) {
                                 iconHtml = `<div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 215, 0, 0.15); color: var(--color-gold); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-solid fa-crown"></i></div>`;
@@ -745,7 +867,8 @@
                                     <div class="flex items-center gap-4">
                                         ${iconHtml}
                                         <div class="flex-col">
-                                            <span class="history-prize ${textClass}">${item.result}</span>
+                                            <span class="history-prize ${textClass}">${Quiz.esc(wishItem ? 'Lời Chúc Tết' : item.result)}</span>
+                                            ${item.wish ? `<span class="history-wish">“${Quiz.esc(item.wish)}”</span>` : ''}
                                             <span class="history-time">${dateStr}</span>
                                         </div>
                                     </div>
@@ -797,6 +920,61 @@ const QHash = (() => {
     return { sha256, norm, hash };
 })();
 
+/* ===== QVis: quyết định câu hỏi nào đang HIỆN cho người dùng (dùng chung admin.html & qt.html) =====
+   settings/wheel_config.quiz = { mode: 'all' (lần lượt theo thứ tự) | 'random', count (0 = tất cả), rotateMin, start: 'HH:MM', end: 'HH:MM' }
+   wheel_questions/{id}.showAt / hideAt (ms, tùy chọn) = hẹn giờ hiện / ẩn từng câu */
+const QVis = {
+    cfg(q) {
+        q = q || {}; const mode = q.mode === 'random' ? 'random' : 'all', n = parseInt(q.count);
+        // count: số câu hiện cùng lúc, áp dụng cho CẢ 2 chế độ; 0 = hiện tất cả (mặc định: lần lượt = tất cả, ngẫu nhiên = 3)
+        return { mode, count: isNaN(n) ? (mode === 'random' ? 3 : 0) : Math.min(50, Math.max(0, n)), rotateMin: Math.max(0, parseInt(q.rotateMin) || 0), start: q.start || '', end: q.end || '' };
+    },
+    KEEP_MS: 60000,   // chế độ lần lượt: câu vừa có người trả lời đúng vẫn hiện thêm 60 giây rồi nhường chỗ cho câu kế tiếp
+    mins(hhmm) { const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; },
+    // Khung giờ hiện câu hỏi hằng ngày -> { open, next: thời điểm đóng/mở kế tiếp (ms) }
+    win(c, now) {
+        const s = this.mins(c.start), e = this.mins(c.end);
+        if (s == null || e == null || s === e) return { open: true, next: null };
+        const d = new Date(now), cur = d.getHours() * 60 + d.getMinutes();
+        const open = s < e ? (cur >= s && cur < e) : (cur >= s || cur < e);
+        const target = open ? e : s, t = new Date(now);
+        t.setHours(Math.floor(target / 60), target % 60, 0, 0);
+        if (t.getTime() <= now) t.setDate(t.getDate() + 1);
+        return { open, next: t.getTime() };
+    },
+    // Phiên đổi câu: mỗi rotateMin phút (hoặc mỗi ngày nếu = 0) -> mọi người cùng thấy 1 bộ câu hỏi
+    slot(c, now) {
+        if (c.rotateMin > 0) { const ms = c.rotateMin * 60000, k = Math.floor(now / ms); return { key: 'r' + k, start: k * ms, end: (k + 1) * ms }; }
+        const d = new Date(now); d.setHours(0, 0, 0, 0); const st = d.getTime(), e = new Date(st); e.setDate(e.getDate() + 1);
+        return { key: 'd' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(), start: st, end: e.getTime() };
+    },
+    inTime(q, now) { return q.active !== false && (!q.showAt || now >= q.showAt) && (!q.hideAt || now < q.hideAt); },
+    h(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; },
+    compute(all, quizCfg, now, me) {
+        const c = this.cfg(quizCfg), w = this.win(c, now), sl = this.slot(c, now);
+        let up = Infinity;
+        all.forEach(q => { if (q.active !== false && !q.claimedBy && q.showAt && q.showAt > now && (!q.hideAt || q.hideAt > q.showAt)) up = Math.min(up, q.showAt); });
+        let list = [];
+        if (w.open) {
+            const pool = all.filter(q => this.inTime(q, now));
+            if (c.mode === 'random') {
+                // Bỏ câu đã có người xác thực ở phiên trước; câu vừa xác thực trong phiên này vẫn giữ nguyên chỗ
+                list = pool.filter(q => !q.claimedBy || (q.claimedAt || 0) >= sl.start)
+                           .sort((a, b) => this.h(a.id + '|' + sl.key) - this.h(b.id + '|' + sl.key));
+                if (c.count > 0) list = list.slice(0, c.count);
+            } else {
+                list = pool.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                // Lần lượt: chỉ N câu đầu chưa có người trả lời (câu vừa được trả lời giữ thêm 60 giây để mọi người thấy kết quả)
+                if (c.count > 0) list = list.filter(q => !q.claimedBy || now - (q.claimedAt || 0) < this.KEEP_MS).slice(0, c.count);
+            }
+        }
+        if (me) all.forEach(q => { if (q.claimedBy === me && q.ticketUsed !== true && !list.includes(q)) list.push(q); });   // vé chưa dùng của mình luôn hiện
+        return { list, cfg: c, open: w.open, next: w.next, slotEnd: c.mode === 'random' ? sl.end : null, upcoming: isFinite(up) ? up : null };
+    },
+    fmtClock(ms) { const d = new Date(ms), n = new Date(), p = x => String(x).padStart(2, '0'); const hm = p(d.getHours()) + ':' + p(d.getMinutes()); return d.toDateString() === n.toDateString() ? hm : hm + ' ' + p(d.getDate()) + '/' + p(d.getMonth() + 1); },
+    fmtLeft(ms) { ms = Math.max(0, ms); const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60, p = v => String(v).padStart(2, '0'); return (h ? h + ':' + p(m) : m) + ':' + p(x); }
+};
+
         /** 6b. CÂU HỎI NHẬN LƯỢT QUAY: trả lời đúng -> xác thực (chỉ người sớm nhất) -> nhận 1 lượt quay */
         const Quiz = {
             list: [], drafts: {}, cooldownUntil: 0, pending: {},
@@ -804,7 +982,7 @@ const QHash = (() => {
             tickets: function() { return this.list.filter(q => q.claimedBy === State.currentUser && q.ticketUsed !== true); },
 
             onData: function() {
-                const n = this.tickets().length;
+                const n = this.tickets().length + (State.accountSpins || 0);
                 State.availableSpins = n;
                 document.getElementById('spin-count-val').innerText = n;
                 document.getElementById('spin-counter-box').classList.toggle('glow', n > 0);
@@ -817,8 +995,15 @@ const QHash = (() => {
                 const box = document.getElementById('quiz-list'); if (!box) return;
                 const ae = document.activeElement, keep = ae && ae.classList && ae.classList.contains('quiz-input') ? { id: ae.dataset.qid, pos: ae.selectionStart } : null;
                 const closed = Wheel.isClosed(); this._closed = closed;
-                if (!this.list.length) { box.innerHTML = '<div class="quiz-empty">Hiện chưa có câu hỏi nào. Quay lại sau nhé!</div>'; return; }
-                box.innerHTML = this.list.map((q, i) => {
+                const vis = this.vis = QVis.compute(this.list, State.cfg && State.cfg.quiz, Date.now(), State.currentUser);
+                this._sig = this.sig(vis); this.paintMeta();
+                if (!vis.list.length) {
+                    if (!vis.open) box.innerHTML = `<div class="quiz-wait">⏰ Câu hỏi sẽ xuất hiện lúc ${QVis.fmtClock(vis.next)}<b id="quiz-cd">${QVis.fmtLeft(vis.next - Date.now())}</b></div>`;
+                    else if (vis.upcoming) box.innerHTML = `<div class="quiz-wait">⏰ Câu hỏi tiếp theo xuất hiện lúc ${QVis.fmtClock(vis.upcoming)}<b id="quiz-cd">${QVis.fmtLeft(vis.upcoming - Date.now())}</b></div>`;
+                    else box.innerHTML = '<div class="quiz-empty">Hiện chưa có câu hỏi nào. Quay lại sau nhé!</div>';
+                    return;
+                }
+                box.innerHTML = vis.list.map((q, i) => {
                     const me = q.claimedBy === State.currentUser, taken = !!q.claimedBy && !me;
                     let body;
                     if (me) body = `<div class="quiz-state">${q.ticketUsed === true ? '✅ Bạn đã trả lời đúng — lượt quay đã sử dụng' : '🎟️ Bạn đã trả lời đúng! Đang giữ 1 lượt quay — bấm BẮT ĐẦU QUAY'}</div>`;
@@ -829,12 +1014,34 @@ const QHash = (() => {
                 if (keep) { const el = box.querySelector(`.quiz-input[data-qid="${keep.id}"]`); if (el) { el.focus(); try { el.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
             },
 
+            sig: (v) => v.list.map(q => q.id + (q.claimedBy || '') + (q.ticketUsed ? 1 : 0)).join() + '|' + v.open + '|' + (v.upcoming || ''),
+            // Dòng thông tin: chế độ ngẫu nhiên, đổi câu sau bao lâu, giờ đóng, câu hẹn giờ tiếp theo
+            paintMeta: function() {
+                const el = document.getElementById('quiz-meta'), v = this.vis; if (!el || !v) return;
+                const now = Date.now(), parts = [];
+                if (v.open && v.list.length) {
+                    if (v.cfg.mode !== 'random' && v.cfg.count > 0) parts.push(`📋 Câu hỏi lần lượt · ${v.cfg.count} câu mỗi lượt, trả lời xong sẽ có câu tiếp theo`);
+                    if (v.cfg.mode === 'random') parts.push(v.cfg.rotateMin > 0 ? `🎲 Câu hỏi ngẫu nhiên · đổi câu mới sau ${QVis.fmtLeft(v.slotEnd - now)}` : '🎲 Câu hỏi ngẫu nhiên · đổi câu mới mỗi ngày');
+                    if (v.next) parts.push(`⏳ Đóng câu hỏi lúc ${QVis.fmtClock(v.next)}`);
+                    if (v.upcoming) parts.push(`⏰ Câu mới lúc ${QVis.fmtClock(v.upcoming)}`);
+                }
+                el.innerHTML = parts.map(t => `<span>${t}</span>`).join('');
+                const cd = document.getElementById('quiz-cd');
+                if (cd) cd.textContent = QVis.fmtLeft((v.open ? v.upcoming : v.next) - now);
+            },
+            // Gọi mỗi giây: vẽ lại khi bộ câu hỏi đổi (đổi phiên / tới giờ hẹn / mở-đóng khung giờ), còn lại chỉ cập nhật đồng hồ
+            tick: function() {
+                const v = QVis.compute(this.list, State.cfg && State.cfg.quiz, Date.now(), State.currentUser);
+                if (this.sig(v) !== this._sig) this.render(); else { this.vis = v; this.paintMeta(); }
+            },
+
             submit: async function(qid) {
                 if (this.pending[qid]) return;
                 if (Wheel.isClosed()) { Utils.toast("Vòng quay đang đóng, chưa thể xác thực câu hỏi.", "warning"); return; }
                 const wait = this.cooldownUntil - Date.now();
                 if (wait > 0) { Utils.toast(`Bạn vừa trả lời sai, vui lòng đợi ${Math.ceil(wait / 1000)} giây rồi thử lại.`, "warning"); return; }
                 const q = this.list.find(x => x.id === qid); if (!q) return;
+                if (!this.vis || !this.vis.list.some(x => x.id === qid)) { Utils.toast("Câu hỏi này hiện không còn hiển thị.", "warning"); this.render(); return; }
                 if (q.claimedBy) { Utils.toast(`Câu hỏi này đã được ${q.claimedBy} xác thực trước bạn.`, "warning"); return; }
                 const val = this.drafts[qid] || '';
                 if (!QHash.norm(val)) { Utils.toast("Vui lòng nhập đáp án.", "warning"); return; }
@@ -854,6 +1061,8 @@ const QHash = (() => {
                         if (Wheel.closedBy(c.exists ? c.data() : {})) throw { code: 'CLOSED' };
                         const d = snap.exists ? snap.data() : null;
                         if (!d || d.active === false) throw { code: 'GONE' };
+                        const now = Date.now();
+                        if ((d.showAt && now < d.showAt) || (d.hideAt && now >= d.hideAt) || !QVis.win(QVis.cfg(c.exists ? c.data().quiz : null), now).open) throw { code: 'NOTNOW' };
                         if (d.claimedBy) throw { code: 'TAKEN', by: d.claimedBy };
                         if (!(d.answerHashes || []).includes(h)) throw { code: 'WRONG' };
                         tx.update(ref, { claimedBy: State.currentUser, claimedAt: Date.now(), ticketUsed: false });
@@ -867,6 +1076,7 @@ const QHash = (() => {
                     if (c === 'TAKEN') Utils.toast(`Rất tiếc! ${err.by} đã xác thực câu hỏi này trước bạn.`, "warning");
                     else if (c === 'CLOSED') Utils.toast("Vòng quay vừa đóng cửa.", "warning");
                     else if (c === 'GONE') Utils.toast("Câu hỏi này không còn khả dụng.", "warning");
+                    else if (c === 'NOTNOW') { Utils.toast("Đã hết thời gian trả lời câu hỏi này.", "warning"); this.render(); }
                     else if (c === 'WRONG') Utils.toast("Đáp án vừa được thay đổi, hãy thử lại.", "warning");
                     else { console.error(err); Utils.toast("Không xác thực được, vui lòng thử lại.", "error"); }
                 } finally { delete this.pending[qid]; }
@@ -888,23 +1098,36 @@ const QHash = (() => {
                 db.collection("settings").doc("wheel_config").onSnapshot(doc => {
                     State.cfg = doc.exists ? doc.data() : {};
                     Wheel.refreshLock();
-                    if(doc.exists && doc.data().prizes) {
-                        State.prizes = doc.data().prizes;
-                        Wheel.drawGraphics();
-                    } else {
-                        Wheel.drawGraphics();
-                    }
+                    State.prizes = Wheel.normPrizes(doc.exists ? doc.data().prizes : null);
+                    Quiz.render();   // cài đặt hiển thị câu hỏi có thể vừa đổi
+                    Wheel.drawGraphics();
+                    Wheel.renderStock();
                 });
 
+                // Số lần đã trúng mỗi ô -> làm mờ ô hết giải + hiện giải còn lại
+                db.collection("wheel_stock").doc("counts").onSnapshot(doc => {
+                    State.counts = (doc.exists && doc.data().counts) || {};
+                    Wheel.drawGraphics();
+                    Wheel.renderStock();
+                }, err => console.warn("wheel_stock", err));
+
                 // Sync câu hỏi nhận lượt quay realtime (thay cho lượt quay lưu trong tài khoản)
+                // Lượt quay trong tài khoản (đổi điểm / điểm danh / mã mời / admin cộng)
+                db.collection("accounts").where("user", "==", State.currentUser).onSnapshot(snap => {
+                    if (snap.empty) return;
+                    State.accountDocId = snap.docs[0].id;
+                    State.accountSpins = Number(snap.docs[0].data().spins) || 0;
+                    Quiz.onData();
+                }, err => console.warn("accounts", err));
+
                 db.collection("wheel_questions").onSnapshot(snap => {
-                    Quiz.list = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(q => q.active !== false || q.claimedBy === State.currentUser).sort((x, y) => (x.createdAt || 0) - (y.createdAt || 0));
+                    Quiz.list = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((x, y) => (x.createdAt || 0) - (y.createdAt || 0));
                     Quiz.onData();
                 }, err => {
                     console.error(err);
                     document.getElementById('quiz-list').innerHTML = '<div class="quiz-empty">Không tải được câu hỏi. Vui lòng tải lại trang.</div>';
                 });
-                setInterval(() => { Wheel.refreshLock(); if (Wheel.isClosed() !== Quiz._closed) Quiz.render(); }, 1000);   // bắt kịp giờ hẹn đóng cửa
+                setInterval(() => { Wheel.refreshLock(); if (Wheel.isClosed() !== Quiz._closed) Quiz.render(); else Quiz.tick(); }, 1000);   // bắt kịp giờ hẹn đóng cửa
             }
         };
 
