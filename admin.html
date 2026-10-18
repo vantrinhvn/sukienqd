@@ -255,7 +255,31 @@
             h1 { font-size: 24px !important; line-height: 1.3; }
             .text-3xl { font-size: 22px !important; }
             .text-2xl { font-size: 20px !important; }
-        }</style>
+        }
+        /* ===== Quản Lý Lì Xì ===== */
+        .lx-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+        .lx-tile { background: var(--bg-base); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 14px 16px; }
+        .lx-tile b { display: block; font-size: 22px; line-height: 1.3; font-family: var(--font-family-mono); color: var(--text-main); }
+        .lx-tile span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+        .lx-bar { height: 8px; border-radius: 99px; background: var(--bg-elevated); overflow: hidden; border: 1px solid var(--border-strong); }
+        .lx-bar > i { display: block; height: 100%; width: 0; border-radius: 99px; background: var(--color-success); transition: width .4s ease, background .3s; }
+        .lx-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 99px; background: var(--bg-base); border: 1px solid var(--border-strong); font-size: 13px; }
+        .lx-chip b { font-family: var(--font-family-mono); color: var(--color-danger); }
+        .lx-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+        .lx-filters .form-control { padding: 10px; font-size: 14px; }
+        /* ----- Câu hỏi nhận lượt quay (Vòng Quay) ----- */
+        .wq-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: end; }
+        .wq-form label { display: block; font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+        .wq-actions { display: flex; gap: 10px; flex-wrap: wrap; grid-column: 1 / -1; }
+        .wq-q { font-weight: 700; max-width: 360px; white-space: normal; word-break: break-word; }
+        .wq-ans { font-family: var(--font-family-mono); font-size: 13px; color: var(--color-success); white-space: normal; word-break: break-word; }
+        .wq-btns { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+        .wq-btns .btn { padding: 8px 12px; font-size: 12px; }
+        .wq-note { font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+        @media (max-width: 768px) { .wq-form { grid-template-columns: 1fr; } }
+
+        .lx-prize-table input { min-width: 90px; }
+    </style>
 </head>
 <body>
 
@@ -393,7 +417,7 @@
             <div class="form-group mb-4">
                 <label class="form-label">Phân loại Vật phẩm</label>
                 <select id="spin-type" class="form-control" style="cursor: pointer; appearance: auto;">
-                    <option value="points">Điểm Sự Kiện (Points)</option>
+                    <option value="points">Điểm Lì Xì (Points)</option>
                     <option value="spins">Vòng Quay Thưởng (Lượt Quay)</option>
                     <option value="tickets">Tranh Thưởng May Mắn (Lượt Xé)</option>
                 </select>
@@ -448,7 +472,7 @@
                 </div>
                 <h2 class="text-xl m-0">Cài đặt Hệ thống</h2>
             </div>
-            <div class="form-group mb-8">
+            <div class="form-group mb-6">
                 <label class="form-label">Chế độ Hiển thị Không gian làm việc</label>
                 <div class="flex justify-between items-center p-4 rounded-lg mt-2" style="background-color: var(--bg-elevated); border: 1px solid var(--border-strong);">
                     <div class="flex items-center gap-3 font-semibold">
@@ -460,7 +484,44 @@
                     <button class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;" onclick="Theme.toggle()"><i class="fa-solid fa-rotate"></i> Chuyển đổi</button>
                 </div>
             </div>
-            <button class="btn btn-primary w-full mt-4" onclick="UI.closeModal('modal-settings')">Hoàn tất cài đặt</button>
+
+            <div class="form-group mb-6 p-5 rounded-xl border-strong" style="border: 1px solid var(--color-danger); background: rgba(239, 68, 68, 0.05);">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="flex-center rounded-full" style="width: 36px; height: 36px; background: rgba(239,68,68,0.2); color: var(--color-danger); display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                        </div>
+                        <div>
+                            <label class="form-label text-danger m-0" style="font-size: 15px;">Chế độ Bảo trì</label>
+                            <span class="text-xs text-muted">Đóng hệ thống User</span>
+                        </div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="cfg-mt-toggle" onchange="AdminActions.toggleMaintenance(this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div id="maintenance-config-box" style="display: none; border-top: 1px dashed rgba(239,68,68,0.3); padding-top: 15px; margin-top: 5px;">
+                    <div class="form-group mb-4">
+                        <label class="form-label text-xs">Nội dung thông báo (Tùy chọn)</label>
+                        <input type="text" id="cfg-mt-message" class="form-control" placeholder="Hệ thống đang được nâng cấp..." value="Hệ thống đang được nâng cấp. Vui lòng quay lại sau!">
+                    </div>
+                    <div class="flex gap-4 mb-4">
+                        <div class="flex-1">
+                            <label class="form-label text-xs">Mở lại lúc (Ngày)</label>
+                            <input type="date" id="cfg-mt-end-date" class="form-control" style="padding: 10px; font-family: var(--font-family-mono);">
+                        </div>
+                        <div class="flex-1">
+                            <label class="form-label text-xs">Mở lại lúc (Giờ)</label>
+                            <input type="time" id="cfg-mt-end-time" class="form-control" style="padding: 10px; font-family: var(--font-family-mono);">
+                        </div>
+                    </div>
+                    <button class="btn btn-danger w-full" onclick="AdminActions.saveMaintenanceConfig()"><i class="fa-solid fa-save mr-2"></i> Lưu Cấu Hình Bảo Trì</button>
+                </div>
+            </div>
+
+            <button class="btn btn-primary w-full mt-4" onclick="UI.closeModal('modal-settings')">Đóng Cửa Sổ</button>
         </div>
     </div>
 
@@ -494,6 +555,7 @@
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="luckynumber"> Quay Số</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="wheel"> Vòng Quay</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="tranhthuong"> Tranh Thưởng</label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="lixi"> Lì Xì</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="rps"> Kéo Búa</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="invite"> Mã Mời</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="news"> Bản Tin</label>
@@ -615,6 +677,10 @@
                     <div class="m-menu-icon text-danger" style="background: var(--color-danger-bg);"><i class="fa-solid fa-ticket-alt"></i></div>
                     <span>Tranh Thưởng</span>
                 </div>
+                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('lixi')">
+                    <div class="m-menu-icon text-danger" style="background: var(--color-danger-bg);"><i class="fa-solid fa-envelope-open-text"></i></div>
+                    <span>Lì Xì</span>
+                </div>
                 <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('rps')">
                     <div class="m-menu-icon text-danger" style="background: rgba(239, 68, 68, 0.15);"><i class="fa-regular fa-hand-scissors"></i></div>
                     <span>Kéo Búa</span>
@@ -645,9 +711,17 @@
                 <input type="text" id="log-u" class="form-control" placeholder="Nhập username..." autocomplete="off">
             </div>
             
-            <div class="form-group mb-8">
+            <div class="form-group mb-4">
                 <label class="form-label text-left">Mật khẩu bảo mật</label>
                 <input type="password" id="log-p" class="form-control" placeholder="Nhập password..." onkeypress="if(event.key==='Enter') Auth.login()">
+            </div>
+
+            <!-- NÚT GHI NHỚ TÀI KHOẢN -->
+            <div class="flex items-center justify-between mb-8">
+                <label class="flex items-center gap-2 cursor-pointer" style="user-select: none;">
+                    <input type="checkbox" id="remember-me" style="width: 18px; height: 18px; accent-color: var(--brand-primary); cursor: pointer;">
+                    <span class="text-sm font-bold text-muted">Ghi nhớ tài khoản</span>
+                </label>
             </div>
 
             <button class="btn btn-primary w-full" style="padding: 18px; font-size: 16px;" id="btn-login" onclick="Auth.login()">
@@ -777,6 +851,14 @@
                             <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Tranh Thưởng</h4>
                             <p class="text-muted text-xs m-0">Thiết lập cơ cấu phần thưởng cho phân hệ xé vé giải trí nhanh.</p>
                         </div>
+                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('lixi')" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-center rounded-md text-danger" style="width: 40px; height: 40px; background: var(--color-danger-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-envelope-open-text"></i></div>
+                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            </div>
+                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Lì Xì</h4>
+                            <p class="text-muted text-xs m-0">Đóng/mở cửa, chỉnh số điểm &amp; tỉ lệ, kiểm soát điểm đã phát và xuất báo cáo.</p>
+                        </div>
                         <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('rps')" style="display: flex; flex-direction: column; gap: 12px;">
                             <div class="flex justify-between items-center">
                                 <div class="flex-center rounded-md text-danger" style="width: 40px; height: 40px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-regular fa-hand-scissors"></i></div>
@@ -858,7 +940,7 @@
                         <div class="flex justify-between items-start flex-wrap gap-6">
                             <div class="max-w-md">
                                 <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-tags text-success"></i> Bảng Giá Quy Đổi Vật Phẩm</h3>
-                                <p class="text-muted text-sm">Thiết lập số điểm sự kiện cần thiết để người chơi có thể đổi lấy các lượt giải trí. Đoạn Script User sẽ nhận diện bảng giá này để tính toán tự động.</p>
+                                <p class="text-muted text-sm">Thiết lập số điểm lì xì cần thiết để người chơi có thể đổi lấy các lượt giải trí. Đoạn Script User sẽ nhận diện bảng giá này để tính toán tự động.</p>
                                 
                                 <div class="mt-4 flex items-center gap-2">
                                     <span class="text-sm font-bold text-muted" id="shop-status-text">ĐANG MỞ CỬA</span>
@@ -1450,6 +1532,52 @@
                         </div>
                     </div>
 
+                    <!-- Câu hỏi nhận lượt quay -->
+                    <div class="card mb-8" id="wq-card" style="border-left: 4px solid var(--color-success); padding: 24px;">
+                        <div class="flex justify-between items-start flex-wrap gap-4 mb-6">
+                            <div class="max-w-md">
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-circle-question text-success"></i> Câu hỏi nhận lượt quay</h3>
+                                <p class="text-muted text-sm">Người dùng chỉ có lượt quay khi <b>nhập đúng đáp án</b> bạn thiết lập. Mỗi câu hỏi chỉ <b>người trả lời đúng sớm nhất</b> được xác thực và nhận 1 lượt quay (không còn tính lượt theo tài khoản).</p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="badge badge-warning px-4 py-2 text-sm" id="wq-st-total">Tổng: 0</span>
+                                <span class="badge badge-online px-4 py-2 text-sm" id="wq-st-open">Đang mở: 0</span>
+                                <span class="badge badge-danger px-4 py-2 text-sm" id="wq-st-claimed">Đã xác thực: 0</span>
+                            </div>
+                        </div>
+                        <div class="wq-form mb-6">
+                            <div>
+                                <label for="wq-question">Câu hỏi</label>
+                                <input type="text" id="wq-question" class="form-control" maxlength="200" placeholder="VD: Thủ đô của Việt Nam là gì?" autocomplete="off">
+                            </div>
+                            <div>
+                                <label for="wq-answers">Đáp án đúng <span style="text-transform:none;font-weight:600;">(nhiều đáp án cách nhau bởi dấu |)</span></label>
+                                <input type="text" id="wq-answers" class="form-control" maxlength="400" placeholder="VD: Hà Nội | Thủ đô Hà Nội" autocomplete="off">
+                            </div>
+                            <div class="wq-actions">
+                                <button class="btn btn-primary" id="wq-save" onclick="WheelQ.save()"><i class="fa-solid fa-plus mr-2"></i> Thêm câu hỏi</button>
+                                <button class="btn btn-outline" id="wq-cancel" style="display:none;" onclick="WheelQ.cancelEdit()">Hủy sửa</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" style="width: 50px;">#</th>
+                                        <th>Câu hỏi</th>
+                                        <th>Đáp án</th>
+                                        <th>Trạng thái</th>
+                                        <th class="text-right" style="width: 310px;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tb-wq">
+                                    <tr><td colspan="5" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải câu hỏi...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="wq-note"><i class="fa-solid fa-circle-info mr-1"></i> Không phân biệt hoa/thường, dấu tiếng Việt và ký tự đặc biệt ("Hà Nội!" = "ha noi"). Đáp án được mã hóa (SHA-256) trong câu hỏi hiển thị cho người dùng; bản gốc chỉ lưu ở bộ sưu tập <code>wheel_question_keys</code> để admin xem. <b>Mở lại</b> = xóa người đã xác thực để câu hỏi tiếp tục được trả lời.</p>
+                    </div>
+
                     <div class="card p-0 overflow-hidden mb-0">
                         <div class="card-header bg-warning-bg m-0 p-6" style="background: var(--color-warning-bg); border-bottom: 1px solid rgba(245, 158, 11, 0.2);">
                             <h3 class="card-title text-lg m-0 text-warning"><i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử Quay (30 Ngày Trước)</h3>
@@ -1567,6 +1695,210 @@
                     </div>
                 </section>
 
+                <section id="view-lixi" class="view-section">
+                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Quản Lý Lì Xì</h1>
+                            <p class="text-muted">Đóng/mở cửa rút lì xì, chỉnh số điểm &amp; tỉ lệ, kiểm soát điểm đã phát và xuất báo cáo.</p>
+                        </div>
+                        <button class="btn btn-danger" style="padding: 14px 24px; box-shadow: none;" onclick="LixiAdmin.exportReport()">
+                            <i class="fa-solid fa-file-excel mr-2"></i> Xuất Báo Cáo (.XLS)
+                        </button>
+                    </div>
+
+                    <!-- 1. Đóng / Mở cửa -->
+                    <div class="card mb-8" style="border-left: 4px solid var(--color-danger); padding: 24px;">
+                        <div class="flex justify-between items-start flex-wrap gap-6">
+                            <div class="max-w-md" style="flex: 1 1 280px;">
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-door-open text-danger"></i> Đóng / Mở Cửa Lì Xì</h3>
+                                <p class="text-muted text-sm">Khi đóng, người dùng thấy các bao lì xì bị khóa kèm thông báo bên dưới và không thể rút. Có thể hẹn giờ MỞ cửa (người dùng thấy đồng hồ đếm ngược tới giờ mở) và hẹn giờ tự ĐÓNG.</p>
+                                <div class="mt-4 flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-bold text-muted" id="lx-status-text">ĐANG MỞ</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="cfg-lx-toggle" onchange="LixiAdmin.toggle(this)">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span class="badge badge-online" id="lx-live-badge" style="margin-left: 6px;">Đang tải...</span>
+                                </div>
+                                <div id="lx-countdown" style="margin-top: 14px; font-family: var(--font-family-mono); font-size: 22px; font-weight: 700; letter-spacing: .5px;"></div>
+                                <div id="lx-countdown-sub" class="text-muted text-xs" style="margin-top: 2px;"></div>
+                                <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border-strong);">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-sm font-bold text-muted" id="lx-redraw-text">RÚT LẠI TRONG NGÀY: TẮT</span>
+                                        <label class="switch">
+                                            <input type="checkbox" id="cfg-lx-redraw" onchange="LixiAdmin.toggleRedraw(this)">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                    <p class="text-muted text-xs" style="margin-top: 6px;">Tắt: mỗi tài khoản chỉ rút 1 lần/ngày. Bật: được rút lại nhiều lần trong ngày, tối đa theo số lượt bên dưới (vẫn bị giới hạn bởi ngân sách điểm/ngày).</p>
+                                    <div class="flex items-center gap-2" style="margin-top: 8px;">
+                                        <label class="form-label" style="font-size: 11px; margin: 0;">SỐ LƯỢT TỐI ĐA / NGÀY</label>
+                                        <input type="number" id="cfg-lx-maxdraw" class="form-control" min="2" max="50" step="1" value="3" style="width: 90px; padding: 8px; font-family: var(--font-family-mono);" onchange="LixiAdmin.saveMaxDraw()">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-base p-4 rounded-lg border-strong" style="flex: 1 1 380px; background: var(--bg-base); border: 1px solid var(--border-strong); border-radius: var(--radius-md);">
+                                <div class="flex items-center gap-4 flex-wrap">
+                                    <div>
+                                        <label class="form-label" style="font-size: 11px;">NGÀY MỞ CỬA</label>
+                                        <input type="date" id="cfg-lx-open-date" class="form-control" style="padding: 10px; font-family: var(--font-family-mono); width: 160px;">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" style="font-size: 11px;">GIỜ MỞ CỬA</label>
+                                        <input type="time" id="cfg-lx-open-time" class="form-control" style="padding: 10px; font-family: var(--font-family-mono); width: 130px;">
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4 flex-wrap" style="margin-top: 14px;">
+                                    <div>
+                                        <label class="form-label" style="font-size: 11px;">NGÀY TỰ ĐÓNG</label>
+                                        <input type="date" id="cfg-lx-end-date" class="form-control" style="padding: 10px; font-family: var(--font-family-mono); width: 160px;">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" style="font-size: 11px;">GIỜ TỰ ĐÓNG</label>
+                                        <input type="time" id="cfg-lx-end-time" class="form-control" style="padding: 10px; font-family: var(--font-family-mono); width: 130px;">
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <label class="form-label" style="font-size: 11px;">THÔNG BÁO KHI ĐÓNG CỬA (TUỲ CHỌN)</label>
+                                    <input type="text" id="cfg-lx-closed-msg" class="form-control" maxlength="120" placeholder="Lì xì đang đóng cửa, vui lòng quay lại sau!" style="padding: 10px;">
+                                </div>
+                                <div class="mt-4 flex gap-2 flex-wrap">
+                                    <button class="btn btn-danger" onclick="LixiAdmin.saveSchedule()"><i class="fa-solid fa-save mr-2"></i> Lưu Cấu Hình</button>
+                                    <button class="btn btn-outline" onclick="LixiAdmin.clearSchedule()"><i class="fa-solid fa-eraser mr-2"></i> Xóa Hẹn Giờ</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Kiểm soát điểm hôm nay -->
+                    <div class="card mb-8" style="padding: 24px;">
+                        <div class="flex justify-between items-center flex-wrap gap-2 mb-4">
+                            <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-gauge-high text-danger"></i> Kiểm Soát Điểm — Hôm Nay</h3>
+                            <span class="text-muted text-xs" id="lx-today-label"></span>
+                        </div>
+                        <div class="lx-tiles">
+                            <div class="lx-tile"><b id="lx-t-count">0</b><span>Lượt đã rút</span></div>
+                            <div class="lx-tile"><b id="lx-t-points">0</b><span>Điểm đã phát</span></div>
+                            <div class="lx-tile"><b id="lx-t-left">∞</b><span>Ngân sách còn lại</span></div>
+                            <div class="lx-tile"><b id="lx-t-pending">0</b><span>Chưa rút hôm nay</span></div>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <div class="flex justify-between text-xs text-muted" style="margin-bottom: 8px;"><span id="lx-budget-label">Chưa đặt ngân sách ngày (không giới hạn)</span><span id="lx-budget-pct"></span></div>
+                            <div class="lx-bar"><i id="lx-budget-bar"></i></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Phần thưởng -->
+                    <div class="card mb-8">
+                        <div class="card-header border-strong" style="border-bottom: 1px solid var(--border-strong);">
+                            <h3 class="card-title"><i class="fa-solid fa-envelope-open-text text-danger"></i> Phần Thưởng &amp; Tỉ Lệ Lì Xì</h3>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="badge badge-danger px-4 py-2 text-sm" id="lx-total-chance">Tổng: 0</span>
+                                <span class="badge badge-info px-4 py-2 text-sm" id="lx-ev">TB: 0 điểm/lượt</span>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="w-full lx-prize-table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" style="width: 70px;">Ô số</th>
+                                        <th>Số điểm lì xì</th>
+                                        <th>Tỉ lệ tương đối</th>
+                                        <th class="text-center" style="width: 120px;">Xác suất</th>
+                                        <th class="text-center" style="width: 70px;">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tb-lx-config">
+                                    <tr><td colspan="5" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải cấu hình...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-6" style="padding: 20px 24px;">
+                            <button class="btn btn-outline" style="margin-bottom: 4px;" onclick="LixiAdmin.addPrize()"><i class="fa-solid fa-plus mr-2"></i> Thêm mức điểm</button>
+                            <div class="flex gap-6 flex-wrap" style="margin-top: 24px;">
+                                <div style="flex: 1 1 220px;">
+                                    <label class="form-label" style="font-size: 11px;">NGÂN SÁCH ĐIỂM / NGÀY (0 = KHÔNG GIỚI HẠN)</label>
+                                    <input type="number" id="cfg-lx-budget" class="form-control" min="0" step="1" value="0" style="padding: 10px; font-family: var(--font-family-mono);" oninput="LixiAdmin.onEdit()">
+                                    <p class="text-muted text-xs mt-2">Khi tổng điểm đã phát trong ngày chạm trần, các mức điểm vượt phần còn lại bị loại; hết sạch thì hiển thị "Hết quà hôm nay".</p>
+                                </div>
+                                <div style="flex: 1 1 220px;">
+                                    <label class="form-label" style="font-size: 11px;">TỪ MỨC ĐIỂM NÀO TÍNH LÀ "ĐẠI CÁT" (HIỆU ỨNG LỚN)</label>
+                                    <input type="number" id="cfg-lx-big" class="form-control" min="1" step="1" value="68" style="padding: 10px; font-family: var(--font-family-mono);" oninput="LixiAdmin.onEdit()">
+                                </div>
+                            </div>
+                            <div class="text-muted text-sm" style="margin-top: 16px;" id="lx-cost"></div>
+                        </div>
+                        <div class="flex justify-end gap-2 flex-wrap" style="padding: 0 24px 24px;">
+                            <button class="btn btn-outline" onclick="LixiAdmin.resetDefaults()"><i class="fa-solid fa-rotate-left mr-2"></i> Về mặc định</button>
+                            <button class="btn btn-danger" onclick="LixiAdmin.savePrizes()"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Phần Thưởng</button>
+                        </div>
+                    </div>
+
+                    <!-- 4. Thống kê & lịch sử -->
+                    <div class="card p-0 overflow-hidden mb-0">
+                        <div class="card-header m-0 p-6" style="background: var(--color-danger-bg); border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+                            <h3 class="card-title text-lg m-0 text-danger"><i class="fa-solid fa-clock-rotate-left"></i> Thống Kê &amp; Lịch Sử Rút Lì Xì</h3>
+                        </div>
+                        <div style="padding: 20px 24px;">
+                            <div class="lx-filters">
+                                <div>
+                                    <label class="form-label" style="font-size: 11px;">KHOẢNG THỜI GIAN</label>
+                                    <select id="lx-f-range" class="form-control" onchange="LixiAdmin.renderAll()">
+                                        <option value="today">Hôm nay</option>
+                                        <option value="7">7 ngày gần nhất</option>
+                                        <option value="30" selected>30 ngày gần nhất</option>
+                                        <option value="all">Tất cả</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size: 11px;">TRẠNG THÁI</label>
+                                    <select id="lx-f-status" class="form-control" onchange="LixiAdmin.renderAll()">
+                                        <option value="all">Tất cả</option>
+                                        <option value="ok">Hợp lệ</option>
+                                        <option value="revoked">Đã thu hồi</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 1 1 200px;">
+                                    <label class="form-label" style="font-size: 11px;">TÌM TÀI KHOẢN</label>
+                                    <input type="text" id="lx-f-user" class="form-control" placeholder="Nhập tên tài khoản..." oninput="LixiAdmin.renderAll()" style="width: 100%;">
+                                </div>
+                            </div>
+                            <div class="lx-tiles" style="margin-top: 20px;">
+                                <div class="lx-tile"><b id="lx-r-count">0</b><span>Lượt rút hợp lệ</span></div>
+                                <div class="lx-tile"><b id="lx-r-points">0</b><span>Tổng điểm đã phát</span></div>
+                                <div class="lx-tile"><b id="lx-r-avg">0</b><span>TB điểm / lượt</span></div>
+                                <div class="lx-tile"><b id="lx-r-users">0</b><span>Số người rút</span></div>
+                                <div class="lx-tile"><b id="lx-r-revoked">0</b><span>Đã thu hồi (điểm)</span></div>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <div class="text-xs font-bold text-muted uppercase" style="margin-bottom: 8px;">Phân bố phần thưởng</div>
+                                <div class="flex gap-2 flex-wrap" id="lx-dist"></div>
+                            </div>
+                        </div>
+                        <div style="padding: 24px 24px 8px;" class="text-xs font-bold text-muted uppercase">Top tài khoản nhận nhiều điểm nhất</div>
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="w-full">
+                                <thead>
+                                    <tr><th>Tài Khoản</th><th class="text-center">Số lượt</th><th class="text-center">Tổng điểm lì xì</th><th class="text-center">Điểm hiện có</th></tr>
+                                </thead>
+                                <tbody id="tb-lx-top"><tr><td colspan="4" class="text-center text-muted py-8">Đang tải dữ liệu...</td></tr></tbody>
+                            </table>
+                        </div>
+                        <div style="padding: 20px 24px 8px;" class="flex justify-between items-center flex-wrap gap-2">
+                            <span class="text-xs font-bold text-muted uppercase">Chi tiết từng lượt rút</span>
+                            <span class="text-muted text-xs" id="lx-hist-count"></span>
+                        </div>
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="w-full">
+                                <thead>
+                                    <tr><th>Tài Khoản</th><th class="text-center">Điểm</th><th class="text-center">Ngày</th><th class="text-center">Trạng Thái</th><th class="text-right">Thời Gian</th><th class="text-center">Thao Tác</th></tr>
+                                </thead>
+                                <tbody id="tb-lx-history"><tr><td colspan="6" class="text-center text-muted py-8">Đang tải dữ liệu...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="view-invite" class="view-section">
                     <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
@@ -1677,7 +2009,7 @@
                                     <tr>
                                         <th>Tên Đăng Nhập</th>
                                         <th>Mật Khẩu</th>
-                                        <th class="text-center">Điểm Sự Kiện</th>
+                                        <th class="text-center">Điểm Lì Xì</th>
                                         <th class="text-center">Lượt Vòng Quay</th>
                                         <th class="text-center">Lượt Tranh Thưởng</th>
                                         <th>Trạng thái</th>
@@ -1849,6 +2181,41 @@
         };
 
         const Auth = {
+            initRemember: () => {
+                const isRemembered = localStorage.getItem('qd_adm_remember') === 'true';
+                const savedU = localStorage.getItem('qd_adm_saved_u') || '';
+                const savedP = localStorage.getItem('qd_adm_saved_p') || '';
+                const autoLogin = localStorage.getItem('qd_adm_autologin') === 'true';
+
+                const uInput = document.getElementById('log-u');
+                const pInput = document.getElementById('log-p');
+                const remCheckbox = document.getElementById('remember-me');
+
+                if (isRemembered && uInput && pInput && remCheckbox) {
+                    uInput.value = savedU;
+                    pInput.value = savedP;
+                    remCheckbox.checked = true;
+
+                    // Tự động đăng nhập nếu phiên trước chưa bấm Đăng xuất
+                    if (autoLogin && savedU && savedP) {
+                        Auth.login();
+                    }
+                }
+            },
+            handleRememberSave: (u, p) => {
+                const remCheckbox = document.getElementById('remember-me');
+                if (remCheckbox && remCheckbox.checked) {
+                    localStorage.setItem('qd_adm_remember', 'true');
+                    localStorage.setItem('qd_adm_saved_u', u);
+                    localStorage.setItem('qd_adm_saved_p', p);
+                    localStorage.setItem('qd_adm_autologin', 'true');
+                } else {
+                    localStorage.removeItem('qd_adm_remember');
+                    localStorage.removeItem('qd_adm_saved_u');
+                    localStorage.removeItem('qd_adm_saved_p');
+                    localStorage.removeItem('qd_adm_autologin');
+                }
+            },
             login: () => {
                 const u = document.getElementById('log-u').value.trim(); const p = document.getElementById('log-p').value.trim();
                 const btn = document.getElementById('btn-login');
@@ -1861,6 +2228,7 @@
                         const userData = snap.docs[0].data();
                         const userRole = userData.role || (u === 'admin' ? 'admin' : 'user');
                         if (userRole === 'admin' || userRole === 'manager') {
+                            Auth.handleRememberSave(u, p);
                             State.currentUser = u;
                             State.currentUserRole = userRole;
                             State.currentUserPerms = userData.permissions || ['dashboard', 'attendance', 'registration'];
@@ -1878,6 +2246,7 @@
                         }
                     } else if (u === 'admin' && p === '123') {
                         // Fallback for default admin
+                        Auth.handleRememberSave('admin', '123');
                         State.currentUser = 'admin';
                         State.currentUserRole = 'admin';
                         localStorage.setItem('qd_current_username', 'admin');
@@ -1901,9 +2270,495 @@
                 const btn = document.querySelector('#modal-logout .btn-danger');
                 if(btn) { btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang thoát...`; btn.disabled = true; }
                 localStorage.removeItem('qd_current_username'); // Đăng xuất thì mất phiên bên user.html luôn
+                localStorage.setItem('qd_adm_autologin', 'false'); // Tắt tự động vào thẳng khi chủ động đăng xuất
                 setTimeout(() => window.location.reload(), 500);
             }
         };
+
+        // Tự động kiểm tra và điền tài khoản đã ghi nhớ khi vừa mở trang
+        document.addEventListener('DOMContentLoaded', () => {
+            Auth.initRemember();
+        });
+
+        /* ===== QUẢN LÝ LÌ XÌ (admin) =====
+           settings/lixi_config : { isEnabled, endDate, endTime, closedMessage, prizes:[{points,chance}], bigThreshold, dailyBudget }
+           lixi_history         : { user, amount, date, dateKey, timestamp, status:'ok'|'revoked', ... }
+           lixi_daily/{yyyy-mm-dd} : { count, points }  (bộ đếm ngân sách ngày, do phía user cập nhật trong giao dịch) */
+        const LixiAdmin = (() => {
+            const DEFAULT_PRIZES = [
+                { points: 8, chance: 35 }, { points: 18, chance: 30 }, { points: 28, chance: 20 },
+                { points: 38, chance: 10 }, { points: 68, chance: 4 }, { points: 88, chance: 1 }
+            ];
+            const $ = id => document.getElementById(id);
+            const pad = n => (n < 10 ? '0' : '') + n;
+            const keyOf = d => { d = d || new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+            const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const fmtTime = ts => ts ? new Date(ts).toLocaleString('vi-VN') : '';
+            const num = v => (Number(v) || 0).toLocaleString('vi-VN');
+
+            let cfg = null, hist = [], daily = null, dailyKey = null, unsubDaily = null, started = false, dirty = false, tickN = 0;
+
+            const normCfg = d => {
+                d = d || {};
+                let prizes = (Array.isArray(d.prizes) ? d.prizes : []).map(p => ({ points: Math.floor(Number(p && p.points)), chance: Number(p && p.chance) }))
+                    .filter(p => p.points >= 1 && isFinite(p.chance) && p.chance >= 0);
+                if (!prizes.some(p => p.chance > 0)) prizes = DEFAULT_PRIZES.map(p => ({ ...p }));
+                return {
+                    isEnabled: d.isEnabled !== false, openDate: d.openDate || '', openTime: d.openTime || '', endDate: d.endDate || '', endTime: d.endTime || '', closedMessage: d.closedMessage || '',
+                    prizes, bigThreshold: Number(d.bigThreshold) > 0 ? Number(d.bigThreshold) : 68, dailyBudget: Math.max(0, Math.floor(Number(d.dailyBudget) || 0)),
+                    allowRedraw: d.allowRedraw === true, maxPerDay: Math.min(50, Math.max(2, Math.floor(Number(d.maxPerDay)) || 3))
+                };
+            };
+            const stamp = (d, t) => { if (!(d && t)) return null; const v = new Date(d + 'T' + t).getTime(); return isNaN(v) ? null : v; };
+            const deadline = c => stamp(c.endDate, c.endTime);
+            const openAt = c => stamp(c.openDate, c.openTime);
+            const cd = ms => { const d = Math.max(0, Math.floor(ms / 1000)), days = Math.floor(d / 86400); return (days ? days + ' ngày ' : '') + pad(Math.floor(d % 86400 / 3600)) + ':' + pad(Math.floor(d % 3600 / 60)) + ':' + pad(d % 60); };
+            const users = () => (State.accountsCache || []).filter(a => (a.role || 'user') === 'user');
+            const spentToday = () => (daily && daily.points) || 0;
+            const minPrize = c => Math.min(...c.prizes.filter(p => p.chance > 0).map(p => p.points));
+            const isSoldOut = c => c.dailyBudget > 0 && (c.dailyBudget - spentToday()) < minPrize(c);
+
+            const subDaily = () => {
+                const key = keyOf();
+                if (dailyKey === key) return;
+                if (unsubDaily) { try { unsubDaily(); } catch (e) { } }
+                dailyKey = key; daily = null;
+                unsubDaily = db.collection('lixi_daily').doc(key).onSnapshot(doc => { daily = doc.exists ? doc.data() : { points: 0, count: 0 }; renderToday(); }, e => console.warn('lixi_daily', e));
+            };
+
+            /* ---------- cấu hình: đóng / mở ---------- */
+            const renderConfig = raw => {
+                const c = cfg;
+                const tg = $('cfg-lx-toggle'), st = $('lx-status-text');
+                if (tg && st) { tg.checked = c.isEnabled; st.innerText = c.isEnabled ? 'ĐANG MỞ' : 'ĐANG KHÓA'; st.style.color = c.isEnabled ? 'var(--color-success)' : 'var(--color-danger)'; }
+                const act = document.activeElement && document.activeElement.id;
+                const rd = $('cfg-lx-redraw'), rdt = $('lx-redraw-text'), md = $('cfg-lx-maxdraw');
+                if (rd && rdt && md) {
+                    rd.checked = c.allowRedraw; md.disabled = !c.allowRedraw; if (act !== 'cfg-lx-maxdraw') md.value = c.maxPerDay;
+                    rdt.innerText = c.allowRedraw ? 'RÚT LẠI TRONG NGÀY: BẬT (tối đa ' + c.maxPerDay + ' lượt)' : 'RÚT LẠI TRONG NGÀY: TẮT (1 lượt/ngày)';
+                    rdt.style.color = c.allowRedraw ? 'var(--color-success)' : 'var(--text-muted)';
+                }
+                if (act !== 'cfg-lx-open-date') $('cfg-lx-open-date').value = c.openDate;
+                if (act !== 'cfg-lx-open-time') $('cfg-lx-open-time').value = c.openTime;
+                if (act !== 'cfg-lx-end-date') $('cfg-lx-end-date').value = c.endDate;
+                if (act !== 'cfg-lx-end-time') $('cfg-lx-end-time').value = c.endTime;
+                if (act !== 'cfg-lx-closed-msg') $('cfg-lx-closed-msg').value = c.closedMessage;
+                if (!dirty) {
+                    $('cfg-lx-budget').value = c.dailyBudget; $('cfg-lx-big').value = c.bigThreshold;
+                    fillPrizes(c.prizes);
+                }
+                renderLive(); renderToday();
+            };
+            const renderLive = () => {
+                const b = $('lx-live-badge'); if (!b || !cfg) return;
+                const c = cfg, dl = deadline(c), op = openAt(c), n = Date.now();
+                let cls = 'badge-online', txt = 'ĐANG MỞ', big = '', sub = '', bigColor = 'var(--color-success)';
+                if (!c.isEnabled) { cls = 'badge-danger'; txt = 'ĐANG ĐÓNG (tắt thủ công)'; bigColor = 'var(--color-danger)'; big = 'ĐÃ ĐÓNG'; sub = 'Bật công tắc để mở cửa ngay.'; }
+                else if (op && n < op) { cls = 'badge-warning'; txt = 'CHƯA MỞ · ĐẾM NGƯỢC'; bigColor = 'var(--color-warning)'; big = '⏳ ' + cd(op - n); sub = 'Mở cửa lúc ' + new Date(op).toLocaleString('vi-VN') + ' — người dùng đang thấy đồng hồ đếm ngược này.'; }
+                else if (dl && n >= dl) { cls = 'badge-danger'; txt = 'ĐÃ ĐÓNG (quá giờ hẹn)'; bigColor = 'var(--color-danger)'; big = 'ĐÃ ĐÓNG'; sub = 'Đóng từ ' + new Date(dl).toLocaleString('vi-VN') + '. Đặt "Giờ mở cửa" mới hoặc xóa hẹn giờ để mở lại.'; }
+                else if (isSoldOut(c)) { cls = 'badge-warning'; txt = 'HẾT QUÀ HÔM NAY'; bigColor = 'var(--color-warning)'; big = 'HẾT QUÀ'; sub = 'Ngân sách điểm hôm nay đã phát hết, mai tự mở lại.'; }
+                else if (dl) { const d = Math.floor((dl - n) / 1000); txt = 'ĐANG MỞ'; big = 'Tự đóng sau ' + cd(dl - n); sub = 'Đóng lúc ' + new Date(dl).toLocaleString('vi-VN'); }
+                else { big = 'ĐANG MỞ'; sub = 'Không hẹn giờ đóng.'; }
+                b.className = 'badge ' + cls; b.innerText = txt;
+                const e = $('lx-countdown'); if (e) { e.innerText = big; e.style.color = bigColor; $('lx-countdown-sub').innerText = sub; }
+            };
+
+            /* ---------- bảng phần thưởng ---------- */
+            const prizeRow = (p, i) => `<tr><td class="text-center font-bold text-muted lx-idx">${i + 1}</td>
+                <td><input type="number" class="form-control lx-prize-points" min="1" step="1" value="${p.points}" style="padding: 10px; font-size: 14px; font-family: var(--font-family-mono);" oninput="LixiAdmin.onEdit()"></td>
+                <td><input type="number" class="form-control lx-prize-chance" min="0" step="0.1" value="${p.chance}" style="padding: 10px; font-size: 14px; font-family: var(--font-family-mono);" oninput="LixiAdmin.onEdit()"></td>
+                <td class="text-center font-bold lx-prize-pct" style="font-family: var(--font-family-mono);">0%</td>
+                <td class="text-center"><button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239,68,68,.3);" onclick="LixiAdmin.removePrize(this)" title="Xóa mức này"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+            const fillPrizes = list => { $('tb-lx-config').innerHTML = list.map(prizeRow).join(''); recalc(); };
+            const readPrizes = () => Array.from(document.querySelectorAll('#tb-lx-config tr')).filter(r => r.querySelector('.lx-prize-points')).map(r => ({
+                points: Number(r.querySelector('.lx-prize-points').value), chance: Number(r.querySelector('.lx-prize-chance').value)
+            }));
+            const recalc = () => {
+                const rows = Array.from(document.querySelectorAll('#tb-lx-config tr')).filter(r => r.querySelector('.lx-prize-points'));
+                const list = rows.map(r => ({ points: Number(r.querySelector('.lx-prize-points').value) || 0, chance: Math.max(0, Number(r.querySelector('.lx-prize-chance').value) || 0) }));
+                const total = list.reduce((a, p) => a + p.chance, 0);
+                rows.forEach((r, i) => { r.querySelector('.lx-idx').innerText = i + 1; r.querySelector('.lx-prize-pct').innerText = total > 0 ? (list[i].chance / total * 100).toFixed(1) + '%' : '0%'; });
+                const ev = total > 0 ? list.reduce((a, p) => a + p.points * p.chance, 0) / total : 0;
+                $('lx-total-chance').innerText = 'Tổng tỉ lệ: ' + (Math.round(total * 100) / 100);
+                $('lx-ev').innerText = 'TB: ' + ev.toFixed(1) + ' điểm/lượt';
+                const n = users().length, budget = Math.max(0, Math.floor(Number($('cfg-lx-budget').value) || 0));
+                const lim = cfg && cfg.allowRedraw ? cfg.maxPerDay : 1, all = ev * n * lim;
+                let txt = `Ước tính nếu cả ${n} tài khoản rút hết ${lim} lượt mỗi ngày: ≈ <b>${num(Math.round(all))}</b> điểm/ngày`;
+                if (budget > 0) txt += ` · trần ngân sách <b>${num(budget)}</b> điểm/ngày` + (all > budget ? ' <span class="text-warning">(sẽ chạm trần)</span>' : '');
+                $('lx-cost').innerHTML = txt;
+            };
+
+            /* ---------- dữ liệu ---------- */
+            const histOk = h => h.status !== 'revoked';
+            const inRange = h => {
+                const r = $('lx-f-range').value;
+                if (r === 'all') return true;
+                if (r === 'today') return h.dateKey === keyOf();
+                const start = new Date(); start.setHours(0, 0, 0, 0);
+                return (h.timestamp || 0) >= start.getTime() - (Number(r) - 1) * 86400000;
+            };
+            const rangeLabel = () => ({ today: 'Hôm nay', '7': '7 ngày gần nhất', '30': '30 ngày gần nhất', all: 'Tất cả' }[$('lx-f-range').value]);
+            const filtered = () => {
+                const st = $('lx-f-status').value, q = $('lx-f-user').value.trim().toLowerCase();
+                return hist.filter(h => inRange(h) && (st === 'all' || (st === 'ok' ? histOk(h) : !histOk(h))) && (!q || String(h.user).toLowerCase().includes(q)));
+            };
+
+            const renderToday = () => {
+                if (!cfg || !$('lx-t-count')) return;
+                const c = cfg, spent = spentToday();
+                let count = (daily && daily.count) || 0;
+                const todayStr = new Date().toLocaleDateString('vi-VN');
+                const us = users(), claimed = us.filter(a => a.lixiDate === todayStr).length;
+                $('lx-today-label').innerText = 'Ngày ' + todayStr;
+                $('lx-t-count').innerText = num(count); $('lx-t-points').innerText = num(spent);
+                $('lx-t-left').innerText = c.dailyBudget > 0 ? num(Math.max(0, c.dailyBudget - spent)) : '∞';
+                $('lx-t-pending').innerText = num(Math.max(0, us.length - claimed));
+                const bar = $('lx-budget-bar');
+                if (c.dailyBudget > 0) {
+                    const pct = Math.min(100, spent / c.dailyBudget * 100);
+                    bar.style.width = pct + '%'; bar.style.background = pct >= 90 ? 'var(--color-danger)' : (pct >= 70 ? 'var(--color-warning)' : 'var(--color-success)');
+                    $('lx-budget-label').innerText = `Đã phát ${num(spent)} / ${num(c.dailyBudget)} điểm ngân sách ngày`; $('lx-budget-pct').innerText = pct.toFixed(0) + '%';
+                } else {
+                    bar.style.width = '0'; $('lx-budget-label').innerText = 'Chưa đặt ngân sách ngày (không giới hạn) — đã phát ' + num(spent) + ' điểm'; $('lx-budget-pct').innerText = '';
+                }
+                renderLive();
+            };
+
+            const renderAll = () => {
+                if (!$('tb-lx-history')) return;
+                renderToday();
+                const rows = hist.filter(inRange), ok = rows.filter(histOk), rev = rows.filter(h => !histOk(h));
+                const pts = ok.reduce((a, h) => a + (h.amount || 0), 0);
+                $('lx-r-count').innerText = num(ok.length); $('lx-r-points').innerText = num(pts);
+                $('lx-r-avg').innerText = ok.length ? (pts / ok.length).toFixed(1) : '0';
+                $('lx-r-users').innerText = num(new Set(ok.map(h => h.user)).size);
+                $('lx-r-revoked').innerText = num(rev.length) + ' (' + num(rev.reduce((a, h) => a + (h.deducted != null ? h.deducted : (h.amount || 0)), 0)) + ')';
+
+                const dist = {}; ok.forEach(h => { dist[h.amount] = (dist[h.amount] || 0) + 1; });
+                const keys = Object.keys(dist).map(Number).sort((a, b) => a - b);
+                $('lx-dist').innerHTML = keys.length ? keys.map(k => `<span class="lx-chip"><b>+${k}</b> × ${num(dist[k])} <span class="text-muted">(${(dist[k] / ok.length * 100).toFixed(1)}%)</span></span>`).join('') : '<span class="text-muted text-sm">Chưa có dữ liệu.</span>';
+
+                const per = {}; ok.forEach(h => { const p = per[h.user] = per[h.user] || { n: 0, pts: 0 }; p.n++; p.pts += h.amount || 0; });
+                const cur = {}; (State.accountsCache || []).forEach(a => { cur[a.user] = a.points || 0; });
+                const top = Object.keys(per).sort((a, b) => per[b].pts - per[a].pts).slice(0, 10);
+                $('tb-lx-top').innerHTML = top.length ? top.map(u => `<tr><td><b>${esc(u)}</b></td><td class="text-center">${num(per[u].n)}</td><td class="text-center font-bold" style="font-family: var(--font-family-mono); color: var(--color-danger);">+${num(per[u].pts)}</td><td class="text-center" style="font-family: var(--font-family-mono);">${cur[u] != null ? num(cur[u]) : '—'}</td></tr>`).join('')
+                    : '<tr><td colspan="4" class="text-center text-muted py-8">Chưa có ai rút lì xì trong khoảng này.</td></tr>';
+
+                const list = filtered(), today = keyOf();
+                $('lx-hist-count').innerText = list.length > 300 ? `Hiển thị 300 / ${num(list.length)} lượt (xuất Excel để xem đầy đủ)` : `${num(list.length)} lượt`;
+                $('tb-lx-history').innerHTML = list.length ? list.slice(0, 300).map(h => {
+                    const revoked = !histOk(h);
+                    const badge = revoked ? `<span class="badge badge-danger">Đã thu hồi${h.deducted != null ? ' −' + h.deducted : ''}</span>` : '<span class="badge badge-online">Hợp lệ</span>';
+                    const act = revoked ? '<span class="text-muted text-xs">—</span>' :
+                        `<button class="btn-icon" style="width:34px;height:34px;font-size:13px;" title="Thu hồi điểm" onclick="LixiAdmin.askRevoke('${h.id}', false)"><i class="fa-solid fa-rotate-left"></i></button> ` +
+                        (h.dateKey === today ? `<button class="btn-icon" style="width:34px;height:34px;font-size:13px;color:var(--color-warning);" title="Thu hồi + cấp lại lượt rút" onclick="LixiAdmin.askRevoke('${h.id}', true)"><i class="fa-solid fa-arrows-rotate"></i></button>` : '');
+                    return `<tr><td><b>${esc(h.user)}</b></td><td class="text-center font-bold" style="font-family: var(--font-family-mono); color: var(--color-danger);">+${num(h.amount)}</td><td class="text-center">${esc(h.date)}${h.seq > 1 ? ' <span class="text-muted text-xs">· lượt ' + h.seq + '</span>' : ''}</td><td class="text-center">${badge}</td><td class="text-right text-muted">${fmtTime(h.timestamp)}</td><td class="text-center">${act}</td></tr>`;
+                }).join('') : '<tr><td colspan="6" class="text-center text-muted py-8">Không có lượt rút nào khớp bộ lọc.</td></tr>';
+            };
+
+            /* ---------- xác nhận (dùng lại hộp thoại modal-confirm) ---------- */
+            const confirmAction = (msgHtml, okLabel, fn) => {
+                const msg = $('confirm-msg'), btn = $('btn-exec-confirm'); if (!msg || !btn) return;
+                msg.innerHTML = msgHtml;
+                State.activeDeleteAction = async () => {
+                    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang xử lý...';
+                    try { await fn(); } catch (e) { Utils.toast(typeof e === 'string' ? e : 'Thao tác thất bại, vui lòng thử lại.', 'error'); console.error(e); }
+                    btn.disabled = false; btn.innerHTML = 'Đồng ý Xóa'; btn.className = 'btn btn-danger w-full';
+                    UI.closeModal('modal-confirm');
+                };
+                btn.className = 'btn btn-danger w-full'; btn.innerHTML = okLabel;
+                UI.openModal('modal-confirm');
+            };
+
+            const revoke = async (id, resetTurn) => {
+                const h = hist.find(x => x.id === id); if (!h) throw 'Không tìm thấy bản ghi.';
+                const acc = (State.accountsCache || []).find(a => a.user === h.user); if (!acc) throw 'Không tìm thấy tài khoản ' + h.user + '.';
+                const hRef = db.collection('lixi_history').doc(id), aRef = db.collection('accounts').doc(acc.docId);
+                let deducted = 0;
+                await db.runTransaction(async t => {
+                    const hd = await t.get(hRef), ad = await t.get(aRef);
+                    if (!hd.exists) throw 'Bản ghi không còn tồn tại.';
+                    if (hd.data().status === 'revoked') throw 'Lượt này đã được thu hồi trước đó.';
+                    if (!ad.exists) throw 'Tài khoản không tồn tại.';
+                    const a = ad.data(), amount = hd.data().amount || 0, cur = a.points || 0;
+                    deducted = Math.min(amount, cur);
+                    const upd = { points: cur - deducted };
+                    if (a.lixiDate === hd.data().date) {
+                        const FV = firebase.firestore.FieldValue, n = a.lixiCount != null ? a.lixiCount : 1, tot = a.lixiTotal != null ? a.lixiTotal : (a.lixiAmount || 0);
+                        if (resetTurn && n <= 1) { upd.lixiDate = FV.delete(); upd.lixiAmount = FV.delete(); upd.lixiCount = FV.delete(); upd.lixiTotal = FV.delete(); }
+                        else { upd.lixiTotal = Math.max(0, tot - amount); if (resetTurn) upd.lixiCount = n - 1; }   // trả lại 1 lượt rút
+                    }
+                    t.update(aRef, upd);
+                    t.update(hRef, { status: 'revoked', revokedAt: Date.now(), revokedBy: 'admin', deducted, resetTurn: !!resetTurn });
+                    if (hd.data().dateKey) t.set(db.collection('lixi_daily').doc(hd.data().dateKey), { count: firebase.firestore.FieldValue.increment(-1), points: firebase.firestore.FieldValue.increment(-amount) }, { merge: true });
+                    t.set(db.collection('point_history').doc(), { user: h.user, action: 'revoke', detail: 'Admin thu hồi lì xì ngày ' + (hd.data().date || '') + (resetTurn ? ' (cấp lại lượt rút)' : ''), pointsChanged: -deducted, timestamp: Date.now() });
+                });
+                Utils.toast(`Đã thu hồi ${deducted} điểm của ${h.user}` + (resetTurn ? ' và cấp lại lượt rút.' : '.'), 'success');
+            };
+
+            return {
+                init: () => {
+                    if (started) return; started = true;
+                    cfg = normCfg(null);
+                    db.collection('settings').doc('lixi_config').onSnapshot(doc => { cfg = normCfg(doc.exists ? doc.data() : null); renderConfig(doc.exists ? doc.data() : null); renderAll(); }, e => { console.warn('lixi_config', e); Utils.toast('Không đọc được cấu hình Lì Xì.', 'error'); });
+                    db.collection('lixi_history').orderBy('timestamp', 'desc').limit(3000).onSnapshot(snap => {
+                        hist = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll();
+                    }, e => { console.warn('lixi_history', e); $('tb-lx-history').innerHTML = '<tr><td colspan="6" class="text-center text-danger py-8">Không đọc được lịch sử Lì Xì (kiểm tra quyền Firestore).</td></tr>'; });
+                    subDaily();
+                    setInterval(() => { tickN++; if (keyOf() !== dailyKey) subDaily(); renderLive(); if (tickN % 5 === 0) renderToday(); }, 1000);
+                },
+                renderAll,
+                onEdit: () => { dirty = true; recalc(); },
+                addPrize: () => {
+                    const body = $('tb-lx-config'); if (!body.querySelector('.lx-prize-points')) body.innerHTML = '';
+                    body.insertAdjacentHTML('beforeend', prizeRow({ points: 10, chance: 5 }, body.children.length)); dirty = true; recalc();
+                },
+                removePrize: btn => {
+                    const rows = document.querySelectorAll('#tb-lx-config tr');
+                    if (rows.length <= 1) return Utils.toast('Cần giữ lại ít nhất 1 mức điểm.', 'warning');
+                    btn.closest('tr').remove(); dirty = true; recalc();
+                },
+                resetDefaults: () => { fillPrizes(DEFAULT_PRIZES); $('cfg-lx-budget').value = 0; $('cfg-lx-big').value = 68; dirty = true; recalc(); Utils.toast('Đã nạp lại bảng mặc định — bấm "Lưu Phần Thưởng" để áp dụng.', 'info'); },
+                toggle: cb => {
+                    const on = cb.checked;
+                    db.collection('settings').doc('lixi_config').set({ isEnabled: on }, { merge: true })
+                        .then(() => Utils.toast(on ? 'Đã MỞ cửa Lì Xì!' : 'Đã ĐÓNG cửa Lì Xì!', 'success'))
+                        .catch(() => { Utils.toast('Lỗi lưu cấu hình.', 'error'); cb.checked = !on; });
+                },
+                saveSchedule: () => {
+                    const od = $('cfg-lx-open-date').value, ot = $('cfg-lx-open-time').value;
+                    const date = $('cfg-lx-end-date').value, time = $('cfg-lx-end-time').value, msg = $('cfg-lx-closed-msg').value.trim();
+                    if (!!od !== !!ot) return Utils.toast('Hãy nhập đủ cả NGÀY và GIỜ mở cửa (hoặc để trống cả hai).', 'warning');
+                    if (!!date !== !!time) return Utils.toast('Hãy nhập đủ cả NGÀY và GIỜ tự đóng (hoặc để trống cả hai).', 'warning');
+                    const o = stamp(od, ot), e = stamp(date, time);
+                    if (o && e && e <= o) return Utils.toast('Giờ tự đóng phải sau giờ mở cửa.', 'error');
+                    const past = e && e <= Date.now();
+                    db.collection('settings').doc('lixi_config').set({ isEnabled: $('cfg-lx-toggle').checked, openDate: od, openTime: ot, endDate: date, endTime: time, closedMessage: msg }, { merge: true })
+                        .then(() => past ? Utils.toast('Đã lưu — lưu ý giờ tự đóng đã qua nên Lì Xì sẽ ở trạng thái ĐÓNG.', 'warning')
+                            : Utils.toast(o && o > Date.now() ? 'Đã lưu! Người dùng sẽ thấy đồng hồ đếm ngược tới giờ mở cửa.' : 'Đã lưu cấu hình đóng/mở Lì Xì!', 'success'))
+                        .catch(() => Utils.toast('Lỗi lưu cấu hình.', 'error'));
+                },
+                clearSchedule: () => {
+                    ['cfg-lx-open-date', 'cfg-lx-open-time', 'cfg-lx-end-date', 'cfg-lx-end-time'].forEach(id => { $(id).value = ''; });
+                    db.collection('settings').doc('lixi_config').set({ openDate: '', openTime: '', endDate: '', endTime: '' }, { merge: true })
+                        .then(() => Utils.toast('Đã xóa toàn bộ hẹn giờ mở/đóng.', 'success')).catch(() => Utils.toast('Lỗi lưu cấu hình.', 'error'));
+                },
+                toggleRedraw: cb => {
+                    const on = cb.checked, v = Math.floor(Number($('cfg-lx-maxdraw').value));
+                    const max = v >= 2 && v <= 50 ? v : 3;
+                    db.collection('settings').doc('lixi_config').set({ allowRedraw: on, maxPerDay: max }, { merge: true })
+                        .then(() => Utils.toast(on ? `Đã BẬT rút lại trong ngày (tối đa ${max} lượt/ngày).` : 'Đã TẮT rút lại — mỗi tài khoản chỉ rút 1 lần/ngày.', 'success'))
+                        .catch(() => { Utils.toast('Lỗi lưu cấu hình.', 'error'); cb.checked = !on; });
+                },
+                saveMaxDraw: () => {
+                    const inp = $('cfg-lx-maxdraw'), v = Number(inp.value);
+                    if (!Number.isInteger(v) || v < 2 || v > 50) { inp.value = cfg ? cfg.maxPerDay : 3; return Utils.toast('Số lượt tối đa phải là số nguyên từ 2 đến 50.', 'error'); }
+                    db.collection('settings').doc('lixi_config').set({ maxPerDay: v }, { merge: true })
+                        .then(() => Utils.toast(`Đã lưu: tối đa ${v} lượt/ngày.`, 'success')).catch(() => Utils.toast('Lỗi lưu cấu hình.', 'error'));
+                },
+                savePrizes: () => {
+                    const list = readPrizes();
+                    if (!list.length) return Utils.toast('Cần ít nhất 1 mức điểm.', 'error');
+                    for (const p of list) {
+                        if (!Number.isInteger(p.points) || p.points < 1 || p.points > 1000000) return Utils.toast('Số điểm phải là số nguyên từ 1 đến 1.000.000.', 'error');
+                        if (!isFinite(p.chance) || p.chance < 0) return Utils.toast('Tỉ lệ không hợp lệ (phải ≥ 0).', 'error');
+                    }
+                    if (!list.some(p => p.chance > 0)) return Utils.toast('Cần ít nhất 1 mức điểm có tỉ lệ lớn hơn 0.', 'error');
+                    const big = Math.floor(Number($('cfg-lx-big').value)), budget = Math.floor(Number($('cfg-lx-budget').value) || 0);
+                    if (!(big >= 1)) return Utils.toast('Mốc "đại cát" phải ≥ 1.', 'error');
+                    if (budget < 0) return Utils.toast('Ngân sách ngày không được âm.', 'error');
+                    const min = Math.min(...list.filter(p => p.chance > 0).map(p => p.points));
+                    if (budget > 0 && budget < min) return Utils.toast(`Ngân sách ngày (${budget}) nhỏ hơn mức điểm nhỏ nhất (${min}) — sẽ không ai rút được.`, 'error');
+                    db.collection('settings').doc('lixi_config').set({ prizes: list, bigThreshold: big, dailyBudget: budget, updatedAt: Date.now() }, { merge: true })
+                        .then(() => { dirty = false; Utils.toast('Đã lưu phần thưởng Lì Xì!', 'success'); })
+                        .catch(() => Utils.toast('Lỗi lưu cấu hình.', 'error'));
+                },
+                askRevoke: (id, reset) => {
+                    const h = hist.find(x => x.id === id); if (!h) return;
+                    confirmAction(`Thu hồi <b>${num(h.amount)}</b> điểm lì xì của <b>${esc(h.user)}</b> (ngày ${esc(h.date)})?<br>` +
+                        (reset ? 'Tài khoản sẽ được <b>rút lại</b> trong hôm nay.' : 'Tài khoản vẫn <b>không</b> được rút lại trong ngày.') +
+                        '<br><span class="text-muted text-sm">Nếu số điểm hiện có thấp hơn, chỉ trừ phần còn lại.</span>', 'Đồng ý Thu Hồi', () => revoke(id, reset));
+                },
+                exportReport: () => {
+                    const rows = hist.filter(inRange);
+                    if (!rows.length) return Utils.toast('Không có dữ liệu Lì Xì trong khoảng thời gian đã chọn.', 'warning');
+                    const ok = rows.filter(histOk), rev = rows.filter(h => !histOk(h)), pts = ok.reduce((a, h) => a + (h.amount || 0), 0);
+                    const th = (t, c) => `<th bgcolor="${c || '#dc2626'}"><font color="#ffffff">${t}</font></th>`;
+                    const c = cfg || normCfg(null), dl = deadline(c);
+                    const stText = !c.isEnabled ? 'Đang đóng (thủ công)' : (openAt(c) && Date.now() < openAt(c) ? 'Chưa mở (mở lúc ' + new Date(openAt(c)).toLocaleString('vi-VN') + ')' : (dl && Date.now() >= dl ? 'Đã đóng (quá giờ hẹn)' : 'Đang mở'));
+                    let h = `<table border="1"><tr><td colspan="2" bgcolor="#fde68a"><b>BÁO CÁO LÌ XÌ — ${esc(rangeLabel())}</b></td></tr>
+                        <tr><td>Thời điểm xuất</td><td>${esc(new Date().toLocaleString('vi-VN'))}</td></tr>
+                        <tr><td>Trạng thái hiện tại</td><td>${esc(stText)}</td></tr>
+                        <tr><td>Ngân sách điểm / ngày</td><td>${c.dailyBudget > 0 ? c.dailyBudget : 'Không giới hạn'}</td></tr>
+                        <tr><td>Số lượt rút tối đa / tài khoản / ngày</td><td>${c.allowRedraw ? c.maxPerDay + ' (cho phép rút lại)' : '1 (không rút lại)'}</td></tr>
+                        <tr><td>Số lượt rút hợp lệ</td><td>${ok.length}</td></tr>
+                        <tr><td>Tổng điểm đã phát</td><td>${pts}</td></tr>
+                        <tr><td>Điểm trung bình / lượt</td><td>${ok.length ? (pts / ok.length).toFixed(2) : 0}</td></tr>
+                        <tr><td>Số tài khoản đã rút</td><td>${new Set(ok.map(x => x.user)).size}</td></tr>
+                        <tr><td>Số lượt đã thu hồi</td><td>${rev.length}</td></tr>
+                        <tr><td>Điểm đã thu hồi (thực trừ)</td><td>${rev.reduce((a, x) => a + (x.deducted != null ? x.deducted : (x.amount || 0)), 0)}</td></tr></table><br>`;
+
+                    const byDay = {}; ok.forEach(x => { const k = x.dateKey || x.date; const d = byDay[k] = byDay[k] || { date: x.date, n: 0, p: 0 }; d.n++; d.p += x.amount || 0; });
+                    h += `<table border="1"><thead><tr>${th('Ngày')}${th('Số lượt')}${th('Tổng điểm phát')}${th('TB điểm / lượt')}</tr></thead><tbody>` +
+                        Object.keys(byDay).sort().reverse().map(k => `<tr><td>${esc(byDay[k].date)}</td><td align="center">${byDay[k].n}</td><td align="center">${byDay[k].p}</td><td align="center">${(byDay[k].p / byDay[k].n).toFixed(2)}</td></tr>`).join('') + `</tbody></table><br>`;
+
+                    const per = {}; ok.forEach(x => { const p = per[x.user] = per[x.user] || { n: 0, p: 0, last: 0 }; p.n++; p.p += x.amount || 0; p.last = Math.max(p.last, x.timestamp || 0); });
+                    const cur = {}; (State.accountsCache || []).forEach(a => { cur[a.user] = a.points || 0; });
+                    h += `<table border="1"><thead><tr>${th('STT')}${th('Tài Khoản')}${th('Số lượt rút')}${th('Tổng điểm lì xì')}${th('TB / lượt')}${th('Điểm hiện có')}${th('Lần rút gần nhất')}</tr></thead><tbody>` +
+                        Object.keys(per).sort((a, b) => per[b].p - per[a].p).map((u, i) => `<tr><td align="center">${i + 1}</td><td>${esc(u)}</td><td align="center">${per[u].n}</td><td align="center">${per[u].p}</td><td align="center">${(per[u].p / per[u].n).toFixed(2)}</td><td align="center">${cur[u] != null ? cur[u] : ''}</td><td align="center">${esc(fmtTime(per[u].last))}</td></tr>`).join('') + `</tbody></table><br>`;
+
+                    h += `<table border="1"><thead><tr>${th('STT')}${th('Tài Khoản')}${th('Điểm')}${th('Ngày')}${th('Trạng Thái')}${th('Điểm bị trừ')}${th('Thời Gian Rút')}${th('Thời Gian Thu Hồi')}</tr></thead><tbody>` +
+                        rows.map((x, i) => `<tr><td align="center">${i + 1}</td><td>${esc(x.user)}</td><td align="center">${x.amount || 0}</td><td align="center">${esc(x.date)}</td><td align="center">${histOk(x) ? 'Hợp lệ' : 'Đã thu hồi'}</td><td align="center">${histOk(x) ? '' : (x.deducted != null ? x.deducted : (x.amount || 0))}</td><td align="center">${esc(fmtTime(x.timestamp))}</td><td align="center">${esc(fmtTime(x.revokedAt))}</td></tr>`).join('') + `</tbody></table>`;
+                    AdminActions.downloadXLS(h, 'Bao_Cao_Li_Xi');
+                }
+            };
+        })();
+
+/* ===== Băm đáp án (SHA-256 thuần JS, chạy được cả khi không có crypto.subtle) ===== */
+const QHash = (() => {
+    const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+    function sha256(str) {
+        const msg = Array.from(new TextEncoder().encode(str)), l = msg.length;
+        msg.push(0x80); while (msg.length % 64 !== 56) msg.push(0);
+        const hi = Math.floor(l * 8 / 4294967296), lo = (l * 8) >>> 0;
+        [hi, lo].forEach(v => { msg.push((v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255); });
+        let h = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+        for (let i = 0; i < msg.length; i += 64) {
+            const w = new Array(64);
+            for (let t = 0; t < 16; t++) w[t] = (msg[i + 4 * t] << 24) | (msg[i + 4 * t + 1] << 16) | (msg[i + 4 * t + 2] << 8) | msg[i + 4 * t + 3];
+            for (let t = 16; t < 64; t++) {
+                const s0 = rotr(w[t - 15], 7) ^ rotr(w[t - 15], 18) ^ (w[t - 15] >>> 3), s1 = rotr(w[t - 2], 17) ^ rotr(w[t - 2], 19) ^ (w[t - 2] >>> 10);
+                w[t] = (w[t - 16] + s0 + w[t - 7] + s1) | 0;
+            }
+            let [a, b, c, d, e, f, g, hh] = h;
+            for (let t = 0; t < 64; t++) {
+                const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25), ch = (e & f) ^ (~e & g), t1 = (hh + S1 + ch + K[t] + w[t]) | 0;
+                const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22), mj = (a & b) ^ (a & c) ^ (b & c), t2 = (S0 + mj) | 0;
+                hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+            }
+            h = [(h[0] + a) | 0, (h[1] + b) | 0, (h[2] + c) | 0, (h[3] + d) | 0, (h[4] + e) | 0, (h[5] + f) | 0, (h[6] + g) | 0, (h[7] + hh) | 0];
+        }
+        return h.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+    }
+    // "Hà Nội!" == "ha noi": bỏ dấu, bỏ ký tự đặc biệt, không phân biệt hoa/thường
+    const norm = (s) => String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/đ/g, 'd').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    const hash = (qid, answer) => sha256('qd-wheel|' + qid + '|' + norm(answer));
+    return { sha256, norm, hash };
+})();
+
+
+        /* ===== Câu hỏi nhận lượt quay: wheel_questions (công khai, đáp án đã băm) + wheel_question_keys (đáp án gốc cho admin) ===== */
+        const WheelQ = (() => {
+            const $ = id => document.getElementById(id);
+            const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const fmtTime = ts => ts ? new Date(ts).toLocaleString('vi-VN') : '';
+            let qs = [], keys = {}, editing = null, started = false, busy = false;
+
+            const parseAnswers = raw => {
+                const seen = new Set(), out = [];
+                String(raw || '').split('|').map(x => x.trim().replace(/\s+/g, ' ')).forEach(a => { const n = QHash.norm(a); if (n && !seen.has(n)) { seen.add(n); out.push(a.slice(0, 120)); } });
+                return out.slice(0, 10);
+            };
+            const confirmAction = (msgHtml, okLabel, fn) => {
+                const msg = $('confirm-msg'), btn = $('btn-exec-confirm'); if (!msg || !btn) return;
+                msg.innerHTML = msgHtml;
+                State.activeDeleteAction = async () => {
+                    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang xử lý...';
+                    try { await fn(); } catch (e) { Utils.toast(typeof e === 'string' ? e : 'Thao tác thất bại, vui lòng thử lại.', 'error'); console.error(e); }
+                    btn.disabled = false; btn.innerHTML = 'Đồng ý Xóa'; btn.className = 'btn btn-danger w-full';
+                    UI.closeModal('modal-confirm');
+                };
+                btn.className = 'btn btn-danger w-full'; btn.innerHTML = okLabel;
+                UI.openModal('modal-confirm');
+            };
+
+            const render = () => {
+                const tb = $('tb-wq'); if (!tb) return;
+                const claimed = qs.filter(q => q.claimedBy).length, open = qs.filter(q => q.active !== false && !q.claimedBy).length;
+                $('wq-st-total').textContent = 'Tổng: ' + qs.length; $('wq-st-open').textContent = 'Đang mở: ' + open; $('wq-st-claimed').textContent = 'Đã xác thực: ' + claimed;
+                if (!qs.length) { tb.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-8">Chưa có câu hỏi nào. Hãy thêm câu hỏi đầu tiên ở trên.</td></tr>'; return; }
+                tb.innerHTML = qs.map((q, i) => {
+                    const ans = keys[q.id] ? keys[q.id].join('  |  ') : '';
+                    let st;
+                    if (q.claimedBy) st = `<span class="badge badge-danger" style="text-transform:none">✅ ${esc(q.claimedBy)}</span><div class="text-muted text-xs mt-1">${esc(fmtTime(q.claimedAt))} · ${q.ticketUsed ? 'đã quay' : 'chưa quay'}</div>`;
+                    else if (q.active === false) st = '<span class="badge badge-offline">Đang ẩn</span>';
+                    else st = '<span class="badge badge-online">Đang mở</span>';
+                    const id = esc(q.id);
+                    return `<tr><td class="text-center text-muted">${i + 1}</td><td class="wq-q">${esc(q.question)}</td><td class="wq-ans">${ans ? esc(ans) : '<span class="text-muted">—</span>'}</td><td>${st}</td>` +
+                        `<td><div class="wq-btns"><button class="btn btn-outline" onclick="WheelQ.edit('${id}')"><i class="fa-solid fa-pen"></i> Sửa</button>` +
+                        `<button class="btn btn-outline" onclick="WheelQ.toggle('${id}')">${q.active === false ? '<i class="fa-solid fa-eye"></i> Hiện' : '<i class="fa-solid fa-eye-slash"></i> Ẩn'}</button>` +
+                        (q.claimedBy ? `<button class="btn btn-outline" onclick="WheelQ.reopen('${id}')"><i class="fa-solid fa-rotate-left"></i> Mở lại</button>` : '') +
+                        `<button class="btn btn-danger" onclick="WheelQ.remove('${id}')"><i class="fa-solid fa-trash"></i></button></div></td></tr>`;
+                }).join('');
+            };
+
+            const resetForm = () => {
+                editing = null; $('wq-question').value = ''; $('wq-answers').value = '';
+                $('wq-save').innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Thêm câu hỏi'; $('wq-cancel').style.display = 'none';
+            };
+
+            return {
+                init: () => {
+                    if (started || !$('tb-wq')) return; started = true;
+                    db.collection('wheel_questions').onSnapshot(snap => {
+                        qs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                        render();
+                    }, err => { console.error(err); $('tb-wq').innerHTML = '<tr><td colspan="5" class="text-center text-danger py-8">Không tải được danh sách câu hỏi.</td></tr>'; });
+                    db.collection('wheel_question_keys').onSnapshot(snap => {
+                        keys = {}; snap.docs.forEach(d => { keys[d.id] = Array.isArray(d.data().answers) ? d.data().answers : []; }); render();
+                    }, err => console.error(err));
+                    ['wq-question', 'wq-answers'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') WheelQ.save(); }));
+                },
+                save: async () => {
+                    if (busy) return;
+                    const question = $('wq-question').value.trim().replace(/\s+/g, ' '), answers = parseAnswers($('wq-answers').value);
+                    if (!question) return Utils.toast('Vui lòng nhập câu hỏi.', 'warning');
+                    if (!answers.length) return Utils.toast('Vui lòng nhập ít nhất 1 đáp án đúng.', 'warning');
+                    busy = true;
+                    try {
+                        const isEdit = !!editing, id = editing || db.collection('wheel_questions').doc().id;
+                        const answerHashes = answers.map(a => QHash.hash(id, a));
+                        const batch = db.batch();
+                        if (isEdit) batch.update(db.collection('wheel_questions').doc(id), { question, answerHashes });
+                        else batch.set(db.collection('wheel_questions').doc(id), { question, answerHashes, active: true, createdAt: Date.now(), claimedBy: null, claimedAt: null, ticketUsed: null });
+                        batch.set(db.collection('wheel_question_keys').doc(id), { answers, updatedAt: Date.now() });
+                        await batch.commit();
+                        Utils.toast(isEdit ? 'Đã lưu chỉnh sửa câu hỏi.' : 'Đã thêm câu hỏi mới.', 'success');
+                        resetForm();
+                    } catch (e) { console.error(e); Utils.toast('Không lưu được câu hỏi, vui lòng thử lại.', 'error'); }
+                    busy = false;
+                },
+                edit: id => {
+                    const q = qs.find(x => x.id === id); if (!q) return;
+                    editing = id; $('wq-question').value = q.question || ''; $('wq-answers').value = (keys[id] || []).join(' | ');
+                    $('wq-save').innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i> Lưu chỉnh sửa'; $('wq-cancel').style.display = '';
+                    $('wq-question').focus(); $('wq-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                },
+                cancelEdit: () => resetForm(),
+                toggle: async id => {
+                    const q = qs.find(x => x.id === id); if (!q) return;
+                    try { await db.collection('wheel_questions').doc(id).update({ active: q.active === false }); Utils.toast(q.active === false ? 'Đã hiện câu hỏi.' : 'Đã ẩn câu hỏi.', 'success'); }
+                    catch (e) { console.error(e); Utils.toast('Không cập nhật được.', 'error'); }
+                },
+                reopen: id => {
+                    const q = qs.find(x => x.id === id); if (!q || !q.claimedBy) return;
+                    confirmAction(`Mở lại câu hỏi <b>"${esc(q.question)}"</b>?<br>Người xác thực hiện tại (<b>${esc(q.claimedBy)}</b>) sẽ mất ${q.ticketUsed ? 'dấu xác thực (lượt đã quay vẫn giữ nguyên)' : '<b>lượt quay chưa dùng</b>'} và ai trả lời đúng sớm nhất sẽ được xác thực lại.`, 'Mở lại câu hỏi', async () => {
+                        await db.collection('wheel_questions').doc(id).update({ claimedBy: null, claimedAt: null, ticketUsed: null, usedAt: null });
+                        Utils.toast('Đã mở lại câu hỏi.', 'success');
+                    });
+                },
+                remove: id => {
+                    const q = qs.find(x => x.id === id); if (!q) return;
+                    const warn = q.claimedBy && !q.ticketUsed ? `<br><b style="color:var(--color-danger)">${esc(q.claimedBy)} đang giữ 1 lượt quay chưa dùng sẽ bị mất.</b>` : '';
+                    confirmAction(`Xóa vĩnh viễn câu hỏi <b>"${esc(q.question)}"</b>?${warn}`, 'Xóa câu hỏi', async () => {
+                        const b = db.batch(); b.delete(db.collection('wheel_questions').doc(id)); b.delete(db.collection('wheel_question_keys').doc(id)); await b.commit();
+                        if (editing === id) resetForm();
+                        Utils.toast('Đã xóa câu hỏi.', 'success');
+                    });
+                }
+            };
+        })();
 
         const AdminCore = {
             init: () => {
@@ -1938,7 +2793,7 @@
                                 return;
                             }
 
-                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'rps', 'invite', 'accounts', 'news', 'approvals'];
+                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'invite', 'accounts', 'news', 'approvals'];
                             
                             // 2. NẾU LÀ MANAGER THÌ ẨN/HIỆN CHỨC NĂNG THEO QUYỀN
                             if (myRole === 'manager') {
@@ -2009,6 +2864,27 @@
                         }
                     });
                 }, 1000);
+
+                /** ĐỒNG BỘ: CẤU HÌNH BẢO TRÌ */
+                db.collection("settings").doc("maintenance").onSnapshot(doc => {
+                    const toggle = document.getElementById('cfg-mt-toggle');
+                    const msgInp = document.getElementById('cfg-mt-message');
+                    const dateInp = document.getElementById('cfg-mt-end-date');
+                    const timeInp = document.getElementById('cfg-mt-end-time');
+                    const configBox = document.getElementById('maintenance-config-box');
+
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if(toggle) toggle.checked = !!data.isEnabled;
+                        if(msgInp) msgInp.value = data.message || "Hệ thống đang được nâng cấp. Vui lòng quay lại sau!";
+                        if(dateInp) dateInp.value = data.endDate || "";
+                        if(timeInp) timeInp.value = data.endTime || "";
+                        if(configBox) configBox.style.display = data.isEnabled ? 'block' : 'none';
+                    } else {
+                        if(toggle) toggle.checked = false;
+                        if(configBox) configBox.style.display = 'none';
+                    }
+                });
 
                 /** ĐỒNG BỘ: CẤU HÌNH ĐIỂM DANH & CHỐNG ĐIỂM DANH HỘ */
                 db.collection("settings").doc("attendance").onSnapshot(docConfig => {
@@ -2648,6 +3524,9 @@
                     }
                 });
 
+                try { LixiAdmin.init(); } catch (e) { console.error("LixiAdmin", e); }
+                try { WheelQ.init(); } catch (e) { console.error("WheelQ", e); }
+
                 db.collection("invite_history").orderBy("timestamp", "desc").onSnapshot(snap => {
                     const tbody = document.getElementById('tb-invite-history'); if(!tbody) return; tbody.innerHTML = "";
                     if(snap.empty) { tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Chưa có ai sử dụng mã mời.</td></tr>`; return; }
@@ -2840,6 +3719,113 @@
                     btn.innerHTML = `<i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Cập Nhật`;
                     btn.disabled = false;
                 });
+            },
+
+            approveUser: (id, username, password, fullName) => {
+                const msgNode = document.getElementById('confirm-msg'); 
+                const btnExec = document.getElementById('btn-exec-confirm');
+                
+                msgNode.innerHTML = `Bạn có chắc chắn muốn duyệt và cấp quyền truy cập cho tài khoản <b class="text-success">${username}</b>?`;
+                btnExec.className = 'btn btn-success w-full';
+                btnExec.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Đồng Ý Duyệt';
+                
+                State.activeDeleteAction = async () => {
+                    btnExec.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang Xử Lý...`; 
+                    btnExec.disabled = true;
+                    
+                    try {
+                        const existingUser = await db.collection("accounts").where("user", "==", username).get();
+                        if (!existingUser.empty) {
+                            Utils.toast('Tài khoản này đã tồn tại trong hệ thống!', 'error');
+                            UI.closeModal('modal-confirm');
+                            return;
+                        }
+                        
+                        await db.collection("accounts").add({
+                            user: username,
+                            pass: password,
+                            role: 'user',
+                            fullName: fullName || '',
+                            lastActive: 0,
+                            isBlocked: false,
+                            points: 0,
+                            spins: 0,
+                            tickets: 0,
+                            created_at: Date.now()
+                        });
+                        
+                        await db.collection('pending_users').doc(id).update({
+                            status: 'approved',
+                            approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        Utils.toast('Phê duyệt thành công!', 'success');
+                    } catch(e) {
+                        Utils.toast('Lỗi khi phê duyệt: ' + e.message, 'error');
+                    } finally {
+                        btnExec.disabled = false;
+                        UI.closeModal('modal-confirm');
+                        State.activeDeleteAction = null;
+                    }
+                };
+                UI.openModal('modal-confirm');
+            },
+            
+            rejectUser: (id, username) => {
+                const msgNode = document.getElementById('confirm-msg'); 
+                const btnExec = document.getElementById('btn-exec-confirm');
+                
+                msgNode.innerHTML = `Bạn chắc chắn muốn <b>TỪ CHỐI</b> và <b>XÓA</b> đơn đăng ký của tài khoản <b class="text-danger">${username}</b>?`;
+                btnExec.className = 'btn btn-danger w-full';
+                btnExec.innerHTML = '<i class="fa-solid fa-trash mr-2"></i> Từ Chối & Xóa';
+                
+                State.activeDeleteAction = async () => {
+                    btnExec.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang Xóa...`; 
+                    btnExec.disabled = true;
+                    try {
+                        await db.collection('pending_users').doc(id).delete();
+                        Utils.toast('Đã từ chối và xóa yêu cầu đăng ký.', 'success');
+                    } catch(e) {
+                        Utils.toast('Lỗi: ' + e.message, 'error');
+                    } finally {
+                        btnExec.disabled = false;
+                        UI.closeModal('modal-confirm');
+                        State.activeDeleteAction = null;
+                    }
+                };
+                UI.openModal('modal-confirm');
+            },
+
+            toggleMaintenance: (checkbox) => {
+                const isEnabled = checkbox.checked;
+                const configBox = document.getElementById('maintenance-config-box');
+                if(isEnabled) {
+                    configBox.style.display = 'block';
+                } else {
+                    configBox.style.display = 'none';
+                    db.collection("settings").doc("maintenance").set({ isEnabled: false }, { merge: true })
+                      .then(() => Utils.toast("Đã TẮT chế độ bảo trì. User có thể truy cập!", "success"))
+                      .catch(err => { Utils.toast("Lỗi lưu cấu hình", "error"); checkbox.checked = true; });
+                }
+            },
+
+            saveMaintenanceConfig: () => {
+                const isEnabled = document.getElementById('cfg-mt-toggle').checked;
+                const message = document.getElementById('cfg-mt-message').value.trim();
+                const endDate = document.getElementById('cfg-mt-end-date').value;
+                const endTime = document.getElementById('cfg-mt-end-time').value;
+
+                db.collection("settings").doc("maintenance").set({
+                    isEnabled: isEnabled,
+                    message: message || "Hệ thống đang được nâng cấp. Vui lòng quay lại sau!",
+                    endDate: endDate,
+                    endTime: endTime,
+                    updatedAt: Date.now()
+                }, { merge: true })
+                .then(() => {
+                    Utils.toast("Đã BẬT chế độ bảo trì hệ thống!", "success");
+                })
+                .catch(err => Utils.toast("Lỗi lưu cấu hình bảo trì.", "error"));
             },
 
             saveAccountConfig: () => {
@@ -3454,7 +4440,7 @@ saveRegistrationConfig: () => {
                         const typeBadge = log.type === 'spins' 
                             ? `<span class="badge badge-warning"><i class="fa-solid fa-dharmachakra mr-1"></i> Lượt Quay</span>` 
                             : log.type === 'tickets' ? `<span class="badge badge-danger"><i class="fa-solid fa-ticket-alt mr-1"></i> Lượt Xé</span>`
-                            : `<span class="badge badge-online" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success); border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-coins mr-1"></i> Điểm Sự Kiện</span>`;
+                            : `<span class="badge badge-online" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success); border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-coins mr-1"></i> Điểm Lì Xì</span>`;
                         
                         let amountHtml = '';
                         if (log.action === 'add') {
