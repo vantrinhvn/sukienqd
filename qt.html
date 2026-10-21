@@ -189,8 +189,8 @@
         html[data-theme="tet"][data-tet-color="dao"] { --bg-body: #7a1038; --bg-surface: #c9255f; --bg-elevated: #a81c52; --tet-deep: #4a0622; --tet-a: #a81c52; --tet-b: #c9255f; }
         html[data-theme="tet"][data-tet-color="chung"] { --bg-body: #05452a; --bg-surface: #0c7a47; --bg-elevated: #0a6b40; --tet-deep: #022b1a; --tet-a: #0a6b40; --tet-b: #0c7a47; }
         html[data-theme="tet"] body {
-            background-image: radial-gradient(circle at 50% -10%, rgba(255, 215, 0, 0.28) 0%, transparent 55%), linear-gradient(180deg, var(--bg-body) 0%, var(--tet-deep) 100%);
-            background-attachment: fixed;
+            --qd-bg: radial-gradient(circle at 50% -10%, rgba(255, 215, 0, 0.28) 0%, transparent 55%), linear-gradient(180deg, var(--bg-body) 0%, var(--tet-deep) 100%);
+            
         }
         html[data-theme="tet"] .app-header { background-color: rgba(60, 0, 0, 0.55); border-bottom: 2px solid rgba(255, 215, 0, 0.6); }
         html[data-theme="tet"] .header-brand { color: #ffd700; text-shadow: 1px 2px 4px rgba(0, 0, 0, .7); }
@@ -263,6 +263,192 @@
         .wheel-container.locked { filter: grayscale(.7) brightness(.7); }
         .wheel-container.locked::after { content: '🔒'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 64px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.7)); z-index: 11; }
     </style>
+
+    <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
+    <style id="qd-smooth-css">
+/* ===== QD SMOOTH (dùng chung) ===== */
+.qd-paused, .qd-paused::before, .qd-paused::after, .qd-paused-px::before, .qd-paused-px::after { animation-play-state: paused !important; }
+html.qd-lite *, html.qd-lite *::before, html.qd-lite *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html.qd-lite .qd-fx { display: none !important; }
+    </style>
+    <script id="qd-smooth-js">
+/* ===== QD SMOOTH: lớp tối ưu mượt mà dùng chung mọi trang =====
+   - Giữ luồng chính (main thread) rảnh: hiệu ứng lặp chạy trên GPU, ghi DOM trùng lặp bị bỏ qua
+   - Hiệu ứng nằm ngoài màn hình / video nền khuất -> tạm dừng, hiện lại -> chạy tiếp
+   - Máy yếu hoặc đo thấy rớt khung hình -> tự bật chế độ nhẹ (html.qd-lite)
+   Ép chế độ: localStorage.setItem('qd_fx', 'full' | 'lite' | 'auto') */
+(function () {
+    'use strict';
+    if (window.QDSmooth) return;
+    var W = window, d = document, html = d.documentElement, nav = navigator;
+    var Q = W.QDSmooth = { lite: false, _cb: [] };
+    function store(k, v) { try { if (v === undefined) return (k === 'ss' ? sessionStorage : localStorage).getItem('qd_fx'); (k === 'ss' ? sessionStorage : localStorage).setItem('qd_fx', v); } catch (e) { return null; } }
+    var pref = store('ls');
+
+    /* ---------- 1. Chế độ nhẹ ---------- */
+    Q.onLite = function (fn) { Q._cb.push(fn); if (Q.lite) { try { fn(true); } catch (e) {} } };
+    Q.setLite = function (on) {
+        on = !!on; if (Q.lite === on) return;
+        Q.lite = on; html.classList.toggle('qd-lite', on); store('ss', on ? 'lite' : 'full');
+        Q._cb.forEach(function (fn) { try { fn(on); } catch (e) {} });
+    };
+    var reduce = W.matchMedia && W.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var conn = nav.connection || {};
+    var weak = (nav.deviceMemory && nav.deviceMemory <= 2) || (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) || conn.saveData === true;
+    if (pref !== 'full' && (pref === 'lite' || store('ss') === 'lite' || weak || reduce)) Q.setLite(true);
+
+    /* Đo khung hình thật: 2 lần đo liên tiếp rớt > 22% khung -> bật chế độ nhẹ cho phiên này */
+    function monitor() {
+        if (pref === 'full' || pref === 'lite' || Q.lite || !W.requestAnimationFrame) return;
+        var strikes = 0, runs = 0;
+        function sample() {
+            if (Q.lite || runs > 40) return;
+            if (d.hidden) return setTimeout(sample, 4000);
+            runs++;
+            var t = [], last = 0, end = performance.now() + 2000;
+            requestAnimationFrame(function step(now) {
+                if (d.hidden) return setTimeout(sample, 4000);
+                if (last) t.push(now - last); last = now;
+                if (now < end) return requestAnimationFrame(step);
+                if (t.length < 20) return setTimeout(sample, 8000);
+                var s = t.slice().sort(function (a, b) { return a - b; });
+                var vsync = Math.max(6.5, s[Math.floor(s.length * 0.1)]);   // ~8.3ms ở màn 120Hz, ~16.7ms ở 60Hz
+                var bad = 0; t.forEach(function (x) { if (x > vsync * 1.8) bad++; });
+                strikes = bad / t.length > 0.22 ? strikes + 1 : 0;
+                if (strikes >= 2) return Q.setLite(true);
+                setTimeout(sample, strikes ? 1500 : 12000);
+            });
+        }
+        setTimeout(sample, 5000);
+    }
+
+    /* ---------- 2. Bỏ qua ghi chữ trùng lặp (đồng hồ, bộ đếm... ghi mỗi giây) ---------- */
+    function guardText(proto, prop, noNewline) {
+        var desc = Object.getOwnPropertyDescriptor(proto, prop);
+        if (!desc || !desc.set || !desc.get || desc.set.__qd) return;
+        var set = function (v) {
+            var c = this.firstChild, s = v == null ? '' : String(v);
+            if (c ? (c === this.lastChild && c.nodeType === 3 && c.data === s && !(noNewline && /[\r\n]/.test(s))) : (s === '' && this.nodeType === 1)) return;
+            desc.set.call(this, v);
+        };
+        set.__qd = true;
+        Object.defineProperty(proto, prop, { configurable: true, enumerable: desc.enumerable, get: desc.get, set: set });
+    }
+    try { guardText(Node.prototype, 'textContent'); guardText(HTMLElement.prototype, 'innerText', true); } catch (e) {}
+
+    /* Ghi innerHTML chỉ khi nội dung thay đổi (dùng cho các vòng cập nhật định kỳ) */
+    Q.html = function (el, s) {
+        if (!el) return;
+        s = s == null ? '' : String(s);
+        if (el.__qdH === s && el.__qdF === el.firstChild && el.__qdL === el.lastChild) return;
+        el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
+    };
+
+    /* ---------- Vòng quay: quay NGAY khi bấm, giảm tốc êm vào ô trúng khi máy chủ trả kết quả ----------
+       var s = QDSmooth.spinner(canvas, gocHienTai, { slice: 360 / soO, onTick: fn });
+       s.land(gocDich).then(gocCuoi => ...)   // gocDich: góc cuối mong muốn (mod 360)
+       s.stop().then(gocCuoi => ...)          // lỗi: dừng nhẹ nhàng
+       Tốc độ tính theo thời gian thực -> mượt như nhau ở 60/90/120Hz, tiếng "tách" khớp đúng với ô đi qua. */
+    Q.spinner = function (el, from, opt) {
+        opt = opt || {};
+        var V = opt.vmax || 1.2, ACC = 450, MIN = opt.min || 800, DEC = opt.decel || 2600, slice = opt.slice || 0, onTick = opt.onTick;
+        var t0 = 0, angle = from = +from || 0, target = null, failed = false, phase = 0, tc = 0, ac = 0, D = 0, T = 1, last = null, done;
+        var p = new Promise(function (r) { done = r; });
+        el.style.transition = 'none'; el.style.willChange = 'transform';
+        function put(a) {
+            el.style.transform = 'rotate(' + a + 'deg)';
+            if (slice && onTick) { var i = Math.floor((a - from) / slice); if (i !== last) { if (last !== null) { try { onTick(); } catch (e) {} } last = i; } }
+        }
+        function frame(now) {
+            if (!t0) t0 = now;
+            var t = now - t0;
+            if (phase === 0) {
+                angle = t < ACC ? from + V * t * t / (2 * ACC) : from + V * ACC / 2 + V * (t - ACC);
+                if ((target !== null || failed) && t >= (failed ? 0 : MIN)) {
+                    phase = 1; tc = now; ac = angle;
+                    var v = t < ACC ? V * t / ACC : V;
+                    if (failed) { T = 700; D = v * T / 3; }
+                    else { D = ((target - ac) % 360 + 360) % 360; while (D < V * DEC / 3) D += 360; T = 3 * D / Math.max(v, 0.2); }
+                }
+            }
+            if (phase === 1) {
+                var u = Math.min(1, (now - tc) / T);
+                angle = ac + D * (1 - Math.pow(1 - u, 3));     // giảm tốc kiểu bánh xe thật (ease-out)
+                if (u >= 1) { put(angle); el.style.willChange = ''; return done(angle); }
+            }
+            put(angle); requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+        return { land: function (deg) { target = +deg || 0; return p; }, stop: function () { failed = true; return p; }, done: p };
+    };
+
+    /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
+    var MOVE = /^(transform|translate|rotate|scale|left|top|right|bottom|offset|inset|margin)/;
+    var io = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) { e.target.classList.toggle(e.target.__qdM, !e.isIntersecting); });
+    }, { rootMargin: '120px' }) : null;
+    var seen = new WeakSet(), seenPx = new WeakSet();
+    function moves(a) {   // hiệu ứng tự di chuyển phần tử (hoa rơi...) thì không dừng, tránh kẹt ngoài màn hình
+        try { var k = a.effect.getKeyframes(); for (var i = 0; i < k.length; i++) for (var p in k[i]) if (MOVE.test(p)) return true; } catch (e) { return true; }
+        return false;
+    }
+    function scan() {
+        if (!io || !d.getAnimations || d.hidden) return;
+        var as = d.getAnimations();
+        for (var i = 0; i < as.length; i++) {
+            var ef = as[i].effect, el = ef && ef.target;
+            if (!el || !ef.getTiming || ef.getTiming().iterations !== Infinity) continue;
+            var bag = ef.pseudoElement ? seenPx : seen;
+            if (bag.has(el)) continue;
+            bag.add(el);
+            var own = el.getAnimations ? el.getAnimations() : [], mv = false;
+            for (var j = 0; j < own.length; j++) if (moves(own[j])) { mv = true; break; }
+            if (mv && !ef.pseudoElement) continue;          // chỉ có hiệu ứng di chuyển: để nguyên
+            if (el.__qdM === 'qd-paused') continue;
+            el.__qdM = mv ? 'qd-paused-px' : 'qd-paused';   // có di chuyển: chỉ dừng ::before/::after
+            io.observe(el);
+        }
+    }
+
+    /* ---------- 4. Video nền: dừng khi khuất / ẩn tab, chạy lại khi hiện ---------- */
+    var vio = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+            var v = e.target; v.__qdVis = e.isIntersecting;
+            if (!e.isIntersecting) { if (!v.paused) { v.__qdAuto = true; v.pause(); } }
+            else if (v.__qdAuto) { v.__qdAuto = false; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+        });
+    }, { rootMargin: '80px' }) : null;
+    function watchMedia(root) {
+        var imgs = root.getElementsByTagName ? root.getElementsByTagName('img') : [];
+        for (var i = 0; i < imgs.length; i++) if (!imgs[i].getAttribute('decoding')) imgs[i].decoding = 'async';
+        if (!vio) return;
+        var vs = root.getElementsByTagName ? root.getElementsByTagName('video') : [];
+        for (var j = 0; j < vs.length; j++) {
+            var v = vs[j]; if (v.__qdW || !v.muted && !v.hasAttribute('muted')) continue;
+            v.__qdW = true; vio.observe(v);
+            v.addEventListener('play', function () { var me = this; if (me.__qdVis === false) setTimeout(function () { if (me.__qdVis === false && !me.paused) { me.__qdAuto = true; me.pause(); } }, 0); });
+        }
+    }
+
+    /* ---------- Khởi động ---------- */
+    var scanT = 0;
+    function later() { clearTimeout(scanT); scanT = setTimeout(function () { scan(); }, 400); }
+    function boot() {
+        watchMedia(d);
+        scan(); setInterval(scan, 3000);
+        if (W.MutationObserver) new MutationObserver(function (ms) {
+            for (var i = 0; i < ms.length; i++) for (var j = 0, n = ms[i].addedNodes; j < n.length; j++) {
+                var x = n[j]; if (x.nodeType !== 1) continue;
+                if (x.tagName === 'IMG' || x.tagName === 'VIDEO' || x.firstElementChild) watchMedia(x.tagName === 'IMG' || x.tagName === 'VIDEO' ? x.parentNode || d : x);
+            }
+            later();
+        }).observe(d.body, { childList: true, subtree: true });
+        d.addEventListener('visibilitychange', function () { if (!d.hidden) later(); });
+        monitor();
+    }
+    if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+    </script>
 </head>
 <body>
 
@@ -361,6 +547,15 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // BẢO TRÌ: Admin bật -> chuyển sang trang bảo trì baotri.html (Admin đã mở khóa qua "Admin Gateway" thì được ở lại)
+        db.collection("settings").doc("maintenance").onSnapshot(doc => {
+            if (!(doc.exists && doc.data().isEnabled === true)) return;
+            let bypass = false; try { bypass = sessionStorage.getItem('admin_bypass_mt') === 'true'; } catch (e) {}
+            if (bypass) return;
+            const here = (location.pathname.split('/').pop() || 'index.html') + location.search;
+            location.replace('baotri.html?from=' + encodeURIComponent(here));
+        });
 
         /** 2. APPLICATION STATE MANAGEMENT */
         const State = {
@@ -609,14 +804,14 @@
                 const why = this.closedBy(State.cfg), box = document.getElementById('wheel-lock'), cont = document.getElementById('wheel-container-ui');
                 if (!box || !cont) return;
                 cont.classList.toggle('locked', !!why);
-                box.style.display = why ? 'block' : 'none';
-                if (why) box.textContent = why === 'expired' ? '🔒 Vòng quay đã hết hạn (quá thời gian hẹn của Ban Quản Trị).' : '🔒 Vòng quay đang đóng. Vui lòng quay lại sau!';
+                const disp = why ? 'block' : 'none'; if (box.style.display !== disp) box.style.display = disp;
+                if (why) box.textContent = why === 'expired' ? '🔒 Vòng quayđã hết hạn (quá thời gian hẹn của Ban Quản Trị).' : '🔒 Vòng quay đang đóng. Vui lòng quay lại sau!';
                 if (!this.isSpinning) {
-                    if (why) { this.spinBtn.disabled = true; this.spinBtn.innerHTML = `<i class="fa-solid fa-lock mr-2"></i> VÒNG QUAY ĐANG ĐÓNG`; }
+                    if (why) { this.spinBtn.disabled = true; QDSmooth.html(this.spinBtn, `<i class="fa-solid fa-lock mr-2"></i> VÒNG QUAY ĐANG ĐÓNG`); }
                     else {
                         const none = State.availableSpins <= 0;
                         this.spinBtn.disabled = none;
-                        this.spinBtn.innerHTML = none ? `<i class="fa-solid fa-circle-question mr-2"></i> TRẢ LỜI CÂU HỎI ĐỂ QUAY` : `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
+                        QDSmooth.html(this.spinBtn, none ? `<i class="fa-solid fa-circle-question mr-2"></i> TRẢ LỜI CÂU HỎI ĐỂ QUAY` : `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`);
                     }
                 }
             },
@@ -629,13 +824,17 @@
                 const stockRef = db.collection("wheel_stock").doc("counts");
                 // Giao dịch: kiểm tra đóng/mở + vé còn hiệu lực + còn số lượng giải; chọn ô trúng và cộng "đã trúng" cho ô đó
                 return db.runTransaction(async (tx) => {
-                    const q = await tx.get(qRef), c = await tx.get(cfgRef), st = await tx.get(stockRef);
+                    const [q, c] = await Promise.all([tx.get(qRef), tx.get(cfgRef)]);
                     const cfg = c.exists ? c.data() : {};
                     if (Wheel.closedBy(cfg)) throw { code: 'CLOSED' };
                     const d = q.exists ? q.data() : null;
                     if (!d || d.claimedBy !== State.currentUser || d.ticketUsed === true) throw { code: 'NOSPIN' };
-                    const prizes = Wheel.normPrizes(cfg.prizes), counts = (st.exists && st.data().counts) || {};
-                    const idx = Wheel.pickIndex(prizes, counts);
+                    const prizes = Wheel.normPrizes(cfg.prizes);
+                    let idx = Wheel.pickIndex(prizes, State.counts || {});   // chọn theo số liệu trực tiếp đang có
+                    if (idx >= 0 && prizes[idx].qty != null) {               // giải giới hạn: kiểm tra lại kho trong giao dịch
+                        const st = await tx.get(stockRef), counts = (st.exists && st.data().counts) || {};
+                        if ((counts[prizes[idx].id] || 0) >= prizes[idx].qty) idx = Wheel.pickIndex(prizes, counts);
+                    }
                     tx.update(qRef, { ticketUsed: true, usedAt: Date.now() });
                     if (idx >= 0 && prizes[idx].qty != null) tx.set(stockRef, { counts: { [prizes[idx].id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
                     return { idx, prizes };
@@ -646,13 +845,17 @@
                 const accRef = db.collection("accounts").doc(State.accountDocId), cfgRef = db.collection("settings").doc("wheel_config");
                 const stockRef = db.collection("wheel_stock").doc("counts");
                 return db.runTransaction(async (tx) => {
-                    const a = await tx.get(accRef), c = await tx.get(cfgRef), st = await tx.get(stockRef);
+                    const [a, c] = await Promise.all([tx.get(accRef), tx.get(cfgRef)]);
                     const cfg = c.exists ? c.data() : {};
                     if (Wheel.closedBy(cfg)) throw { code: 'CLOSED' };
                     const left = (a.exists && a.data().spins) || 0;
                     if (left <= 0) throw { code: 'NOSPIN' };
-                    const prizes = Wheel.normPrizes(cfg.prizes), counts = (st.exists && st.data().counts) || {};
-                    const idx = Wheel.pickIndex(prizes, counts);
+                    const prizes = Wheel.normPrizes(cfg.prizes);
+                    let idx = Wheel.pickIndex(prizes, State.counts || {});   // chọn theo số liệu trực tiếp đang có
+                    if (idx >= 0 && prizes[idx].qty != null) {               // giải giới hạn: kiểm tra lại kho trong giao dịch
+                        const st = await tx.get(stockRef), counts = (st.exists && st.data().counts) || {};
+                        if ((counts[prizes[idx].id] || 0) >= prizes[idx].qty) idx = Wheel.pickIndex(prizes, counts);
+                    }
                     tx.update(accRef, { spins: firebase.firestore.FieldValue.increment(-1) });
                     if (idx >= 0 && prizes[idx].qty != null) tx.set(stockRef, { counts: { [prizes[idx].id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
                     return { idx, prizes, remain: left - 1 };
@@ -678,9 +881,10 @@
 
                 this.isSpinning = true;
                 this.spinBtn.disabled = true;
-                this.spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TÍNH TOÁN...`;
+                this.spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG QUAY...`;
 
-                // Trừ lượt trên Firestore (spins)
+                // Bánh xe quay NGAY khi bấm; trừ lượt trên Firestore chạy song song
+                const spin = QDSmooth.spinner(this.canvas, this.currentRotation, { slice: 360 / State.prizes.length, decel: 2300, min: 700, onTick: () => Sound.playTick() });
                 this.consumeSpin().then(({ idx, prizes }) => {
                     // Đồng bộ bánh xe nếu admin vừa đổi ô
                     if (prizes.map(p => p.id).join() !== State.prizes.map(p => p.id).join()) { State.prizes = prizes; this.drawGraphics(); }
@@ -702,43 +906,17 @@
                     const maxOffset = (sliceDeg / 2) - 4; 
                     const randomOffset = (Math.random() * (maxOffset * 2)) - maxOffset;
 
-                    let currentMod = this.currentRotation % 360;
-                    let rotateAmount = finalDeg - currentMod;
-                    if (rotateAmount < 0) rotateAmount += 360; 
-                    
-                    rotateAmount += (360 * spinsCount) + randomOffset;
-                    this.currentRotation += rotateAmount;
-
-                    this.canvas.style.transform = `rotate(${this.currentRotation}deg)`;
-
-                    // Tick Sound Loop
-                    let start = null;
-                    const animateTick = (time) => {
-                        if (!start) start = time;
-                        const progress = time - start;
-                        
-                        const currentGoc = (progress / 5000) * rotateAmount; 
-                        const curIdx = Math.floor(currentGoc / sliceDeg);
-                        
-                        if(curIdx !== this.lastTickIndex) { 
-                            Sound.playTick(); 
-                            this.lastTickIndex = curIdx; 
-                        }
-                        
-                        if(progress < 5000) requestAnimationFrame(animateTick);
-                    };
-                    requestAnimationFrame(animateTick);
-
-                    // Hiển thị kết quả sau 5s
-                    setTimeout(() => {
+                    // Giảm tốc êm vào đúng ô trúng (khoảng 2,6 - 3,5 giây)
+                    return spin.land(finalDeg + randomOffset).then((deg) => {
+                        this.currentRotation = deg;
                         this.isSpinning = false;
                         this.spinBtn.disabled = false;
                         this.spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
-
                         this.processResult(winningIndex);
-                    }, 5000);
+                    });
 
                 }).catch(err => {
+                    spin.stop().then(deg => { this.currentRotation = deg; });
                     if (err && err.code === 'CLOSED') Utils.toast("Vòng quay vừa đóng cửa, lượt quay của bạn không bị trừ.", "warning");
                     else if (err && err.code === 'NOSPIN') Utils.toast("Bạn đã hết lượt quay!", "warning");
                     else Utils.toast("Lỗi xác thực dữ liệu lượt quay với máy chủ. Vui lòng thử lại sau.", "error");
@@ -862,7 +1040,7 @@
                                 textClass = "gold";
                             }
 
-                            container.innerHTML += `
+                            container.insertAdjacentHTML('beforeend', `
                                 <div class="history-item">
                                     <div class="flex items-center gap-4">
                                         ${iconHtml}
@@ -873,7 +1051,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            `;
+                            `);
                         });
 
                     }).catch(err => {
@@ -1057,7 +1235,7 @@ const QVis = {
                 try {
                     // Giao dịch: chỉ người ghi thành công ĐẦU TIÊN được xác thực câu hỏi
                     await db.runTransaction(async (tx) => {
-                        const snap = await tx.get(ref), c = await tx.get(cfgRef);
+                        const [snap, c] = await Promise.all([tx.get(ref), tx.get(cfgRef)]);
                         if (Wheel.closedBy(c.exists ? c.data() : {})) throw { code: 'CLOSED' };
                         const d = snap.exists ? snap.data() : null;
                         if (!d || d.active === false) throw { code: 'GONE' };
@@ -1137,5 +1315,121 @@ const QVis = {
         });
 
     </script>
+    <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
+    <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>
+        <div class="qd-net-card">
+            <span class="qd-net-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="qd-off" d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path class="qd-off" d="M19 12.9a10 10 0 0 0-2.3-1.7"/><path class="qd-on" d="M19 12.9a10 10 0 0 0-14 0" style="display:none"/><path d="M2 9.3a15 15 0 0 1 4.2-2.8"/><path class="qd-off" d="M22 9.3A15 15 0 0 0 10.7 5"/><path class="qd-on" d="M22 9.3a15 15 0 0 0-20 0" style="display:none"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+            </span>
+            <span class="qd-net-txt">
+                <b id="qd-net-title">Không có kết nối Internet</b>
+                <small id="qd-net-sub">Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.</small>
+            </span>
+            <button type="button" class="qd-net-btn" id="qd-net-retry">Thử lại</button>
+        </div>
+    </div>
+    <style>
+        .qd-net { position: fixed; left: 0; right: 0; top: 0; z-index: 2147483000; display: flex; justify-content: center; padding: max(10px, env(safe-area-inset-top)) 12px 0; pointer-events: none; }
+        .qd-net[hidden] { display: none !important; }
+        .qd-net-card { pointer-events: auto; display: flex; align-items: center; gap: 12px; width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 16px; box-sizing: border-box;
+            font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; text-align: left; color: #fff;
+            background: linear-gradient(135deg, #b3121b, #7a0000); border: 2px solid #ffd95a; box-shadow: 0 12px 30px rgba(0,0,0,.45); animation: qdNetIn .35s cubic-bezier(.2, 1.4, .4, 1); }
+        .qd-net-card * { text-shadow: none !important; box-sizing: border-box; }
+        .qd-net-ico { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .qd-net-txt b { font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; }
+        .qd-net-txt small { font-size: 12.5px; font-weight: 600; color: #fef08a; line-height: 1.4; }
+        .qd-net-btn { flex: 0 0 auto; padding: 9px 14px; border-radius: 999px; border: none; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-btn:disabled { opacity: .7; cursor: wait; }
+        .qd-net.ok .qd-net-card { background: linear-gradient(135deg, #059669, #065f46); border-color: #a7f3d0; }
+        .qd-net.ok .qd-net-ico { color: #065f46; background: #d1fae5; }
+        .qd-net.ok .qd-net-btn, .qd-net.ok .qd-off { display: none; }
+        .qd-net.ok .qd-on { display: inline !important; }
+        .qd-net:not(.ok) .qd-net-ico { animation: qdNetPulse 1.6s ease-in-out infinite; }
+        @keyframes qdNetIn { from { transform: translateY(-120%); opacity: 0; } }
+        @keyframes qdNetPulse { 50% { transform: scale(.88); } }
+        @media (max-width: 420px) { .qd-net-card { gap: 10px; padding: 10px 12px; } .qd-net-txt b { font-size: 14px; } .qd-net-txt small { font-size: 12px; } .qd-net-btn { padding: 8px 11px; } }
+        @media (prefers-reduced-motion: reduce) { .qd-net-card, .qd-net-ico { animation: none !important; } }
+    </style>
+    <script>
+    /* Phát hiện mất mạng: sự kiện online/offline của trình duyệt + kiểm tra thật định kỳ
+       (navigator.onLine có thể báo "có mạng" khi Wi-Fi đã kết nối nhưng không ra được Internet) */
+    (function () {
+        'use strict';
+        if (window.__qdNetGuard) return; window.__qdNetGuard = true;
+        var box = document.getElementById('qd-net'), title = document.getElementById('qd-net-title'), sub = document.getElementById('qd-net-sub'), btn = document.getElementById('qd-net-retry');
+        var PROBES = ['https://www.gstatic.com/generate_204', 'https://firestore.googleapis.com/', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
+        var offline = false, fails = 0, okTimer = null, checking = false;
+
+        function probe(url) {
+            return new Promise(function (resolve, reject) {
+                var ctrl = window.AbortController ? new AbortController() : null;
+                var t = setTimeout(function () { if (ctrl) ctrl.abort(); reject(new Error('timeout')); }, 6000);
+                fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { mode: 'no-cors', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+                    .then(function () { clearTimeout(t); resolve(true); }, function (e) { clearTimeout(t); reject(e); });
+            });
+        }
+        function anyOk() {   // chỉ cần 1 máy chủ phản hồi là có mạng
+            return new Promise(function (resolve) {
+                var left = PROBES.length;
+                PROBES.forEach(function (u) { probe(u).then(function () { resolve(true); }, function () { if (--left === 0) resolve(false); }); });
+            });
+        }
+        function show() {
+            if (offline) return; offline = true;
+            clearTimeout(okTimer);
+            box.classList.remove('ok');
+            title.textContent = 'Không có kết nối Internet';
+            sub.textContent = 'Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.';
+            box.hidden = false;
+        }
+        function hide() {
+            if (!offline) return; offline = false;
+            box.classList.add('ok');
+            title.textContent = 'Đã kết nối lại Internet';
+            sub.textContent = 'Dữ liệu đang được đồng bộ lại.';
+            clearTimeout(okTimer);
+            okTimer = setTimeout(function () { box.hidden = true; box.classList.remove('ok'); }, 2500);
+        }
+        function check() {
+            if (checking) return; checking = true;
+            if (navigator.onLine === false) { checking = false; fails = 2; show(); return; }
+            anyOk().then(function (ok) {
+                checking = false;
+                if (ok) { fails = 0; hide(); }
+                else if (++fails >= 2 || offline) show();   // lỗi 2 lần liên tiếp mới báo, tránh báo nhầm
+                else setTimeout(check, 3000);
+            });
+        }
+
+        window.addEventListener('offline', function () { fails = 2; show(); });
+        window.addEventListener('online', function () { setTimeout(check, 500); });
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+        btn.addEventListener('click', function () {
+            btn.disabled = true; btn.textContent = 'Đang thử...';
+            sub.textContent = 'Đang kiểm tra kết nối...';
+            fails = 1; checking = false;
+            check();
+            setTimeout(function () {
+                btn.disabled = false; btn.textContent = 'Thử lại';
+                if (offline) sub.textContent = 'Vẫn chưa có mạng. Vui lòng kiểm tra Wi-Fi hoặc 4G.';
+            }, 2500);
+        });
+        // Kiểm tra định kỳ: mất mạng thì 5 giây/lần để báo có mạng lại nhanh; bình thường 20 giây/lần
+        (function loop() { setTimeout(function () { if (!document.hidden || offline) check(); loop(); }, offline ? 5000 : 20000); })();
+        if (navigator.onLine === false) show();
+    })();
+    </script>
+    <style id="qd-smooth-page">
+html[data-theme="tet"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background-image: var(--qd-bg); }
+@keyframes qdRing { 0% { transform: scale(1); opacity: 0; } 12% { opacity: .9; } 70%, 100% { transform: scale(var(--qd-rx, 1.06), var(--qd-ry, 1.45)); opacity: 0; } }
+@keyframes qdDot { 0% { transform: scale(1); opacity: 1; } 70%, 100% { transform: scale(var(--qd-s, 3)); opacity: 0; } }
+@keyframes qdBreath { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+.spin-counter { position: relative; }
+.spin-counter.glow { animation: none; }
+.spin-counter.glow::after { content: ''; position: absolute; inset: -4px; border-radius: inherit; border: 2px solid rgba(245, 158, 11, .75); pointer-events: none; --qd-rx: 1.07; --qd-ry: 1.5; animation: qdRing 2s cubic-bezier(.25, .6, .4, 1) infinite; }
+#wheelCanvas { will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .spin-counter.glow::after { animation: none !important; opacity: 0; } }
+    </style>
 </body>
 </html>

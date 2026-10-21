@@ -295,6 +295,192 @@
 
         .lx-prize-table input { min-width: 90px; }
     </style>
+
+    <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
+    <style id="qd-smooth-css">
+/* ===== QD SMOOTH (dùng chung) ===== */
+.qd-paused, .qd-paused::before, .qd-paused::after, .qd-paused-px::before, .qd-paused-px::after { animation-play-state: paused !important; }
+html.qd-lite *, html.qd-lite *::before, html.qd-lite *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html.qd-lite .qd-fx { display: none !important; }
+    </style>
+    <script id="qd-smooth-js">
+/* ===== QD SMOOTH: lớp tối ưu mượt mà dùng chung mọi trang =====
+   - Giữ luồng chính (main thread) rảnh: hiệu ứng lặp chạy trên GPU, ghi DOM trùng lặp bị bỏ qua
+   - Hiệu ứng nằm ngoài màn hình / video nền khuất -> tạm dừng, hiện lại -> chạy tiếp
+   - Máy yếu hoặc đo thấy rớt khung hình -> tự bật chế độ nhẹ (html.qd-lite)
+   Ép chế độ: localStorage.setItem('qd_fx', 'full' | 'lite' | 'auto') */
+(function () {
+    'use strict';
+    if (window.QDSmooth) return;
+    var W = window, d = document, html = d.documentElement, nav = navigator;
+    var Q = W.QDSmooth = { lite: false, _cb: [] };
+    function store(k, v) { try { if (v === undefined) return (k === 'ss' ? sessionStorage : localStorage).getItem('qd_fx'); (k === 'ss' ? sessionStorage : localStorage).setItem('qd_fx', v); } catch (e) { return null; } }
+    var pref = store('ls');
+
+    /* ---------- 1. Chế độ nhẹ ---------- */
+    Q.onLite = function (fn) { Q._cb.push(fn); if (Q.lite) { try { fn(true); } catch (e) {} } };
+    Q.setLite = function (on) {
+        on = !!on; if (Q.lite === on) return;
+        Q.lite = on; html.classList.toggle('qd-lite', on); store('ss', on ? 'lite' : 'full');
+        Q._cb.forEach(function (fn) { try { fn(on); } catch (e) {} });
+    };
+    var reduce = W.matchMedia && W.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var conn = nav.connection || {};
+    var weak = (nav.deviceMemory && nav.deviceMemory <= 2) || (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) || conn.saveData === true;
+    if (pref !== 'full' && (pref === 'lite' || store('ss') === 'lite' || weak || reduce)) Q.setLite(true);
+
+    /* Đo khung hình thật: 2 lần đo liên tiếp rớt > 22% khung -> bật chế độ nhẹ cho phiên này */
+    function monitor() {
+        if (pref === 'full' || pref === 'lite' || Q.lite || !W.requestAnimationFrame) return;
+        var strikes = 0, runs = 0;
+        function sample() {
+            if (Q.lite || runs > 40) return;
+            if (d.hidden) return setTimeout(sample, 4000);
+            runs++;
+            var t = [], last = 0, end = performance.now() + 2000;
+            requestAnimationFrame(function step(now) {
+                if (d.hidden) return setTimeout(sample, 4000);
+                if (last) t.push(now - last); last = now;
+                if (now < end) return requestAnimationFrame(step);
+                if (t.length < 20) return setTimeout(sample, 8000);
+                var s = t.slice().sort(function (a, b) { return a - b; });
+                var vsync = Math.max(6.5, s[Math.floor(s.length * 0.1)]);   // ~8.3ms ở màn 120Hz, ~16.7ms ở 60Hz
+                var bad = 0; t.forEach(function (x) { if (x > vsync * 1.8) bad++; });
+                strikes = bad / t.length > 0.22 ? strikes + 1 : 0;
+                if (strikes >= 2) return Q.setLite(true);
+                setTimeout(sample, strikes ? 1500 : 12000);
+            });
+        }
+        setTimeout(sample, 5000);
+    }
+
+    /* ---------- 2. Bỏ qua ghi chữ trùng lặp (đồng hồ, bộ đếm... ghi mỗi giây) ---------- */
+    function guardText(proto, prop, noNewline) {
+        var desc = Object.getOwnPropertyDescriptor(proto, prop);
+        if (!desc || !desc.set || !desc.get || desc.set.__qd) return;
+        var set = function (v) {
+            var c = this.firstChild, s = v == null ? '' : String(v);
+            if (c ? (c === this.lastChild && c.nodeType === 3 && c.data === s && !(noNewline && /[\r\n]/.test(s))) : (s === '' && this.nodeType === 1)) return;
+            desc.set.call(this, v);
+        };
+        set.__qd = true;
+        Object.defineProperty(proto, prop, { configurable: true, enumerable: desc.enumerable, get: desc.get, set: set });
+    }
+    try { guardText(Node.prototype, 'textContent'); guardText(HTMLElement.prototype, 'innerText', true); } catch (e) {}
+
+    /* Ghi innerHTML chỉ khi nội dung thay đổi (dùng cho các vòng cập nhật định kỳ) */
+    Q.html = function (el, s) {
+        if (!el) return;
+        s = s == null ? '' : String(s);
+        if (el.__qdH === s && el.__qdF === el.firstChild && el.__qdL === el.lastChild) return;
+        el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
+    };
+
+    /* ---------- Vòng quay: quay NGAY khi bấm, giảm tốc êm vào ô trúng khi máy chủ trả kết quả ----------
+       var s = QDSmooth.spinner(canvas, gocHienTai, { slice: 360 / soO, onTick: fn });
+       s.land(gocDich).then(gocCuoi => ...)   // gocDich: góc cuối mong muốn (mod 360)
+       s.stop().then(gocCuoi => ...)          // lỗi: dừng nhẹ nhàng
+       Tốc độ tính theo thời gian thực -> mượt như nhau ở 60/90/120Hz, tiếng "tách" khớp đúng với ô đi qua. */
+    Q.spinner = function (el, from, opt) {
+        opt = opt || {};
+        var V = opt.vmax || 1.2, ACC = 450, MIN = opt.min || 800, DEC = opt.decel || 2600, slice = opt.slice || 0, onTick = opt.onTick;
+        var t0 = 0, angle = from = +from || 0, target = null, failed = false, phase = 0, tc = 0, ac = 0, D = 0, T = 1, last = null, done;
+        var p = new Promise(function (r) { done = r; });
+        el.style.transition = 'none'; el.style.willChange = 'transform';
+        function put(a) {
+            el.style.transform = 'rotate(' + a + 'deg)';
+            if (slice && onTick) { var i = Math.floor((a - from) / slice); if (i !== last) { if (last !== null) { try { onTick(); } catch (e) {} } last = i; } }
+        }
+        function frame(now) {
+            if (!t0) t0 = now;
+            var t = now - t0;
+            if (phase === 0) {
+                angle = t < ACC ? from + V * t * t / (2 * ACC) : from + V * ACC / 2 + V * (t - ACC);
+                if ((target !== null || failed) && t >= (failed ? 0 : MIN)) {
+                    phase = 1; tc = now; ac = angle;
+                    var v = t < ACC ? V * t / ACC : V;
+                    if (failed) { T = 700; D = v * T / 3; }
+                    else { D = ((target - ac) % 360 + 360) % 360; while (D < V * DEC / 3) D += 360; T = 3 * D / Math.max(v, 0.2); }
+                }
+            }
+            if (phase === 1) {
+                var u = Math.min(1, (now - tc) / T);
+                angle = ac + D * (1 - Math.pow(1 - u, 3));     // giảm tốc kiểu bánh xe thật (ease-out)
+                if (u >= 1) { put(angle); el.style.willChange = ''; return done(angle); }
+            }
+            put(angle); requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+        return { land: function (deg) { target = +deg || 0; return p; }, stop: function () { failed = true; return p; }, done: p };
+    };
+
+    /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
+    var MOVE = /^(transform|translate|rotate|scale|left|top|right|bottom|offset|inset|margin)/;
+    var io = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) { e.target.classList.toggle(e.target.__qdM, !e.isIntersecting); });
+    }, { rootMargin: '120px' }) : null;
+    var seen = new WeakSet(), seenPx = new WeakSet();
+    function moves(a) {   // hiệu ứng tự di chuyển phần tử (hoa rơi...) thì không dừng, tránh kẹt ngoài màn hình
+        try { var k = a.effect.getKeyframes(); for (var i = 0; i < k.length; i++) for (var p in k[i]) if (MOVE.test(p)) return true; } catch (e) { return true; }
+        return false;
+    }
+    function scan() {
+        if (!io || !d.getAnimations || d.hidden) return;
+        var as = d.getAnimations();
+        for (var i = 0; i < as.length; i++) {
+            var ef = as[i].effect, el = ef && ef.target;
+            if (!el || !ef.getTiming || ef.getTiming().iterations !== Infinity) continue;
+            var bag = ef.pseudoElement ? seenPx : seen;
+            if (bag.has(el)) continue;
+            bag.add(el);
+            var own = el.getAnimations ? el.getAnimations() : [], mv = false;
+            for (var j = 0; j < own.length; j++) if (moves(own[j])) { mv = true; break; }
+            if (mv && !ef.pseudoElement) continue;          // chỉ có hiệu ứng di chuyển: để nguyên
+            if (el.__qdM === 'qd-paused') continue;
+            el.__qdM = mv ? 'qd-paused-px' : 'qd-paused';   // có di chuyển: chỉ dừng ::before/::after
+            io.observe(el);
+        }
+    }
+
+    /* ---------- 4. Video nền: dừng khi khuất / ẩn tab, chạy lại khi hiện ---------- */
+    var vio = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+            var v = e.target; v.__qdVis = e.isIntersecting;
+            if (!e.isIntersecting) { if (!v.paused) { v.__qdAuto = true; v.pause(); } }
+            else if (v.__qdAuto) { v.__qdAuto = false; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+        });
+    }, { rootMargin: '80px' }) : null;
+    function watchMedia(root) {
+        var imgs = root.getElementsByTagName ? root.getElementsByTagName('img') : [];
+        for (var i = 0; i < imgs.length; i++) if (!imgs[i].getAttribute('decoding')) imgs[i].decoding = 'async';
+        if (!vio) return;
+        var vs = root.getElementsByTagName ? root.getElementsByTagName('video') : [];
+        for (var j = 0; j < vs.length; j++) {
+            var v = vs[j]; if (v.__qdW || !v.muted && !v.hasAttribute('muted')) continue;
+            v.__qdW = true; vio.observe(v);
+            v.addEventListener('play', function () { var me = this; if (me.__qdVis === false) setTimeout(function () { if (me.__qdVis === false && !me.paused) { me.__qdAuto = true; me.pause(); } }, 0); });
+        }
+    }
+
+    /* ---------- Khởi động ---------- */
+    var scanT = 0;
+    function later() { clearTimeout(scanT); scanT = setTimeout(function () { scan(); }, 400); }
+    function boot() {
+        watchMedia(d);
+        scan(); setInterval(scan, 3000);
+        if (W.MutationObserver) new MutationObserver(function (ms) {
+            for (var i = 0; i < ms.length; i++) for (var j = 0, n = ms[i].addedNodes; j < n.length; j++) {
+                var x = n[j]; if (x.nodeType !== 1) continue;
+                if (x.tagName === 'IMG' || x.tagName === 'VIDEO' || x.firstElementChild) watchMedia(x.tagName === 'IMG' || x.tagName === 'VIDEO' ? x.parentNode || d : x);
+            }
+            later();
+        }).observe(d.body, { childList: true, subtree: true });
+        d.addEventListener('visibilitychange', function () { if (!d.hidden) later(); });
+        monitor();
+    }
+    if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+    </script>
 </head>
 <body>
 
@@ -1422,10 +1608,71 @@
                             <button class="btn btn-success" style="padding: 14px 24px; box-shadow: none;" onclick="AdminActions.exportLuckyNumberExcel()">
                                 <i class="fa-solid fa-file-excel mr-2"></i> Xuất Tệp Excel (.XLS)
                             </button>
-                            <button class="btn btn-info" style="padding: 14px 24px; box-shadow: none;" onclick="window.open('quays.html', '_blank')">
-                                <i class="fa-solid fa-desktop mr-2"></i> Mở Livestream
+                            <button class="btn btn-info" style="padding: 14px 24px; box-shadow: none;" onclick="window.open('quays.html?host=1', '_blank')">
+                                <i class="fa-solid fa-desktop mr-2"></i> Mở Màn Hình Quay
                             </button>
                         </div>
+                    </div>
+
+                    <!-- Phát trực tiếp quay số (settings/lucky_live): bật thì trang User hiện thông báo "Đang quay trực tiếp" + nút vào quays.html -->
+                    <div class="card mb-8" style="border-left: 4px solid var(--color-danger); padding: 24px;">
+                        <div class="flex justify-between items-center flex-wrap gap-6">
+                            <div class="max-w-md">
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-tower-broadcast text-danger"></i> Phát Trực Tiếp Quay Số</h3>
+                                <p class="text-muted text-sm">Khi BẬT, trang thành viên hiện thông báo <b>"Đang quay trực tiếp"</b> kèm nút vào xem. Thành viên chỉ xem được, không tự bấm quay. Bạn mở <b>Màn Hình Quay</b> và bấm quay, mọi người xem sẽ thấy cùng một kết quả.</p>
+                                <div class="mt-4 flex items-center gap-2">
+                                    <span class="text-sm font-bold text-muted" id="ln-live-status-text">ĐANG TẮT</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="cfg-ln-live-toggle" onchange="AdminActions.toggleLuckyLive(this)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <button class="btn btn-danger" style="padding: 14px 24px;" onclick="AdminActions.startLuckyLive()">
+                                <i class="fa-solid fa-circle-play mr-2"></i> Mở Quay Trực Tiếp
+                            </button>
+                        </div>
+
+                        <!-- Chế độ quay theo giờ - nhiều lượt (settings/lucky_live.rounds + settings/lucky_round_presets) -->
+                        <div class="mt-6 ln-rounds-box">
+                            <div class="flex justify-between items-center flex-wrap gap-3 mb-2">
+                                <h4 class="flex items-center gap-2 m-0" style="font-size: 16px;"><i class="fa-solid fa-clock text-warning"></i> Chế Độ Quay Theo Giờ</h4>
+                                <span id="ln-sched-summary" class="text-sm font-bold text-muted">Chưa có lịch quay.</span>
+                            </div>
+                            <p class="text-muted text-sm mb-4">Tạo nhiều lượt quay (Lượt 1, 2, 3, 4...). Đến giờ từng lượt, hệ thống <b>tự bật phát trực tiếp và tự quay</b>; 10 giây cuối mọi màn hình cùng đếm ngược. Mỗi lượt có thể <b>chốt sẵn số</b>, để trống thì quay ngẫu nhiên. Các lượt cách nhau ít nhất 1 phút. Cần ít nhất 1 người đang mở trang (Admin, Màn Hình Quay hoặc thành viên); trễ quá 10 phút mà không ai online thì lượt đó bị bỏ qua.</p>
+                            <div class="table-responsive ln-rounds-wrap">
+                                <table class="w-full ln-rounds-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 90px;">Lượt</th>
+                                            <th>Ngày quay</th>
+                                            <th>Giờ quay</th>
+                                            <th class="text-center">Số chốt sẵn</th>
+                                            <th>Trạng thái</th>
+                                            <th class="text-right" style="width: 60px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ln-rounds-body"></tbody>
+                                </table>
+                            </div>
+                            <div class="flex gap-3 flex-wrap mt-4">
+                                <button class="btn btn-outline" style="padding: 12px 18px;" onclick="AdminActions.addLuckyRound()"><i class="fa-solid fa-plus mr-2"></i> Thêm Lượt</button>
+                                <button class="btn btn-warning" style="padding: 12px 20px;" onclick="AdminActions.saveLuckyRounds()"><i class="fa-solid fa-calendar-check mr-2"></i> Lưu Lịch Quay</button>
+                                <button class="btn btn-outline" style="padding: 12px 18px; color: var(--color-danger); border-color: var(--color-danger);" id="btn-ln-rounds-clear" onclick="AdminActions.clearLuckyRounds()"><i class="fa-solid fa-trash mr-2"></i> Xóa Toàn Bộ Lịch</button>
+                                <span id="ln-rounds-dirty" class="text-sm font-bold" style="align-self: center; color: var(--color-warning); display: none;"><i class="fa-solid fa-circle-exclamation"></i> Có thay đổi chưa lưu</span>
+                            </div>
+                        </div>
+                        <style>
+                            .ln-rounds-box { background: var(--bg-base); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 20px; }
+                            .ln-rounds-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+                            .ln-rounds-table td { vertical-align: middle; }
+                            .ln-rounds-table .form-control { padding: 9px 10px; font-family: var(--font-family-mono); }
+                            .ln-rounds-table .ln-r-date { width: 160px; } .ln-rounds-table .ln-r-time { width: 120px; } .ln-rounds-table .ln-r-num { width: 118px; font-size: 13px; text-align: center; margin: 0 auto; }
+                            .ln-r-label { display: inline-flex; align-items: center; justify-content: center; min-width: 74px; padding: 6px 12px; border-radius: 999px; font-weight: 800; font-size: 13px; background: rgba(236,72,153,.12); color: #ec4899; border: 1px solid rgba(236,72,153,.4); }
+                            .ln-r-st { font-size: 13px; font-weight: 700; white-space: nowrap; }
+                            .ln-r-row.done td { opacity: .75; }
+                            .ln-r-row.done .ln-r-label { background: rgba(16,185,129,.12); color: var(--color-success); border-color: rgba(16,185,129,.4); }
+                        </style>
                     </div>
 
                     <div class="card mb-8" style="border-left: 4px solid #ec4899; padding: 24px;">
@@ -2203,6 +2450,97 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
     <script>
+    window.LuckySchedule = (function () {
+        /* ===== QUAY SỐ THEO GIỜ - NHIỀU LƯỢT (dùng chung admin.html / user.html / quays.html) =====
+           settings/lucky_live.rounds = { r1: { label: 'Lượt 1', order: 1, at: ms, done, missed, doneAt, number }, r2: {...} }
+           settings/lucky_round_presets.byId = { r1: 27, ... }  (số Admin chốt sẵn cho từng lượt, để trống = ngẫu nhiên)
+           Tới giờ một lượt, trang nào đang mở cũng thử "nhận" lượt đó bằng transaction -> chỉ 1 máy quay.
+           Kết quả ghi vào rollId/rollNumber/rollLabel + bật isLive -> mọi màn hình quays.html quay ra cùng một số. */
+        var MISS_MS = 10 * 60 * 1000;   // trễ quá 10 phút (không ai online) -> bỏ lượt
+        var rounds = {}, tried = {}, timer = null, unsub = null, subs = [];
+        function getDb() { return (typeof db !== 'undefined') ? db : null; }
+        function list() {
+            return Object.keys(rounds || {}).map(function (id) { var r = Object.assign({ id: id }, rounds[id]); return r; })
+                .filter(function (r) { return r && r.at; })
+                .sort(function (a, b) { return a.at - b.at; });
+        }
+        function isPending(r) { return r && r.at && !r.done; }
+
+        function claim(id, at) {
+            var d = getDb(); if (!d) return Promise.resolve(null);
+            var ref = d.collection('settings').doc('lucky_live'), preRef = d.collection('settings').doc('lucky_round_presets');
+            return d.runTransaction(function (tx) {
+                return Promise.all([tx.get(ref), tx.get(preRef)]).then(function (res) {
+                    var data = res[0].exists ? res[0].data() : {}, r = (data.rounds || {})[id], now = Date.now();
+                    if (!r || r.done || r.at !== at || now < r.at) return null;
+                    var upd = {}; upd[id] = { done: true, doneAt: now };
+                    if (now - r.at > MISS_MS) { upd[id].missed = true; tx.set(ref, { rounds: upd }, { merge: true }); return null; }
+                    var pre = res[1].exists ? ((res[1].data().byId || {})[id]) : null;
+                    pre = (pre != null && pre !== '') ? parseInt(pre, 10) : null;
+                    var num = (pre >= 1 && pre <= 100) ? pre : (Math.floor(Math.random() * 100) + 1);
+                    upd[id].missed = false; upd[id].number = num;
+                    tx.set(ref, {
+                        isLive: true, startedAt: data.isLive ? (data.startedAt || now) : now,
+                        rollId: now, rollAt: now, rollNumber: num, rollLabel: r.label || null, rollRound: id,
+                        rounds: upd
+                    }, { merge: true });
+                    return { num: num, label: r.label };
+                });
+            }).then(function (r) { if (r) return window.LuckySchedule.logHistory(r.num, 'schedule', r.label); });
+        }
+
+        function tick() {
+            var now = Date.now();
+            list().forEach(function (r) {
+                var key = r.id + '@' + r.at;
+                if (isPending(r) && now >= r.at && !tried[key]) {
+                    tried[key] = true;
+                    claim(r.id, r.at).catch(function (e) { console.warn('LuckySchedule claim', e); setTimeout(function () { tried[key] = false; }, 2000); });
+                }
+            });
+        }
+
+        return {
+            start: function () {
+                var d = getDb(); if (!d || unsub) return;
+                unsub = d.collection('settings').doc('lucky_live').onSnapshot(function (snap) {
+                    rounds = snap && snap.exists ? (snap.data().rounds || {}) : {};
+                    subs.forEach(function (f) { try { f(); } catch (e) {} });
+                    tick();
+                }, function (e) { console.warn('LuckySchedule', e); });
+                timer = setInterval(tick, 1000);
+            },
+            stop: function () { if (unsub) { try { unsub(); } catch (e) {} unsub = null; } if (timer) { clearInterval(timer); timer = null; } },
+            onChange: function (f) { subs.push(f); if (unsub) f(); },
+            all: list,
+            get: function () { return list().filter(isPending)[0] || null; },          // lượt sắp tới
+            pending: function () { return !!this.get(); },
+            remaining: function () { var r = this.get(); return r ? r.at - Date.now() : null; },
+            total: function () { return list().length; },
+            logHistory: function (num, source, label) {
+                var d = getDb(); if (!d) return Promise.resolve();
+                return d.collection('lucky_numbers').get().then(function (snap) {
+                    var w = []; snap.forEach(function (doc) { var x = doc.data(); if (parseInt(x.number, 10) === num) w.push(x.user); });
+                    var rec = { number: num, winners: w, timestamp: Date.now(), source: source || 'live' };
+                    if (label) rec.round = label;
+                    return d.collection('lucky_number_history').add(rec);
+                }).catch(function (e) { console.warn('LuckySchedule history', e); });
+            },
+            fmtTime: function (at) {
+                var t = new Date(at), today = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
+                var hm = p(t.getHours()) + ':' + p(t.getMinutes());
+                return t.toDateString() === today.toDateString() ? hm + ' hôm nay' : hm + ' · ' + p(t.getDate()) + '/' + p(t.getMonth() + 1) + '/' + t.getFullYear();
+            },
+            fmtLeft: function (ms) {
+                if (ms == null) return '';
+                var s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60, p = function (n) { return String(n).padStart(2, '0'); };
+                if (h >= 24) return Math.floor(h / 24) + ' ngày ' + (h % 24) + ' giờ';
+                return (h ? h + ':' + p(m) : m) + ':' + p(x);
+            }
+        };
+    })();
+    </script>
+    <script>
         /** FIREBASE INIT */
         const firebaseConfig = { apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", projectId: "web-dangky-123" };
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
@@ -2927,7 +3265,7 @@
                 const hRef = db.collection('lixi_history').doc(id), aRef = db.collection('accounts').doc(acc.docId);
                 let deducted = 0;
                 await db.runTransaction(async t => {
-                    const hd = await t.get(hRef), ad = await t.get(aRef);
+                    const [hd, ad] = await Promise.all([t.get(hRef), t.get(aRef)]);
                     if (!hd.exists) throw 'Bản ghi không còn tồn tại.';
                     if (hd.data().status === 'revoked') throw 'Lượt này đã được thu hồi trước đó.';
                     if (!ad.exists) throw 'Tài khoản không tồn tại.';
@@ -3639,13 +3977,13 @@ const QVis = {
                         else if(d.winner === d.player1) resultHtml = `<span class="badge badge-success" style="font-size:13px; padding: 4px 10px;">${d.player1} Thắng</span>`;
                         else resultHtml = `<span class="badge badge-danger" style="font-size:13px; padding: 4px 10px;">${d.player2} Thắng</span>`;
 
-                        tbody.innerHTML += `<tr>
+                        tbody.insertAdjacentHTML('beforeend', `<tr>
                             <td><b>${d.player1}</b></td>
                             <td><b>${d.player2}</b></td>
                             <td class="text-center"><span class="text-2xl">${p1Icon} <span class="text-sm mx-2 text-muted">vs</span> ${p2Icon}</span></td>
                             <td class="text-center">${resultHtml}<br><span class="text-xs text-muted font-bold">${d.p1Score} - ${d.p2Score}</span></td>
                             <td class="text-right text-muted text-sm">${timeStr}</td>
-                        </tr>`;
+                        </tr>`);
                     });
                 });
 
@@ -3697,14 +4035,30 @@ const QVis = {
                         State.pointShopHistoryCache.push(d);
                         const timeStr = new Date(d.timestamp).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
                         
-                        if(tbody) tbody.innerHTML += `
+                        if(tbody) tbody.insertAdjacentHTML('beforeend', `
                             <tr>
                                 <td><b class="text-main">${d.user}</b></td>
                                 <td><span class="text-info font-bold">${d.detail}</span></td>
                                 <td class="text-center"><span class="badge badge-success" style="font-size: 13px;">${d.pointsChanged} Điểm</span></td>
                                 <td class="text-right text-muted text-sm">${timeStr}</td>
-                            </tr>`;
+                            </tr>`);
                     });
+                });
+
+                LuckySchedule.start();
+                // Bản nháp bảng lượt quay: đồng bộ từ máy chủ khi Admin chưa sửa dở
+                LuckySchedule.onChange(() => { if (!AdminActions.lnDirty) AdminActions.lnFromServer(); else AdminActions.renderLuckySchedule(); });
+                db.collection("settings").doc("lucky_round_presets").onSnapshot(doc => {
+                    AdminActions.lnPresets = doc.exists ? (doc.data().byId || {}) : {};
+                    if (!AdminActions.lnDirty) AdminActions.lnFromServer();
+                });
+                setInterval(() => AdminActions.renderLuckySchedule(), 1000);
+
+                db.collection("settings").doc("lucky_live").onSnapshot(doc => {
+                    const isLive = doc.exists && doc.data().isLive === true;
+                    const tg = document.getElementById('cfg-ln-live-toggle'), st = document.getElementById('ln-live-status-text');
+                    if (tg) tg.checked = isLive;
+                    if (st) { st.innerText = isLive ? "🔴 ĐANG PHÁT TRỰC TIẾP" : "ĐANG TẮT"; st.style.color = isLive ? "var(--color-danger)" : ""; }
                 });
 
                 db.collection("settings").doc("lucky_number_result").onSnapshot(doc => {
@@ -3787,7 +4141,7 @@ const QVis = {
 
                     records.forEach(d => {
                         State.attendanceCache.push(d); const uname = d.userName || "Unknown";
-                        tbody.innerHTML += `<tr><td><div class="flex items-center gap-3"><div style="width: 36px; height: 36px; border-radius: 50%; background: var(--color-success); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">${uname.charAt(0).toUpperCase()}</div><span class="font-bold text-main">${uname}</span></div></td><td><span class="badge badge-offline" style="font-size: 12px; padding: 6px 12px;"><i class="fa-regular fa-clock"></i> ${d.time || "--:--"} - ${d.date}</span></td><td style="font-family: var(--font-family-mono); color: var(--text-muted); font-size: 13px; letter-spacing: 1px;">${d.userId || "---"}</td></tr>`;
+                        tbody.insertAdjacentHTML('beforeend', `<tr><td><div class="flex items-center gap-3"><div style="width: 36px; height: 36px; border-radius: 50%; background: var(--color-success); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">${uname.charAt(0).toUpperCase()}</div><span class="font-bold text-main">${uname}</span></div></td><td><span class="badge badge-offline" style="font-size: 12px; padding: 6px 12px;"><i class="fa-regular fa-clock"></i> ${d.time || "--:--"} - ${d.date}</span></td><td style="font-family: var(--font-family-mono); color: var(--text-muted); font-size: 13px; letter-spacing: 1px;">${d.userId || "---"}</td></tr>`);
                     });
                 });
 
@@ -3809,7 +4163,7 @@ const QVis = {
                         const d = doc.data(); State.regCache.push(d);
                         const timeStr = new Date(d.timestamp).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
                         
-                        tbody.innerHTML += `
+                        tbody.insertAdjacentHTML('beforeend', `
                         <tr>
                             <td>
                                 <span class="font-bold text-main">${d.name}</span><br>
@@ -3822,7 +4176,7 @@ const QVis = {
                                     <i class="fa-solid fa-rotate-left mr-1"></i> Cho Phép Nộp Lại
                                 </button>
                             </td>
-                        </tr>`;
+                        </tr>`);
 
                         optionsHtml += `<option value="${d.submitter}" data-gameid="${d.gameId}" data-ingame="${d.name}">[${d.submitter}] - ID: ${d.gameId} (${d.name})</option>`;
                     });
@@ -3851,7 +4205,7 @@ const QVis = {
                     
                     allDocs.forEach(d => {
                         const timeStr = new Date(d.timestamp).toLocaleString('vi-VN');
-                        if(tbody) tbody.innerHTML += `
+                        if(tbody) tbody.insertAdjacentHTML('beforeend', `
                             <tr>
                                 <td><b class="text-main"><i class="fa-solid fa-user text-muted mr-2"></i>${d.username}</b></td>
                                 <td><span class="badge badge-warning" style="font-size: 13px; padding: 4px 10px;">${d.ingame}</span></td>
@@ -3861,7 +4215,7 @@ const QVis = {
                                 <td class="text-right">
                                     <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('tournament', '${d.id}', 'Bạn có muốn XÓA <b>${d.username}</b> khỏi danh sách giải đấu không?')" title="Xóa Khỏi Giải"><i class="fa-solid fa-trash-can"></i></button>
                                 </td>
-                            </tr>`;
+                            </tr>`);
 
                         checkboxesHtml += `
                         <label class="flex items-center gap-3 mb-2 cursor-pointer p-2 rounded hover:bg-hover" style="transition: 0.2s;">
@@ -3877,7 +4231,7 @@ const QVis = {
 
                     const sortedByPoints = [...allDocs].sort((a, b) => (b.points || 0) - (a.points || 0));
                     sortedByPoints.forEach(d => {
-                        if(ptbody) ptbody.innerHTML += `
+                        if(ptbody) ptbody.insertAdjacentHTML('beforeend', `
                             <tr>
                                 <td style="white-space: nowrap;"><b class="text-main"><i class="fa-solid fa-user text-muted mr-2"></i>${d.username}</b></td>
                                 <td style="white-space: nowrap;"><span class="badge badge-success" style="font-size: 14px; padding: 4px 10px; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--color-success);"><i class="fa-solid fa-star mr-1"></i> ${d.points || 0}</span></td>
@@ -3886,7 +4240,7 @@ const QVis = {
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
                                 </td>
-                            </tr>`;
+                            </tr>`);
                     });
                 });
 
@@ -3979,7 +4333,7 @@ const QVis = {
                             roleColor = 'text-primary';
                         }
                         
-                        tbodyAcc.innerHTML += `
+                        tbodyAcc.insertAdjacentHTML('beforeend', `
                         <tr>
                             <td>
                                 <div class="flex items-center gap-3">
@@ -4004,7 +4358,7 @@ const QVis = {
                                 <button class="btn-icon" style="color: ${lockBtnColor}; border-color: ${lockBtnColor}; background: ${lockBtnBg};" onclick="AdminActions.toggleLock('${doc.id}', ${isBlocked}, '${d.user}')" title="${lockBtnTitle}"><i class="fa-solid ${lockBtnIcon}"></i></button>
                                 <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('accounts', '${doc.id}', 'Hành động này sẽ XÓA VĨNH VIỄN tài khoản <b>${d.user}</b>.')" title="Xóa Tài Khoản"><i class="fa-solid fa-trash"></i></button>
                             </td>
-                        </tr>`;
+                        </tr>`);
                     });
                 });
 
@@ -4039,7 +4393,7 @@ const QVis = {
 
                         const forceBtn = `<button class="btn btn-success w-full" style="padding: 6px 12px; font-size: 12px;" onclick="AdminActions.setWinningNumber(${d.number})"><i class="fa-solid fa-crosshairs mr-1"></i> Chọn Số Này</button>`;
 
-                        tbody.innerHTML += `
+                        tbody.insertAdjacentHTML('beforeend', `
                             <tr>
                                 <td><b class="text-main">${d.user}</b></td>
                                 <td class="text-center"><b style="color: #ec4899; font-size: 20px;">${d.number}</b></td>
@@ -4047,7 +4401,7 @@ const QVis = {
                                 <td class="text-center">${statusHtml}</td>
                                 <td class="text-right flex-col">${btnHtml} ${forceBtn}</td>
                             </tr>
-                        `;
+                        `);
                     });
                 });
 
@@ -4080,12 +4434,12 @@ const QVis = {
                                 ? d.winners.map(w => `<span class="badge badge-online"><i class="fa-solid fa-user mr-1"></i> ${w}</span>`).join(' ')
                                 : `<span class="text-muted italic">Không có người trúng</span>`;
                             
-                            if(tbody) tbody.innerHTML += `
+                            if(tbody) tbody.insertAdjacentHTML('beforeend', `
                             <tr>
                                 <td class="text-center"><b style="color: #ec4899; font-size: 20px;">${d.number.toString().padStart(2, '0')}</b></td>
                                 <td>${winnersHtml}</td>
                                 <td class="text-right text-muted text-sm">${timeStr}</td>
-                            </tr>`;
+                            </tr>`);
                         });
                     }
                 });
@@ -4104,7 +4458,7 @@ const QVis = {
                         const timeStr = new Date(d.timestamp).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
                         const remainStr = d.remain !== undefined ? `<span class="badge badge-offline" style="font-size: 13px; color: var(--color-warning); font-weight: bold;">${d.remain}</span>` : `<span class="text-muted text-xs">--</span>`;
                         
-                        if(tbodyWheel) tbodyWheel.innerHTML += `<tr><td><b class="text-main">${d.userId}</b></td><td><span class="text-warning font-bold">${d.result}</span></td><td class="text-center">${remainStr}</td><td class="text-right text-muted text-sm">${timeStr}</td></tr>`;
+                        if(tbodyWheel) tbodyWheel.insertAdjacentHTML('beforeend', `<tr><td><b class="text-main">${d.userId}</b></td><td><span class="text-warning font-bold">${d.result}</span></td><td class="text-center">${remainStr}</td><td class="text-right text-muted text-sm">${timeStr}</td></tr>`);
                     });
                 });
 
@@ -4122,7 +4476,7 @@ const QVis = {
                         const timeStr = new Date(d.timestamp).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
                         const remainStr = d.remain !== undefined ? `<span class="badge badge-offline" style="font-size: 13px; color: var(--color-danger); font-weight: bold;">${d.remain}</span>` : `<span class="text-muted text-xs">--</span>`;
 
-                        if(tbodyTT) tbodyTT.innerHTML += `<tr><td><b class="text-main">${d.userId}</b></td><td><span class="text-danger font-bold">${d.result}</span></td><td class="text-center">${remainStr}</td><td class="text-right text-muted text-sm">${timeStr}</td></tr>`;
+                        if(tbodyTT) tbodyTT.insertAdjacentHTML('beforeend', `<tr><td><b class="text-main">${d.userId}</b></td><td><span class="text-danger font-bold">${d.result}</span></td><td class="text-center">${remainStr}</td><td class="text-right text-muted text-sm">${timeStr}</td></tr>`);
                     });
                 });
 
@@ -4147,7 +4501,7 @@ const QVis = {
                     if(snap.empty) { tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Chưa có ai sử dụng mã mời.</td></tr>`; return; }
                     snap.forEach(doc => {
                         const d = doc.data(); const timeStr = new Date(d.timestamp).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
-                        tbody.innerHTML += `<tr><td><b class="text-main">${d.invitee}</b></td><td><b class="text-warning">${d.inviter}</b></td><td class="text-center"><span class="badge badge-danger">+${d.rewardAmount} Vé</span></td><td class="text-right text-muted text-sm">${timeStr}</td></tr>`;
+                        tbody.insertAdjacentHTML('beforeend', `<tr><td><b class="text-main">${d.invitee}</b></td><td><b class="text-warning">${d.inviter}</b></td><td class="text-center"><span class="badge badge-danger">+${d.rewardAmount} Vé</span></td><td class="text-right text-muted text-sm">${timeStr}</td></tr>`);
                     });
                 });
 
@@ -4156,7 +4510,7 @@ const QVis = {
                     if(snap.empty) { listRender.innerHTML = `<div class="card p-10 text-center border-strong bg-elevated mb-0"><h4 class="text-muted font-normal m-0">Hệ thống chưa có bản tin nào được phát hành.</h4></div>`; return; }
                     snap.forEach(doc => {
                         const d = doc.data(); const timeFmt = new Date(d.time).toLocaleString('vi-VN');
-                        listRender.innerHTML += `<div class="card mb-0 p-6 border-l-4 border-info" style="border-left: 4px solid var(--color-info);"><div class="flex justify-between items-start mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-3"><div class="flex-center rounded-full bg-info-bg text-info" style="width: 36px; height: 36px; background: var(--color-info-bg); color: var(--color-info); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-bullhorn"></i></div><div class="flex-col"><span class="text-xs font-bold text-muted uppercase tracking-wide">THÔNG BÁO TỪ HỆ THỐNG</span><span class="text-xs text-muted"><i class="fa-regular fa-clock mr-1"></i> Phát hành: ${timeFmt}</span></div></div><div class="flex gap-2"><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px;" onclick="AdminActions.openNewsEditor('${doc.id}', '${encodeURIComponent(d.content)}')" title="Chỉnh Sửa"><i class="fa-solid fa-pen"></i></button><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px; color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('news', '${doc.id}', 'Bạn có chắc chắn muốn gỡ bỏ bản tin này khỏi máy chủ?')" title="Xóa Bản Tin"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="text-main" style="font-size: 15px; line-height: 1.7; white-space: pre-wrap;">${d.content}</div></div>`;
+                        listRender.insertAdjacentHTML('beforeend', `<div class="card mb-0 p-6 border-l-4 border-info" style="border-left: 4px solid var(--color-info);"><div class="flex justify-between items-start mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-3"><div class="flex-center rounded-full bg-info-bg text-info" style="width: 36px; height: 36px; background: var(--color-info-bg); color: var(--color-info); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-bullhorn"></i></div><div class="flex-col"><span class="text-xs font-bold text-muted uppercase tracking-wide">THÔNG BÁO TỪ HỆ THỐNG</span><span class="text-xs text-muted"><i class="fa-regular fa-clock mr-1"></i> Phát hành: ${timeFmt}</span></div></div><div class="flex gap-2"><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px;" onclick="AdminActions.openNewsEditor('${doc.id}', '${encodeURIComponent(d.content)}')" title="Chỉnh Sửa"><i class="fa-solid fa-pen"></i></button><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px; color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('news', '${doc.id}', 'Bạn có chắc chắn muốn gỡ bỏ bản tin này khỏi máy chủ?')" title="Xóa Bản Tin"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="text-main" style="font-size: 15px; line-height: 1.7; white-space: pre-wrap;">${d.content}</div></div>`);
                     });
                 });
             }
@@ -4416,6 +4770,8 @@ const QVis = {
                 const configBox = document.getElementById('maintenance-config-box');
                 if(isEnabled) {
                     configBox.style.display = 'block';
+                    // Bật là có hiệu lực ngay: user đang online bị chuyển sang trang bảo trì (baotri.html)
+                    AdminActions.saveMaintenanceConfig(true);
                 } else {
                     configBox.style.display = 'none';
                     db.collection("settings").doc("maintenance").set({ isEnabled: false }, { merge: true })
@@ -4424,7 +4780,7 @@ const QVis = {
                 }
             },
 
-            saveMaintenanceConfig: () => {
+            saveMaintenanceConfig: (fromToggle) => {
                 const isEnabled = document.getElementById('cfg-mt-toggle').checked;
                 const message = document.getElementById('cfg-mt-message').value.trim();
                 const endDate = document.getElementById('cfg-mt-end-date').value;
@@ -4438,9 +4794,9 @@ const QVis = {
                     updatedAt: Date.now()
                 }, { merge: true })
                 .then(() => {
-                    Utils.toast("Đã BẬT chế độ bảo trì hệ thống!", "success");
+                    Utils.toast(fromToggle === true ? "Đã BẬT bảo trì! Thành viên đang được chuyển sang trang bảo trì." : "Đã lưu cấu hình bảo trì!", "success");
                 })
-                .catch(err => Utils.toast("Lỗi lưu cấu hình bảo trì.", "error"));
+                .catch(err => { Utils.toast("Lỗi lưu cấu hình bảo trì.", "error"); if (fromToggle === true) { document.getElementById('cfg-mt-toggle').checked = false; document.getElementById('maintenance-config-box').style.display = 'none'; } });
             },
 
             saveAccountConfig: () => {
@@ -4840,6 +5196,137 @@ saveRegistrationConfig: () => {
                   .then(() => Utils.toast(`Đã cập nhật mức thưởng: +${reward} vé cho mỗi lượt mời!`, "success")).catch(err => Utils.toast("Lỗi cấu hình CSDL", "error"));
             },
 
+            toggleLuckyLive: (checkbox) => {
+                const isLive = checkbox.checked;
+                const data = isLive ? { isLive: true, startedAt: Date.now() } : { isLive: false, endedAt: Date.now() };
+                db.collection("settings").doc("lucky_live").set(data, { merge: true })
+                  .then(() => Utils.toast(isLive ? "Đã BẬT phát trực tiếp! Thành viên đang nhận thông báo." : "Đã TẮT phát trực tiếp.", "success"))
+                  .catch(err => { Utils.toast("Lỗi lưu cấu hình", "error"); checkbox.checked = !isLive; });
+            },
+
+            /* ===== Lịch quay nhiều lượt ===== */
+            lnDraft: null, lnDirty: false, lnPresets: {}, lnClearArm: false,
+
+            lnFromServer: () => {
+                const pre = AdminActions.lnPresets || {};
+                const rows = LuckySchedule.all().map(r => {
+                    const t = new Date(r.at), p = n => String(n).padStart(2, '0');
+                    return { id: r.id, date: `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`, time: `${p(t.getHours())}:${p(t.getMinutes())}`,
+                             preset: pre[r.id] != null ? String(pre[r.id]) : '', at: r.at, label: r.label, done: !!r.done, missed: !!r.missed, number: r.number, saved: true };
+                });
+                if (!rows.length) for (let i = 0; i < 4; i++) rows.push(AdminActions.lnBlank());   // mặc định Lượt 1, 2, 3, 4
+                AdminActions.lnDraft = rows; AdminActions.lnDirty = false;
+                AdminActions.renderLuckyRounds();
+            },
+            lnBlank: () => ({ id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date: '', time: '', preset: '', done: false, saved: false }),
+            lnSetDirty: (v) => { AdminActions.lnDirty = v; const el = document.getElementById('ln-rounds-dirty'); if (el) el.style.display = v ? 'inline' : 'none'; },
+
+            addLuckyRound: () => {
+                if (!AdminActions.lnDraft) AdminActions.lnFromServer();
+                if (AdminActions.lnDraft.length >= 20) return Utils.toast("Tối đa 20 lượt.", "warning");
+                AdminActions.lnDraft.push(AdminActions.lnBlank()); AdminActions.lnSetDirty(true); AdminActions.renderLuckyRounds();
+            },
+            removeLuckyRound: (id) => {
+                AdminActions.lnDraft = AdminActions.lnDraft.filter(r => r.id !== id); AdminActions.lnSetDirty(true); AdminActions.renderLuckyRounds();
+            },
+            lnInput: (id, field, el) => {
+                const r = (AdminActions.lnDraft || []).find(x => x.id === id); if (!r) return;
+                r[field] = el.value; AdminActions.lnSetDirty(true); AdminActions.renderLuckySchedule();
+            },
+
+            renderLuckyRounds: () => {
+                const tb = document.getElementById('ln-rounds-body'); if (!tb || !AdminActions.lnDraft) return;
+                const esc = v => String(v == null ? '' : v).replace(/"/g, '&quot;');
+                tb.innerHTML = AdminActions.lnDraft.map((r, i) => {
+                    const dis = r.done ? 'disabled' : '';
+                    return `<tr class="ln-r-row${r.done ? ' done' : ''}">
+                        <td><span class="ln-r-label">${r.done && r.label ? r.label : 'Lượt ' + (i + 1)}</span></td>
+                        <td><input type="date" class="form-control ln-r-date" value="${esc(r.date)}" ${dis} onchange="AdminActions.lnInput('${r.id}','date',this)"></td>
+                        <td><input type="time" class="form-control ln-r-time" value="${esc(r.time)}" ${dis} onchange="AdminActions.lnInput('${r.id}','time',this)"></td>
+                        <td class="text-center"><input type="number" min="1" max="100" placeholder="Ngẫu nhiên" class="form-control ln-r-num" value="${esc(r.preset)}" ${dis} oninput="AdminActions.lnInput('${r.id}','preset',this)"></td>
+                        <td><span class="ln-r-st" id="ln-r-st-${r.id}"></span></td>
+                        <td class="text-right">${r.done ? '' : `<button class="btn-icon" style="color: var(--color-danger);" title="Xóa lượt" onclick="AdminActions.removeLuckyRound('${r.id}')"><i class="fa-solid fa-trash"></i></button>`}</td>
+                    </tr>`;
+                }).join('') || `<tr><td colspan="6" class="text-center text-muted py-6">Chưa có lượt nào. Bấm "Thêm Lượt".</td></tr>`;
+                AdminActions.renderLuckySchedule();
+            },
+
+            // Cập nhật mỗi giây: trạng thái từng lượt + tóm tắt (không vẽ lại ô nhập để không mất con trỏ)
+            renderLuckySchedule: () => {
+                const now = Date.now(), all = LuckySchedule.all(), byId = {};
+                all.forEach(r => byId[r.id] = r);
+                (AdminActions.lnDraft || []).forEach(r => {
+                    const el = document.getElementById('ln-r-st-' + r.id); if (!el) return;
+                    const sv = byId[r.id];
+                    if (!sv) { el.innerHTML = (r.date && r.time) ? '<span style="color: var(--color-warning);">Chưa lưu</span>' : '<span class="text-muted">Chưa đặt giờ</span>'; return; }
+                    if (sv.done && sv.missed) el.innerHTML = '<span style="color: var(--color-danger);">⚠ Bỏ qua (không ai online)</span>';
+                    else if (sv.done) el.innerHTML = `<span style="color: var(--color-success);">✅ Đã quay: <b style="color:#ec4899; font-size: 16px;">${String(sv.number).padStart(2, '0')}</b></span>`;
+                    else if (sv.at > now) el.innerHTML = `<span style="color: var(--color-warning);">⏰ Còn <b style="font-family: var(--font-family-mono);">${LuckySchedule.fmtLeft(sv.at - now)}</b></span>`;
+                    else el.innerHTML = '<span style="color: var(--color-info, #38bdf8);">⏳ Đang quay...</span>';
+                });
+                const sum = document.getElementById('ln-sched-summary'); if (!sum) return;
+                if (!all.length) { sum.innerText = 'Chưa có lịch quay.'; sum.style.color = ''; return; }
+                const done = all.filter(r => r.done).length, nx = LuckySchedule.get();
+                sum.innerHTML = `${all.length} lượt · đã quay ${done}` + (nx ? ` · kế tiếp: <b>${nx.label}</b> lúc ${LuckySchedule.fmtTime(nx.at)} (còn ${LuckySchedule.fmtLeft(nx.at - now)})` : ' · đã quay hết');
+                sum.style.color = nx ? 'var(--color-warning)' : 'var(--color-success)';
+            },
+
+            saveLuckyRounds: () => {
+                const now = Date.now(), rows = [];
+                for (const r of (AdminActions.lnDraft || [])) {
+                    if (r.done) { rows.push(Object.assign({}, r)); continue; }
+                    if (!r.date && !r.time) continue;                              // dòng trống: bỏ qua
+                    if (!r.date || !r.time) return Utils.toast("Mỗi lượt cần đủ ngày và giờ quay.", "warning");
+                    const at = new Date(r.date + 'T' + r.time).getTime();
+                    if (isNaN(at)) return Utils.toast("Ngày giờ không hợp lệ.", "warning");
+                    if (at <= now + 10000) return Utils.toast(`Lượt lúc ${r.time} ${r.date.split('-').reverse().join('/')} đã qua, hãy chọn giờ ở tương lai.`, "warning");
+                    const pv = String(r.preset || '').trim();
+                    if (pv && !(/^\d+$/.test(pv) && +pv >= 1 && +pv <= 100)) return Utils.toast("Số chốt sẵn phải từ 1 đến 100 (để trống = ngẫu nhiên).", "warning");
+                    rows.push(Object.assign({}, r, { at: at, preset: pv }));
+                }
+                rows.sort((a, b) => a.at - b.at);
+                for (let i = 1; i < rows.length; i++) if (rows[i].at - rows[i - 1].at < 60000) return Utils.toast("Các lượt phải cách nhau ít nhất 1 phút.", "warning");
+                const roundsMap = {}, presets = {};
+                rows.forEach((r, i) => {
+                    const label = 'Lượt ' + (i + 1);
+                    roundsMap[r.id] = r.done
+                        ? { label: r.label || label, order: i + 1, at: r.at, done: true, missed: !!r.missed, number: r.number != null ? r.number : null }
+                        : { label: label, order: i + 1, at: r.at, done: false, missed: false, number: null };
+                    if (!r.done && r.preset) presets[r.id] = parseInt(r.preset, 10);
+                });
+                const b = db.batch();
+                b.set(db.collection("settings").doc("lucky_live"), { rounds: roundsMap }, { mergeFields: ['rounds'] });
+                b.set(db.collection("settings").doc("lucky_round_presets"), { byId: presets, updatedAt: now });
+                b.commit().then(() => {
+                    AdminActions.lnSetDirty(false);
+                    const pend = rows.filter(r => !r.done).length;
+                    Utils.toast(pend ? `Đã lưu lịch ${rows.length} lượt quay! Thành viên đang thấy đếm ngược.` : "Đã lưu lịch quay.", "success");
+                }).catch(err => Utils.toast("Lỗi lưu lịch quay: " + err.message, "error"));
+            },
+
+            clearLuckyRounds: () => {
+                const btn = document.getElementById('btn-ln-rounds-clear');
+                if (!AdminActions.lnClearArm) {
+                    AdminActions.lnClearArm = true; btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-2"></i> Bấm lần nữa để xóa';
+                    setTimeout(() => { AdminActions.lnClearArm = false; btn.innerHTML = '<i class="fa-solid fa-trash mr-2"></i> Xóa Toàn Bộ Lịch'; }, 4000);
+                    return;
+                }
+                AdminActions.lnClearArm = false; btn.innerHTML = '<i class="fa-solid fa-trash mr-2"></i> Xóa Toàn Bộ Lịch';
+                const b = db.batch();
+                b.set(db.collection("settings").doc("lucky_live"), { rounds: {} }, { mergeFields: ['rounds'] });
+                b.set(db.collection("settings").doc("lucky_round_presets"), { byId: {}, updatedAt: Date.now() });
+                b.commit().then(() => { AdminActions.lnDirty = false; Utils.toast("Đã xóa toàn bộ lịch quay.", "success"); })
+                  .catch(err => Utils.toast("Lỗi xóa lịch: " + err.message, "error"));
+            },
+
+            startLuckyLive: () => {
+                const w = window.open('quays.html?host=1', '_blank');   // mở trước để không bị chặn popup
+                db.collection("settings").doc("lucky_live").set({ isLive: true, startedAt: Date.now() }, { merge: true })
+                  .then(() => Utils.toast("Đã mở quay trực tiếp! Thành viên đang nhận thông báo.", "success"))
+                  .catch(err => Utils.toast("Lỗi bật phát trực tiếp: " + err.message, "error"));
+                if (!w) Utils.toast("Trình duyệt chặn cửa sổ mới, hãy bấm nút Mở Màn Hình Quay.", "warning");
+            },
+
             grantLuckyNumberEdit: (user) => {
                 db.collection("lucky_numbers").doc(user).update({ canEdit: true }).then(() => Utils.toast(`Đã cấp phép sửa số cho thành viên: ${user}`, "success")).catch(e => Utils.toast("Lỗi cấp phép trên CSDL.", "error"));
             },
@@ -5038,7 +5525,7 @@ saveRegistrationConfig: () => {
 
                         let balanceClass = log.type === 'spins' ? 'text-warning' : (log.type === 'tickets' ? 'text-danger' : 'text-success');
 
-                        tbody.innerHTML += `
+                        tbody.insertAdjacentHTML('beforeend', `
                             <tr>
                                 <td class="text-muted font-bold text-sm" style="white-space: nowrap;">${timeStr}</td>
                                 <td>${typeBadge}</td>
@@ -5048,7 +5535,7 @@ saveRegistrationConfig: () => {
                                 </td>
                                 <td class="text-main">${log.reason}</td>
                             </tr>
-                        `;
+                        `);
                     });
 
                 } catch (err) {
@@ -5155,6 +5642,111 @@ exportAttendanceExcel: () => {
             observer.observe(document.body, { childList: true, subtree: true });
         });
         
+    </script>
+    <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
+    <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>
+        <div class="qd-net-card">
+            <span class="qd-net-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="qd-off" d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path class="qd-off" d="M19 12.9a10 10 0 0 0-2.3-1.7"/><path class="qd-on" d="M19 12.9a10 10 0 0 0-14 0" style="display:none"/><path d="M2 9.3a15 15 0 0 1 4.2-2.8"/><path class="qd-off" d="M22 9.3A15 15 0 0 0 10.7 5"/><path class="qd-on" d="M22 9.3a15 15 0 0 0-20 0" style="display:none"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+            </span>
+            <span class="qd-net-txt">
+                <b id="qd-net-title">Không có kết nối Internet</b>
+                <small id="qd-net-sub">Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.</small>
+            </span>
+            <button type="button" class="qd-net-btn" id="qd-net-retry">Thử lại</button>
+        </div>
+    </div>
+    <style>
+        .qd-net { position: fixed; left: 0; right: 0; top: 0; z-index: 2147483000; display: flex; justify-content: center; padding: max(10px, env(safe-area-inset-top)) 12px 0; pointer-events: none; }
+        .qd-net[hidden] { display: none !important; }
+        .qd-net-card { pointer-events: auto; display: flex; align-items: center; gap: 12px; width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 16px; box-sizing: border-box;
+            font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; text-align: left; color: #fff;
+            background: linear-gradient(135deg, #b3121b, #7a0000); border: 2px solid #ffd95a; box-shadow: 0 12px 30px rgba(0,0,0,.45); animation: qdNetIn .35s cubic-bezier(.2, 1.4, .4, 1); }
+        .qd-net-card * { text-shadow: none !important; box-sizing: border-box; }
+        .qd-net-ico { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .qd-net-txt b { font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; }
+        .qd-net-txt small { font-size: 12.5px; font-weight: 600; color: #fef08a; line-height: 1.4; }
+        .qd-net-btn { flex: 0 0 auto; padding: 9px 14px; border-radius: 999px; border: none; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-btn:disabled { opacity: .7; cursor: wait; }
+        .qd-net.ok .qd-net-card { background: linear-gradient(135deg, #059669, #065f46); border-color: #a7f3d0; }
+        .qd-net.ok .qd-net-ico { color: #065f46; background: #d1fae5; }
+        .qd-net.ok .qd-net-btn, .qd-net.ok .qd-off { display: none; }
+        .qd-net.ok .qd-on { display: inline !important; }
+        .qd-net:not(.ok) .qd-net-ico { animation: qdNetPulse 1.6s ease-in-out infinite; }
+        @keyframes qdNetIn { from { transform: translateY(-120%); opacity: 0; } }
+        @keyframes qdNetPulse { 50% { transform: scale(.88); } }
+        @media (max-width: 420px) { .qd-net-card { gap: 10px; padding: 10px 12px; } .qd-net-txt b { font-size: 14px; } .qd-net-txt small { font-size: 12px; } .qd-net-btn { padding: 8px 11px; } }
+        @media (prefers-reduced-motion: reduce) { .qd-net-card, .qd-net-ico { animation: none !important; } }
+    </style>
+    <script>
+    /* Phát hiện mất mạng: sự kiện online/offline của trình duyệt + kiểm tra thật định kỳ
+       (navigator.onLine có thể báo "có mạng" khi Wi-Fi đã kết nối nhưng không ra được Internet) */
+    (function () {
+        'use strict';
+        if (window.__qdNetGuard) return; window.__qdNetGuard = true;
+        var box = document.getElementById('qd-net'), title = document.getElementById('qd-net-title'), sub = document.getElementById('qd-net-sub'), btn = document.getElementById('qd-net-retry');
+        var PROBES = ['https://www.gstatic.com/generate_204', 'https://firestore.googleapis.com/', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
+        var offline = false, fails = 0, okTimer = null, checking = false;
+
+        function probe(url) {
+            return new Promise(function (resolve, reject) {
+                var ctrl = window.AbortController ? new AbortController() : null;
+                var t = setTimeout(function () { if (ctrl) ctrl.abort(); reject(new Error('timeout')); }, 6000);
+                fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { mode: 'no-cors', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+                    .then(function () { clearTimeout(t); resolve(true); }, function (e) { clearTimeout(t); reject(e); });
+            });
+        }
+        function anyOk() {   // chỉ cần 1 máy chủ phản hồi là có mạng
+            return new Promise(function (resolve) {
+                var left = PROBES.length;
+                PROBES.forEach(function (u) { probe(u).then(function () { resolve(true); }, function () { if (--left === 0) resolve(false); }); });
+            });
+        }
+        function show() {
+            if (offline) return; offline = true;
+            clearTimeout(okTimer);
+            box.classList.remove('ok');
+            title.textContent = 'Không có kết nối Internet';
+            sub.textContent = 'Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.';
+            box.hidden = false;
+        }
+        function hide() {
+            if (!offline) return; offline = false;
+            box.classList.add('ok');
+            title.textContent = 'Đã kết nối lại Internet';
+            sub.textContent = 'Dữ liệu đang được đồng bộ lại.';
+            clearTimeout(okTimer);
+            okTimer = setTimeout(function () { box.hidden = true; box.classList.remove('ok'); }, 2500);
+        }
+        function check() {
+            if (checking) return; checking = true;
+            if (navigator.onLine === false) { checking = false; fails = 2; show(); return; }
+            anyOk().then(function (ok) {
+                checking = false;
+                if (ok) { fails = 0; hide(); }
+                else if (++fails >= 2 || offline) show();   // lỗi 2 lần liên tiếp mới báo, tránh báo nhầm
+                else setTimeout(check, 3000);
+            });
+        }
+
+        window.addEventListener('offline', function () { fails = 2; show(); });
+        window.addEventListener('online', function () { setTimeout(check, 500); });
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+        btn.addEventListener('click', function () {
+            btn.disabled = true; btn.textContent = 'Đang thử...';
+            sub.textContent = 'Đang kiểm tra kết nối...';
+            fails = 1; checking = false;
+            check();
+            setTimeout(function () {
+                btn.disabled = false; btn.textContent = 'Thử lại';
+                if (offline) sub.textContent = 'Vẫn chưa có mạng. Vui lòng kiểm tra Wi-Fi hoặc 4G.';
+            }, 2500);
+        });
+        // Kiểm tra định kỳ: mất mạng thì 5 giây/lần để báo có mạng lại nhanh; bình thường 20 giây/lần
+        (function loop() { setTimeout(function () { if (!document.hidden || offline) check(); loop(); }, offline ? 5000 : 20000); })();
+        if (navigator.onLine === false) show();
+    })();
     </script>
 </body>
 </html>

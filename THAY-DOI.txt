@@ -1,0 +1,47 @@
+QD ELITE - NÂNG CẤP MƯỢT MÀ (21/10/2026)
+=========================================
+Cách cập nhật: chép đè toàn bộ file trong gói này lên host (giữ nguyên tên file).
+
+ĐO TRÊN TRÌNH DUYỆT (Chromium, màn hình điện thoại 412px, khi trang đứng yên)
+Thời gian luồng chính bận mỗi giây (càng thấp càng mượt, càng nhiều chỗ cho 120fps):
+  user.html     232 ms -> 21 ms
+  index.html    211 ms -> 17 ms
+  quays.html    264 ms ->  7 ms
+  tranht.html    69 ms ->  2 ms
+  qt.html        51 ms ->  1 ms
+  admin.html     17 ms -> 17 ms (vốn đã nhẹ)
+  baotri.html   27 fps -> 60 fps (giới hạn của máy đo)
+Dựng bảng admin 1000 dòng: 6,7 giây đơ -> 0,03 giây.
+Video hihi.mp4: 9,2 MB -> 1,6 MB (640px, hình như cũ ở khung hiển thị). Nhạc nhac.mp3: 9,2 MB -> 3,6 MB (128 kbps).
+
+ĐÃ SỬA
+- Lớp QD Smooth dùng chung (chèn sẵn vào mọi trang):
+  + Bỏ qua ghi chữ trùng lặp (đồng hồ, đếm ngược... ghi mỗi giây)
+  + Tự dừng hiệu ứng lặp khi khuất màn hình, dừng video nền khi không thấy
+  + Máy yếu / đo thấy rớt khung -> tự bật chế độ nhẹ (tắt làm mờ kính, hạt nền, hoa rơi)
+    Ép chế độ trong Console: localStorage.setItem('qd_fx','full') hoặc 'lite' (xóa = tự động)
+- user/index: hoa mai rơi không còn tạo/xóa phần tử mỗi 0,3s; hạt nền vẽ trong Web Worker và
+  chạy theo thời gian thực (60/90/120Hz cùng tốc độ); nhịp sáng nút bấm chạy trên GPU;
+  quầng sáng blur(120px) thay bằng bóng vẽ 1 lần; điểm danh không dựng lại nút mỗi giây;
+  chat không cộng dồn listener bàn phím mỗi lần mở; nhạc nền chỉ tải khi bấm phát.
+- admin/user/index/qt: dựng bảng/danh sách bằng insertAdjacentHTML (hết đơ khi nhiều dòng).
+- tranht/qt/quays: nền cố định chuyển sang lớp GPU (hết vẽ lại khi cuộn), nhịp sáng con dấu /
+  bộ đếm / chấm LIVE / vệt sáng chạy bằng transform + opacity.
+- baotri: bỏ blur(150px) và làm mờ kính thừa (nguyên nhân tụt còn ~27fps).
+- sw.js: lưu sẵn Font Awesome, Firebase SDK, font, ảnh -> mở lại trang gần như tức thì;
+  HTML luôn lấy bản mới, mất mạng vẫn mở được trang đã xem. Giữ nguyên xử lý bấm thông báo.
+
+CẬP NHẬT 2 - RÚT NGẮN THỜI GIAN CHỜ KHI RÚT / QUAY / ĐỔI
+Đo với mạng trễ 250 ms mỗi lượt gọi máy chủ (tương đương 4G thường):
+                          Bấm -> thấy phản hồi      Bấm -> có kết quả
+  Rút lì xì (tranht)       1,04 s -> 0,03 s          2,6 s -> 1,8 s
+  Vòng quay (qt)           1,02 s -> tức thì         6,0 s -> 3,9 s
+  Lì xì hằng ngày (user)   tức thì (như cũ)          1,6 s -> 1,2 s
+  Đổi điểm (user)          tức thì (như cũ)          1,3 s -> 0,5 s
+- Các giao dịch đọc dữ liệu song song thay vì lần lượt (3-4 lượt đi-về máy chủ -> 1 lượt).
+- Bỏ đọc tài liệu dùng chung (kho giải, ngân sách ngày) khi không cần: chọn giải theo số liệu
+  trực tiếp, chỉ kiểm tra lại kho khi trúng giải có giới hạn số lượng -> nhiều người rút cùng lúc
+  không còn phải chờ thử lại vì tranh chấp. Giải đã hết vẫn KHÔNG bao giờ bị trao.
+- Vòng quay quay ngay khi bấm, giảm tốc êm và dừng đúng ô trúng khi có kết quả (bỏ chờ cứng 5 giây);
+  tiếng "tách" khớp đúng ô đi qua.
+- Bao lì xì rung ngay khi chạm; kết quả hiện sau 1,15 giây thay vì 1,5 giây.

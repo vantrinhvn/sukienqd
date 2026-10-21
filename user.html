@@ -8995,6 +8995,192 @@ tr:hover td { background: #f8fafc; }
 }
 
 </style>
+
+    <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
+    <style id="qd-smooth-css">
+/* ===== QD SMOOTH (dùng chung) ===== */
+.qd-paused, .qd-paused::before, .qd-paused::after, .qd-paused-px::before, .qd-paused-px::after { animation-play-state: paused !important; }
+html.qd-lite *, html.qd-lite *::before, html.qd-lite *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html.qd-lite .qd-fx { display: none !important; }
+    </style>
+    <script id="qd-smooth-js">
+/* ===== QD SMOOTH: lớp tối ưu mượt mà dùng chung mọi trang =====
+   - Giữ luồng chính (main thread) rảnh: hiệu ứng lặp chạy trên GPU, ghi DOM trùng lặp bị bỏ qua
+   - Hiệu ứng nằm ngoài màn hình / video nền khuất -> tạm dừng, hiện lại -> chạy tiếp
+   - Máy yếu hoặc đo thấy rớt khung hình -> tự bật chế độ nhẹ (html.qd-lite)
+   Ép chế độ: localStorage.setItem('qd_fx', 'full' | 'lite' | 'auto') */
+(function () {
+    'use strict';
+    if (window.QDSmooth) return;
+    var W = window, d = document, html = d.documentElement, nav = navigator;
+    var Q = W.QDSmooth = { lite: false, _cb: [] };
+    function store(k, v) { try { if (v === undefined) return (k === 'ss' ? sessionStorage : localStorage).getItem('qd_fx'); (k === 'ss' ? sessionStorage : localStorage).setItem('qd_fx', v); } catch (e) { return null; } }
+    var pref = store('ls');
+
+    /* ---------- 1. Chế độ nhẹ ---------- */
+    Q.onLite = function (fn) { Q._cb.push(fn); if (Q.lite) { try { fn(true); } catch (e) {} } };
+    Q.setLite = function (on) {
+        on = !!on; if (Q.lite === on) return;
+        Q.lite = on; html.classList.toggle('qd-lite', on); store('ss', on ? 'lite' : 'full');
+        Q._cb.forEach(function (fn) { try { fn(on); } catch (e) {} });
+    };
+    var reduce = W.matchMedia && W.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var conn = nav.connection || {};
+    var weak = (nav.deviceMemory && nav.deviceMemory <= 2) || (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) || conn.saveData === true;
+    if (pref !== 'full' && (pref === 'lite' || store('ss') === 'lite' || weak || reduce)) Q.setLite(true);
+
+    /* Đo khung hình thật: 2 lần đo liên tiếp rớt > 22% khung -> bật chế độ nhẹ cho phiên này */
+    function monitor() {
+        if (pref === 'full' || pref === 'lite' || Q.lite || !W.requestAnimationFrame) return;
+        var strikes = 0, runs = 0;
+        function sample() {
+            if (Q.lite || runs > 40) return;
+            if (d.hidden) return setTimeout(sample, 4000);
+            runs++;
+            var t = [], last = 0, end = performance.now() + 2000;
+            requestAnimationFrame(function step(now) {
+                if (d.hidden) return setTimeout(sample, 4000);
+                if (last) t.push(now - last); last = now;
+                if (now < end) return requestAnimationFrame(step);
+                if (t.length < 20) return setTimeout(sample, 8000);
+                var s = t.slice().sort(function (a, b) { return a - b; });
+                var vsync = Math.max(6.5, s[Math.floor(s.length * 0.1)]);   // ~8.3ms ở màn 120Hz, ~16.7ms ở 60Hz
+                var bad = 0; t.forEach(function (x) { if (x > vsync * 1.8) bad++; });
+                strikes = bad / t.length > 0.22 ? strikes + 1 : 0;
+                if (strikes >= 2) return Q.setLite(true);
+                setTimeout(sample, strikes ? 1500 : 12000);
+            });
+        }
+        setTimeout(sample, 5000);
+    }
+
+    /* ---------- 2. Bỏ qua ghi chữ trùng lặp (đồng hồ, bộ đếm... ghi mỗi giây) ---------- */
+    function guardText(proto, prop, noNewline) {
+        var desc = Object.getOwnPropertyDescriptor(proto, prop);
+        if (!desc || !desc.set || !desc.get || desc.set.__qd) return;
+        var set = function (v) {
+            var c = this.firstChild, s = v == null ? '' : String(v);
+            if (c ? (c === this.lastChild && c.nodeType === 3 && c.data === s && !(noNewline && /[\r\n]/.test(s))) : (s === '' && this.nodeType === 1)) return;
+            desc.set.call(this, v);
+        };
+        set.__qd = true;
+        Object.defineProperty(proto, prop, { configurable: true, enumerable: desc.enumerable, get: desc.get, set: set });
+    }
+    try { guardText(Node.prototype, 'textContent'); guardText(HTMLElement.prototype, 'innerText', true); } catch (e) {}
+
+    /* Ghi innerHTML chỉ khi nội dung thay đổi (dùng cho các vòng cập nhật định kỳ) */
+    Q.html = function (el, s) {
+        if (!el) return;
+        s = s == null ? '' : String(s);
+        if (el.__qdH === s && el.__qdF === el.firstChild && el.__qdL === el.lastChild) return;
+        el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
+    };
+
+    /* ---------- Vòng quay: quay NGAY khi bấm, giảm tốc êm vào ô trúng khi máy chủ trả kết quả ----------
+       var s = QDSmooth.spinner(canvas, gocHienTai, { slice: 360 / soO, onTick: fn });
+       s.land(gocDich).then(gocCuoi => ...)   // gocDich: góc cuối mong muốn (mod 360)
+       s.stop().then(gocCuoi => ...)          // lỗi: dừng nhẹ nhàng
+       Tốc độ tính theo thời gian thực -> mượt như nhau ở 60/90/120Hz, tiếng "tách" khớp đúng với ô đi qua. */
+    Q.spinner = function (el, from, opt) {
+        opt = opt || {};
+        var V = opt.vmax || 1.2, ACC = 450, MIN = opt.min || 800, DEC = opt.decel || 2600, slice = opt.slice || 0, onTick = opt.onTick;
+        var t0 = 0, angle = from = +from || 0, target = null, failed = false, phase = 0, tc = 0, ac = 0, D = 0, T = 1, last = null, done;
+        var p = new Promise(function (r) { done = r; });
+        el.style.transition = 'none'; el.style.willChange = 'transform';
+        function put(a) {
+            el.style.transform = 'rotate(' + a + 'deg)';
+            if (slice && onTick) { var i = Math.floor((a - from) / slice); if (i !== last) { if (last !== null) { try { onTick(); } catch (e) {} } last = i; } }
+        }
+        function frame(now) {
+            if (!t0) t0 = now;
+            var t = now - t0;
+            if (phase === 0) {
+                angle = t < ACC ? from + V * t * t / (2 * ACC) : from + V * ACC / 2 + V * (t - ACC);
+                if ((target !== null || failed) && t >= (failed ? 0 : MIN)) {
+                    phase = 1; tc = now; ac = angle;
+                    var v = t < ACC ? V * t / ACC : V;
+                    if (failed) { T = 700; D = v * T / 3; }
+                    else { D = ((target - ac) % 360 + 360) % 360; while (D < V * DEC / 3) D += 360; T = 3 * D / Math.max(v, 0.2); }
+                }
+            }
+            if (phase === 1) {
+                var u = Math.min(1, (now - tc) / T);
+                angle = ac + D * (1 - Math.pow(1 - u, 3));     // giảm tốc kiểu bánh xe thật (ease-out)
+                if (u >= 1) { put(angle); el.style.willChange = ''; return done(angle); }
+            }
+            put(angle); requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+        return { land: function (deg) { target = +deg || 0; return p; }, stop: function () { failed = true; return p; }, done: p };
+    };
+
+    /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
+    var MOVE = /^(transform|translate|rotate|scale|left|top|right|bottom|offset|inset|margin)/;
+    var io = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) { e.target.classList.toggle(e.target.__qdM, !e.isIntersecting); });
+    }, { rootMargin: '120px' }) : null;
+    var seen = new WeakSet(), seenPx = new WeakSet();
+    function moves(a) {   // hiệu ứng tự di chuyển phần tử (hoa rơi...) thì không dừng, tránh kẹt ngoài màn hình
+        try { var k = a.effect.getKeyframes(); for (var i = 0; i < k.length; i++) for (var p in k[i]) if (MOVE.test(p)) return true; } catch (e) { return true; }
+        return false;
+    }
+    function scan() {
+        if (!io || !d.getAnimations || d.hidden) return;
+        var as = d.getAnimations();
+        for (var i = 0; i < as.length; i++) {
+            var ef = as[i].effect, el = ef && ef.target;
+            if (!el || !ef.getTiming || ef.getTiming().iterations !== Infinity) continue;
+            var bag = ef.pseudoElement ? seenPx : seen;
+            if (bag.has(el)) continue;
+            bag.add(el);
+            var own = el.getAnimations ? el.getAnimations() : [], mv = false;
+            for (var j = 0; j < own.length; j++) if (moves(own[j])) { mv = true; break; }
+            if (mv && !ef.pseudoElement) continue;          // chỉ có hiệu ứng di chuyển: để nguyên
+            if (el.__qdM === 'qd-paused') continue;
+            el.__qdM = mv ? 'qd-paused-px' : 'qd-paused';   // có di chuyển: chỉ dừng ::before/::after
+            io.observe(el);
+        }
+    }
+
+    /* ---------- 4. Video nền: dừng khi khuất / ẩn tab, chạy lại khi hiện ---------- */
+    var vio = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+            var v = e.target; v.__qdVis = e.isIntersecting;
+            if (!e.isIntersecting) { if (!v.paused) { v.__qdAuto = true; v.pause(); } }
+            else if (v.__qdAuto) { v.__qdAuto = false; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+        });
+    }, { rootMargin: '80px' }) : null;
+    function watchMedia(root) {
+        var imgs = root.getElementsByTagName ? root.getElementsByTagName('img') : [];
+        for (var i = 0; i < imgs.length; i++) if (!imgs[i].getAttribute('decoding')) imgs[i].decoding = 'async';
+        if (!vio) return;
+        var vs = root.getElementsByTagName ? root.getElementsByTagName('video') : [];
+        for (var j = 0; j < vs.length; j++) {
+            var v = vs[j]; if (v.__qdW || !v.muted && !v.hasAttribute('muted')) continue;
+            v.__qdW = true; vio.observe(v);
+            v.addEventListener('play', function () { var me = this; if (me.__qdVis === false) setTimeout(function () { if (me.__qdVis === false && !me.paused) { me.__qdAuto = true; me.pause(); } }, 0); });
+        }
+    }
+
+    /* ---------- Khởi động ---------- */
+    var scanT = 0;
+    function later() { clearTimeout(scanT); scanT = setTimeout(function () { scan(); }, 400); }
+    function boot() {
+        watchMedia(d);
+        scan(); setInterval(scan, 3000);
+        if (W.MutationObserver) new MutationObserver(function (ms) {
+            for (var i = 0; i < ms.length; i++) for (var j = 0, n = ms[i].addedNodes; j < n.length; j++) {
+                var x = n[j]; if (x.nodeType !== 1) continue;
+                if (x.tagName === 'IMG' || x.tagName === 'VIDEO' || x.firstElementChild) watchMedia(x.tagName === 'IMG' || x.tagName === 'VIDEO' ? x.parentNode || d : x);
+            }
+            later();
+        }).observe(d.body, { childList: true, subtree: true });
+        d.addEventListener('visibilitychange', function () { if (!d.hidden) later(); });
+        monitor();
+    }
+    if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+    </script>
 </head>
 <body>
     <!-- LỒNG ĐÈN TẾT -->
@@ -9003,21 +9189,23 @@ tr:hover td { background: #f8fafc; }
     
     <!-- SCRIPT TẠO HOA MAI RƠI -->
     <script>
-        function createHoaMai() {
-            const hoa = document.createElement('i');
-            hoa.className = 'fa-solid fa-fan hoa-mai'; // Dùng icon quạt/hoa để mô phỏng hoa mai
-            hoa.style.left = Math.random() * 100 + 'vw';
-            hoa.style.animationDuration = Math.random() * 3 + 4 + 's'; // 4s - 7s
-            hoa.style.opacity = Math.random();
-            hoa.style.fontSize = Math.random() * 15 + 10 + 'px'; // 10px - 25px
-            
-            document.body.appendChild(hoa);
-            
-            setTimeout(() => {
-                hoa.remove();
-            }, 7000);
-        }
-        setInterval(createHoaMai, 300);
+        /* Hoa mai rơi: tái sử dụng 1 nhóm phần tử cố định thay vì tạo + xóa DOM mỗi 0,3 giây
+           (giữ nguyên kiểu dáng, mật độ; hết cảnh giật mỗi lần trình duyệt tính lại style toàn trang) */
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            var frag = document.createDocumentFragment();
+            for (var i = 0; i < 18; i++) {
+                var hoa = document.createElement('i'), dur = Math.random() * 3 + 4;   // 4s - 7s
+                hoa.className = 'fa-solid fa-fan hoa-mai qd-fx';
+                hoa.style.left = Math.random() * 100 + 'vw';
+                hoa.style.animationDuration = dur + 's';
+                hoa.style.animationDelay = (-Math.random() * dur) + 's';
+                hoa.style.opacity = Math.random();
+                hoa.style.fontSize = Math.random() * 15 + 10 + 'px'; // 10px - 25px
+                frag.appendChild(hoa);
+            }
+            document.body.appendChild(frag);
+        });
     </script>
 
 
@@ -9540,12 +9728,18 @@ tr:hover td { background: #f8fafc; }
                             </div>
 
                             <div class="hero-video-wrap" aria-hidden="true">
-                                <video id="home-video" class="hero-video" muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback noplaybackrate" tabindex="-1">
+                                <video id="home-video" class="hero-video" muted loop playsinline webkit-playsinline preload="metadata"disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback noplaybackrate" tabindex="-1">
                                     <source src="hihi.mp4" type="video/mp4">
                                 </video>
                             </div>
                         </div>
                         </div>
+
+                        <a class="ln-live-banner" id="ln-live-banner" href="quays.html" data-resume style="display:none;" aria-label="Xem quay số trực tiếp">
+                            <span class="ln-live-dot" aria-hidden="true"></span>
+                            <span class="ln-live-txt"><b id="ln-live-banner-title">Đang quay số trực tiếp!</b><small id="ln-live-banner-sub">Vào xem kết quả Quay Số May Mắn ngay</small></span>
+                            <span class="ln-live-go" id="ln-live-banner-go">Xem ngay ›</span>
+                        </a>
 
                         <div class="lixi-card" id="lixi-card" data-state="ready">
                             <div class="lixi-head">
@@ -9598,6 +9792,15 @@ tr:hover td { background: #f8fafc; }
                             </div>
                             <div class="wheel-tab-stage"><div class="shop-mini" aria-hidden="true"><span>💰</span><span>➜</span><span>🧧</span></div></div>
                             <p class="wheel-msg">Chạm để đổi quà ›</p>
+                        </button>
+
+                        <button type="button" class="wheel-tab rx-tab ln-tab" id="ln-tab" data-state="open" onclick="window.LnTab.open()" aria-label="Mở Quay Số May Mắn" style="font: inherit;">
+                            <div class="wheel-head">
+                                <h3 class="wheel-title"><span aria-hidden="true">🎯</span> Quay Số May Mắn</h3>
+                                <span class="wheel-badge" id="ln-tab-sub">Đang tải...</span>
+                            </div>
+                            <div class="wheel-tab-stage"><div class="ln-mini" aria-hidden="true"><span>?</span><span id="ln-tab-ball">?</span><span>?</span></div></div>
+                            <p class="wheel-msg" id="ln-tab-go">Chạm để chọn số ›</p>
                         </button>
 
                     </div>
@@ -9808,7 +10011,7 @@ tr:hover td { background: #f8fafc; }
         </nav>
     </div>
 
-    <audio id="bg-music" loop>
+    <audio id="bg-music" loop preload="none">
         <source src="nhac.mp3" type="audio/mpeg">
     </audio>
 
@@ -9849,6 +10052,97 @@ tr:hover td { background: #f8fafc; }
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
     <script>
+    window.LuckySchedule = (function () {
+        /* ===== QUAY SỐ THEO GIỜ - NHIỀU LƯỢT (dùng chung admin.html / user.html / quays.html) =====
+           settings/lucky_live.rounds = { r1: { label: 'Lượt 1', order: 1, at: ms, done, missed, doneAt, number }, r2: {...} }
+           settings/lucky_round_presets.byId = { r1: 27, ... }  (số Admin chốt sẵn cho từng lượt, để trống = ngẫu nhiên)
+           Tới giờ một lượt, trang nào đang mở cũng thử "nhận" lượt đó bằng transaction -> chỉ 1 máy quay.
+           Kết quả ghi vào rollId/rollNumber/rollLabel + bật isLive -> mọi màn hình quays.html quay ra cùng một số. */
+        var MISS_MS = 10 * 60 * 1000;   // trễ quá 10 phút (không ai online) -> bỏ lượt
+        var rounds = {}, tried = {}, timer = null, unsub = null, subs = [];
+        function getDb() { return (typeof db !== 'undefined') ? db : null; }
+        function list() {
+            return Object.keys(rounds || {}).map(function (id) { var r = Object.assign({ id: id }, rounds[id]); return r; })
+                .filter(function (r) { return r && r.at; })
+                .sort(function (a, b) { return a.at - b.at; });
+        }
+        function isPending(r) { return r && r.at && !r.done; }
+
+        function claim(id, at) {
+            var d = getDb(); if (!d) return Promise.resolve(null);
+            var ref = d.collection('settings').doc('lucky_live'), preRef = d.collection('settings').doc('lucky_round_presets');
+            return d.runTransaction(function (tx) {
+                return Promise.all([tx.get(ref), tx.get(preRef)]).then(function (res) {
+                    var data = res[0].exists ? res[0].data() : {}, r = (data.rounds || {})[id], now = Date.now();
+                    if (!r || r.done || r.at !== at || now < r.at) return null;
+                    var upd = {}; upd[id] = { done: true, doneAt: now };
+                    if (now - r.at > MISS_MS) { upd[id].missed = true; tx.set(ref, { rounds: upd }, { merge: true }); return null; }
+                    var pre = res[1].exists ? ((res[1].data().byId || {})[id]) : null;
+                    pre = (pre != null && pre !== '') ? parseInt(pre, 10) : null;
+                    var num = (pre >= 1 && pre <= 100) ? pre : (Math.floor(Math.random() * 100) + 1);
+                    upd[id].missed = false; upd[id].number = num;
+                    tx.set(ref, {
+                        isLive: true, startedAt: data.isLive ? (data.startedAt || now) : now,
+                        rollId: now, rollAt: now, rollNumber: num, rollLabel: r.label || null, rollRound: id,
+                        rounds: upd
+                    }, { merge: true });
+                    return { num: num, label: r.label };
+                });
+            }).then(function (r) { if (r) return window.LuckySchedule.logHistory(r.num, 'schedule', r.label); });
+        }
+
+        function tick() {
+            var now = Date.now();
+            list().forEach(function (r) {
+                var key = r.id + '@' + r.at;
+                if (isPending(r) && now >= r.at && !tried[key]) {
+                    tried[key] = true;
+                    claim(r.id, r.at).catch(function (e) { console.warn('LuckySchedule claim', e); setTimeout(function () { tried[key] = false; }, 2000); });
+                }
+            });
+        }
+
+        return {
+            start: function () {
+                var d = getDb(); if (!d || unsub) return;
+                unsub = d.collection('settings').doc('lucky_live').onSnapshot(function (snap) {
+                    rounds = snap && snap.exists ? (snap.data().rounds || {}) : {};
+                    subs.forEach(function (f) { try { f(); } catch (e) {} });
+                    tick();
+                }, function (e) { console.warn('LuckySchedule', e); });
+                timer = setInterval(tick, 1000);
+            },
+            stop: function () { if (unsub) { try { unsub(); } catch (e) {} unsub = null; } if (timer) { clearInterval(timer); timer = null; } },
+            onChange: function (f) { subs.push(f); if (unsub) f(); },
+            all: list,
+            get: function () { return list().filter(isPending)[0] || null; },          // lượt sắp tới
+            pending: function () { return !!this.get(); },
+            remaining: function () { var r = this.get(); return r ? r.at - Date.now() : null; },
+            total: function () { return list().length; },
+            logHistory: function (num, source, label) {
+                var d = getDb(); if (!d) return Promise.resolve();
+                return d.collection('lucky_numbers').get().then(function (snap) {
+                    var w = []; snap.forEach(function (doc) { var x = doc.data(); if (parseInt(x.number, 10) === num) w.push(x.user); });
+                    var rec = { number: num, winners: w, timestamp: Date.now(), source: source || 'live' };
+                    if (label) rec.round = label;
+                    return d.collection('lucky_number_history').add(rec);
+                }).catch(function (e) { console.warn('LuckySchedule history', e); });
+            },
+            fmtTime: function (at) {
+                var t = new Date(at), today = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
+                var hm = p(t.getHours()) + ':' + p(t.getMinutes());
+                return t.toDateString() === today.toDateString() ? hm + ' hôm nay' : hm + ' · ' + p(t.getDate()) + '/' + p(t.getMonth() + 1) + '/' + t.getFullYear();
+            },
+            fmtLeft: function (ms) {
+                if (ms == null) return '';
+                var s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60, p = function (n) { return String(n).padStart(2, '0'); };
+                if (h >= 24) return Math.floor(h / 24) + ' ngày ' + (h % 24) + ' giờ';
+                return (h ? h + ':' + p(m) : m) + ':' + p(x);
+            }
+        };
+    })();
+    </script>
+    <script>
         /** 1. FIREBASE INITIALIZATION */
         const firebaseConfig = { apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", projectId: "web-dangky-123" };
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
@@ -9856,309 +10150,13 @@ tr:hover td { background: #f8fafc; }
         // ==========================================
         // HỆ THỐNG BẢO TRÌ TỰ ĐỘNG REALTIME
         // ==========================================
+        // BẢO TRÌ: Admin bật -> chuyển sang trang bảo trì baotri.html (Admin đã mở khóa qua "Admin Gateway" thì được ở lại)
         db.collection("settings").doc("maintenance").onSnapshot(doc => {
-            let blocker = document.getElementById('maintenance-blocker');
-            if (!blocker) {
-                blocker = document.createElement('div');
-                blocker.id = 'maintenance-blocker';
-                document.body.appendChild(blocker);
-            }
-            
-            if (doc.exists && doc.data().isEnabled === true) {
-                if (sessionStorage.getItem('admin_bypass_mt') === 'true') {
-                    if (blocker) blocker.style.display = 'none';
-                    document.body.style.overflow = '';
-                    const appShell = document.getElementById('app-shell');
-                    if (appShell && window.State && window.State.currentUser) { appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; }
-                    const authGate = document.getElementById('auth-gate');
-                    if (authGate && (!window.State || !window.State.currentUser)) { authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; }
-                    return; 
-                }
-
-                const data = doc.data();
-                blocker.style.display = 'flex'; 
-                
-                if (typeof window.Sound !== 'undefined' && window.Sound.rewardAudio) window.Sound.rewardAudio.pause();
-                const bgMusic = document.getElementById('bg-music'); if(bgMusic) bgMusic.pause();
-
-                const appShell = document.getElementById('app-shell');
-                if (appShell) { appShell.style.opacity = '0'; appShell.style.pointerEvents = 'none'; }
-                const authGate = document.getElementById('auth-gate');
-                if (authGate) { authGate.style.opacity = '0'; authGate.style.pointerEvents = 'none'; }
-
-                document.querySelectorAll('.modal-overlay').forEach(m => {
-                    if (m.id !== 'custom-admin-prompt') { m.classList.remove('active'); m.style.display = 'none'; }
-                });
-
-                const formatVN = (d) => { if(!d) return ''; const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
-
-                blocker.innerHTML = `
-                    <style>
-                        #maintenance-blocker { position: fixed; inset: 0; z-index: 99999999; background: radial-gradient(circle at center, #121217 0%, #000000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; color: white; overflow: hidden; }
-                        .mt-bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(245, 158, 11, 0.05) 1px, transparent 1px); background-size: 40px 40px; z-index: 1; animation: bgPan 20s linear infinite; }
-                        @keyframes bgPan { 0% { transform: translateY(0); } 100% { transform: translateY(40px); } }
-                        .mt-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60vw; height: 60vw; max-width: 600px; max-height: 600px; background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%); z-index: 1; filter: blur(40px); animation: pulseGlow 4s ease-in-out infinite alternate; }
-                        @keyframes pulseGlow { 0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } }
-                        .mt-card { position: relative; z-index: 10; background: rgba(18, 18, 23, 0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 24px; padding: 50px 40px; text-align: center; max-width: 540px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,1), 0 0 30px rgba(245, 158, 11, 0.1); animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-                        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
-                        .mt-icon-wrap { position: relative; width: 100px; height: 100px; margin: 0 auto 25px; display: flex; align-items: center; justify-content: center; }
-                        .mt-icon-ring { position: absolute; inset: 0; border-radius: 50%; border: 3px dashed rgba(245, 158, 11, 0.4); animation: spinRing 10s linear infinite; }
-                        @keyframes spinRing { 100% { transform: rotate(360deg); } }
-                        .mt-icon { font-size: 44px; color: #f59e0b; animation: floatIcon 3s ease-in-out infinite alternate; text-shadow: 0 0 20px rgba(245,158,11,0.5); }
-                        @keyframes floatIcon { 0% { transform: translateY(-5px); } 100% { transform: translateY(5px); } }
-                        .mt-title { font-size: 30px; font-weight: 900; color: #fff; margin-bottom: 15px; letter-spacing: -0.5px; text-transform: uppercase; }
-                        .mt-desc { color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-bottom: 35px; }
-                        .mt-time-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-                        .mt-time-row { display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 800; }
-                        .mt-time-label { color: #a1a1aa; display: flex; align-items: center; gap: 8px; }
-                        .mt-time-val { color: #fff; background: rgba(245, 158, 11, 0.1); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3); font-family: monospace; letter-spacing: 0.5px; }
-                        .mt-bypass { position: absolute; bottom: 20px; color: rgba(255,255,255,0.15); font-size: 12px; font-weight: 700; cursor: pointer; z-index: 10; transition: 0.3s; letter-spacing: 1px; text-transform: uppercase; }
-                        .mt-bypass:hover { color: rgba(255,255,255,0.6); }
-                        .admin-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100000000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); opacity: 0; transition: opacity 0.3s ease; }
-                        .admin-modal-overlay.active { display: flex; opacity: 1; }
-                        .admin-modal-box { background: rgba(18, 18, 23, 0.95); border: 1px solid rgba(239, 68, 68, 0.5); box-shadow: 0 0 40px rgba(239, 68, 68, 0.2); border-radius: 24px; padding: 40px; text-align: center; width: 90%; max-width: 400px; transform: scale(0.9) translateY(20px); transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-                        .admin-modal-overlay.active .admin-modal-box { transform: scale(1) translateY(0); }
-                        .admin-inp { width: 100%; background: rgba(0,0,0,0.6); border: 1px solid #3f3f46; color: #fff; padding: 16px 20px; border-radius: 12px; font-size: 20px; margin-bottom: 20px; text-align: center; letter-spacing: 8px; font-family: monospace; transition: 0.3s; }
-                        .admin-inp:focus { border-color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.4); outline: none; }
-                        .admin-btn-group { display: flex; gap: 12px; }
-                        .admin-btn { flex: 1; padding: 16px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; border: none; text-transform: uppercase; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 1px; }
-                        .admin-btn-cancel { background: transparent; border: 1px solid #3f3f46; color: #a1a1aa; }
-                        .admin-btn-cancel:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: #a1a1aa; }
-                        .admin-btn-submit { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; box-shadow: 0 8px 20px rgba(239,68,68,0.4); }
-                        .admin-btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(239,68,68,0.6); }
-                        @media (max-width: 500px) { .mt-time-row { flex-direction: column; gap: 8px; align-items: stretch; text-align: center; } .mt-time-label { justify-content: center; } }
-                    
-        /* TẾT 2027 THEME */
-        
-        /* TỐI ƯU CHỮ DỄ NHÌN VÀ GIAO DIỆN SINH ĐỘNG (TẾT) */
-        [data-theme="tet"] {
-            --bg-body: #780000; --bg-surface: #c1121f; --bg-elevated: #a10000; --bg-hover: #d62828;
-            --bg-glass: rgba(133, 0, 0, 0.85);
-            --text-main: #ffffff !important; /* Trắng tinh để dễ nhìn trên nền đỏ */
-            --text-muted: #fef08a !important; 
-            --border-strong: #ffd700; --border-subtle: rgba(255, 215, 0, 0.3);
-            --brand-primary: #ffd700; --brand-primary-hover: #ffea00;
-        }
-        
-        /* 1. TEXT ĐẬM, CÓ BÓNG ĐEN ĐỂ TĂNG ĐỘ TƯƠNG PHẢN CỰC ĐẠI */
-        [data-theme="tet"] h1, [data-theme="tet"] h2, [data-theme="tet"] h3, [data-theme="tet"] .bento-action h3 {
-            color: #ffd700 !important;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,215,0,0.3) !important;
-            font-weight: 900 !important;
-        }
-        [data-theme="tet"] p, [data-theme="tet"] span, [data-theme="tet"] label, [data-theme="tet"] td, [data-theme="tet"] th {
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.6) !important;
-            font-weight: 600 !important;
-        }
-        
-        /* 2. THANH MENU SÁNG HƠN & HOẠT ẢNH NEON */
-        [data-theme="tet"] .floating-sidebar { 
-            background: linear-gradient(180deg, rgba(140,0,0,0.95) 0%, rgba(100,0,0,0.95) 100%); 
-            border: 2px solid #ffd700; 
-            box-shadow: 0 0 20px rgba(255,215,0,0.2), inset 0 0 15px rgba(255,215,0,0.1); 
-        }
-        [data-theme="tet"] .nav-item.active { 
-            background: linear-gradient(90deg, rgba(255,215,0,0.3) 0%, transparent 100%); 
-            border-left: 5px solid #ffd700; 
-            text-shadow: 0 0 5px #ffd700 !important;
-        }
-        [data-theme="tet"] .nav-item i { filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.8)); }
-
-        /* 3. NÚT BẤM SINH ĐỘNG (NHỊP TIM / PHÁT SÁNG) */
-        @keyframes tetPulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-        }
-        [data-theme="tet"] .btn-primary { 
-            background: linear-gradient(135deg, #ffd700, #ffaa00) !important; 
-            color: #850000 !important; 
-            border: 2px solid #fff !important; 
-            font-weight: 900 !important; 
-            text-shadow: none !important;
-            animation: tetPulse 2s infinite;
-        }
-        [data-theme="tet"] .btn-primary:hover { 
-            background: #fff !important; color: #d62828 !important; border-color: #ffd700 !important;
-        }
-        
-        /* 4. MÀN HÌNH ĐĂNG NHẬP CỰC DỄ NHÌN */
-        [data-theme="tet"] .auth-box { 
-            background: rgba(100, 0, 0, 0.85) !important; /* Tối nền đỏ lại để nổi chữ */
-            border: 3px solid #ffd700 !important; 
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5) !important; 
-        }
-        [data-theme="tet"] .auth-box h1 { font-size: 32px; letter-spacing: 2px; }
-        [data-theme="tet"] .auth-box .form-control { 
-            background: rgba(0, 0, 0, 0.6) !important; /* Đen mờ để chữ trắng nổi lên */
-            border: 2px solid #ffd700 !important; 
-            color: #ffffff !important; 
-            font-size: 16px;
-            font-weight: 700;
-        }
-        [data-theme="tet"] .auth-box .form-control::placeholder { color: rgba(255, 255, 255, 0.7) !important; }
-        [data-theme="tet"] .auth-box .form-control:focus { background: rgba(0,0,0,0.8) !important; box-shadow: 0 0 20px rgba(255,215,0,0.6) !important; }
-
-        /* 5. CÁC THẺ CHỨC NĂNG (BENTO) NỔI BẬT & NHÚN NHẢY */
-        @keyframes floatEffect {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        [data-theme="tet"] .bento-action { 
-            background: linear-gradient(135deg, #a10000 0%, #780000 100%); 
-            border: 2px solid rgba(255,215,0,0.5); 
-        }
-        [data-theme="tet"] .bento-action:hover { 
-            border-color: #ffd700; 
-            background: linear-gradient(135deg, #c1121f 0%, #a10000 100%);
-            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.3); 
-        }
-        [data-theme="tet"] .bento-action:hover .bento-icon {
-            animation: floatEffect 1s ease-in-out infinite;
-            background: #ffd700 !important; color: #a10000 !important;
-            box-shadow: 0 0 25px #ffd700;
-        }
-        
-        
-        /* 7. TỐI ƯU GIAO DIỆN DANH BẠ CHAT (CHỐNG CHÓI DO BỊ GHI ĐÈ NỀN TRẮNG) */
-        [data-theme="tet"] .chat-module {
-            background: rgba(90, 0, 0, 0.9) !important;
-            border: 2px solid #ffd700 !important;
-            box-shadow: 0 0 30px rgba(255,215,0,0.2) !important;
-        }
-        [data-theme="tet"] .chat-main {
-            background: rgba(60, 0, 0, 0.95) !important;
-        }
-        [data-theme="tet"] .chat-sidebar, 
-        [data-theme="tet"] .contact-list {
-            background: rgba(70, 0, 0, 0.95) !important;
-            border-right: 1px solid rgba(255,215,0,0.3) !important;
-        }
-        [data-theme="tet"] .contact-card {
-            background: rgba(0, 0, 0, 0.4) !important;
-            border: 1px solid transparent !important;
-            border-radius: var(--radius-md) !important;
-            margin-bottom: 6px;
-            transition: all 0.3s ease !important;
-        }
-        [data-theme="tet"] .contact-card:hover {
-            background: rgba(200, 0, 0, 0.6) !important;
-            border-color: rgba(255,215,0,0.5) !important;
-            transform: translateX(5px);
-        }
-        [data-theme="tet"] .contact-card.active {
-            background: linear-gradient(90deg, rgba(214, 40, 40, 0.9) 0%, rgba(133, 0, 0, 0.9) 100%) !important;
-            border-left: 5px solid #ffd700 !important;
-            border-color: #ffd700 !important;
-            box-shadow: 0 0 15px rgba(255,215,0,0.3) !important;
-        }
-        [data-theme="tet"] .contact-card h4, 
-        [data-theme="tet"] .contact-card span:not(.status-indicator) {
-            color: #ffffff !important;
-            font-weight: 800 !important;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
-        }
-        [data-theme="tet"] .contact-card .text-muted,
-        [data-theme="tet"] .contact-card p,
-        [data-theme="tet"] .contact-card small {
-            color: #fef08a !important; /* Chữ phụ màu vàng nhạt */
-            font-weight: 600 !important;
-        }
-        [data-theme="tet"] .chat-header,
-        [data-theme="tet"] .chat-search-wrap,
-        [data-theme="tet"] .chat-input-wrapper {
-            background: rgba(100, 0, 0, 0.95) !important;
-            border-color: rgba(255,215,0,0.3) !important;
-        }
-
-        /* 6. HIỆU ỨNG NỀN MAI VÀNG RƠI (SNOWFALL ĐỔI MÀU) TẠO SỰ SINH ĐỘNG */
-        @keyframes tetSnow {
-            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(110vh) rotate(360deg); opacity: 0.2; }
-        }
-        .tet-flower {
-            position: fixed; width: 12px; height: 12px;
-            background: #ffd700; border-radius: 50%;
-            box-shadow: 0 0 10px #ffd700, 0 0 20px #ffea00;
-            pointer-events: none; z-index: 1;
-            animation: tetSnow linear infinite;
-        }
-        /* Sinh động thêm cho Body */
-        [data-theme="tet"] body {
-            background-color: #5a0000 !important; /* Đỏ đô cực tối làm nền, tôn các thẻ đỏ tươi lên */
-            background-image: radial-gradient(circle at top right, #850000, transparent 40%),
-                              radial-gradient(circle at bottom left, #850000, transparent 40%) !important;
-        }
-        [data-theme="tet"] .workspace-area { background: transparent !important; }
-
-
-
-        /* Animation Hoa Rơi & Lồng đèn */
-        .tet-lantern { position: fixed; top: 0; z-index: 1045; pointer-events: none; width: 80px; animation: swing 3s ease-in-out infinite alternate; transform-origin: top center; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8)); }
-        .tet-lantern.left { left: 20px; }
-        .tet-lantern.right { right: 20px; animation-delay: -1.5s; }
-        @keyframes swing { 0% { transform: rotate(-5deg); } 100% { transform: rotate(5deg); } }
-        
-        .hoa-mai { position: fixed; z-index: 1040; pointer-events: none; color: #ffd700; text-shadow: 0 0 5px #ffea00; animation: fall linear infinite; user-select: none; }
-        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg) scale(0.5); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg) scale(1); opacity: 0; } }
-        
-        @media (max-width: 768px) {
-            .tet-lantern { width: 50px; }
-        }
-
-</style>
-
-                    <div class="mt-bg-grid"></div>
-                    <div class="mt-glow"></div>
-                    
-                    <div class="mt-card">
-                        <div class="mt-icon-wrap">
-                            <div class="mt-icon-ring"></div>
-                            <i class="fa-solid fa-server mt-icon"></i>
-                        </div>
-                        <h1 class="mt-title">Hệ Thống Đang Nâng Cấp</h1>
-                        <p class="mt-desc">${data.message}</p>
-                        
-                        <div class="mt-time-box">
-                            <div class="mt-time-row">
-                                <span class="mt-time-label"><i class="fa-solid fa-hourglass-start" style="color: #f59e0b;"></i> Bắt đầu lúc</span>
-                                <span class="mt-time-val">${data.startTime} - ${formatVN(data.startDate)}</span>
-                            </div>
-                            <div class="mt-time-row">
-                                <span class="mt-time-label"><i class="fa-solid fa-flag-checkered" style="color: #10b981;"></i> Dự kiến mở lại</span>
-                                <span class="mt-time-val" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">${data.endTime} - ${formatVN(data.endDate)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-bypass" onclick="window.openCustomAdmin()">Admin Gateway <i class="fa-solid fa-lock ml-1"></i></div>
-
-                    <div class="admin-modal-overlay" id="custom-admin-prompt">
-                        <div class="admin-modal-box">
-                            <div style="font-size: 60px; color: #ef4444; margin-bottom: 10px; text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);"><i class="fa-solid fa-user-shield"></i></div>
-                            <h2 style="color: #fff; font-size: 24px; margin-bottom: 10px; font-family: monospace; letter-spacing: 1px;">CỔNG BẢO MẬT</h2>
-                            <p style="color: #a1a1aa; font-size: 14px; margin-bottom: 25px; line-height: 1.5; font-family: 'Plus Jakarta Sans', sans-serif;">Cổng này dành riêng cho Ban quản trị. Vui lòng nhập mã định danh để đi qua lớp bảo trì.</p>
-                            
-                            <input type="password" id="admin-pass-inp" class="admin-inp" placeholder="••••" onkeypress="if(event.key==='Enter') window.verifyCustomAdmin()">
-                            
-                            <div class="admin-btn-group">
-                                <button class="admin-btn admin-btn-cancel" onclick="window.closeCustomAdmin()">HỦY BỎ</button>
-                                <button class="admin-btn admin-btn-submit" onclick="window.verifyCustomAdmin()"><i class="fa-solid fa-unlock mr-2"></i> MỞ KHÓA</button>
-                            </div>
-                            
-                            <p id="admin-error-msg" style="color: #ef4444; font-size: 13px; font-weight: bold; margin-top: 15px; display: none; font-family: 'Plus Jakarta Sans', sans-serif;"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Mã định danh không chính xác!</p>
-                        </div>
-                    </div>
-                `;
-                document.body.style.overflow = 'hidden'; 
-            } else {
-                if (blocker) blocker.style.display = 'none';
-                document.body.style.overflow = '';
-                const appShell = document.getElementById('app-shell');
-                if (appShell && window.State && window.State.currentUser) { appShell.style.opacity = '1'; appShell.style.pointerEvents = 'auto'; }
-                const authGate = document.getElementById('auth-gate');
-                if (authGate && (!window.State || !window.State.currentUser)) { authGate.style.opacity = '1'; authGate.style.pointerEvents = 'auto'; }
-            }
+            if (!(doc.exists && doc.data().isEnabled === true)) return;
+            let bypass = false; try { bypass = sessionStorage.getItem('admin_bypass_mt') === 'true'; } catch (e) {}
+            if (bypass) return;
+            const here = (location.pathname.split('/').pop() || 'index.html') + location.search;
+            location.replace('baotri.html?from=' + encodeURIComponent(here));
         });
 
         window.openCustomAdmin = function() {
@@ -10470,7 +10468,7 @@ tr:hover td { background: #f8fafc; }
                         }
                         
                         document.getElementById('auth-gate').style.opacity = '0';
-                        setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; if(window.HomeVideo) window.HomeVideo.start(); if(window.LiXi) window.LiXi.start(); if(window.WheelTab) window.WheelTab.start(); if(window.RxTab) window.RxTab.start(); Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
+                        setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; if(window.HomeVideo) window.HomeVideo.start(); if(window.LiXi) window.LiXi.start(); if(window.WheelTab) window.WheelTab.start(); if(window.RxTab) window.RxTab.start(); if(window.LnTab) window.LnTab.start(); Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
                     }
                 } catch(e) { 
                     console.error("Login Error:", e);
@@ -10828,8 +10826,13 @@ tr:hover td { background: #f8fafc; }
                                 if(box) { setTimeout(() => { box.scrollTop = box.scrollHeight; }, 150); }
                             }
                         };
-                        window.visualViewport.addEventListener('resize', handleViewportResize);
-                        window.visualViewport.addEventListener('scroll', handleViewportResize);
+                        window.__qdVVfn = handleViewportResize;
+                        if (!window.__qdVV) {   // chỉ đăng ký 1 lần (trước đây mỗi lần mở chat lại thêm 1 cặp listener)
+                            window.__qdVV = true; let qdVVp = 0;
+                            const qdVV = () => { if (qdVVp) return; qdVVp = requestAnimationFrame(() => { qdVVp = 0; window.__qdVVfn(); }); };
+                            window.visualViewport.addEventListener('resize', qdVV);
+                            window.visualViewport.addEventListener('scroll', qdVV);
+                        }
                         handleViewportResize();
                     }
                 } 
@@ -11204,6 +11207,7 @@ tr:hover td { background: #f8fafc; }
                 this.isSpinning = true;
                 const spinBtn = document.getElementById("spinBtn");
                 spinBtn.disabled = true; spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG QUAY...`;
+                const spin = QDSmooth.spinner(this.canvas, this.currentRotation, { slice: 360 / Math.max(1, State.wheelPrizes.length), decel: 2300, min: 700, onTick: () => window.Sound.playTick() });
 
                 db.collection("accounts").doc(State.currentDocId).update({ spins: firebase.firestore.FieldValue.increment(-1) }).then(() => {
                     let totalChance = 0; State.wheelPrizes.forEach(p => totalChance += (parseFloat(p.chance) || 0));
@@ -11223,30 +11227,15 @@ tr:hover td { background: #f8fafc; }
 
                     const spinsCount = Math.floor(Math.random() * 5) + 5;
                     const randomOffset = (Math.random() * (sliceDeg - 8)) - (sliceDeg / 2 - 4);
-                    let rotateAmount = finalDeg - (this.currentRotation % 360);
-                    if (rotateAmount < 0) rotateAmount += 360; 
-                    rotateAmount += (360 * spinsCount) + randomOffset;
-                    this.currentRotation += rotateAmount;
-
-                    this.canvas.style.transform = `rotate(${this.currentRotation}deg)`;
-
-                    let start = null;
-                    const animateTick = (time) => {
-                        if (!start) start = time; const progress = time - start;
-                        const currentGoc = (progress / 5000) * rotateAmount; 
-                        const curIdx = Math.floor(currentGoc / sliceDeg);
-                        if(curIdx !== this.lastTickIndex) { window.Sound.playTick(); this.lastTickIndex = curIdx; }
-                        if(progress < 5000) requestAnimationFrame(animateTick);
-                    };
-                    requestAnimationFrame(animateTick);
-
-                    setTimeout(() => {
+                    return spin.land(finalDeg + randomOffset).then((deg) => {
+                        this.currentRotation = deg;
                         this.isSpinning = false; spinBtn.disabled = false; spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
                         this.processResult(winningIndex);
-                    }, 5000);
+                    });
                 }).catch(err => {
+                    spin.stop().then(deg => { this.currentRotation = deg; });
                     Utils.toast("Lỗi kết nối máy chủ.", "error");
-                    this.isSpinning = false; spinBtn.disabled = false; spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
+                    this.isSpinning = false; spinBtn.disabled = false;spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
                 });
             },
             processResult: function(winIndex) {
@@ -11270,7 +11259,7 @@ tr:hover td { background: #f8fafc; }
                 if(!grid) return;
                 grid.innerHTML = "";
                 for(let i = 0; i < 6; i++) {
-                    grid.innerHTML += `
+                    grid.insertAdjacentHTML('beforeend', `
                         <div class="ticket-container" id="ticket-${i}" onclick="window.TranhThuong.openTicket(${i})">
                             <div class="ticket-back">
                                 <i class="fa-solid fa-gift text-3xl" style="color: var(--color-gold, #ffd700); opacity: 0.8;"></i>
@@ -11281,7 +11270,7 @@ tr:hover td { background: #f8fafc; }
                                 <div class="ticket-half half-right"></div>
                             </div>
                         </div>
-                    `;
+                    `);
                 }
             },
             openTicket: function(index) {
@@ -11491,16 +11480,20 @@ tr:hover td { background: #f8fafc; }
                 let got = null;
                 try {
                     await db.runTransaction(async (t) => {
-                        const acc = await t.get(accRef), c = await t.get(cfgRef), st = await t.get(stRef), dd = await t.get(dRef);
+                        // chỉ đọc kho / hạn mức ngày khi vật phẩm có giới hạn (đoán trước từ dữ liệu trực tiếp, đọc bù nếu cấu hình vừa đổi)
+                        const pre = (this.items || []).find(i => i.id === id) || {};
+                        const [acc, c, st0, dd0] = await Promise.all([t.get(accRef), t.get(cfgRef), pre.stock != null ? t.get(stRef) : null, pre.dailyLimit != null ? t.get(dRef) : null]);
                         const cfg = c.exists ? c.data() : {};
                         if (cfg.isEnabled === false) throw 'CLOSED';
                         const x = this.norm(cfg).find(i => i.id === id);
                         if (!x || !x.active) throw 'GONE';
                         const cost = x.cost * qty, pts = (acc.exists && acc.data().points) || 0;
                         if (pts < cost) throw 'POINTS';
-                        const sold = ((st.exists && st.data().counts) || {})[id] || 0;
+                        const st = x.stock != null ? (st0 || await t.get(stRef)) : null;
+                        const dd = x.dailyLimit != null ? (dd0 || await t.get(dRef)) : null;
+                        const sold = ((st && st.exists && st.data().counts) || {})[id] || 0;
                         if (x.stock != null && sold + qty > x.stock) throw 'STOCK';
-                        const used = ((dd.exists && dd.data().counts) || {})[id] || 0;
+                        const used = ((dd && dd.exists && dd.data().counts) || {})[id] || 0;
                         if (x.dailyLimit != null && used + qty > x.dailyLimit) throw 'DAILY';
                         const upd = { points: FV.increment(-cost) };
                         if (x.type !== 'gift') upd[x.type] = FV.increment(x.amount * qty);
@@ -11971,7 +11964,7 @@ tr:hover td { background: #f8fafc; }
                             document.getElementById('app-shell').style.display = 'none';
                             if(window.HomeVideo) window.HomeVideo.stop();
                             if(window.LiXi) window.LiXi.stop();
-                            if(window.WheelTab) window.WheelTab.stop(); if(window.RxTab) window.RxTab.stop();
+                            if(window.WheelTab) window.WheelTab.stop(); if(window.RxTab) window.RxTab.stop(); if(window.LnTab) window.LnTab.stop();
 
                             if (data.unlockRequestedAt) {
                                 document.getElementById('unlock-action-area').style.display = 'none';
@@ -12068,7 +12061,7 @@ tr:hover td { background: #f8fafc; }
                 db.collection("attendance").where("date", "==", dateVN).onSnapshot(snap => {
                     const l = document.getElementById('att-history-list'); if(!l) return; l.innerHTML = ""; if(snap.empty) { l.innerHTML = `<div class="p-10 text-center text-muted"><i class="fa-solid fa-list-ul text-4xl mb-4 opacity-30 block"></i>Chưa có ai điểm danh trong ngày hôm nay.</div>`; return; }
                     let rs = []; snap.forEach(doc => rs.push(doc.data())); rs.sort((a,b) => b.timestamp - a.timestamp);
-                    rs.forEach(d => { l.innerHTML += `<div class="flex justify-between items-center p-5 border-b border-strong" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-4"><div class="avatar-circle" style="width:46px;height:46px;font-size:18px;background:var(--color-success);">${d.userName.charAt(0).toUpperCase()}</div><div class="flex-col"><span class="font-bold text-main text-lg">${d.userName}</span><span class="text-sm text-muted font-mono tracking-wide">ID: ${d.userId.substring(0,8)}...</span></div></div><span class="badge badge-offline px-4 py-2 text-sm"><i class="fa-regular fa-clock mr-1"></i> ${d.time}</span></div>`; });
+                    rs.forEach(d => { l.insertAdjacentHTML('beforeend', `<div class="flex justify-between items-center p-5 border-b border-strong" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-4"><div class="avatar-circle" style="width:46px;height:46px;font-size:18px;background:var(--color-success);">${d.userName.charAt(0).toUpperCase()}</div><div class="flex-col"><span class="font-bold text-main text-lg">${d.userName}</span><span class="text-sm text-muted font-mono tracking-wide">ID: ${d.userId.substring(0,8)}...</span></div></div><span class="badge badge-offline px-4 py-2 text-sm"><i class="fa-regular fa-clock mr-1"></i> ${d.time}</span></div>`); });
                 });
 
                 db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
@@ -12094,7 +12087,7 @@ tr:hover td { background: #f8fafc; }
                         const d = doc.data(); 
                         const ts = new Date(d.time).toLocaleString('vi-VN', {hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'});
                         
-                        f.innerHTML += `
+                        f.insertAdjacentHTML('beforeend', `
                             <div class="card mb-6 p-6 relative overflow-hidden" style="border: none; border-left: 4px solid var(--color-info); background: var(--bg-surface); box-shadow: var(--shadow-sm); border-radius: var(--radius-lg); transition: transform 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
                                 <div class="flex items-start gap-4 mb-4 border-b border-strong pb-4">
                                     <div class="flex-shrink-0" style="width: 48px; height: 48px; border-radius: 12px; background: var(--color-info-bg); color: var(--color-info); display: flex; align-items: center; justify-content: center; font-size: 20px;">
@@ -12108,7 +12101,7 @@ tr:hover td { background: #f8fafc; }
                                     </div>
                                 </div>
                                 <div class="text-main" style="font-size: 15px; line-height: 1.8; white-space: pre-wrap; padding-left: 4px;">${d.content}</div>
-                            </div>`;
+                            </div>`);
                             
                         if(isF && p) { 
                             p.innerHTML = `
@@ -12317,22 +12310,22 @@ tr:hover td { background: #f8fafc; }
                 const btn = document.getElementById('btn-do-att'); const ic = document.getElementById('att-status-icon'); const tt = document.getElementById('att-status-title'); const ds = document.getElementById('att-status-desc'); if(!btn) return;
                 
                 if(window.AppCore.hasAttendedToday) { 
-                    btn.disabled = true; btn.className = 'btn btn-outline w-full'; btn.style.borderColor='var(--color-success)'; btn.style.color='var(--color-success)'; btn.innerHTML = `<i class="fa-solid fa-check-double mr-2"></i> HOÀN TẤT GHI NHẬN`; 
-                    ic.innerHTML = `<div class="flex-center mx-auto" style="width:120px;height:120px;border-radius:50%;background:var(--color-success-bg);color:var(--color-success);font-size:60px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-shield-check"></i></div>`; 
+                    btn.disabled = true; btn.className = 'btn btn-outline w-full'; btn.style.borderColor='var(--color-success)'; btn.style.color='var(--color-success)'; QDSmooth.html(btn, `<i class="fa-solid fa-check-double mr-2"></i> HOÀN TẤT GHI NHẬN`); 
+                    QDSmooth.html(ic, `<div class="flex-center mx-auto" style="width:120px;height:120px;border-radius:50%;background:var(--color-success-bg);color:var(--color-success);font-size:60px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-shield-check"></i></div>`); 
                     tt.innerText = "Điểm danh Hợp lệ"; tt.className = "text-4xl mb-4 text-success font-bold"; ds.innerText = "Tuyệt vời! Dữ liệu chuyên cần của bạn đã được mã hóa an toàn trên máy chủ."; return; 
                 }
                 
                 const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes(); const [sH, sM] = window.AppCore.attConfig.start.split(':').map(Number); const [eH, eM] = window.AppCore.attConfig.end.split(':').map(Number);
                 
                 if(cur >= (sH*60+sM) && cur <= (eH*60+eM)) { 
-                    btn.disabled = false; btn.className = 'btn btn-success w-full'; btn.style.animation = 'pulseAlert 2s infinite'; btn.innerHTML = `<i class="fa-solid fa-fingerprint mr-2"></i> XÁC NHẬN CÓ MẶT NGAY`; 
-                    ic.innerHTML = `<div class="flex-center mx-auto" style="width:120px;height:120px;border-radius:50%;background:var(--brand-primary-soft);color:var(--brand-primary);font-size:60px;display:flex;align-items:center;justify-content:center;box-shadow: 0 0 40px var(--brand-glow);"><i class="fa-solid fa-fingerprint"></i></div>`; 
+                    btn.disabled = false; btn.className = 'btn btn-success w-full'; btn.style.animation = 'pulseAlert 2s infinite'; QDSmooth.html(btn, `<i class="fa-solid fa-fingerprint mr-2"></i> XÁC NHẬN CÓ MẶT NGAY`); 
+                    QDSmooth.html(ic, `<div class="flex-center mx-auto" style="width:120px;height:120px;border-radius:50%;background:var(--brand-primary-soft);color:var(--brand-primary);font-size:60px;display:flex;align-items:center;justify-content:center;box-shadow: 0 0 40px var(--brand-glow);"><i class="fa-solid fa-fingerprint"></i></div>`); 
                     tt.innerText = "Cổng Xác Nhận Đang Mở"; tt.className = "text-4xl mb-4 text-main font-bold"; ds.innerText = "Trạng thái hợp lệ. Bấm nút màu xanh bên dưới để gửi dữ liệu xác minh về máy chủ tổng."; 
                 } 
                 else { 
-                    btn.disabled = true; btn.className = 'btn btn-danger w-full'; btn.style.animation = 'none'; btn.innerHTML = `<i class="fa-solid fa-lock mr-2"></i> HỆ THỐNG ĐANG KHÓA`; 
-                    ic.innerHTML = `<div class="flex-center mx-auto" style="width:120px;height:120px;border-radius:50%;background:var(--color-danger-bg);color:var(--color-danger);font-size:60px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-clock-rotate-left"></i></div>`; 
-                    tt.innerText = "Chưa thể điểm danh lúc này"; tt.className = "text-4xl mb-4 text-danger font-bold"; ds.innerHTML = `Theo quy định bảo mật, bạn chỉ được phép thao tác trong khung giờ <strong class="text-danger" style="background:var(--color-danger-bg);padding:4px 8px;border-radius:6px;">${window.AppCore.attConfig.start} đến ${window.AppCore.attConfig.end}</strong> mỗi ngày.`; 
+                    btn.disabled = true; btn.className = 'btn btn-danger w-full'; btn.style.animation = 'none'; QDSmooth.html(btn, `<i class="fa-solid fa-lock mr-2"></i> HỆ THỐNG ĐANG KHÓA`); 
+                    QDSmooth.html(ic, `<div class="flex-center mx-auto" style="width:120px;height:120px;border-radius:50%;background:var(--color-danger-bg);color:var(--color-danger);font-size:60px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-clock-rotate-left"></i></div>`); 
+                    tt.innerText = "Chưa thể điểm danh lúc này"; tt.className = "text-4xl mb-4 text-danger font-bold"; QDSmooth.html(ds, `Theo quy định bảo mật, bạn chỉ được phép thao tác trong khung giờ <strong class="text-danger" style="background:var(--color-danger-bg);padding:4px 8px;border-radius:6px;">${window.AppCore.attConfig.start} đến ${window.AppCore.attConfig.end}</strong> mỗi ngày.`); 
                 }
             },
 
@@ -12645,46 +12638,73 @@ tr:hover td { background: #f8fafc; }
         };
 
         window.ParticleSystem = {
-            canvas: null, ctx: null, particles: [], color: 'rgba(79, 70, 229, 0.5)', animationId: null,
+            canvas: null, ctx: null, particles: [], color: 'rgba(79, 70, 229, 0.5)', animationId: null, worker: null, last: 0,
+            /* Hạt nền: vẽ trong Web Worker (OffscreenCanvas) để luồng chính rảnh hoàn toàn;
+               tốc độ tính theo thời gian thực nên màn 60Hz / 90Hz / 120Hz đều chạy cùng tốc độ, mượt theo tần số màn hình */
             init: () => {
-                window.ParticleSystem.canvas = document.getElementById('particle-canvas');
-                if(!window.ParticleSystem.canvas) return;
-                window.ParticleSystem.ctx = window.ParticleSystem.canvas.getContext('2d');
-                window.ParticleSystem.resize();
-                window.addEventListener('resize', window.ParticleSystem.resize);
-                
+                const PS = window.ParticleSystem;
+                PS.canvas = document.getElementById('particle-canvas');
+                if(!PS.canvas) return;
+                const W = window.innerWidth, H = window.innerHeight;
                 for(let i=0; i<50; i++) {
-                    window.ParticleSystem.particles.push({
-                        x: Math.random() * window.innerWidth,
-                        y: Math.random() * window.innerHeight,
-                        vx: (Math.random() - 0.5) * 0.5,
-                        vy: (Math.random() - 0.5) * 0.5,
-                        size: Math.random() * 2 + 1
-                    });
+                    PS.particles.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, size: Math.random() * 2 + 1 });
                 }
-                window.ParticleSystem.animate();
+                let rz = 0;
+                window.addEventListener('resize', () => { if (rz) return; rz = requestAnimationFrame(() => { rz = 0; PS.resize(); }); }, { passive: true });
+                const lite = (on) => { PS.canvas.style.display = on ? 'none' : ''; PS.setRunning(!on); };
+                if (PS.canvas.transferControlToOffscreen && window.Worker && window.Blob && window.URL) {
+                    try {
+                        const src = `var c,x,ps=[],col,W,H,run=true,busy=false,last=0;
+var raf=self.requestAnimationFrame?self.requestAnimationFrame.bind(self):function(f){return setTimeout(function(){f(performance.now());},16);};
+onmessage=function(e){var d=e.data;if(d.canvas){c=d.canvas;x=c.getContext('2d');col=d.color;ps=d.ps;W=c.width=d.w;H=c.height=d.h;go();}
+else if(d.size){W=c.width=d.w;H=c.height=d.h;}else if('run' in d){run=d.run;if(run)go();}};
+function go(){if(!busy&&run){busy=true;last=0;raf(frame);}}
+function frame(t){if(!run){busy=false;return;}var k=last?Math.min((t-last)/16.667,4):1;last=t;x.clearRect(0,0,W,H);x.fillStyle=col;x.beginPath();
+for(var i=0;i<ps.length;i++){var p=ps[i];p.x+=p.vx*k;p.y+=p.vy*k;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;x.moveTo(p.x+p.size,p.y);x.arc(p.x,p.y,p.size,0,6.2832);}
+x.fill();raf(frame);}`;
+                        const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+                        const off = PS.canvas.transferControlToOffscreen();
+                        PS.worker = new Worker(url);
+                        PS.worker.postMessage({ canvas: off, color: PS.color, ps: PS.particles, w: W, h: H }, [off]);
+                        document.addEventListener('visibilitychange', () => PS.setRunning(!document.hidden && !(window.QDSmooth && QDSmooth.lite)));
+                        if (window.QDSmooth) QDSmooth.onLite(lite);
+                        return;
+                    } catch (e) { PS.worker = null; }
+                }
+                PS.ctx = PS.canvas.getContext('2d');
+                PS.resize();
+                if (window.QDSmooth) QDSmooth.onLite(lite);
+                if (!(window.QDSmooth && QDSmooth.lite)) PS.setRunning(true);
+            },
+            setRunning: (on) => {
+                const PS = window.ParticleSystem;
+                if (PS.worker) { PS.worker.postMessage({ run: !!on }); return; }
+                if (!on) { if (PS.animationId) cancelAnimationFrame(PS.animationId); PS.animationId = null; return; }
+                if (!PS.animationId) { PS.last = 0; PS.animationId = requestAnimationFrame(PS.animate); }
             },
             resize: () => {
-                window.ParticleSystem.canvas.width = window.innerWidth;
-                window.ParticleSystem.canvas.height = window.innerHeight;
+                const PS = window.ParticleSystem;
+                if (PS.worker) { PS.worker.postMessage({ size: true, w: window.innerWidth, h: window.innerHeight }); return; }
+                if (!PS.canvas || !PS.ctx) return;
+                PS.canvas.width = window.innerWidth;
+                PS.canvas.height = window.innerHeight;
             },
-            animate: () => {
-                const ctx = window.ParticleSystem.ctx;
-                const canvas = window.ParticleSystem.canvas;
+            animate: (t) => {
+                const PS = window.ParticleSystem, ctx = PS.ctx, canvas = PS.canvas;
+                const k = PS.last ? Math.min((t - PS.last) / 16.667, 4) : 1; PS.last = t;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                window.ParticleSystem.particles.forEach(p => {
-                    p.x += p.vx; p.y += p.vy;
+                ctx.fillStyle = PS.color;
+                ctx.beginPath();
+                PS.particles.forEach(p => {
+                    p.x += p.vx * k; p.y += p.vy * k;
                     if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
                     if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                    
-                    ctx.beginPath();
+                    ctx.moveTo(p.x + p.size, p.y);
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = window.ParticleSystem.color;
-                    ctx.fill();
                 });
-                
-                window.ParticleSystem.animationId = requestAnimationFrame(window.ParticleSystem.animate);
+                ctx.fill();
+                PS.animationId = document.hidden ? null : requestAnimationFrame(PS.animate);
+                if (!PS.animationId) document.addEventListener('visibilitychange', function again() { if (document.hidden) return; document.removeEventListener('visibilitychange', again); if (!(window.QDSmooth && QDSmooth.lite)) PS.setRunning(true); });
             }
         };
 
@@ -15774,13 +15794,16 @@ window.MathUtil_Algo_1000 = function(a, b) { return (a * 1000) + (b / 1000) - Ma
 document.addEventListener("DOMContentLoaded", () => {
         // Mouse tracking for glassy cards
         document.querySelectorAll('.bento-action').forEach(card => {
+            let qdMM = null;
             card.addEventListener('mousemove', e => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                card.style.setProperty('--mouse-x', `${x}px`);
-                card.style.setProperty('--mouse-y', `${y}px`);
-            });
+                if (qdMM) { qdMM = e; return; } qdMM = e;
+                requestAnimationFrame(() => {
+                    const ev = qdMM; qdMM = null;
+                    const rect = card.getBoundingClientRect();
+                    card.style.setProperty('--mouse-x', `${ev.clientX - rect.left}px`);
+                    card.style.setProperty('--mouse-y', `${ev.clientY - rect.top}px`);
+                });
+            }, { passive: true });
         });
  
             window.Theme.init(); window.Music.init(); window.ThemeManager.init(); window.ParticleSystem.init(); window.SessionManager.init(); 
@@ -16238,7 +16261,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 var dayRef = db.collection('lixi_daily').doc(key);
                 var big = false;
                 var tx = db.runTransaction(async function (t) {
-                    var accD = await t.get(ref), cfgD = await t.get(cfgRef), dayD = await t.get(dayRef);
+                    var needDay = !!(self.cfg && self.cfg.dailyBudget > 0);
+                    var [accD, cfgD, dayD] = await Promise.all([t.get(ref), t.get(cfgRef), needDay ? t.get(dayRef) : null]);
                     var data = (accD && accD.data && accD.data()) || {};
                     var cfg = normCfg(cfgD && cfgD.exists ? cfgD.data() : null);
                     var same = data.lixiDate === today;
@@ -16246,6 +16270,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     var sum = same ? (data.lixiTotal != null ? data.lixiTotal : (data.lixiAmount || 0)) : 0;
                     if (used >= drawLimit(cfg)) throw { code: 'LIXI_CLAIMED', count: used, total: sum, last: data.lixiAmount || 0, cfg: cfg };
                     if (!cfgOpen(cfg)) throw { code: 'LIXI_CLOSED', cfg: cfg };  // gồm cả 'chưa tới giờ mở'
+                    if (cfg.dailyBudget > 0 && !dayD) dayD = await t.get(dayRef);
                     var spent = (dayD && dayD.exists && dayD.data().points) || 0;
                     var list = cfg.prizes.filter(function (p) { return p.chance > 0; });
                     if (cfg.dailyBudget > 0) {
@@ -16262,7 +16287,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 var prize = 0;
-                Promise.all([tx, sleep(650)]).then(function (res) {
+                Promise.all([tx, sleep(450)]).then(function (res) {
                     prize = res[0].prize;
                     self.justClaimed = { date: today, count: res[0].count, total: res[0].total, last: prize };
                     env.classList.remove('shaking');
@@ -16415,11 +16440,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 $('wheel-tab-sub').textContent = lock ? 'Đang khóa' : (qs == null ? 'Đang tải...' : (tickets > 0 ? 'Lượt quay: ' + tickets : (open > 0 ? open + ' câu hỏi đang mở' : 'Chưa có câu hỏi')));
                 $('wheel-tab-go').textContent = lock ? '🔒 Vòng quay đang đóng' : (tickets > 0 ? 'Chạm để quay thưởng ›' : (open > 0 ? 'Trả lời câu hỏi để nhận lượt quay ›' : 'Chạm để xem vòng quay ›'));
             },
-            syncHeight: function () { // luôn cao bằng thẻ lì xì (thẻ lì xì đổi chiều cao theo trạng thái)
-                var tab = $('wheel-tab'), lx = $('lixi-card'); if (!tab || !lx) return;
-                tab.style.minHeight = lx.offsetHeight + 'px';
-                var rx = $('rx-tab'); if (rx) rx.style.minHeight = lx.offsetHeight + 'px';
-                var sh = $('shop-tab'); if (sh) sh.style.minHeight = lx.offsetHeight + 'px';
+            syncHeight: function () { // luôn cao bằng thẻ lì xì (đọc layout 1 lần, chỉ ghi khi chiều cao đổi)
+                var lx = $('lixi-card'); if (!lx || !$('wheel-tab')) return;
+                var h = lx.offsetHeight + 'px', k = h + '|' + document.querySelectorAll('#wheel-tab, #rx-tab, #shop-tab, #ln-tab').length; if (k === this._h) return; this._h = k;
+                var e0 = $('wheel-tab'); if (e0) e0.style.minHeight = h; var e1 = $('rx-tab'); if (e1) e1.style.minHeight = h; var e2 = $('shop-tab'); if (e2) e2.style.minHeight = h; var e3 = $('ln-tab'); if (e3) e3.style.minHeight = h;
             }
         };
 
@@ -16775,6 +16799,454 @@ document.addEventListener("DOMContentLoaded", () => {
     @media (prefers-reduced-motion: reduce) { .ps2-pop-card, .ps2-pop.show, .ps2-fly, .ps2-balance b.drop { animation: none !important; } }
     </style>
     <script>document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && window.PointShop) { var p = document.getElementById('ps2-pop'); if (p && p.classList.contains('show')) { e.stopPropagation(); window.PointShop.closePop(); } } }, true);</script>
+    <!-- ===== QUAY SỐ MAY MẮN: thành viên chọn 1 số (1-100), lưu vào lucky_numbers/{user} = { user, number, lastUpdated, canEdit }.
+         Admin xem / cấp phép sửa ở admin.html, kết quả quay trên quays.html. ===== -->
+    <div class="modal-overlay" id="modal-lucky-number" style="z-index: 1060;">
+        <div class="modal-content ln2" role="dialog" aria-labelledby="ln2-title">
+            <div class="ln2-head">
+                <div class="ln2-title">
+                    <span class="ln2-logo" aria-hidden="true">🎯</span>
+                    <div><h2 id="ln2-title">Quay Số May Mắn</h2><small id="ln2-sub">Chọn 1 con số từ 01 đến 100</small></div>
+                </div>
+                <button class="ln2-x" onclick="window.LnTab.close()" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="ln2-mine">
+                <div>
+                    <span class="ln2-mine-lbl">Số của bạn</span>
+                    <small id="ln2-status">Đang tải...</small>
+                </div>
+                <b class="ln2-ball" id="ln2-my-number">?</b>
+            </div>
+
+            <a class="ln2-live" id="ln2-live" href="quays.html" data-resume data-live="off">
+                <span class="ln-live-dot" aria-hidden="true"></span>
+                <span id="ln2-live-txt">Chưa mở quay trực tiếp</span>
+                <i class="fa-solid fa-tower-broadcast"></i>
+            </a>
+
+            <div class="ln2-body">
+                <p class="ln2-hint" id="ln2-hint">Chạm vào một ô số để chọn.</p>
+                <div class="ln2-grid" id="ln2-grid"></div>
+            </div>
+
+            <div class="ln2-foot">
+                <div class="ln2-count"><i class="fa-solid fa-users"></i> <span id="ln2-count">--</span> thành viên đã chọn số</div>
+                <button type="button" class="ln2-save" id="ln2-save" onclick="window.LnTab.save()" disabled>Chọn một số</button>
+            </div>
+        </div>
+    </div>
+
+    <style id="lucky-number-style">
+    /* ----- thẻ "Quay Số May Mắn" trên trang chủ (cùng khung với Vòng Quay / Rút Lì Xì) ----- */
+    .ln-mini { display: flex; align-items: flex-end; gap: 8px; }
+    .ln-mini span { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: #7a0c0c; font-variant-numeric: tabular-nums;
+        background: radial-gradient(circle at 35% 30%, #fffbe0, #ffd700 55%, #d99a00); border: 2px solid #fff3a6; box-shadow: 0 6px 12px rgba(0,0,0,.4); animation: rxBob 2.6s ease-in-out infinite; text-shadow: none !important; }
+    .ln-mini span:nth-child(1), .ln-mini span:nth-child(3) { opacity: .75; transform: scale(.85); }
+    .ln-mini span:nth-child(2) { width: 62px; height: 62px; font-size: 24px; animation-delay: .3s; }
+    .ln-mini span:nth-child(3) { animation-delay: .6s; }
+    .wheel-tab.ln-tab:hover .ln-mini span { animation-duration: .9s; }
+    .wheel-tab.ln-tab[data-state="locked"] .ln-mini span:nth-child(2) { background: radial-gradient(circle at 35% 30%, #ffffff, #e5e7eb 55%, #9ca3af); color: #7a0c0c; }
+    @media (prefers-reduced-motion: reduce) { .ln-mini span { animation: none !important; } }
+
+    /* ----- popup chọn số ----- */
+    #modal-lucky-number .modal-content.ln2 { padding: 0 !important; overflow: hidden; max-width: 560px; width: calc(100% - 24px); max-height: calc(100vh - 32px); display: flex; flex-direction: column;
+        background: linear-gradient(180deg, var(--bg-surface, #c1121f) 0%, var(--bg-body, #780000) 100%) !important; border: 2px solid #ffd700 !important; border-radius: 24px !important; box-shadow: 0 30px 60px rgba(0,0,0,.6) !important; color: #fff; text-align: left; }
+    .ln2 *, .ln2 span, .ln2 p { text-shadow: none !important; }
+    .ln2-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; background: rgba(0,0,0,.22); border-bottom: 1px solid rgba(255,215,0,.35); }
+    .ln2-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .ln2-logo { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: radial-gradient(circle at 35% 30%, #fff3a6, #ffd700 60%, #e0a800); box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+    .ln2-head h2 { margin: 0 !important; font-size: 19px !important; color: #ffd700 !important; }
+    .ln2-head small { display: block; font-size: 12px; color: #fef08a; margin-top: 2px; }
+    .ln2-x { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; border: 1px solid rgba(255,215,0,.6); background: rgba(0,0,0,.25); color: #fff; cursor: pointer; font-size: 16px; transition: .2s; }
+    .ln2-x:hover { background: rgba(255,215,0,.2); transform: rotate(90deg); }
+    .ln2-mine { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 14px 18px 0; padding: 12px 16px; border-radius: 16px; background: linear-gradient(135deg, #fffbea, #fde68a); color: #7a0c0c; }
+    .ln2-mine-lbl { display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: #92400e !important; }
+    .ln2-mine small { display: block; font-size: 13px; font-weight: 700; color: #7a0c0c; margin-top: 3px; }
+    .ln2-mine small.lock { color: #b91c1c; } .ln2-mine small.open { color: #047857; }
+    .ln2-ball { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; color: #fff;
+        background: radial-gradient(circle at 35% 30%, #ff6b6b, #c1121f 60%, #7a0000); border: 3px solid #ffd700; box-shadow: 0 6px 14px rgba(0,0,0,.3); }
+    .ln2-ball.pop { animation: lnPop .5s ease; }
+    .ln2-body { padding: 12px 18px 6px; overflow-y: auto; flex: 1 1 auto; }
+    .ln2-hint { margin: 0 0 10px; font-size: 13px; color: #fef08a; font-weight: 600; }
+    .ln2-hint.lock { color: #ffd0d0; }
+    .ln2-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+    .ln2-cell { aspect-ratio: 1 / 1; min-width: 0; padding: 0; border-radius: 10px; border: 1px solid rgba(255,215,0,.35); background: rgba(0,0,0,.25); color: #fff; font: inherit; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer; transition: transform .12s, background .12s, border-color .12s; }
+    .ln2-cell:hover:not(:disabled) { transform: translateY(-2px); border-color: #ffd700; background: rgba(255,215,0,.15); }
+    .ln2-cell:focus-visible { outline: 2px solid #ffd700; outline-offset: 2px; }
+    .ln2-cell.mine { background: rgba(255,215,0,.25); border-color: #ffd700; color: #ffd700; }
+    .ln2-cell.sel { background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); color: #7a0c0c; border-color: #fff3a6; transform: scale(1.08); box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+    .ln2-grid.locked .ln2-cell { cursor: not-allowed; opacity: .45; }
+    .ln2-grid.locked .ln2-cell.mine { opacity: 1; }
+    .ln2-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 18px 16px; border-top: 1px solid rgba(255,215,0,.25); background: rgba(0,0,0,.18); }
+    .ln2-count { font-size: 13px; color: #fef08a; font-weight: 700; }
+    .ln2-save { padding: 12px 22px; border-radius: 999px; border: none; font: inherit; font-weight: 900; font-size: 14px; cursor: pointer; color: #7a0c0c; background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); box-shadow: 0 4px 12px rgba(0,0,0,.3); transition: transform .15s; }
+    .ln2-save:hover:not(:disabled) { transform: translateY(-2px); }
+    .ln2-save.confirm { background: linear-gradient(135deg, #34d399, #059669); color: #fff; }
+    .ln2-save:disabled { cursor: not-allowed; background: rgba(0,0,0,.3); color: rgba(255,255,255,.55); box-shadow: none; }
+    @keyframes lnPop { 40% { transform: scale(1.25); } }
+    /* ----- Trực tiếp: banner trang chủ + nút trong popup ----- */
+    .ln-live-dot { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 0 rgba(255,255,255,.8); animation: lnLive 1.4s infinite; }
+    @keyframes lnLive { 70% { box-shadow: 0 0 0 10px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }
+    .ln-live-banner { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 18px; text-decoration: none; color: #fff;
+        background: linear-gradient(90deg, #ff0844, #b91c1c 60%, #7a0000); border: 2px solid #ffd700; box-shadow: 0 8px 24px rgba(255,8,68,.35); animation: lnBanner 2s ease-in-out infinite; }
+    .ln-live-banner * { text-shadow: none !important; }
+    .ln-live-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; text-align: left; }
+    .ln-live-txt b { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: #fff; }
+    .ln-live-txt small { font-size: 12px; color: #fef08a; font-weight: 600; }
+    .ln-live-go { flex: 0 0 auto; padding: 9px 16px; border-radius: 999px; font-weight: 900; font-size: 13px; color: #7a0c0c; background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); white-space: nowrap; }
+    .ln-live-banner:hover { transform: translateY(-2px); }
+    @keyframes lnBanner { 50% { box-shadow: 0 8px 30px rgba(255,8,68,.65); } }
+    .ln2-live { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 18px 0; padding: 11px 16px; border-radius: 14px; text-decoration: none; font-weight: 900; font-size: 14px;
+        color: #fff; background: linear-gradient(90deg, #ff0844, #b91c1c); border: 1px solid #ffd700; }
+    .ln2-live:hover { filter: brightness(1.1); }
+    .ln2-live[data-live="off"] { pointer-events: none; background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.2); color: rgba(255,255,255,.6); font-weight: 700; }
+    .ln2-live[data-live="off"] .ln-live-dot { background: rgba(255,255,255,.4); animation: none; }
+    .ln-live-banner.soon { background: linear-gradient(90deg, #b45309, #92400e 60%, #7a0000); box-shadow: 0 8px 24px rgba(245,158,11,.3); animation: none; }
+    .ln-live-banner.soon .ln-live-dot { background: #ffd700; }
+    .ln-live-banner b, .ln-live-banner small { font-variant-numeric: tabular-nums; }
+    .wheel-tab.ln-tab.is-live .wheel-badge { background: #ff0844; border-color: #ffd700; color: #fff; }
+    @media (max-width: 480px) { .ln2-live { margin: 10px 14px 0; } .ln-live-banner { padding: 12px 14px; gap: 10px; } .ln-live-txt b { font-size: 14px; } }
+    @media (prefers-reduced-motion: reduce) { .ln-live-dot, .ln-live-banner { animation: none !important; } }
+    @media (max-width: 480px) {
+        .ln2-grid { gap: 4px; } .ln2-cell { font-size: 11px; border-radius: 8px; }
+        .ln2-head { padding: 14px 16px; } .ln2-mine, .ln2-body, .ln2-foot { margin-left: 0; margin-right: 0; }
+        .ln2-mine { margin: 12px 14px 0; } .ln2-body { padding: 10px 14px 6px; } .ln2-foot { padding: 10px 14px 14px; }
+        .ln2-save { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) { .ln2-ball.pop, .ln2-cell { animation: none !important; transition: none !important; } }
+    </style>
+
+    <script>
+    /* ===== Thẻ + popup "Quay Số May Mắn" ===== */
+    (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); };
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+
+        window.LnTab = {
+            mine: undefined,      // undefined = đang tải, null = chưa chọn, object = dữ liệu lucky_numbers/{user}
+            count: null, sel: null, confirming: false, saving: false,
+            started: false, unsubMine: null, unsubAll: null, unsubLive: null, built: false,
+            live: false, liveKnown: false, schedTimer: null, warned: {},
+
+            start: function () {
+                var self = this, me = window.State && window.State.currentUser;
+                if (this.started || !me || typeof db === 'undefined') return;
+                this.started = true;
+                try {
+                    this.unsubMine = db.collection('lucky_numbers').doc(me).onSnapshot(function (snap) {
+                        self.mine = snap && snap.exists ? snap.data() : null;
+                        self.render();
+                    }, function (e) { console.warn('LnTab mine', e); self.mine = null; self.render(); });
+                    this.unsubAll = db.collection('lucky_numbers').onSnapshot(function (snap) {
+                        self.count = snap ? snap.size : 0; self.render();
+                    }, function (e) { console.warn('LnTab all', e); });
+                    // Quay theo giờ hẹn: đếm ngược trên trang chủ (và cũng giúp tự quay khi tới giờ)
+                    if (window.LuckySchedule) { LuckySchedule.start(); LuckySchedule.onChange(function () { self.render(); }); }
+                    this.schedTimer = setInterval(function () { self.schedTick(); }, 1000);
+                    // Admin bật "Phát Trực Tiếp" -> hiện banner + thông báo
+                    this.unsubLive = db.collection('settings').doc('lucky_live').onSnapshot(function (snap) {
+                        var on = !!(snap && snap.exists && snap.data().isLive === true);
+                        var wasKnown = self.liveKnown, was = self.live;
+                        self.live = on; self.liveKnown = true;
+                        if (on && (!wasKnown || !was)) self.notifyLive(wasKnown);
+                        self.render();
+                    }, function (e) { console.warn('LnTab live', e); });
+                } catch (e) { console.warn('LnTab start', e); }
+            },
+            stop: function () {
+                this.started = false; this.mine = undefined; this.count = null; this.live = false; this.liveKnown = false;
+                var bn = $('ln-live-banner'); if (bn) bn.style.display = 'none';
+                if (this.schedTimer) { clearInterval(this.schedTimer); this.schedTimer = null; }
+                if (window.LuckySchedule) LuckySchedule.stop();
+                ['unsubMine', 'unsubAll', 'unsubLive'].forEach(function (k) { if (this[k]) { try { this[k](); } catch (e) {} this[k] = null; } }, this);
+            },
+
+            notifyLive: function (justStarted) {
+                Utils.toast('🔴 Đang quay số trực tiếp! Bấm "Xem ngay" trên trang chủ để theo dõi.', 'success');
+                // Có quyền thông báo hệ thống + đang ở tab khác / ẩn trang -> bắn thông báo
+                try {
+                    if (!justStarted || !document.hidden || localStorage.getItem('qd_notif_state') === 'false') return;
+                    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+                    var opts = { body: 'Admin đang quay Số May Mắn. Chạm để vào xem kết quả!', icon: 'https://cdn-icons-png.flaticon.com/512/1041/1041916.png', tag: 'lucky_live', renotify: true };
+                    try {
+                        var n = new Notification('🔴 Đang quay số trực tiếp', opts);
+                        n.onclick = function () { window.focus(); var a = $('ln-live-banner'); if (a) a.click(); };
+                    } catch (err) {
+                        if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistration().then(function (reg) { if (reg) reg.showNotification('🔴 Đang quay số trực tiếp', opts); });
+                    }
+                } catch (e) {}
+            },
+
+            schedTick: function () {
+                if (!window.LuckySchedule || !LuckySchedule.pending()) return;
+                var nx = LuckySchedule.get(), left = LuckySchedule.remaining(), key = nx.id + '@' + nx.at;
+                if (left <= 60000 && left > 0 && !this.warned[key]) { this.warned[key] = true; Utils.toast('⏰ Còn 1 phút nữa là quay ' + (nx.label || 'số may mắn') + '! Vào xem ngay nhé.', 'warning'); }
+                this.render();
+            },
+
+            hasNumber: function () { return !!(this.mine && this.mine.number); },
+            canEdit: function () { return !this.hasNumber() || this.mine.canEdit === true; },
+
+            open: function () {
+                if (!window.State || !window.State.currentUser) return;
+                this.start();
+                this.build();
+                this.sel = null; this.confirming = false;
+                this.render();
+                window.UI.openModal('modal-lucky-number');
+            },
+            close: function () { this.confirming = false; window.UI.closeModal('modal-lucky-number'); },
+
+            build: function () {
+                if (this.built) return;
+                var grid = $('ln2-grid'), html = '';
+                for (var i = 1; i <= 100; i++) html += '<button type="button" class="ln2-cell" data-n="' + i + '" aria-label="Số ' + pad(i) + '">' + pad(i) + '</button>';
+                grid.innerHTML = html;
+                var self = this;
+                grid.addEventListener('click', function (e) {
+                    var b = e.target.closest ? e.target.closest('.ln2-cell') : null;
+                    if (!b || !self.canEdit() || self.saving) return;
+                    self.pick(parseInt(b.dataset.n, 10));
+                });
+                this.built = true;
+            },
+
+            pick: function (n) {
+                if (this.hasNumber() && parseInt(this.mine.number, 10) === n) { this.sel = null; }
+                else { this.sel = n; }
+                this.confirming = false;
+                this.render();
+            },
+
+            save: function () {
+                var self = this, me = window.State && window.State.currentUser, n = this.sel;
+                if (!me || !n || this.saving || !this.canEdit()) return;
+                if (!this.confirming) { this.confirming = true; this.render(); return; }   // bấm lần 2 để xác nhận
+                this.saving = true; this.render();
+                var ref = db.collection('lucky_numbers').doc(me);
+                db.runTransaction(function (tx) {
+                    return tx.get(ref).then(function (doc) {
+                        if (doc.exists && doc.data().number && doc.data().canEdit !== true) throw new Error('locked');
+                        tx.set(ref, { user: me, number: n, lastUpdated: Date.now(), canEdit: false });
+                    });
+                }).then(function () {
+                    self.sel = null; self.confirming = false;
+                    Utils.toast('Đã chốt số may mắn ' + pad(n) + '. Chúc bạn may mắn!', 'success');
+                    var ball = $('ln2-my-number'); if (ball) { ball.classList.remove('pop'); void ball.offsetWidth; ball.classList.add('pop'); }
+                }).catch(function (e) {
+                    self.confirming = false;
+                    if (e && e.message === 'locked') Utils.toast('Số của bạn đã được chốt. Liên hệ Admin để được cấp phép đổi số.', 'warning');
+                    else { console.warn('LnTab save', e); Utils.toast('Lỗi kết nối máy chủ, vui lòng thử lại.', 'error'); }
+                }).finally(function () { self.saving = false; self.render(); });
+            },
+
+            render: function () {
+                var has = this.hasNumber(), edit = this.canEdit(), loading = this.mine === undefined;
+                var myN = has ? parseInt(this.mine.number, 10) : null;
+
+                // --- thẻ trên trang chủ ---
+                var tab = $('ln-tab'), live = this.live;
+                var nextR = window.LuckySchedule ? LuckySchedule.get() : null;          // lượt hẹn giờ sắp tới
+                var pend = !live && !!nextR;
+                var sched = nextR, left = nextR ? LuckySchedule.remaining() : null;
+                var whenTxt = nextR ? LuckySchedule.fmtTime(nextR.at) : '', lbl = nextR && nextR.label ? nextR.label : 'Lượt tới';
+                if (tab) {
+                    tab.dataset.state = has && !edit ? 'locked' : 'open';
+                    tab.classList.toggle('is-live', live);
+                    $('ln-tab-sub').textContent = live ? '🔴 ĐANG LIVE' : pend ? '⏰ ' + lbl + ' lúc ' + whenTxt.replace(' hôm nay', '') : (loading ? 'Đang tải...' : (has ? 'Số của bạn: ' + pad(myN) : 'Chưa chọn số'));
+                    $('ln-tab-ball').textContent = has ? pad(myN) : '?';
+                    $('ln-tab-go').textContent = live ? '🔴 Đang quay trực tiếp · chạm để xem ›' : pend ? '⏰ Còn ' + LuckySchedule.fmtLeft(left) + ' · ' + (has ? 'số của bạn: ' + pad(myN) : 'chạm để chọn số ›') : (loading ? 'Chạm để chọn số ›' : (!has ? 'Chạm để chọn số may mắn ›' : (edit ? 'Được phép đổi số · chạm để đổi ›' : '🔒 Đã chốt số · chạm để xem ›')));
+                }
+                var bn = $('ln-live-banner');
+                if (bn) {
+                    bn.style.display = live || pend ? 'flex' : 'none';
+                    bn.classList.toggle('soon', pend);
+                    $('ln-live-banner-title').textContent = live ? 'Đang quay số trực tiếp!' : '⏰ Sắp quay số may mắn · ' + lbl + '!';
+                    $('ln-live-banner-go').textContent = live ? 'Xem ngay ›' : 'Vào chờ ›';
+                    $('ln-live-banner-sub').textContent = live
+                        ? (nextR && left > 0 ? lbl + ' quay lúc ' + whenTxt + ' · còn ' + LuckySchedule.fmtLeft(left) : 'Vào xem kết quả Quay Số May Mắn ngay') + (has ? ' · số của bạn: ' + pad(myN) : '')
+                        : (left > 0 ? lbl + ' quay lúc ' + whenTxt + ' · còn ' + LuckySchedule.fmtLeft(left) : 'Đến giờ quay ' + lbl + ' rồi! Vào xem ngay') + (has ? ' · số của bạn: ' + pad(myN) : '');
+                }
+                var lv = $('ln2-live');
+                if (lv) {
+                    lv.dataset.live = live || pend ? 'on' : 'off';
+                    lv.setAttribute('aria-disabled', live || pend ? 'false' : 'true');
+                    lv.tabIndex = live || pend ? 0 : -1;
+                    $('ln2-live-txt').textContent = live ? 'Xem quay trực tiếp ngay' : pend ? '⏰ ' + lbl + ' lúc ' + whenTxt + ' · vào chờ' : 'Chưa mở quay trực tiếp';
+                }
+
+                // --- popup ---
+                if (!this.built) return;
+                $('ln2-my-number').textContent = has ? pad(myN) : '?';
+                var st = $('ln2-status');
+                st.className = has ? (edit ? 'open' : 'lock') : '';
+                st.textContent = loading ? 'Đang tải...' : (!has ? 'Bạn chưa chọn số nào' : (edit ? 'Admin đã cho phép bạn đổi số' : 'Đã chốt · chờ kết quả quay số'));
+
+                var hint = $('ln2-hint');
+                hint.className = 'ln2-hint' + (edit ? '' : ' lock');
+                hint.textContent = edit
+                    ? (has ? 'Chạm vào số mới để đổi. Sau khi chốt, số sẽ bị khóa lại.' : 'Chạm vào một ô số để chọn. Mỗi thành viên chọn 1 số, sau khi chốt sẽ không tự đổi được.')
+                    : '🔒 Số của bạn đã được chốt. Muốn đổi số, hãy liên hệ Admin để được cấp phép.';
+
+                var grid = $('ln2-grid'), sel = this.sel;
+                grid.classList.toggle('locked', !edit);
+                Array.prototype.forEach.call(grid.children, function (b) {
+                    var n = parseInt(b.dataset.n, 10);
+                    b.classList.toggle('mine', n === myN);
+                    b.classList.toggle('sel', n === sel);
+                    b.disabled = !edit;
+                    b.setAttribute('aria-pressed', n === sel ? 'true' : 'false');
+                });
+
+                $('ln2-count').textContent = this.count == null ? '--' : this.count;
+                var btn = $('ln2-save');
+                btn.classList.toggle('confirm', this.confirming && !this.saving);
+                btn.disabled = !edit || !sel || this.saving;
+                btn.innerHTML = this.saving ? '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...'
+                    : (!edit ? '<i class="fa-solid fa-lock"></i> Đã chốt'
+                    : (!sel ? 'Chọn một số'
+                    : (this.confirming ? '<i class="fa-solid fa-check"></i> Xác nhận chốt số ' + pad(sel) : (has ? 'Đổi sang số ' + pad(sel) : 'Chốt số ' + pad(sel)))));
+            }
+        };
+
+        document.addEventListener('keydown', function (e) {
+            var m = $('modal-lucky-number');
+            if (e.key === 'Escape' && m && m.classList.contains('active')) window.LnTab.close();
+        });
+        document.addEventListener('click', function (e) {   // bấm ra ngoài popup để đóng
+            if (e.target && e.target.id === 'modal-lucky-number') window.LnTab.close();
+        });
+    })();
+    </script>
+    <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
+    <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>
+        <div class="qd-net-card">
+            <span class="qd-net-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="qd-off" d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path class="qd-off" d="M19 12.9a10 10 0 0 0-2.3-1.7"/><path class="qd-on" d="M19 12.9a10 10 0 0 0-14 0" style="display:none"/><path d="M2 9.3a15 15 0 0 1 4.2-2.8"/><path class="qd-off" d="M22 9.3A15 15 0 0 0 10.7 5"/><path class="qd-on" d="M22 9.3a15 15 0 0 0-20 0" style="display:none"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+            </span>
+            <span class="qd-net-txt">
+                <b id="qd-net-title">Không có kết nối Internet</b>
+                <small id="qd-net-sub">Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.</small>
+            </span>
+            <button type="button" class="qd-net-btn" id="qd-net-retry">Thử lại</button>
+        </div>
+    </div>
+    <style>
+        .qd-net { position: fixed; left: 0; right: 0; top: 0; z-index: 2147483000; display: flex; justify-content: center; padding: max(10px, env(safe-area-inset-top)) 12px 0; pointer-events: none; }
+        .qd-net[hidden] { display: none !important; }
+        .qd-net-card { pointer-events: auto; display: flex; align-items: center; gap: 12px; width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 16px; box-sizing: border-box;
+            font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; text-align: left; color: #fff;
+            background: linear-gradient(135deg, #b3121b, #7a0000); border: 2px solid #ffd95a; box-shadow: 0 12px 30px rgba(0,0,0,.45); animation: qdNetIn .35s cubic-bezier(.2, 1.4, .4, 1); }
+        .qd-net-card * { text-shadow: none !important; box-sizing: border-box; }
+        .qd-net-ico { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .qd-net-txt b { font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; }
+        .qd-net-txt small { font-size: 12.5px; font-weight: 600; color: #fef08a; line-height: 1.4; }
+        .qd-net-btn { flex: 0 0 auto; padding: 9px 14px; border-radius: 999px; border: none; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-btn:disabled { opacity: .7; cursor: wait; }
+        .qd-net.ok .qd-net-card { background: linear-gradient(135deg, #059669, #065f46); border-color: #a7f3d0; }
+        .qd-net.ok .qd-net-ico { color: #065f46; background: #d1fae5; }
+        .qd-net.ok .qd-net-btn, .qd-net.ok .qd-off { display: none; }
+        .qd-net.ok .qd-on { display: inline !important; }
+        .qd-net:not(.ok) .qd-net-ico { animation: qdNetPulse 1.6s ease-in-out infinite; }
+        @keyframes qdNetIn { from { transform: translateY(-120%); opacity: 0; } }
+        @keyframes qdNetPulse { 50% { transform: scale(.88); } }
+        @media (max-width: 420px) { .qd-net-card { gap: 10px; padding: 10px 12px; } .qd-net-txt b { font-size: 14px; } .qd-net-txt small { font-size: 12px; } .qd-net-btn { padding: 8px 11px; } }
+        @media (prefers-reduced-motion: reduce) { .qd-net-card, .qd-net-ico { animation: none !important; } }
+    </style>
+    <script>
+    /* Phát hiện mất mạng: sự kiện online/offline của trình duyệt + kiểm tra thật định kỳ
+       (navigator.onLine có thể báo "có mạng" khi Wi-Fi đã kết nối nhưng không ra được Internet) */
+    (function () {
+        'use strict';
+        if (window.__qdNetGuard) return; window.__qdNetGuard = true;
+        var box = document.getElementById('qd-net'), title = document.getElementById('qd-net-title'), sub = document.getElementById('qd-net-sub'), btn = document.getElementById('qd-net-retry');
+        var PROBES = ['https://www.gstatic.com/generate_204', 'https://firestore.googleapis.com/', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
+        var offline = false, fails = 0, okTimer = null, checking = false;
+
+        function probe(url) {
+            return new Promise(function (resolve, reject) {
+                var ctrl = window.AbortController ? new AbortController() : null;
+                var t = setTimeout(function () { if (ctrl) ctrl.abort(); reject(new Error('timeout')); }, 6000);
+                fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { mode: 'no-cors', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+                    .then(function () { clearTimeout(t); resolve(true); }, function (e) { clearTimeout(t); reject(e); });
+            });
+        }
+        function anyOk() {   // chỉ cần 1 máy chủ phản hồi là có mạng
+            return new Promise(function (resolve) {
+                var left = PROBES.length;
+                PROBES.forEach(function (u) { probe(u).then(function () { resolve(true); }, function () { if (--left === 0) resolve(false); }); });
+            });
+        }
+        function show() {
+            if (offline) return; offline = true;
+            clearTimeout(okTimer);
+            box.classList.remove('ok');
+            title.textContent = 'Không có kết nối Internet';
+            sub.textContent = 'Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.';
+            box.hidden = false;
+        }
+        function hide() {
+            if (!offline) return; offline = false;
+            box.classList.add('ok');
+            title.textContent = 'Đã kết nối lại Internet';
+            sub.textContent = 'Dữ liệu đang được đồng bộ lại.';
+            clearTimeout(okTimer);
+            okTimer = setTimeout(function () { box.hidden = true; box.classList.remove('ok'); }, 2500);
+        }
+        function check() {
+            if (checking) return; checking = true;
+            if (navigator.onLine === false) { checking = false; fails = 2; show(); return; }
+            anyOk().then(function (ok) {
+                checking = false;
+                if (ok) { fails = 0; hide(); }
+                else if (++fails >= 2 || offline) show();   // lỗi 2 lần liên tiếp mới báo, tránh báo nhầm
+                else setTimeout(check, 3000);
+            });
+        }
+
+        window.addEventListener('offline', function () { fails = 2; show(); });
+        window.addEventListener('online', function () { setTimeout(check, 500); });
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+        btn.addEventListener('click', function () {
+            btn.disabled = true; btn.textContent = 'Đang thử...';
+            sub.textContent = 'Đang kiểm tra kết nối...';
+            fails = 1; checking = false;
+            check();
+            setTimeout(function () {
+                btn.disabled = false; btn.textContent = 'Thử lại';
+                if (offline) sub.textContent = 'Vẫn chưa có mạng. Vui lòng kiểm tra Wi-Fi hoặc 4G.';
+            }, 2500);
+        });
+        // Kiểm tra định kỳ: mất mạng thì 5 giây/lần để báo có mạng lại nhanh; bình thường 20 giây/lần
+        (function loop() { setTimeout(function () { if (!document.hidden || offline) check(); loop(); }, offline ? 5000 : 20000); })();
+        if (navigator.onLine === false) show();
+    })();
+    </script>
+    <style id="qd-smooth-page">
+/* ===== QD SMOOTH: hiệu ứng nhịp sáng chạy trên GPU (transform/opacity) thay vì vẽ lại box-shadow mỗi khung hình ===== */
+@keyframes qdRing { 0% { transform: scale(1); opacity: 0; } 12% { opacity: .9; } 70%, 100% { transform: scale(var(--qd-rx, 1.06), var(--qd-ry, 1.45)); opacity: 0; } }
+@keyframes qdDot { 0% { transform: scale(1); opacity: 1; } 70%, 100% { transform: scale(var(--qd-s, 3)); opacity: 0; } }
+@keyframes qdBreath { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+html[data-theme="tet"] .btn-primary { animation: none !important; position: relative; }
+html[data-theme="tet"] .btn-primary:not(:disabled)::after { content: ''; position: absolute; inset: -4px; border-radius: inherit; border: 2px solid rgba(255, 215, 0, .8); pointer-events: none; animation: qdRing 2s cubic-bezier(.25, .6, .4, 1) infinite; }
+.inv2-dot { position: relative; animation: none !important; }
+.inv2-dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: rgba(52, 211, 153, .7); pointer-events: none; --qd-s: 3; animation: qdDot 2s cubic-bezier(.25, .6, .4, 1) infinite; }
+.ps2-go.confirm { position: relative; animation: none !important; }
+.ps2-go.confirm::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 4px rgba(52, 211, 153, .35); pointer-events: none; animation: qdBreath 1s ease-in-out infinite; }
+.ln-live-dot { position: relative; animation: none !important; }
+.ln-live-dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: rgba(255, 255, 255, .8); pointer-events: none; --qd-s: 2.67; animation: qdDot 1.4s cubic-bezier(.25, .6, .4, 1) infinite; }
+.ln-live-banner { position: relative; animation: none !important; }
+.ln-live-banner::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 8px 30px rgba(255, 8, 68, .65); pointer-events: none; animation: qdBreath 2s ease-in-out infinite; }
+/* Quầng sáng nền thẻ chào: filter blur(120px) (GPU phải làm mờ lại mỗi khung) -> box-shadow vẽ 1 lần, hình dạng y hệt */
+.bento-hero::before { filter: none !important; background: transparent !important; bottom: calc(-30% + 3000px); box-shadow: 0 3000px 240px 0 var(--color-success); }
+.bento-hero::after { filter: none !important; background: transparent !important; top: calc(-50% - 3000px); box-shadow: 0 3000px 240px 0 var(--brand-primary); }
+@media (prefers-reduced-motion: reduce) {
+    html[data-theme="tet"] .btn-primary::after, .inv2-dot::after, .ps2-go.confirm::after, .ln-live-dot::after, .ln-live-banner::after { animation: none !important; opacity: 0; }
+}
+    </style>
 </body>
 
 </html>

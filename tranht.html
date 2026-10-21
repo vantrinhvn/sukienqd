@@ -34,10 +34,10 @@
         body {
             color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased;
             background-color: var(--bg-body);
-            background-image:
+            --qd-bg:
                 radial-gradient(circle at 50% -10%, rgba(255, 215, 0, 0.30) 0%, transparent 55%),
                 linear-gradient(180deg, var(--bg-body) 0%, var(--tet-deep) 100%);
-            background-attachment: fixed;
+            
         }
         ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: rgba(255,215,0,.5); border-radius: 10px; }
 
@@ -231,11 +231,197 @@
             #petals { display: none; }
         }
     </style>
+
+    <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
+    <style id="qd-smooth-css">
+/* ===== QD SMOOTH (dùng chung) ===== */
+.qd-paused, .qd-paused::before, .qd-paused::after, .qd-paused-px::before, .qd-paused-px::after { animation-play-state: paused !important; }
+html.qd-lite *, html.qd-lite *::before, html.qd-lite *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html.qd-lite .qd-fx { display: none !important; }
+    </style>
+    <script id="qd-smooth-js">
+/* ===== QD SMOOTH: lớp tối ưu mượt mà dùng chung mọi trang =====
+   - Giữ luồng chính (main thread) rảnh: hiệu ứng lặp chạy trên GPU, ghi DOM trùng lặp bị bỏ qua
+   - Hiệu ứng nằm ngoài màn hình / video nền khuất -> tạm dừng, hiện lại -> chạy tiếp
+   - Máy yếu hoặc đo thấy rớt khung hình -> tự bật chế độ nhẹ (html.qd-lite)
+   Ép chế độ: localStorage.setItem('qd_fx', 'full' | 'lite' | 'auto') */
+(function () {
+    'use strict';
+    if (window.QDSmooth) return;
+    var W = window, d = document, html = d.documentElement, nav = navigator;
+    var Q = W.QDSmooth = { lite: false, _cb: [] };
+    function store(k, v) { try { if (v === undefined) return (k === 'ss' ? sessionStorage : localStorage).getItem('qd_fx'); (k === 'ss' ? sessionStorage : localStorage).setItem('qd_fx', v); } catch (e) { return null; } }
+    var pref = store('ls');
+
+    /* ---------- 1. Chế độ nhẹ ---------- */
+    Q.onLite = function (fn) { Q._cb.push(fn); if (Q.lite) { try { fn(true); } catch (e) {} } };
+    Q.setLite = function (on) {
+        on = !!on; if (Q.lite === on) return;
+        Q.lite = on; html.classList.toggle('qd-lite', on); store('ss', on ? 'lite' : 'full');
+        Q._cb.forEach(function (fn) { try { fn(on); } catch (e) {} });
+    };
+    var reduce = W.matchMedia && W.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var conn = nav.connection || {};
+    var weak = (nav.deviceMemory && nav.deviceMemory <= 2) || (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) || conn.saveData === true;
+    if (pref !== 'full' && (pref === 'lite' || store('ss') === 'lite' || weak || reduce)) Q.setLite(true);
+
+    /* Đo khung hình thật: 2 lần đo liên tiếp rớt > 22% khung -> bật chế độ nhẹ cho phiên này */
+    function monitor() {
+        if (pref === 'full' || pref === 'lite' || Q.lite || !W.requestAnimationFrame) return;
+        var strikes = 0, runs = 0;
+        function sample() {
+            if (Q.lite || runs > 40) return;
+            if (d.hidden) return setTimeout(sample, 4000);
+            runs++;
+            var t = [], last = 0, end = performance.now() + 2000;
+            requestAnimationFrame(function step(now) {
+                if (d.hidden) return setTimeout(sample, 4000);
+                if (last) t.push(now - last); last = now;
+                if (now < end) return requestAnimationFrame(step);
+                if (t.length < 20) return setTimeout(sample, 8000);
+                var s = t.slice().sort(function (a, b) { return a - b; });
+                var vsync = Math.max(6.5, s[Math.floor(s.length * 0.1)]);   // ~8.3ms ở màn 120Hz, ~16.7ms ở 60Hz
+                var bad = 0; t.forEach(function (x) { if (x > vsync * 1.8) bad++; });
+                strikes = bad / t.length > 0.22 ? strikes + 1 : 0;
+                if (strikes >= 2) return Q.setLite(true);
+                setTimeout(sample, strikes ? 1500 : 12000);
+            });
+        }
+        setTimeout(sample, 5000);
+    }
+
+    /* ---------- 2. Bỏ qua ghi chữ trùng lặp (đồng hồ, bộ đếm... ghi mỗi giây) ---------- */
+    function guardText(proto, prop, noNewline) {
+        var desc = Object.getOwnPropertyDescriptor(proto, prop);
+        if (!desc || !desc.set || !desc.get || desc.set.__qd) return;
+        var set = function (v) {
+            var c = this.firstChild, s = v == null ? '' : String(v);
+            if (c ? (c === this.lastChild && c.nodeType === 3 && c.data === s && !(noNewline && /[\r\n]/.test(s))) : (s === '' && this.nodeType === 1)) return;
+            desc.set.call(this, v);
+        };
+        set.__qd = true;
+        Object.defineProperty(proto, prop, { configurable: true, enumerable: desc.enumerable, get: desc.get, set: set });
+    }
+    try { guardText(Node.prototype, 'textContent'); guardText(HTMLElement.prototype, 'innerText', true); } catch (e) {}
+
+    /* Ghi innerHTML chỉ khi nội dung thay đổi (dùng cho các vòng cập nhật định kỳ) */
+    Q.html = function (el, s) {
+        if (!el) return;
+        s = s == null ? '' : String(s);
+        if (el.__qdH === s && el.__qdF === el.firstChild && el.__qdL === el.lastChild) return;
+        el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
+    };
+
+    /* ---------- Vòng quay: quay NGAY khi bấm, giảm tốc êm vào ô trúng khi máy chủ trả kết quả ----------
+       var s = QDSmooth.spinner(canvas, gocHienTai, { slice: 360 / soO, onTick: fn });
+       s.land(gocDich).then(gocCuoi => ...)   // gocDich: góc cuối mong muốn (mod 360)
+       s.stop().then(gocCuoi => ...)          // lỗi: dừng nhẹ nhàng
+       Tốc độ tính theo thời gian thực -> mượt như nhau ở 60/90/120Hz, tiếng "tách" khớp đúng với ô đi qua. */
+    Q.spinner = function (el, from, opt) {
+        opt = opt || {};
+        var V = opt.vmax || 1.2, ACC = 450, MIN = opt.min || 800, DEC = opt.decel || 2600, slice = opt.slice || 0, onTick = opt.onTick;
+        var t0 = 0, angle = from = +from || 0, target = null, failed = false, phase = 0, tc = 0, ac = 0, D = 0, T = 1, last = null, done;
+        var p = new Promise(function (r) { done = r; });
+        el.style.transition = 'none'; el.style.willChange = 'transform';
+        function put(a) {
+            el.style.transform = 'rotate(' + a + 'deg)';
+            if (slice && onTick) { var i = Math.floor((a - from) / slice); if (i !== last) { if (last !== null) { try { onTick(); } catch (e) {} } last = i; } }
+        }
+        function frame(now) {
+            if (!t0) t0 = now;
+            var t = now - t0;
+            if (phase === 0) {
+                angle = t < ACC ? from + V * t * t / (2 * ACC) : from + V * ACC / 2 + V * (t - ACC);
+                if ((target !== null || failed) && t >= (failed ? 0 : MIN)) {
+                    phase = 1; tc = now; ac = angle;
+                    var v = t < ACC ? V * t / ACC : V;
+                    if (failed) { T = 700; D = v * T / 3; }
+                    else { D = ((target - ac) % 360 + 360) % 360; while (D < V * DEC / 3) D += 360; T = 3 * D / Math.max(v, 0.2); }
+                }
+            }
+            if (phase === 1) {
+                var u = Math.min(1, (now - tc) / T);
+                angle = ac + D * (1 - Math.pow(1 - u, 3));     // giảm tốc kiểu bánh xe thật (ease-out)
+                if (u >= 1) { put(angle); el.style.willChange = ''; return done(angle); }
+            }
+            put(angle); requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+        return { land: function (deg) { target = +deg || 0; return p; }, stop: function () { failed = true; return p; }, done: p };
+    };
+
+    /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
+    var MOVE = /^(transform|translate|rotate|scale|left|top|right|bottom|offset|inset|margin)/;
+    var io = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) { e.target.classList.toggle(e.target.__qdM, !e.isIntersecting); });
+    }, { rootMargin: '120px' }) : null;
+    var seen = new WeakSet(), seenPx = new WeakSet();
+    function moves(a) {   // hiệu ứng tự di chuyển phần tử (hoa rơi...) thì không dừng, tránh kẹt ngoài màn hình
+        try { var k = a.effect.getKeyframes(); for (var i = 0; i < k.length; i++) for (var p in k[i]) if (MOVE.test(p)) return true; } catch (e) { return true; }
+        return false;
+    }
+    function scan() {
+        if (!io || !d.getAnimations || d.hidden) return;
+        var as = d.getAnimations();
+        for (var i = 0; i < as.length; i++) {
+            var ef = as[i].effect, el = ef && ef.target;
+            if (!el || !ef.getTiming || ef.getTiming().iterations !== Infinity) continue;
+            var bag = ef.pseudoElement ? seenPx : seen;
+            if (bag.has(el)) continue;
+            bag.add(el);
+            var own = el.getAnimations ? el.getAnimations() : [], mv = false;
+            for (var j = 0; j < own.length; j++) if (moves(own[j])) { mv = true; break; }
+            if (mv && !ef.pseudoElement) continue;          // chỉ có hiệu ứng di chuyển: để nguyên
+            if (el.__qdM === 'qd-paused') continue;
+            el.__qdM = mv ? 'qd-paused-px' : 'qd-paused';   // có di chuyển: chỉ dừng ::before/::after
+            io.observe(el);
+        }
+    }
+
+    /* ---------- 4. Video nền: dừng khi khuất / ẩn tab, chạy lại khi hiện ---------- */
+    var vio = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+            var v = e.target; v.__qdVis = e.isIntersecting;
+            if (!e.isIntersecting) { if (!v.paused) { v.__qdAuto = true; v.pause(); } }
+            else if (v.__qdAuto) { v.__qdAuto = false; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+        });
+    }, { rootMargin: '80px' }) : null;
+    function watchMedia(root) {
+        var imgs = root.getElementsByTagName ? root.getElementsByTagName('img') : [];
+        for (var i = 0; i < imgs.length; i++) if (!imgs[i].getAttribute('decoding')) imgs[i].decoding = 'async';
+        if (!vio) return;
+        var vs = root.getElementsByTagName ? root.getElementsByTagName('video') : [];
+        for (var j = 0; j < vs.length; j++) {
+            var v = vs[j]; if (v.__qdW || !v.muted && !v.hasAttribute('muted')) continue;
+            v.__qdW = true; vio.observe(v);
+            v.addEventListener('play', function () { var me = this; if (me.__qdVis === false) setTimeout(function () { if (me.__qdVis === false && !me.paused) { me.__qdAuto = true; me.pause(); } }, 0); });
+        }
+    }
+
+    /* ---------- Khởi động ---------- */
+    var scanT = 0;
+    function later() { clearTimeout(scanT); scanT = setTimeout(function () { scan(); }, 400); }
+    function boot() {
+        watchMedia(d);
+        scan(); setInterval(scan, 3000);
+        if (W.MutationObserver) new MutationObserver(function (ms) {
+            for (var i = 0; i < ms.length; i++) for (var j = 0, n = ms[i].addedNodes; j < n.length; j++) {
+                var x = n[j]; if (x.nodeType !== 1) continue;
+                if (x.tagName === 'IMG' || x.tagName === 'VIDEO' || x.firstElementChild) watchMedia(x.tagName === 'IMG' || x.tagName === 'VIDEO' ? x.parentNode || d : x);
+            }
+            later();
+        }).observe(d.body, { childList: true, subtree: true });
+        d.addEventListener('visibilitychange', function () { if (!d.hidden) later(); });
+        monitor();
+    }
+    if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+    </script>
 </head>
 <body>
 
     <div id="toast-container"></div>
-    <div id="petals" aria-hidden="true"></div>
+    <div id="petals" class="qd-fx" aria-hidden="true"></div>
     <div class="lantern l" aria-hidden="true">🏮</div>
     <div class="lantern r" aria-hidden="true">🏮</div>
 
@@ -527,7 +713,7 @@
                     }
                 });
 
-                setInterval(() => this.refreshLock(), 1000); // bắt kịp giờ hẹn đóng
+                setInterval(() => { if (!document.hidden) this.refreshLock(); }, 1000); // bắt kịp giờ hẹn đóng
             },
 
             /* ----- đóng/mở theo admin: isEnabled, endDate, endTime ----- */
@@ -543,8 +729,8 @@
             refreshLock: function() {
                 const why = this.closedBy(State.cfg), box = document.getElementById('lock-box');
                 document.getElementById('ticket-grid-ui').classList.toggle('locked', !!why && !State.hasPlayed);
-                box.style.display = why ? 'block' : 'none';
-                if (why) box.textContent = why === 'expired' ? '🔒 Đợt rút lì xì đã kết thúc. Hẹn gặp lại bạn đợt sau!' : '🔒 Cửa rút lì xì đang đóng. Vui lòng quay lại sau!';
+                const disp = why ? 'block' : 'none'; if (box.style.display !== disp) box.style.display = disp;
+                if (why) box.textContent= why === 'expired' ? '🔒 Đợt rút lì xì đã kết thúc. Hẹn gặp lại bạn đợt sau!' : '🔒 Cửa rút lì xì đang đóng. Vui lòng quay lại sau!';
             },
 
             renderTickets: function() {
@@ -616,24 +802,30 @@
                 if (State.availableTickets <= 0 || !State.currentDocId) { Utils.toast("Bạn đã hết lượt rút lì xì!", "warning"); return; }
 
                 State.hasPlayed = true;
-                TetSound.unlock();   // mở khóa âm thanh ngay lúc bấm (trình duyệt yêu cầu thao tác người dùng)
+                const pendingEl = document.getElementById(`ticket-${index}`); if (pendingEl) pendingEl.classList.add('pending');   // phản hồi ngay khi chạm
+                TetSound.unlock();// mở khóa âm thanh ngay lúc bấm (trình duyệt yêu cầu thao tác người dùng)
                 const accRef = db.collection("accounts").doc(State.currentDocId);
                 const cfgRef = db.collection("settings").doc("tranhthuong_config");
                 const stockRef = db.collection("tranhthuong_stock").doc("counts");
 
                 // Giao dịch: kiểm tra đóng/mở + còn lượt + còn số lượng giải, rồi trừ 1 lượt và cộng "đã trúng" cho giải đó
                 db.runTransaction(async (tx) => {
-                    const acc = await tx.get(accRef), c = await tx.get(cfgRef), st = await tx.get(stockRef);
+                    const [acc, c] = await Promise.all([tx.get(accRef), tx.get(cfgRef)]);
                     const cfg = c.exists ? c.data() : {};
                     if (this.closedBy(cfg)) throw { code: 'CLOSED' };
                     const left = (acc.exists && acc.data().tickets) || 0;
                     if (left <= 0) throw { code: 'NOTICKET' };
-                    const counts = (st.exists && st.data().counts) || {};
-                    const prize = this.pickFrom(this.normPrizes(cfg.prizes), counts);
+                    const prizes = this.normPrizes(cfg.prizes);
+                    let prize = this.pickFrom(prizes, State.counts || {});   // chọn theo số liệu trực tiếp đang có
+                    if (prize && prize.qty != null) {                        // giải giới hạn: kiểm tra lại kho trong giao dịch
+                        const st = await tx.get(stockRef), counts = (st.exists && st.data().counts) || {};
+                        if ((counts[prize.id] || 0) >= prize.qty) prize = this.pickFrom(prizes, counts);
+                    }
                     tx.update(accRef, { tickets: firebase.firestore.FieldValue.increment(-1) });
                     if (prize && prize.qty != null) tx.set(stockRef, { counts: { [prize.id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
                     return { remain: left - 1, text: prize ? prize.text : "Lời Chúc Tết", prizeId: prize ? prize.id : null };
                 }).then(({ remain, text, prizeId }) => {
+                    if (pendingEl) pendingEl.classList.remove('pending');
                     const isWish = this.isWishPrize(text);
                     const winningPrize = isWish ? "Lời Chúc Tết" : text;
                     const wish = isWish ? this.randomWish() : null;
@@ -646,7 +838,7 @@
                     env.classList.add('opened');
 
                     const r = env.getBoundingClientRect();
-                    setTimeout(() => Utils.burst(r.left + r.width / 2, r.top), 650);
+                    setTimeout(() => Utils.burst(r.left + r.width / 2, r.top), 550);
 
                     setTimeout(() => {
                         const w = State.wishes, a = Math.floor(Math.random() * w.length);
@@ -669,8 +861,9 @@
                             remain: remain,
                             timestamp: Date.now()
                         }).catch(e => console.error("Lỗi lưu lịch sử:", e));
-                    }, 1500);
+                    }, 1150);   // vừa đủ cho hoạt ảnh mở bao (trước: 1,5 giây)
                 }).catch(err => {
+                    if (pendingEl) pendingEl.classList.remove('pending');
                     State.hasPlayed = false;
                     if (err && err.code === 'CLOSED') Utils.toast("Cửa rút lì xì vừa đóng, lượt của bạn không bị trừ.", "warning");
                     else if (err && err.code === 'NOTICKET') Utils.toast("Bạn đã hết lượt rút lì xì!", "warning");
@@ -723,5 +916,26 @@
 
         document.addEventListener("DOMContentLoaded", () => { TetSound.paintBtn(); Decor.init(); TranhThuong.init(); });
     </script>
+    <style id="qd-smooth-page">
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background-image: var(--qd-bg); }
+@keyframes qdRing { 0% { transform: scale(1); opacity: 0; } 12% { opacity: .9; } 70%, 100% { transform: scale(var(--qd-rx, 1.06), var(--qd-ry, 1.45)); opacity: 0; } }
+@keyframes qdDot { 0% { transform: scale(1); opacity: 1; } 70%, 100% { transform: scale(var(--qd-s, 3)); opacity: 0; } }
+@keyframes qdBreath { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+/* Nhịp sáng: chạy trên GPU thay vì vẽ lại box-shadow mỗi khung hình */
+.spin-counter { position: relative; }
+.spin-counter.glow { animation: none; }
+.spin-counter.glow::after { content: ''; position: absolute; inset: -4px; border-radius: inherit; border: 2px solid rgba(255, 215, 0, .75); pointer-events: none; --qd-rx: 1.07; --qd-ry: 1.5; animation: qdRing 2s cubic-bezier(.25, .6, .4, 1) infinite; }
+.lixi:not(.opened) .lixi-seal { animation: none; }
+.lixi-seal::after { content: ''; position: absolute; inset: -2px; border-radius: 50%; border: 3px solid rgba(255, 215, 0, .7); opacity: 0; pointer-events: none; }
+.lixi:not(.opened) .lixi-seal::after { animation: qdSeal 2.4s ease-in-out infinite; }
+.lixi:nth-child(odd):not(.opened) .lixi-seal::after { animation-delay: 1.2s; }
+.lixi-grid.locked .lixi-seal::after { animation: none; }
+@keyframes qdSeal { 0%, 100% { transform: scale(1); opacity: 0; } 25%, 75% { transform: scale(1.2); opacity: .6; } 50% { transform: scale(1.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .spin-counter.glow::after, .lixi-seal::after { animation: none !important; opacity: 0; } }
+
+.lixi.pending { animation: qdWiggle .45s ease-in-out infinite; }
+.lixi.pending .lixi-flap { transform: rotateX(18deg); }
+@keyframes qdWiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-3deg) translateY(-3px); } 75% { transform: rotate(3deg) translateY(-3px); } }
+    </style>
 </body>
 </html>

@@ -3,262 +3,520 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QD Elite - Livestream Quay Số Trúng Thưởng</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#7a0000">
+    <title>QD Elite - Quay Số Đầu Xuân</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;700;800;900&family=Lobster&family=Playfair+Display:wght@800;900&display=swap" rel="stylesheet">
 
     <style>
-        /* CSS VARIABLES */
         :root {
-            --bg-dark: #070913;
-            --primary-glow: #00f3ff;
-            --gold-light: #ffd700;
-            --gold-dark: #b8860b;
-            --danger: #ff0055;
-            --success: #00ff88;
-            --panel-bg: rgba(13, 17, 33, 0.7);
+            --red-900: #4a0000;
+            --red-800: #6b0000;
+            --red-700: #8f0a0a;
+            --red-600: #b3121b;
+            --red-500: #d62828;
+            --gold-100: #fff8d6;
+            --gold-200: #ffeaa0;
+            --gold-300: #ffd95a;
+            --gold-400: #f5c242;
+            --gold-600: #c8901a;
+            --gold-800: #8a5a00;
+            --jade: #2fd08a;
+            --gold-grad: linear-gradient(135deg, #fff6c8 0%, #ffd95a 35%, #e9a91c 60%, #fff0a8 100%);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body { min-height: 100%; } html { overflow-x: hidden; }
         body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--bg-dark);
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.15), transparent 50%),
-                radial-gradient(circle at 50% 100%, rgba(255, 215, 0, 0.1), transparent 50%);
+            font-family: 'Be Vietnam Pro', sans-serif;
+            color: var(--gold-100);
+            min-height: 100vh; min-height: 100dvh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 90px 16px 60px;
+            overflow-x: hidden;
+            user-select: none;
+            background-color: var(--red-800);
+            --qd-bg:
+                radial-gradient(ellipse at 50% 38%, rgba(255, 200, 80, .28) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, .55) 0%, transparent 60%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23ffd95a' stroke-opacity='.07' stroke-width='2'%3E%3Cpath d='M0 40h20v-20h20v20h20v20h-20v20'/%3E%3Cpath d='M40 0v20M80 40h-20'/%3E%3Ccircle cx='40' cy='40' r='6'/%3E%3C/g%3E%3C/svg%3E"),
+                linear-gradient(180deg, var(--red-700) 0%, var(--red-800) 55%, var(--red-900) 100%);
+            
+        }
+        [hidden] { display: none !important; }
+
+        /* ===== Trang trí: đèn lồng, cành mai/đào, hoa rơi ===== */
+        .decor { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+        .lantern { position: absolute; top: 0; width: 64px; transform-origin: 50% 0; animation: sway 3.4s ease-in-out infinite alternate; }
+        .lantern .string { display: block; width: 2px; height: var(--len, 40px); margin: 0 auto; background: var(--gold-400); }
+        .lantern .cap { display: block; width: 30px; height: 9px; margin: 0 auto; border-radius: 3px; background: var(--gold-grad); }
+        .lantern .body { position: relative; display: flex; align-items: center; justify-content: center; width: 64px; height: 54px; border-radius: 50% / 46%;
+            background: radial-gradient(circle at 40% 35%, #ff5a4a, #d0141c 55%, #8a0000 100%); box-shadow: 0 0 30px rgba(255, 80, 40, .55), inset 0 -6px 12px rgba(0,0,0,.35);
+            font-family: 'Lobster', cursive; font-size: 22px; color: var(--gold-300); text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+        .lantern .body::before { content: ''; position: absolute; inset: 0 22px; border-left: 1.5px solid rgba(255, 217, 90, .45); border-right: 1.5px solid rgba(255, 217, 90, .45); border-radius: 50%; }
+        .lantern .tassel { display: block; width: 14px; height: 26px; margin: -2px auto 0; background: linear-gradient(180deg, var(--gold-400), var(--red-500)); clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%); }
+        .lantern.l1 { left: 4%; --len: 62px; }
+        .lantern.l2 { left: 14%; --len: 96px; animation-delay: -1.2s; transform: scale(.8); }
+        .lantern.r1 { right: 4%; --len: 62px; animation-delay: -.6s; }
+        .lantern.r2 { right: 14%; --len: 96px; animation-delay: -2s; transform: scale(.8); }
+        @keyframes sway { from { rotate: -6deg; } to { rotate: 6deg; } }
+
+        .branch { position: absolute; bottom: -10px; width: 260px; height: 220px; opacity: .9; }
+        .branch.left { left: -30px; }
+        .branch.right { right: -30px; transform: scaleX(-1); }
+
+        .petal { position: absolute; top: -40px; font-size: var(--s, 18px); opacity: 0; animation: fall var(--d, 10s) linear infinite; animation-delay: var(--delay, 0s); will-change: transform; }
+        @keyframes fall {
+            0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+            8% { opacity: .95; }
+            90% { opacity: .9; }
+            100% { opacity: 0; transform: translate(var(--x, 60px), 110vh) rotate(var(--r, 540deg)); }
         }
 
-        /* Vòng sáng nền trang trí */
-        .ambient-light {
-            position: absolute;
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(0,243,255,0.1) 0%, transparent 70%);
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: -1;
-            animation: pulseBg 4s infinite alternate;
-        }
+        /* ===== Thanh trên cùng ===== */
+        .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: max(12px, env(safe-area-inset-top)) 16px 12px; }
+        .top-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; border: 1px solid rgba(255, 217, 90, .55);
+            background: rgba(74, 0, 0, .6); color: var(--gold-200); font: inherit; font-weight: 800; font-size: 13px; text-decoration: none; cursor: pointer; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: .2s; }
+        .top-btn:hover { background: rgba(255, 217, 90, .15); border-color: var(--gold-300); }
+        .live-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 15px; border-radius: 999px; font-weight: 900; font-size: 12px; letter-spacing: 1.2px;
+            background: rgba(0, 0, 0, .3); border: 1px solid rgba(255, 255, 255, .25); color: rgba(255, 248, 214, .7); }
+        .live-chip .dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.45); }
+        .live-chip.on { background: linear-gradient(90deg, #ff2d55, #c1121f); border-color: var(--gold-300); color: #fff; box-shadow: 0 4px 16px rgba(255, 45, 85, .45); }
+        .live-chip.on .dot { background: #fff; position: relative; }
+        .live-chip.on .dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: rgba(255,255,255,.8); animation: qdDot 1.4s cubic-bezier(.25,.6,.4,1) infinite; }
+        @keyframes qdDot { 0% { transform: scale(1); opacity: 1; } 70%, 100% { transform: scale(3); opacity: 0; } }
+        @keyframes liveDot { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,.8); } 70% { box-shadow: 0 0 0 9px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }
 
-        @keyframes pulseBg {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-        }
+        /* ===== Tiêu đề ===== */
+        .stage-wrap { overflow-x: clip; position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 640px; }
+        .header-title { text-align: center; margin-bottom: 26px; }
+        .kicker { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-300); }
+        .kicker::before, .kicker::after { content: ''; width: 34px; height: 1.5px; background: linear-gradient(90deg, transparent, var(--gold-300)); }
+        .kicker::after { transform: scaleX(-1); }
+        .header-title h1 { font-family: 'Lobster', cursive; font-weight: 400; font-size: clamp(42px, 9vw, 72px); line-height: 1.12; margin: 6px 0 4px;
+            background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--gold-300);
+            filter: drop-shadow(0 3px 0 var(--red-900)) drop-shadow(0 0 22px rgba(255, 200, 60, .45)); }
+        .header-title p { color: var(--gold-200); font-size: 14px; font-weight: 600; opacity: .9; }
 
-        /* Header */
-        .header-title {
-            text-align: center;
-            margin-bottom: 40px;
-            z-index: 10;
-        }
-        .header-title h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 50px;
-            font-weight: 900;
-            background: linear-gradient(to right, var(--gold-light), #fff, var(--gold-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-            letter-spacing: 4px;
-            text-transform: uppercase;
-        }
-        .header-title p {
-            color: var(--primary-glow);
-            font-size: 16px;
-            letter-spacing: 2px;
-            margin-top: 10px;
-            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
-        }
+        /* ===== Mâm số: đồng tiền vàng + vòng đèn ===== */
+        .medallion { position: relative; width: min(330px, 78vw); aspect-ratio: 1; margin: 4px 0 30px; }
+        .medallion .halo { position: absolute; inset: -18%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 210, 80, .35) 0%, transparent 62%); animation: haloPulse 3s ease-in-out infinite; }
+        @keyframes haloPulse { 50% { transform: scale(1.06); opacity: .75; } }
+        .medallion .rays { position: absolute; inset: -14%; border-radius: 50%; opacity: .35;
+            background: repeating-conic-gradient(from 0deg, rgba(255, 217, 90, .55) 0deg 5deg, transparent 5deg 20deg);
+            -webkit-mask: radial-gradient(circle, transparent 40%, #000 52%, transparent 72%); mask: radial-gradient(circle, transparent 40%, #000 52%, transparent 72%);
+            animation: spin 40s linear infinite; }
+        .medallion .ring { position: absolute; inset: 0; border-radius: 50%; background: var(--gold-grad);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, .5), 0 0 0 4px var(--red-900), 0 0 0 7px var(--gold-600), inset 0 4px 10px rgba(255, 255, 255, .6), inset 0 -6px 12px rgba(138, 90, 0, .6); }
+        .medallion .ring::after { content: ''; position: absolute; inset: 7%; border-radius: 50%; border: 2px dashed rgba(138, 90, 0, .55); animation: spin 30s linear infinite reverse; }
+        .medallion .bulbs { position: absolute; inset: 0; }
+        .medallion .bulb { position: absolute; left: 50%; top: 50%; width: 11px; height: 11px; margin: -5.5px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff, #ffe680 45%, #e09b00); box-shadow: 0 0 8px #ffdf6b;
+            transform: rotate(var(--a)) translateY(calc(min(330px, 78vw) * -0.465)); animation: blink 1.6s ease-in-out infinite; animation-delay: var(--dl); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+        .medallion.rolling .bulb { animation-duration: .35s; }
+        .medallion .face { position: absolute; inset: 13%; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+            background: radial-gradient(circle at 50% 30%, #e0262e 0%, #a50d14 55%, #6b0000 100%);
+            box-shadow: inset 0 10px 24px rgba(0, 0, 0, .55), inset 0 -4px 10px rgba(255, 120, 80, .25), 0 0 0 3px var(--gold-800); }
+        .medallion .face::before { content: ''; position: absolute; inset: 7%; border-radius: 50%; border: 1.5px solid rgba(255, 217, 90, .35); }
+        .medallion .face::after { content: ''; position: absolute; top: -40%; left: -60%; width: 60%; height: 180%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .18), transparent); transform: rotate(25deg); animation: shine 4.5s ease-in-out infinite; will-change: transform; }
+        @keyframes shine { 0%, 60% { transform: translateX(0) rotate(25deg); } 100% { transform: translateX(316.67%) rotate(25deg); } }
+        .face-label { position: relative; z-index: 1; font-size: 11px; font-weight: 800; letter-spacing: 3px; color: var(--gold-200); opacity: .85; text-transform: uppercase; margin-bottom: -2px; }
+        .face-label.bottom { margin: 2px 0 0; letter-spacing: 6px; font-size: 12px; }
 
-        /* Slot Machine Box */
-        .machine-container {
-            position: relative;
-            background: var(--panel-bg);
-            border: 2px solid rgba(0, 243, 255, 0.3);
-            border-radius: 30px;
-            padding: 40px 80px;
-            box-shadow: 
-                0 0 40px rgba(0, 243, 255, 0.2),
-                inset 0 0 30px rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            margin-bottom: 50px;
-            z-index: 10;
-            overflow: hidden;
-        }
+        .number-display { position: relative; z-index: 1; font-family: 'Playfair Display', serif; font-weight: 900; font-size: calc(min(330px, 78vw) * .38); line-height: 1; font-variant-numeric: tabular-nums;
+            background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--gold-300);
+            filter: drop-shadow(0 3px 0 rgba(74, 0, 0, .9)) drop-shadow(0 0 14px rgba(255, 200, 60, .35)); transition: transform .15s; }
+        .number-display.rolling { animation: jitter .12s linear infinite; filter: drop-shadow(0 3px 0 rgba(74, 0, 0, .9)) blur(1.2px); }
+        @keyframes jitter { 0% { transform: translateY(-3px) scale(1.03); } 50% { transform: translateY(3px) scale(.98); } 100% { transform: translateY(-3px) scale(1.03); } }
+        .number-display.win { animation: winPop .7s cubic-bezier(.2, 1.6, .4, 1) both, winGlow 1.4s ease-in-out .7s infinite alternate; }
+        @keyframes winPop { from { transform: scale(.4); } to { transform: scale(1.08); } }
+        @keyframes winGlow { from { filter: drop-shadow(0 3px 0 rgba(74,0,0,.9)) drop-shadow(0 0 10px rgba(255, 220, 90, .5)); } to { filter: drop-shadow(0 3px 0 rgba(74,0,0,.9)) drop-shadow(0 0 30px rgba(255, 240, 150, 1)); } }
+        .medallion.win .ring { animation: ringFlash .5s ease 3; }
+        @keyframes ringFlash { 50% { box-shadow: 0 18px 40px rgba(0,0,0,.5), 0 0 0 4px var(--red-900), 0 0 0 7px var(--gold-600), 0 0 60px 20px rgba(255, 220, 90, .7); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Đường viền chạy quanh viền */
-        .machine-container::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: conic-gradient(transparent, rgba(0,243,255,0.8), transparent 30%);
-            animation: rotateBorder 4s linear infinite;
-            z-index: -1;
-        }
-        .machine-container::after {
-            content: ''; position: absolute; inset: 4px;
-            background: var(--bg-dark); border-radius: 26px; z-index: -1;
-        }
+        /* ===== Nút quay (admin) ===== */
+        .btn-roll { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 18px 46px; border-radius: 999px; border: none; cursor: pointer; overflow: hidden;
+            font-family: inherit; font-weight: 900; font-size: 20px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--red-800);
+            background: var(--gold-grad); box-shadow: 0 6px 0 var(--gold-800), 0 14px 30px rgba(0, 0, 0, .45), inset 0 2px 0 rgba(255, 255, 255, .7); transition: transform .15s, box-shadow .15s; }
+        .btn-roll::after { content: ''; position: absolute; top: 0; left: -80%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent); transform: skewX(-20deg); animation: btnShine 2.8s ease-in-out infinite; }
+        @keyframes btnShine { 0%, 50% { transform: translateX(0) skewX(-20deg); } 100% { transform: translateX(440%) skewX(-20deg); } }
+        .btn-roll:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn-roll:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 var(--gold-800), 0 6px 14px rgba(0, 0, 0, .4), inset 0 2px 0 rgba(255,255,255,.7); }
+        .btn-roll:disabled { cursor: not-allowed; filter: saturate(.4) brightness(.8); }
+        .btn-roll:disabled::after { display: none; }
+        .host-warn { margin-top: 16px; max-width: 460px; padding: 10px 16px; border-radius: 14px; background: rgba(0, 0, 0, .3); border: 1px dashed rgba(255, 180, 160, .7); color: #ffd0c4; font-size: 13px; font-weight: 700; text-align: center; line-height: 1.5; }
 
-        @keyframes rotateBorder {
-            100% { transform: rotate(360deg); }
-        }
+        /* ===== Hẹn giờ quay ===== */
+        .sched-note { margin: 0 0 14px; padding: 10px 18px; border-radius: 999px; background: var(--gold-grad); color: var(--red-800); font-size: 14px; font-weight: 800; text-align: center; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+        .sched-note b { font-weight: 900; font-variant-numeric: tabular-nums; }
+        .btn-roll + .host-warn, .btn-roll ~ .sched-note { margin-top: 16px; }
+        .number-display.count { animation: countPulse 1s ease-out; }
+        @keyframes countPulse { 0% { transform: scale(1.35); opacity: .4; } 25% { transform: scale(1); opacity: 1; } 100% { transform: scale(.96); } }
+        .medallion.counting .bulb { animation-duration: .5s; }
+        .medallion.counting .halo { animation-duration: 1s; }
 
-        /* Number Display */
-        .number-display {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 160px;
-            font-weight: 900;
-            line-height: 1;
-            color: #fff;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-            transition: transform 0.1s;
-        }
+        /* ===== Bảng các lượt ===== */
+        .rounds-board { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 560px; margin: 0 0 16px; }
+        .rounds-board .rb { display: inline-flex; flex-direction: column; align-items: center; min-width: 78px; padding: 7px 12px; border-radius: 14px; background: rgba(74,0,0,.5); border: 1px solid rgba(255,217,90,.35); line-height: 1.2; }
+        .rounds-board .rb small { font-size: 11px; font-weight: 800; letter-spacing: .5px; color: var(--gold-200); text-transform: uppercase; }
+        .rounds-board .rb b { font-size: 15px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+        .rounds-board .rb.done b { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--gold-300); }
+        .rounds-board .rb.next { background: var(--gold-grad); border-color: var(--gold-100); box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+        .rounds-board .rb.next small, .rounds-board .rb.next b { color: var(--red-800); }
+        .rounds-board .rb.now { border-color: var(--gold-300); animation: meWin 1s ease-in-out infinite; }
+        .rounds-board .rb.miss { opacity: .55; }
+        .rounds-board .rb.mine { background: linear-gradient(135deg, #10b981, #047857); border-color: var(--gold-300); }
+        .rounds-board .rb.mine b { color: #fff; }
 
-        .number-display.rolling {
-            color: var(--gold-light);
-            filter: blur(2px);
-            transform: scale(1.05) translateY(random(-5px, 5px));
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
-        }
+        /* ===== Lời chúc Tết khi không trúng ===== */
+        .me-lose { display: none; margin: 0 0 16px; padding: 14px 16px 12px; border-radius: 16px; background: linear-gradient(160deg, rgba(255, 246, 200, .96), rgba(255, 217, 90, .92)); border: 2px solid var(--gold-100); color: var(--red-800); box-shadow: 0 8px 18px rgba(0,0,0,.3); }
+        .me-lose.show { display: block; animation: winPop .6s cubic-bezier(.2, 1.6, .4, 1) both; }
+        .me-lose-head { font-family: 'Lobster', cursive; font-size: 22px; color: var(--red-600); margin-bottom: 4px; }
+        .me-lose-wish { font-size: 15px; font-weight: 800; line-height: 1.5; color: var(--red-800); }
+        .me-lose-sub { margin-top: 6px; font-size: 12.5px; font-weight: 700; color: #92400e; line-height: 1.45; }
 
-        .number-display.win {
-            color: var(--success);
-            text-shadow: 0 0 50px var(--success), 0 0 100px rgba(0, 255, 136, 0.5);
-            transform: scale(1.2);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            animation: winPulse 1s infinite alternate;
-        }
+        /* ===== Người xem ===== */
+        .viewer-note { max-width: 480px; text-align: center; font-size: 15px; font-weight: 700; line-height: 1.55; color: var(--gold-100);
+            padding: 12px 20px; border-radius: 16px; background: rgba(74, 0, 0, .45); border: 1px solid rgba(255, 217, 90, .3); }
+        .viewer-note.waiting { color: var(--gold-200); }
+        .my-number { position: relative; margin-top: 18px; display: inline-flex; align-items: center; gap: 14px; padding: 10px 20px 10px 14px; border-radius: 14px;
+            background: linear-gradient(160deg, #e3262f, #9e0b12); border: 2px solid var(--gold-300); box-shadow: 0 8px 18px rgba(0, 0, 0, .35); }
+        .my-number .seal { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--gold-grad); color: var(--red-700); font-family: 'Lobster', cursive; font-size: 17px; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+        .my-number span { font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-200); }
+        .my-number b { display: block; font-family: 'Playfair Display', serif; font-weight: 900; font-size: 26px; line-height: 1.05; color: #fff; letter-spacing: 1px; }
 
-        @keyframes winPulse {
-            0% { transform: scale(1.15); }
-            100% { transform: scale(1.25); }
-        }
-
-        /* Nút Bấm */
-        .btn-roll {
-            background: linear-gradient(135deg, var(--gold-dark), var(--gold-light));
-            border: none;
-            padding: 20px 60px;
-            border-radius: 50px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 900;
-            font-size: 24px;
-            color: #000;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            z-index: 10;
-        }
-
-        .btn-roll:hover:not(:disabled) {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6);
-        }
-
-        .btn-roll:active:not(:disabled) { transform: translateY(2px) scale(0.98); }
-        .btn-roll:disabled { background: #333; color: #777; box-shadow: none; cursor: not-allowed; }
-
-        /* Modal Kết Quả */
-        .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(20px);
-            display: none; align-items: center; justify-content: center;
-            z-index: 9999; opacity: 0; transition: opacity 0.4s ease;
-        }
+        /* ===== Popup kết quả: phong bao lì xì ===== */
+        .modal-overlay { position: fixed; inset: 0; z-index: 9000; display: none; align-items: center; justify-content: center; padding: 20px;
+            background: radial-gradient(circle at 50% 40%, rgba(120, 10, 10, .7), rgba(30, 0, 0, .9)); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; transition: opacity .35s; }
         .modal-overlay.active { display: flex; opacity: 1; }
-        
-        .modal-content {
-            background: linear-gradient(180deg, #1a1f35 0%, #0d1121 100%);
-            border: 2px solid var(--gold-light);
-            padding: 50px;
-            border-radius: 30px;
-            text-align: center;
-            box-shadow: 0 0 80px rgba(255, 215, 0, 0.3);
-            transform: scale(0.8) translateY(50px);
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            max-width: 600px; width: 90%;
-            position: relative;
-        }
-        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
+        .modal-content { position: relative; width: 100%; max-width: 440px; max-height: calc(100vh - 40px); overflow-y: auto; text-align: center; padding: 64px 26px 26px; border-radius: 26px;
+            background: linear-gradient(180deg, #d81f28 0%, #a50d14 60%, #7a0000 100%); border: 3px solid var(--gold-300);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, .6), inset 0 0 0 6px rgba(255, 217, 90, .18), 0 0 60px rgba(255, 200, 60, .3);
+            transform: scale(.8) translateY(30px); transition: transform .5s cubic-bezier(.34, 1.56, .64, 1); }
+        .modal-overlay.active .modal-content { transform: none; }
+        .modal-content::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 120px; border-radius: 23px 23px 0 0; background: linear-gradient(180deg, #ee3a40, #c1121f); clip-path: polygon(0 0, 100% 0, 100% 45%, 50% 100%, 0 45%); box-shadow: inset 0 -2px 0 var(--gold-400); opacity: .9; }
+        .win-seal { position: absolute; left: 50%; top: 30px; transform: translateX(-50%); z-index: 2; width: 78px; height: 78px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            background: var(--gold-grad); border: 3px solid var(--red-800); box-shadow: 0 6px 16px rgba(0,0,0,.45); font-family: 'Lobster', cursive; font-size: 32px; color: var(--red-700); animation: sealBob 3s ease-in-out infinite; }
+        @keyframes sealBob { 50% { transform: translateX(-50%) translateY(-6px) rotate(-4deg); } }
+        .modal-title { position: relative; z-index: 1; margin-top: 38px; font-family: 'Lobster', cursive; font-size: 32px; color: var(--gold-300); text-shadow: 0 2px 0 var(--red-900); }
+        .modal-sub { position: relative; z-index: 1; font-size: 13px; font-weight: 700; color: var(--gold-200); margin-bottom: 14px; }
+        .me-win { display: none; margin: 4px 0 14px; padding: 12px; border-radius: 14px; background: linear-gradient(135deg, #10b981, #047857); border: 2px solid var(--gold-300); color: #fff; font-size: 16px; font-weight: 900; letter-spacing: .5px; box-shadow: 0 6px 16px rgba(0,0,0,.3); }
+        .me-win.show { display: block; animation: sealBob 2.2s ease-in-out infinite; animation-name: meWin; }
+        @keyframes meWin { 50% { transform: scale(1.04); } }
+        .win-coin { width: 150px; height: 150px; margin: 4px auto 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--gold-grad);
+            box-shadow: 0 0 0 5px var(--red-900), 0 0 0 8px var(--gold-600), 0 12px 26px rgba(0,0,0,.45), inset 0 -6px 12px rgba(138, 90, 0, .55), inset 0 4px 8px rgba(255,255,255,.6); }
+        .win-coin h2 { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 68px; line-height: 1; color: var(--red-700); text-shadow: 0 2px 0 rgba(255, 255, 255, .5); font-variant-numeric: tabular-nums; }
+        .winners-container { text-align: left; margin-bottom: 20px; padding: 14px 16px; border-radius: 16px; background: rgba(0, 0, 0, .25); border: 1px dashed rgba(255, 217, 90, .5); }
+        .winners-container h4 { font-size: 12px; font-weight: 900; letter-spacing: 1px; color: var(--gold-300); margin-bottom: 10px; text-transform: uppercase; }
+        #winners-list { display: flex; flex-wrap: wrap; gap: 6px; max-height: 160px; overflow-y: auto; }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; font-weight: 800; font-size: 14px; color: var(--red-800); background: var(--gold-grad); box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+        .badge.me { background: linear-gradient(135deg, #34d399, #059669); color: #fff; outline: 2px solid var(--gold-300); }
+        .no-winner { color: var(--gold-200); opacity: .8; font-style: italic; font-size: 14px; }
+        .btn-close { width: 100%; padding: 14px; border-radius: 999px; border: 2px solid var(--gold-300); background: rgba(0, 0, 0, .25); color: var(--gold-200); font: inherit; font-weight: 900; font-size: 15px; letter-spacing: 1px; cursor: pointer; transition: .2s; }
+        .btn-close:hover { background: var(--gold-grad); color: var(--red-800); }
 
-        .win-icon { font-size: 80px; color: var(--gold-light); margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        /* Pháo hoa */
+        #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9500; }
 
-        .modal-title { font-size: 32px; font-weight: 900; color: #fff; margin-bottom: 10px; letter-spacing: 2px; }
-        
-        .win-number-box {
-            background: rgba(255, 215, 0, 0.1);
-            border: 2px dashed var(--gold-light);
-            border-radius: 20px; padding: 30px;
-            margin: 20px 0 30px 0;
+        @media (max-width: 600px) {
+            body { justify-content: flex-start; padding-top: 132px; }
+            .lantern.l1, .lantern.r1 { --len: 52px; }
+            .lantern.l1 { left: 2%; } .lantern.r1 { right: 2%; }
+            .lantern { width: 46px; } .lantern .body { width: 46px; height: 40px; font-size: 16px; } .lantern .body::before { inset: 0 15px; } .lantern .cap { width: 22px; }
+            .lantern.l2, .lantern.r2 { display: none; }
+            .branch { width: 170px; height: 150px; opacity: .7; }
+            .header-title { margin-bottom: 18px; }
+            .kicker { font-size: 11px; letter-spacing: 2px; } .kicker::before, .kicker::after { width: 20px; }
+            .btn-roll { padding: 16px 30px; font-size: 17px; }
+            .modal-content { padding: 58px 18px 20px; }
+            .win-coin { width: 124px; height: 124px; } .win-coin h2 { font-size: 54px; }
         }
-        .win-number-box h2 {
-            font-family: 'Orbitron', sans-serif; font-size: 80px; color: var(--gold-light);
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6); margin: 0; line-height: 1;
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+            .petal { display: none; }
         }
-
-        .winners-container {
-            background: rgba(0,0,0,0.4); border-radius: 15px; padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1); margin-bottom: 30px;
-            text-align: left;
-        }
-        .winners-container h4 { color: var(--primary-glow); font-size: 14px; margin-bottom: 15px; letter-spacing: 1px; }
-        .badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(0, 255, 136, 0.15); border: 1px solid var(--success); color: var(--success);
-            padding: 8px 16px; border-radius: 50px; font-weight: 700; margin: 4px; font-size: 15px;
-        }
-
-        .btn-close {
-            background: transparent; border: 2px solid var(--primary-glow); color: var(--primary-glow);
-            padding: 15px 40px; border-radius: 50px; font-weight: bold; font-size: 16px; cursor: pointer;
-            transition: 0.3s; width: 100%; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .btn-close:hover { background: var(--primary-glow); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.5); }
     </style>
+
+    <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
+    <style id="qd-smooth-css">
+/* ===== QD SMOOTH (dùng chung) ===== */
+.qd-paused, .qd-paused::before, .qd-paused::after, .qd-paused-px::before, .qd-paused-px::after { animation-play-state: paused !important; }
+html.qd-lite *, html.qd-lite *::before, html.qd-lite *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html.qd-lite .qd-fx { display: none !important; }
+    </style>
+    <script id="qd-smooth-js">
+/* ===== QD SMOOTH: lớp tối ưu mượt mà dùng chung mọi trang =====
+   - Giữ luồng chính (main thread) rảnh: hiệu ứng lặp chạy trên GPU, ghi DOM trùng lặp bị bỏ qua
+   - Hiệu ứng nằm ngoài màn hình / video nền khuất -> tạm dừng, hiện lại -> chạy tiếp
+   - Máy yếu hoặc đo thấy rớt khung hình -> tự bật chế độ nhẹ (html.qd-lite)
+   Ép chế độ: localStorage.setItem('qd_fx', 'full' | 'lite' | 'auto') */
+(function () {
+    'use strict';
+    if (window.QDSmooth) return;
+    var W = window, d = document, html = d.documentElement, nav = navigator;
+    var Q = W.QDSmooth = { lite: false, _cb: [] };
+    function store(k, v) { try { if (v === undefined) return (k === 'ss' ? sessionStorage : localStorage).getItem('qd_fx'); (k === 'ss' ? sessionStorage : localStorage).setItem('qd_fx', v); } catch (e) { return null; } }
+    var pref = store('ls');
+
+    /* ---------- 1. Chế độ nhẹ ---------- */
+    Q.onLite = function (fn) { Q._cb.push(fn); if (Q.lite) { try { fn(true); } catch (e) {} } };
+    Q.setLite = function (on) {
+        on = !!on; if (Q.lite === on) return;
+        Q.lite = on; html.classList.toggle('qd-lite', on); store('ss', on ? 'lite' : 'full');
+        Q._cb.forEach(function (fn) { try { fn(on); } catch (e) {} });
+    };
+    var reduce = W.matchMedia && W.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var conn = nav.connection || {};
+    var weak = (nav.deviceMemory && nav.deviceMemory <= 2) || (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) || conn.saveData === true;
+    if (pref !== 'full' && (pref === 'lite' || store('ss') === 'lite' || weak || reduce)) Q.setLite(true);
+
+    /* Đo khung hình thật: 2 lần đo liên tiếp rớt > 22% khung -> bật chế độ nhẹ cho phiên này */
+    function monitor() {
+        if (pref === 'full' || pref === 'lite' || Q.lite || !W.requestAnimationFrame) return;
+        var strikes = 0, runs = 0;
+        function sample() {
+            if (Q.lite || runs > 40) return;
+            if (d.hidden) return setTimeout(sample, 4000);
+            runs++;
+            var t = [], last = 0, end = performance.now() + 2000;
+            requestAnimationFrame(function step(now) {
+                if (d.hidden) return setTimeout(sample, 4000);
+                if (last) t.push(now - last); last = now;
+                if (now < end) return requestAnimationFrame(step);
+                if (t.length < 20) return setTimeout(sample, 8000);
+                var s = t.slice().sort(function (a, b) { return a - b; });
+                var vsync = Math.max(6.5, s[Math.floor(s.length * 0.1)]);   // ~8.3ms ở màn 120Hz, ~16.7ms ở 60Hz
+                var bad = 0; t.forEach(function (x) { if (x > vsync * 1.8) bad++; });
+                strikes = bad / t.length > 0.22 ? strikes + 1 : 0;
+                if (strikes >= 2) return Q.setLite(true);
+                setTimeout(sample, strikes ? 1500 : 12000);
+            });
+        }
+        setTimeout(sample, 5000);
+    }
+
+    /* ---------- 2. Bỏ qua ghi chữ trùng lặp (đồng hồ, bộ đếm... ghi mỗi giây) ---------- */
+    function guardText(proto, prop, noNewline) {
+        var desc = Object.getOwnPropertyDescriptor(proto, prop);
+        if (!desc || !desc.set || !desc.get || desc.set.__qd) return;
+        var set = function (v) {
+            var c = this.firstChild, s = v == null ? '' : String(v);
+            if (c ? (c === this.lastChild && c.nodeType === 3 && c.data === s && !(noNewline && /[\r\n]/.test(s))) : (s === '' && this.nodeType === 1)) return;
+            desc.set.call(this, v);
+        };
+        set.__qd = true;
+        Object.defineProperty(proto, prop, { configurable: true, enumerable: desc.enumerable, get: desc.get, set: set });
+    }
+    try { guardText(Node.prototype, 'textContent'); guardText(HTMLElement.prototype, 'innerText', true); } catch (e) {}
+
+    /* Ghi innerHTML chỉ khi nội dung thay đổi (dùng cho các vòng cập nhật định kỳ) */
+    Q.html = function (el, s) {
+        if (!el) return;
+        s = s == null ? '' : String(s);
+        if (el.__qdH === s && el.__qdF === el.firstChild && el.__qdL === el.lastChild) return;
+        el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
+    };
+
+    /* ---------- Vòng quay: quay NGAY khi bấm, giảm tốc êm vào ô trúng khi máy chủ trả kết quả ----------
+       var s = QDSmooth.spinner(canvas, gocHienTai, { slice: 360 / soO, onTick: fn });
+       s.land(gocDich).then(gocCuoi => ...)   // gocDich: góc cuối mong muốn (mod 360)
+       s.stop().then(gocCuoi => ...)          // lỗi: dừng nhẹ nhàng
+       Tốc độ tính theo thời gian thực -> mượt như nhau ở 60/90/120Hz, tiếng "tách" khớp đúng với ô đi qua. */
+    Q.spinner = function (el, from, opt) {
+        opt = opt || {};
+        var V = opt.vmax || 1.2, ACC = 450, MIN = opt.min || 800, DEC = opt.decel || 2600, slice = opt.slice || 0, onTick = opt.onTick;
+        var t0 = 0, angle = from = +from || 0, target = null, failed = false, phase = 0, tc = 0, ac = 0, D = 0, T = 1, last = null, done;
+        var p = new Promise(function (r) { done = r; });
+        el.style.transition = 'none'; el.style.willChange = 'transform';
+        function put(a) {
+            el.style.transform = 'rotate(' + a + 'deg)';
+            if (slice && onTick) { var i = Math.floor((a - from) / slice); if (i !== last) { if (last !== null) { try { onTick(); } catch (e) {} } last = i; } }
+        }
+        function frame(now) {
+            if (!t0) t0 = now;
+            var t = now - t0;
+            if (phase === 0) {
+                angle = t < ACC ? from + V * t * t / (2 * ACC) : from + V * ACC / 2 + V * (t - ACC);
+                if ((target !== null || failed) && t >= (failed ? 0 : MIN)) {
+                    phase = 1; tc = now; ac = angle;
+                    var v = t < ACC ? V * t / ACC : V;
+                    if (failed) { T = 700; D = v * T / 3; }
+                    else { D = ((target - ac) % 360 + 360) % 360; while (D < V * DEC / 3) D += 360; T = 3 * D / Math.max(v, 0.2); }
+                }
+            }
+            if (phase === 1) {
+                var u = Math.min(1, (now - tc) / T);
+                angle = ac + D * (1 - Math.pow(1 - u, 3));     // giảm tốc kiểu bánh xe thật (ease-out)
+                if (u >= 1) { put(angle); el.style.willChange = ''; return done(angle); }
+            }
+            put(angle); requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+        return { land: function (deg) { target = +deg || 0; return p; }, stop: function () { failed = true; return p; }, done: p };
+    };
+
+    /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
+    var MOVE = /^(transform|translate|rotate|scale|left|top|right|bottom|offset|inset|margin)/;
+    var io = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) { e.target.classList.toggle(e.target.__qdM, !e.isIntersecting); });
+    }, { rootMargin: '120px' }) : null;
+    var seen = new WeakSet(), seenPx = new WeakSet();
+    function moves(a) {   // hiệu ứng tự di chuyển phần tử (hoa rơi...) thì không dừng, tránh kẹt ngoài màn hình
+        try { var k = a.effect.getKeyframes(); for (var i = 0; i < k.length; i++) for (var p in k[i]) if (MOVE.test(p)) return true; } catch (e) { return true; }
+        return false;
+    }
+    function scan() {
+        if (!io || !d.getAnimations || d.hidden) return;
+        var as = d.getAnimations();
+        for (var i = 0; i < as.length; i++) {
+            var ef = as[i].effect, el = ef && ef.target;
+            if (!el || !ef.getTiming || ef.getTiming().iterations !== Infinity) continue;
+            var bag = ef.pseudoElement ? seenPx : seen;
+            if (bag.has(el)) continue;
+            bag.add(el);
+            var own = el.getAnimations ? el.getAnimations() : [], mv = false;
+            for (var j = 0; j < own.length; j++) if (moves(own[j])) { mv = true; break; }
+            if (mv && !ef.pseudoElement) continue;          // chỉ có hiệu ứng di chuyển: để nguyên
+            if (el.__qdM === 'qd-paused') continue;
+            el.__qdM = mv ? 'qd-paused-px' : 'qd-paused';   // có di chuyển: chỉ dừng ::before/::after
+            io.observe(el);
+        }
+    }
+
+    /* ---------- 4. Video nền: dừng khi khuất / ẩn tab, chạy lại khi hiện ---------- */
+    var vio = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+            var v = e.target; v.__qdVis = e.isIntersecting;
+            if (!e.isIntersecting) { if (!v.paused) { v.__qdAuto = true; v.pause(); } }
+            else if (v.__qdAuto) { v.__qdAuto = false; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+        });
+    }, { rootMargin: '80px' }) : null;
+    function watchMedia(root) {
+        var imgs = root.getElementsByTagName ? root.getElementsByTagName('img') : [];
+        for (var i = 0; i < imgs.length; i++) if (!imgs[i].getAttribute('decoding')) imgs[i].decoding = 'async';
+        if (!vio) return;
+        var vs = root.getElementsByTagName ? root.getElementsByTagName('video') : [];
+        for (var j = 0; j < vs.length; j++) {
+            var v = vs[j]; if (v.__qdW || !v.muted && !v.hasAttribute('muted')) continue;
+            v.__qdW = true; vio.observe(v);
+            v.addEventListener('play', function () { var me = this; if (me.__qdVis === false) setTimeout(function () { if (me.__qdVis === false && !me.paused) { me.__qdAuto = true; me.pause(); } }, 0); });
+        }
+    }
+
+    /* ---------- Khởi động ---------- */
+    var scanT = 0;
+    function later() { clearTimeout(scanT); scanT = setTimeout(function () { scan(); }, 400); }
+    function boot() {
+        watchMedia(d);
+        scan(); setInterval(scan, 3000);
+        if (W.MutationObserver) new MutationObserver(function (ms) {
+            for (var i = 0; i < ms.length; i++) for (var j = 0, n = ms[i].addedNodes; j < n.length; j++) {
+                var x = n[j]; if (x.nodeType !== 1) continue;
+                if (x.tagName === 'IMG' || x.tagName === 'VIDEO' || x.firstElementChild) watchMedia(x.tagName === 'IMG' || x.tagName === 'VIDEO' ? x.parentNode || d : x);
+            }
+            later();
+        }).observe(d.body, { childList: true, subtree: true });
+        d.addEventListener('visibilitychange', function () { if (!d.hidden) later(); });
+        monitor();
+    }
+    if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+    </script>
 </head>
 <body>
 
-    <div class="ambient-light"></div>
+    <!-- Trang trí Tết -->
+    <div class="decor" aria-hidden="true" id="decor">
+        <div class="lantern l1"><span class="string"></span><span class="cap"></span><span class="body">Phúc</span><span class="tassel"></span></div>
+        <div class="lantern l2"><span class="string"></span><span class="cap"></span><span class="body">Lộc</span><span class="tassel"></span></div>
+        <div class="lantern r1"><span class="string"></span><span class="cap"></span><span class="body">Thọ</span><span class="tassel"></span></div>
+        <div class="lantern r2"><span class="string"></span><span class="cap"></span><span class="body">Tài</span><span class="tassel"></span></div>
+        <svg class="branch left" viewBox="0 0 260 220"><use href="#blossom-branch" /></svg>
+        <svg class="branch right" viewBox="0 0 260 220"><use href="#blossom-branch" /></svg>
+    </div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <g id="flower-mai"><g fill="#ffd23f" stroke="#e8a400" stroke-width=".8"><circle cx="0" cy="-6" r="5"/><circle cx="5.7" cy="-1.9" r="5"/><circle cx="3.5" cy="4.9" r="5"/><circle cx="-3.5" cy="4.9" r="5"/><circle cx="-5.7" cy="-1.9" r="5"/></g><circle r="2.6" fill="#d9480f"/></g>
+            <g id="flower-dao"><g fill="#ff9ec4" stroke="#ff5d97" stroke-width=".8"><circle cx="0" cy="-6" r="5"/><circle cx="5.7" cy="-1.9" r="5"/><circle cx="3.5" cy="4.9" r="5"/><circle cx="-3.5" cy="4.9" r="5"/><circle cx="-5.7" cy="-1.9" r="5"/></g><circle r="2.4" fill="#ffd23f"/></g>
+            <g id="blossom-branch">
+                <path d="M10 220 C 50 170, 70 150, 120 120 S 200 70, 250 30" fill="none" stroke="#4a2511" stroke-width="7" stroke-linecap="round"/>
+                <path d="M90 140 C 100 110, 95 90, 110 60" fill="none" stroke="#4a2511" stroke-width="4" stroke-linecap="round"/>
+                <path d="M170 85 C 185 95, 205 110, 230 110" fill="none" stroke="#4a2511" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M60 175 C 40 150, 30 130, 20 110" fill="none" stroke="#4a2511" stroke-width="3.5" stroke-linecap="round"/>
+                <use href="#flower-mai" transform="translate(250 30) scale(1.3)"/><use href="#flower-mai" transform="translate(110 60) scale(1.2)"/>
+                <use href="#flower-dao" transform="translate(230 110) scale(1.1)"/><use href="#flower-mai" transform="translate(150 100) scale(1)"/>
+                <use href="#flower-dao" transform="translate(20 110) scale(1.2)"/><use href="#flower-mai" transform="translate(200 60) scale(.9)"/>
+                <use href="#flower-dao" transform="translate(98 95) scale(.9)"/><use href="#flower-mai" transform="translate(45 150) scale(1)"/>
+                <use href="#flower-dao" transform="translate(185 95) scale(.8)"/><use href="#flower-mai" transform="translate(125 125) scale(.8)"/>
+                <circle cx="225" cy="45" r="3" fill="#ffd23f"/><circle cx="135" cy="80" r="2.5" fill="#ff9ec4"/><circle cx="70" cy="135" r="2.5" fill="#ffd23f"/>
+            </g>
+        </defs>
+    </svg>
+    <canvas id="fx" aria-hidden="true"></canvas>
 
-    <div class="header-title">
-        <h1>VÒNG QUAY NHÂN PHẨM</h1>
-        <p><i class="fa-solid fa-satellite-dish mr-2"></i> Trực tiếp từ máy chủ QD Elite</p>
+    <div class="topbar">
+        <a class="top-btn" id="btn-home" href="user.html" hidden><i class="fa-solid fa-house"></i> Trang chủ</a>
+        <span class="top-btn" id="host-tag" hidden><i class="fa-solid fa-user-shield"></i> Màn hình Admin</span>
+        <span class="live-chip" id="live-chip"><span class="dot"></span> <span id="live-chip-text">ĐANG KẾT NỐI...</span></span>
     </div>
 
-    <div class="machine-container">
-        <div class="number-display" id="rolling-number">00</div>
-    </div>
+    <main class="stage-wrap">
+        <div class="header-title">
+            <span class="kicker">Xuân Đinh Mùi 2027</span>
+            <h1>Quay Số Đầu Xuân</h1>
+            <p>Trực tiếp từ QD Elite · Rước lộc vàng may mắn</p>
+        </div>
 
-    <button id="btn-roll" class="btn-roll" onclick="Game.startRoll()">
-        <i class="fa-solid fa-play"></i> Bắt Đầu Quay Số
-    </button>
+        <div class="medallion" id="medallion">
+            <div class="halo"></div>
+            <div class="rays"></div>
+            <div class="ring"></div>
+            <div class="bulbs" id="bulbs"></div>
+            <div class="face">
+                <span class="face-label">Số may mắn</span>
+                <div class="number-display" id="rolling-number">00</div>
+                <span class="face-label bottom">Lộc Xuân</span>
+            </div>
+        </div>
+
+        <button id="btn-roll" class="btn-roll" onclick="Game.startRoll()" hidden>
+            🧧 Bắt Đầu Quay Số
+        </button>
+        <p class="host-warn" id="host-warn" hidden>⚠ Chưa bật phát trực tiếp: lượt quay này chỉ mình bạn thấy. Bật ở Admin → Quản Lý Số Quay Thưởng.</p>
+
+        <p class="sched-note" id="sched-note" hidden></p>
+        <div class="rounds-board" id="rounds-board" hidden></div>
+        <p class="viewer-note" id="viewer-note" hidden>Đang kết nối máy chủ...</p>
+        <div class="my-number" id="my-number" hidden><span class="seal" aria-hidden="true">Lộc</span><div><span>Số của bạn</span><b id="my-number-val">--</b></div></div>
+    </main>
+
 
     <div class="modal-overlay" id="modal-result">
-        <div class="modal-content">
-            <div class="win-icon"><i class="fa-solid fa-trophy"></i></div>
-            <div class="modal-title">KẾT QUẢ QUAY SỐ</div>
-            
-            <div class="win-number-box">
+        <div class="modal-content" role="dialog" aria-labelledby="modal-title">
+            <div class="win-seal" aria-hidden="true">Phúc</div>
+            <div class="modal-title" id="modal-title">Kết Quả Quay Số</div>
+            <p class="modal-sub">Con số may mắn đầu xuân là</p>
+            <div class="me-win" id="me-win">🎉 CHÚC MỪNG! BẠN ĐÃ TRÚNG THƯỞNG!</div>
+            <div class="me-lose" id="me-lose">
+                <div class="me-lose-head"><span aria-hidden="true">🏮</span> Chúc Mừng Năm Mới <span aria-hidden="true">🏮</span></div>
+                <p class="me-lose-wish" id="me-lose-wish"></p>
+                <p class="me-lose-sub" id="me-lose-sub"></p>
+            </div>
+
+            <div class="win-coin">
                 <h2 id="win-number-display">00</h2>
             </div>
 
             <div class="winners-container">
-                <h4><i class="fa-solid fa-users"></i> DANH SÁCH NGƯỜI DÙNG TRÚNG THƯỞNG:</h4>
-                <div id="winners-list" style="display: flex; flex-wrap: wrap; gap: 5px;"></div>
+                <h4><i class="fa-solid fa-users"></i> Thành viên trúng thưởng</h4>
+                <div id="winners-list"></div>
             </div>
 
             <button class="btn-close" onclick="Game.closeModal()">ĐÓNG THÔNG BÁO</button>
@@ -269,177 +527,574 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
     <script>
+    /* ===== Trang trí động: đèn quanh đồng tiền, hoa rơi, pháo hoa ===== */
+    (function () {
+        var bulbs = document.getElementById('bulbs'), N = 24;
+        for (var i = 0; i < N; i++) {
+            var b = document.createElement('span'); b.className = 'bulb';
+            b.style.setProperty('--a', (360 / N * i) + 'deg');
+            b.style.setProperty('--dl', (i % 2 ? .8 : 0) + 's');
+            bulbs.appendChild(b);
+        }
+        var decor = document.getElementById('decor'), flowers = ['🌸', '🌼', '🌸', '🌼', '🧧'];
+        var count = window.innerWidth < 600 ? 14 : 24;
+        for (var j = 0; j < count; j++) {
+            var p = document.createElement('span'); p.className = 'petal';
+            p.textContent = flowers[j % flowers.length];
+            p.style.left = (Math.random() * 100) + '%';
+            p.style.setProperty('--s', (14 + Math.random() * 14) + 'px');
+            p.style.setProperty('--d', (8 + Math.random() * 9) + 's');
+            p.style.setProperty('--delay', (-Math.random() * 16) + 's');
+            p.style.setProperty('--x', (Math.random() * 160 - 80) + 'px');
+            p.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg');
+            decor.appendChild(p);
+        }
+    })();
+
+    window.Fx = (function () {
+        var cv = document.getElementById('fx'), ctx = cv.getContext('2d'), parts = [], raf = null, until = 0;
+        var colors = ['#ffd95a', '#fff6c8', '#ff4d4d', '#ff9ec4', '#ffb703', '#ffffff'];
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        function size() { var d = window.devicePixelRatio || 1; cv.width = innerWidth * d; cv.height = innerHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+        window.addEventListener('resize', size); size();
+        function burst(x, y) {
+            var n = 60 + Math.random() * 30, c = colors[Math.floor(Math.random() * colors.length)];
+            for (var i = 0; i < n; i++) {
+                var a = Math.PI * 2 * i / n, s = 2 + Math.random() * 4.5;
+                parts.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, decay: .012 + Math.random() * .012, c: Math.random() < .3 ? '#fff6c8' : c, r: 1.6 + Math.random() * 1.6 });
+            }
+        }
+        function coins() {
+            for (var i = 0; i < 40; i++) parts.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * 200, vx: Math.random() * 2 - 1, vy: 2 + Math.random() * 3, life: 1, decay: .004, c: '#ffd95a', r: 5 + Math.random() * 4, coin: true, spin: Math.random() * 6 });
+        }
+        function tick(t) {
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            if (t < until && Math.random() < .06) burst(innerWidth * (.15 + Math.random() * .7), innerHeight * (.12 + Math.random() * .35));
+            for (var i = parts.length - 1; i >= 0; i--) {
+                var p = parts[i];
+                p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+                if (p.coin) { p.spin += .15; } else { p.vy += .06; p.vx *= .985; p.vy *= .985; }
+                if (p.life <= 0 || p.y > innerHeight + 30) { parts.splice(i, 1); continue; }
+                ctx.globalAlpha = Math.max(p.life, 0);
+                ctx.fillStyle = p.c;
+                ctx.beginPath();
+                if (p.coin) { ctx.ellipse(p.x, p.y, p.r * Math.abs(Math.cos(p.spin)) + .5, p.r, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#c8901a'; ctx.lineWidth = 1; ctx.stroke(); }
+                else { ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
+            }
+            ctx.globalAlpha = 1;
+            if (parts.length || t < until) raf = requestAnimationFrame(tick); else { raf = null; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+        }
+        return {
+            celebrate: function (ms) {
+                if (reduce) return;
+                until = performance.now() + (ms || 4500);
+                burst(innerWidth * .3, innerHeight * .25); burst(innerWidth * .7, innerHeight * .2); coins();
+                if (!raf) raf = requestAnimationFrame(tick);
+            }
+        };
+    })();
+    </script>
+
+    <script>
+    window.LuckySchedule = (function () {
+        /* ===== QUAY SỐ THEO GIỜ - NHIỀU LƯỢT (dùng chung admin.html / user.html / quays.html) =====
+           settings/lucky_live.rounds = { r1: { label: 'Lượt 1', order: 1, at: ms, done, missed, doneAt, number }, r2: {...} }
+           settings/lucky_round_presets.byId = { r1: 27, ... }  (số Admin chốt sẵn cho từng lượt, để trống = ngẫu nhiên)
+           Tới giờ một lượt, trang nào đang mở cũng thử "nhận" lượt đó bằng transaction -> chỉ 1 máy quay.
+           Kết quả ghi vào rollId/rollNumber/rollLabel + bật isLive -> mọi màn hình quays.html quay ra cùng một số. */
+        var MISS_MS = 10 * 60 * 1000;   // trễ quá 10 phút (không ai online) -> bỏ lượt
+        var rounds = {}, tried = {}, timer = null, unsub = null, subs = [];
+        function getDb() { return (typeof db !== 'undefined') ? db : null; }
+        function list() {
+            return Object.keys(rounds || {}).map(function (id) { var r = Object.assign({ id: id }, rounds[id]); return r; })
+                .filter(function (r) { return r && r.at; })
+                .sort(function (a, b) { return a.at - b.at; });
+        }
+        function isPending(r) { return r && r.at && !r.done; }
+
+        function claim(id, at) {
+            var d = getDb(); if (!d) return Promise.resolve(null);
+            var ref = d.collection('settings').doc('lucky_live'), preRef = d.collection('settings').doc('lucky_round_presets');
+            return d.runTransaction(function (tx) {
+                return Promise.all([tx.get(ref), tx.get(preRef)]).then(function (res) {
+                    var data = res[0].exists ? res[0].data() : {}, r = (data.rounds || {})[id], now = Date.now();
+                    if (!r || r.done || r.at !== at || now < r.at) return null;
+                    var upd = {}; upd[id] = { done: true, doneAt: now };
+                    if (now - r.at > MISS_MS) { upd[id].missed = true; tx.set(ref, { rounds: upd }, { merge: true }); return null; }
+                    var pre = res[1].exists ? ((res[1].data().byId || {})[id]) : null;
+                    pre = (pre != null && pre !== '') ? parseInt(pre, 10) : null;
+                    var num = (pre >= 1 && pre <= 100) ? pre : (Math.floor(Math.random() * 100) + 1);
+                    upd[id].missed = false; upd[id].number = num;
+                    tx.set(ref, {
+                        isLive: true, startedAt: data.isLive ? (data.startedAt || now) : now,
+                        rollId: now, rollAt: now, rollNumber: num, rollLabel: r.label || null, rollRound: id,
+                        rounds: upd
+                    }, { merge: true });
+                    return { num: num, label: r.label };
+                });
+            }).then(function (r) { if (r) return window.LuckySchedule.logHistory(r.num, 'schedule', r.label); });
+        }
+
+        function tick() {
+            var now = Date.now();
+            list().forEach(function (r) {
+                var key = r.id + '@' + r.at;
+                if (isPending(r) && now >= r.at && !tried[key]) {
+                    tried[key] = true;
+                    claim(r.id, r.at).catch(function (e) { console.warn('LuckySchedule claim', e); setTimeout(function () { tried[key] = false; }, 2000); });
+                }
+            });
+        }
+
+        return {
+            start: function () {
+                var d = getDb(); if (!d || unsub) return;
+                unsub = d.collection('settings').doc('lucky_live').onSnapshot(function (snap) {
+                    rounds = snap && snap.exists ? (snap.data().rounds || {}) : {};
+                    subs.forEach(function (f) { try { f(); } catch (e) {} });
+                    tick();
+                }, function (e) { console.warn('LuckySchedule', e); });
+                timer = setInterval(tick, 1000);
+            },
+            stop: function () { if (unsub) { try { unsub(); } catch (e) {} unsub = null; } if (timer) { clearInterval(timer); timer = null; } },
+            onChange: function (f) { subs.push(f); if (unsub) f(); },
+            all: list,
+            get: function () { return list().filter(isPending)[0] || null; },          // lượt sắp tới
+            pending: function () { return !!this.get(); },
+            remaining: function () { var r = this.get(); return r ? r.at - Date.now() : null; },
+            total: function () { return list().length; },
+            logHistory: function (num, source, label) {
+                var d = getDb(); if (!d) return Promise.resolve();
+                return d.collection('lucky_numbers').get().then(function (snap) {
+                    var w = []; snap.forEach(function (doc) { var x = doc.data(); if (parseInt(x.number, 10) === num) w.push(x.user); });
+                    var rec = { number: num, winners: w, timestamp: Date.now(), source: source || 'live' };
+                    if (label) rec.round = label;
+                    return d.collection('lucky_number_history').add(rec);
+                }).catch(function (e) { console.warn('LuckySchedule history', e); });
+            },
+            fmtTime: function (at) {
+                var t = new Date(at), today = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
+                var hm = p(t.getHours()) + ':' + p(t.getMinutes());
+                return t.toDateString() === today.toDateString() ? hm + ' hôm nay' : hm + ' · ' + p(t.getDate()) + '/' + p(t.getMonth() + 1) + '/' + t.getFullYear();
+            },
+            fmtLeft: function (ms) {
+                if (ms == null) return '';
+                var s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60, p = function (n) { return String(n).padStart(2, '0'); };
+                if (h >= 24) return Math.floor(h / 24) + ' ngày ' + (h % 24) + ' giờ';
+                return (h ? h + ':' + p(m) : m) + ':' + p(x);
+            }
+        };
+    })();
+
         // FIREBASE CONFIG
         const firebaseConfig = { apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", projectId: "web-dangky-123" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        if (new URLSearchParams(location.search).get('host') !== '1') {   // màn hình Admin (host) không bị chặn
+        // BẢO TRÌ: Admin bật -> chuyển sang trang bảo trì baotri.html (Admin đã mở khóa qua "Admin Gateway" thì được ở lại)
+            db.collection("settings").doc("maintenance").onSnapshot(doc => {
+                if (!(doc.exists && doc.data().isEnabled === true)) return;
+                let bypass = false; try { bypass = sessionStorage.getItem('admin_bypass_mt') === 'true'; } catch (e) {}
+                if (bypass) return;
+                const here = (location.pathname.split('/').pop() || 'index.html') + location.search;
+                location.replace('baotri.html?from=' + encodeURIComponent(here));
+            });
+        }
+
+        /* 2 chế độ:
+           - HOST  (quays.html?host=1, mở từ admin): có nút quay. Mỗi lượt quay ghi vào settings/lucky_live { rollId, rollNumber, rollAt }.
+           - XEM   (mặc định, thành viên vào từ user.html): không có nút quay, tự chạy hiệu ứng theo lượt quay của Admin, ra đúng cùng một số. */
+        const IS_HOST = new URLSearchParams(location.search).get('host') === '1';
+        const ME = (() => { try { return localStorage.getItem('qd_current_username'); } catch (e) { return null; } })();
+        const LIVE_REF = db.collection("settings").doc("lucky_live");
+
         const State = {
             globalWinningNumber: null,
             isRolling: false,
-            playerNumbers: []
+            playerNumbers: [],
+            live: null,          // dữ liệu settings/lucky_live
+            lastRollId: null,    // lượt quay gần nhất đã xử lý (chế độ xem)
+            firstLive: true,
+            lastCountSec: null,
+            rollLabel: null,
+            rollRound: null
         };
 
-        // HỆ THỐNG ÂM THANH NÂNG CẤP (SYNTHESIZER)
+        // ÂM THANH TẾT (tổng hợp bằng Web Audio, không cần file):
+        //   đàn tranh (gảy theo thang ngũ cung), mõ/phách, trống hội, chiêng, pháo nổ
         const Sound = {
-            ctx: null,
+            ctx: null, out: null,
+            // Ngũ cung (Hò - Xự - Xang - Xê - Cống) trải 2 quãng tám
+            scale: [293.66, 329.63, 392.00, 440.00, 493.88, 587.33, 659.25, 783.99, 880.00, 987.77],
             initCtx: () => {
-                if (!Sound.ctx) {
-                    Sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (Sound.ctx.state === 'suspended') Sound.ctx.resume();
-            },
-            playTick: () => {
                 try {
-                    Sound.initCtx();
-                    const osc = Sound.ctx.createOscillator();
-                    const gain = Sound.ctx.createGain();
-                    
-                    // Âm thanh cơ học (răng cưa)
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(150, Sound.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(40, Sound.ctx.currentTime + 0.05);
-                    
-                    gain.gain.setValueAtTime(0.3, Sound.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, Sound.ctx.currentTime + 0.05);
-                    
-                    osc.connect(gain); gain.connect(Sound.ctx.destination);
-                    osc.start(); osc.stop(Sound.ctx.currentTime + 0.05);
-                } catch(e) {}
+                    if (!Sound.ctx) {
+                        const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+                        Sound.ctx = new C();
+                        const comp = Sound.ctx.createDynamicsCompressor();
+                        comp.threshold.value = -14; comp.ratio.value = 4;
+                        Sound.out = Sound.ctx.createGain(); Sound.out.gain.value = 0.55;
+                        Sound.out.connect(comp); comp.connect(Sound.ctx.destination);
+                    }
+                    if (Sound.ctx.state === 'suspended') Sound.ctx.resume().catch(() => {});
+                } catch (e) {}
             },
+            // Tự mở khóa âm thanh: thử ngay khi vào trang; nếu trình duyệt chặn thì tự bật ở lần chạm/bấm/cuộn đầu tiên (không hiện nút)
+            autoUnlock: () => {
+                Sound.initCtx();
+                const unlock = () => {
+                    Sound.initCtx();
+                    if (Sound.ctx && Sound.ctx.state === 'running') ['pointerdown', 'touchstart', 'keydown', 'click', 'wheel'].forEach(ev => document.removeEventListener(ev, unlock, true));
+                };
+                ['pointerdown', 'touchstart', 'keydown', 'click', 'wheel'].forEach(ev => document.addEventListener(ev, unlock, true));
+                document.addEventListener('visibilitychange', () => { if (!document.hidden) Sound.initCtx(); });
+            },
+            ok: () => { Sound.initCtx(); return !!(Sound.ctx && Sound.ctx.state === 'running'); },
+            noise: (dur) => {
+                const c = Sound.ctx, len = Math.max(1, Math.floor(c.sampleRate * dur)), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+                const s = c.createBufferSource(); s.buffer = buf; return s;
+            },
+            // Đàn tranh: tiếng gảy sáng, tắt nhanh, hơi nhấn luyến
+            pluck: (freq, t, vol = 0.22, dur = 1.4) => {
+                const c = Sound.ctx, g = c.createGain(), f = c.createBiquadFilter();
+                f.type = 'lowpass'; f.frequency.setValueAtTime(5200, t); f.frequency.exponentialRampToValueAtTime(900, t + dur);
+                g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                [[1, 'triangle', 1], [2, 'sine', 0.35], [3, 'sine', 0.12]].forEach(([m, type, a]) => {
+                    const o = c.createOscillator(), og = c.createGain();
+                    o.type = type; o.frequency.setValueAtTime(freq * m * 1.012, t); o.frequency.exponentialRampToValueAtTime(freq * m, t + 0.08);
+                    og.gain.value = a; o.connect(og); og.connect(f); o.start(t); o.stop(t + dur + 0.05);
+                });
+                f.connect(g); g.connect(Sound.out);
+            },
+            // Mõ / phách: tiếng gỗ "cốc"
+            wood: (t, vol = 0.35, pitch = 1) => {
+                const c = Sound.ctx, o = c.createOscillator(), g = c.createGain(), bp = c.createBiquadFilter();
+                o.type = 'sine'; o.frequency.setValueAtTime(1350 * pitch, t); o.frequency.exponentialRampToValueAtTime(900 * pitch, t + 0.05);
+                g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+                o.connect(g); g.connect(Sound.out); o.start(t); o.stop(t + 0.1);
+                const n = Sound.noise(0.02), ng = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = 2500 * pitch; bp.Q.value = 3;
+                ng.gain.setValueAtTime(vol * 0.6, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+                n.connect(bp); bp.connect(ng); ng.connect(Sound.out); n.start(t);
+            },
+            // Trống hội: "tùng"
+            drum: (t, vol = 0.9) => {
+                const c = Sound.ctx, o = c.createOscillator(), g = c.createGain();
+                o.type = 'sine'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.35);
+                g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+                o.connect(g); g.connect(Sound.out); o.start(t); o.stop(t + 0.55);
+                const n = Sound.noise(0.06), lp = c.createBiquadFilter(), ng = c.createGain();
+                lp.type = 'lowpass'; lp.frequency.value = 900; ng.gain.setValueAtTime(vol * 0.5, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+                n.connect(lp); lp.connect(ng); ng.connect(Sound.out); n.start(t);
+            },
+            // Chiêng: nhiều họa âm lệch, ngân dài
+            gong: (t, vol = 0.5, base = 98) => {
+                const c = Sound.ctx;
+                [[1, 1], [1.47, .6], [2.0, .45], [2.76, .3], [3.4, .2], [4.2, .12]].forEach(([m, a], i) => {
+                    const o = c.createOscillator(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain();
+                    o.type = 'sine'; o.frequency.value = base * m;
+                    lfo.frequency.value = 3 + i; lg.gain.value = base * m * 0.004; lfo.connect(lg); lg.connect(o.frequency);
+                    const dur = 4.5 - i * 0.5;
+                    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol * a, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                    o.connect(g); g.connect(Sound.out); o.start(t); lfo.start(t); o.stop(t + dur); lfo.stop(t + dur);
+                });
+                const n = Sound.noise(0.05), bp = c.createBiquadFilter(), ng = c.createGain();
+                bp.type = 'bandpass'; bp.frequency.value = 600; ng.gain.setValueAtTime(vol * 0.5, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+                n.connect(bp); bp.connect(ng); ng.connect(Sound.out); n.start(t);
+            },
+            // Mở màn: trống khai hội "tùng tùng ... tùng" + chiêng nhỏ
+            playStart: () => {
+                if (!Sound.ok()) return;
+                try { const t = Sound.ctx.currentTime + 0.02; Sound.drum(t); Sound.drum(t + 0.2, .7); Sound.drum(t + 0.5); Sound.gong(t + 0.5, .25, 130); } catch (e) {}
+            },
+            // Mỗi nhịp số chạy: đàn tranh lướt ngũ cung + mõ; khi phanh dần thì thêm trống
+            playTick: (i = 0, slow = false) => {
+                if (!Sound.ok()) return;
+                try {
+                    const t = Sound.ctx.currentTime + 0.005, sc = Sound.scale;
+                    const step = i % (sc.length * 2 - 2), idx = step < sc.length ? step : sc.length * 2 - 2 - step;   // lên rồi xuống
+                    if (!slow) {
+                        if (i % 2 === 0) Sound.pluck(sc[idx], t, 0.11, 0.7);
+                        if (i % 4 === 0) Sound.wood(t, 0.18, 1);
+                        if (i % 12 === 0) Sound.drum(t, 0.45);
+                    } else {
+                        Sound.pluck(sc[idx], t, 0.2, 1.2);
+                        Sound.wood(t, 0.3, i % 2 ? 1 : 0.8);
+                        Sound.drum(t, 0.55);
+                    }
+                } catch (e) {}
+            },
+            // Đếm ngược giờ hẹn: mõ mỗi giây, 3 giây cuối thêm trống
+            playCount: (sec) => {
+                if (!Sound.ok()) return;
+                try { const t = Sound.ctx.currentTime + 0.005; Sound.wood(t, 0.35, sec <= 3 ? 0.8 : 1); if (sec <= 3) Sound.drum(t, 0.8); } catch (e) {}
+            },
+            // Ra số: chiêng lớn + trống + đàn tranh vuốt ngũ cung
             playWin: () => {
+                if (!Sound.ok()) return;
                 try {
-                    Sound.initCtx();
-                    // Tiếng chuông Jackpot (Hợp âm C Major 7 rải nhanh)
-                    const notes = [523.25, 659.25, 783.99, 987.77, 1046.50]; 
-                    notes.forEach((freq, i) => {
-                        const osc = Sound.ctx.createOscillator();
-                        const gain = Sound.ctx.createGain();
-                        
-                        osc.type = 'sine';
-                        osc.frequency.value = freq;
-                        
-                        gain.gain.setValueAtTime(0, Sound.ctx.currentTime + i * 0.1);
-                        gain.gain.linearRampToValueAtTime(0.5, Sound.ctx.currentTime + i * 0.1 + 0.05);
-                        gain.gain.exponentialRampToValueAtTime(0.01, Sound.ctx.currentTime + i * 0.1 + 1.5);
-                        
-                        osc.connect(gain); gain.connect(Sound.ctx.destination);
-                        osc.start(Sound.ctx.currentTime + i * 0.1);
-                        osc.stop(Sound.ctx.currentTime + i * 0.1 + 1.5);
-                    });
-                } catch(e) {}
+                    const t = Sound.ctx.currentTime + 0.02;
+                    Sound.gong(t, 0.6, 92); Sound.drum(t, 1); Sound.drum(t + 0.25, .8); Sound.drum(t + 0.5, 1);
+                    Sound.scale.forEach((f, k) => Sound.pluck(f, t + 0.15 + k * 0.06, 0.16, 1.6));
+                    [...Sound.scale].reverse().slice(0, 5).forEach((f, k) => Sound.pluck(f, t + 0.9 + k * 0.08, 0.12, 1.4));
+                    Sound.pluck(Sound.scale[0] * 2, t + 1.4, 0.22, 2.5);
+                } catch (e) {}
+            },
+            // Pháo nổ đì đùng lách tách
+            playFirecracker: () => {
+                if (!Sound.ok()) return;
+                try {
+                    const c = Sound.ctx, len = Math.floor(c.sampleRate * 0.06), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+                    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+                    for (let k = 0; k < 26; k++) {
+                        const src = c.createBufferSource(), g = c.createGain(), t = c.currentTime + 0.7 + k * 0.065 + Math.random() * 0.05;
+                        src.buffer = buf; src.playbackRate.value = 0.7 + Math.random() * 0.6; g.gain.value = 0.25 + Math.random() * 0.3;
+                        src.connect(g); g.connect(Sound.out); src.start(t);
+                    }
+                } catch (e) {}
             }
         };
 
+        const pad = (n) => n.toString().padStart(2, '0');
+        const $ = (id) => document.getElementById(id);
+
         const Game = {
             init: () => {
-                // Fetch toàn bộ số dự đoán của tất cả Users
+                // Chế độ hiển thị
+                $('btn-roll').hidden = !IS_HOST;
+                $('host-tag').hidden = !IS_HOST;
+                $('btn-home').hidden = IS_HOST;
+                $('viewer-note').hidden = IS_HOST;
+                Sound.autoUnlock();
+
+                // Quay theo giờ hẹn (Admin cài): đếm ngược + tự quay khi đến giờ
+                LuckySchedule.start();
+                LuckySchedule.onChange(() => { Game.renderLive(); Game.countdown(); Game.renderBoard(); });
+                setInterval(Game.countdown, 250);
+
+                // Số dự đoán của tất cả thành viên
                 db.collection("lucky_numbers").onSnapshot(snap => {
                     State.playerNumbers = [];
-                    snap.forEach(doc => {
-                        State.playerNumbers.push(doc.data());
-                    });
+                    snap.forEach(doc => State.playerNumbers.push(doc.data()));
+                    const mine = ME ? State.playerNumbers.find(p => p.user === ME) : null;
+                    $('my-number').hidden = IS_HOST || !mine;
+                    if (mine) $('my-number-val').innerText = pad(parseInt(mine.number));
+                    Game.renderBoard();
                 });
 
-                // Lắng nghe cài đặt Kết Quả ép buộc từ ADMIN
-                // Lưu vào biến ngầm, hoàn toàn không hiển thị ra màn hình cho đến khi quay xong
-                db.collection("settings").doc("lucky_number_result").onSnapshot(doc => {
-                    if(doc.exists && doc.data().number) {
-                        State.globalWinningNumber = parseInt(doc.data().number);
-                    } else {
-                        State.globalWinningNumber = null;
-                    }
-                });
+                // Kết quả Admin cài sẵn: chỉ máy HOST cần biết
+                if (IS_HOST) {
+                    db.collection("settings").doc("lucky_number_result").onSnapshot(doc => {
+                        State.globalWinningNumber = (doc.exists && doc.data().number) ? parseInt(doc.data().number) : null;
+                    });
+                }
+
+                // Trạng thái phát trực tiếp + lượt quay
+                LIVE_REF.onSnapshot(doc => {
+                    State.live = doc.exists ? doc.data() : {};
+                    Game.renderLive();
+                    Game.onViewerRoll();
+                }, err => { console.warn('lucky_live', err); State.live = {}; Game.renderLive(); });
             },
 
+            isLive: () => !!(State.live && State.live.isLive === true),
+
+            renderLive: () => {
+                const on = Game.isLive();
+                $('live-chip').classList.toggle('on', on);
+                const pend = LuckySchedule.pending();
+                $('live-chip-text').innerText = on ? 'TRỰC TIẾP' : (pend ? 'SẮP QUAY' : (IS_HOST ? 'CHƯA PHÁT' : 'OFFLINE'));
+                if (IS_HOST) { $('host-warn').hidden = on || pend; return; }
+
+                const note = $('viewer-note');
+                note.classList.toggle('waiting', !on);
+                if (State.isRolling) note.innerText = '🎲 Đang quay số...';
+                else if (pend) note.innerText = '⏰ Admin đã hẹn giờ quay số. Cứ mở trang này, đến giờ sẽ tự quay và hiện kết quả!';
+                else if (on) note.innerText = '🔴 Đang phát trực tiếp. Chờ Admin bấm quay, kết quả sẽ hiện tự động.';
+                else note.innerText = State.live && State.live.endedAt ? 'Buổi quay số trực tiếp đã kết thúc. Cảm ơn bạn đã theo dõi!' : 'Chưa mở quay trực tiếp. Trang sẽ tự cập nhật khi Admin bắt đầu.';
+            },
+
+            // Có lượt quay mới (Admin bấm hoặc tới giờ hẹn) -> chạy hiệu ứng tới đúng số đã quay
+            onViewerRoll: () => {
+                const L = State.live || {};
+                if (!L.rollId || L.rollNumber == null) { State.firstLive = false; return; }
+                if (L.rollId === State.lastRollId) return;
+                const first = State.firstLive;
+                State.firstLive = false;
+                State.lastRollId = L.rollId;
+                const num = parseInt(L.rollNumber);
+                const age = Date.now() - (L.rollAt || L.rollId);
+                // Vừa vào trang mà lượt quay đã xong từ trước -> chỉ hiện số gần nhất, không mở popup
+                if (first && age > 8000) {
+                    $('rolling-number').innerText = pad(num);
+                    if (!IS_HOST && Game.isLive() && !LuckySchedule.pending()) $('viewer-note').innerText = `Kết quả lượt quay gần nhất: ${pad(num)}. Chờ lượt quay tiếp theo...`;
+                    return;
+                }
+                if (!Game.isLive()) return;
+                Game.runRoll(num, L.rollLabel || null, L.rollRound || null);
+            },
+
+            // CHẾ ĐỘ HOST: bấm quay
             startRoll: () => {
-                if(State.isRolling) return;
-                
-                Sound.initCtx(); // Khởi tạo Audio Context khi người dùng bấm nút
+                if (!IS_HOST || State.isRolling) return;
+                Sound.initCtx();
+                // Chốt kết quả TRƯỚC khi quay: số Admin cài sẵn, nếu không có thì random
+                const finalResult = State.globalWinningNumber !== null
+                    ? State.globalWinningNumber
+                    : (Math.floor(Math.random() * 100) + 1);
+                // Phát cho người xem (chỉ khi đang bật trực tiếp)
+                if (Game.isLive()) {
+                    const now = Date.now();
+                    State.lastRollId = now;   // lượt của chính mình: không chạy lại khi nhận snapshot
+                    LIVE_REF.set({ rollId: now, rollAt: now, rollNumber: finalResult }, { merge: true })
+                        .catch(err => console.warn('Không phát được lượt quay', err));
+                    // Số random lúc quay -> lưu Lịch Sử (số Admin chốt sẵn đã được lưu lúc chốt)
+                    if (State.globalWinningNumber === null) LuckySchedule.logHistory(finalResult, 'live');
+                }
+                Game.runRoll(finalResult);
+            },
+
+            runRoll: (finalResult, label = null, roundId = null) => {
+                if (State.isRolling) return;
                 State.isRolling = true;
-                
-                const btn = document.getElementById('btn-roll');
-                const display = document.getElementById('rolling-number');
-                
+                State.rollLabel = label; State.rollRound = roundId;
+                Game.renderBoard();
+                Game.closeModal(true);
+                const btn = $('btn-roll');
+                const display = $('rolling-number');
                 btn.disabled = true;
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> HỆ THỐNG ĐANG XỬ LÝ...`;
+                btn.innerHTML = `🎲 Đang quay số...`;
                 display.className = "number-display rolling";
+                $('medallion').classList.remove('win', 'counting'); $('medallion').classList.add('rolling');
+                Sound.playStart();
+                Game.renderLive(); Game.countdown();
 
                 let rollCount = 0;
-                const totalRolls = 60; // Số vòng lặp
-                let currentInterval = 20; // Tốc độ ban đầu (rất nhanh)
-
+                const totalRolls = 60;
+                let currentInterval = 20;
                 const rollTick = () => {
-                    // Random số ảo để hiển thị hiệu ứng chạy (ảo, không phải kết quả)
-                    const randomNum = Math.floor(Math.random() * 100) + 1;
-                    display.innerText = randomNum.toString().padStart(2, '0');
-                    Sound.playTick();
-                    
+                    display.innerText = pad(Math.floor(Math.random() * 100) + 1);   // số chạy ảo
+                    Sound.playTick(rollCount, rollCount >= totalRolls - 20);
                     rollCount++;
-
-                    // Hiệu ứng phanh dần (chậm lại ở những nhịp cuối)
                     if (rollCount < totalRolls) {
-                        if(rollCount > totalRolls - 20) currentInterval += 25; 
+                        if (rollCount > totalRolls - 20) currentInterval += 25;   // phanh dần
                         setTimeout(rollTick, currentInterval);
                     } else {
-                        Game.finishRoll();
+                        Game.finishRoll(finalResult);
                     }
                 };
-
                 rollTick();
             },
 
-            finishRoll: () => {
-                const display = document.getElementById('rolling-number');
-                const btn = document.getElementById('btn-roll');
-                
-                // KẾT QUẢ CUỐI CÙNG:
-                // Nếu Admin đã set số (globalWinningNumber != null) thì lấy số đó.
-                // Nếu Admin bấm "Random" thì biến đó chứa số Random và cũng lấy số đó.
-                // Nếu Admin "Hủy KQ" thì nó sẽ tự random cục bộ ở đây.
-                const finalResult = State.globalWinningNumber !== null 
-                    ? State.globalWinningNumber 
-                    : (Math.floor(Math.random() * 100) + 1);
+            finishRoll: (finalResult) => {
+                const display = $('rolling-number');
+                const btn = $('btn-roll');
 
-                // Chốt số và phát âm thanh trúng thưởng
-                display.innerText = finalResult.toString().padStart(2, '0');
+                display.innerText = pad(finalResult);
                 display.className = "number-display win";
-                Sound.playWin();
+                $('medallion').classList.remove('rolling'); $('medallion').classList.add('win');
+                Sound.playWin(); Sound.playFirecracker();
+                if (window.Fx) Fx.celebrate(4500);
 
-                // Lọc tìm những người chơi có số trùng khớp
                 const winners = State.playerNumbers.filter(p => parseInt(p.number) === finalResult);
-
-                // Cập nhật Modal Giao diện
-                document.getElementById('win-number-display').innerText = finalResult.toString().padStart(2, '0');
-                const winnersContainer = document.getElementById('winners-list');
-                
-                if(winners.length > 0) {
-                    winnersContainer.innerHTML = winners.map(w => `<span class="badge"><i class="fa-solid fa-check-circle"></i> ${w.user}</span>`).join('');
+                $('win-number-display').innerText = pad(finalResult);
+                const winnersContainer = $('winners-list');
+                if (winners.length > 0) {
+                    winnersContainer.innerHTML = winners.map(w => `<span class="badge${w.user === ME && !IS_HOST ? ' me' : ''}"><i class="fa-solid fa-check-circle"></i> ${w.user}</span>`).join('');
                 } else {
-                    winnersContainer.innerHTML = `<span style="color: #777; font-style: italic; font-size: 14px;">Rất tiếc, chưa có thành viên nào chọn con số này.</span>`;
+                    winnersContainer.innerHTML = `<span class="no-winner">Chưa có thành viên nào chọn con số này. Chúc cả nhà năm mới An Khang Thịnh Vượng! 🧧</span>`;
                 }
+                const iWon = !IS_HOST && !!ME && winners.some(w => w.user === ME);
+                $('me-win').classList.toggle('show', iWon);
+                $('modal-title').innerText = State.rollLabel ? `Kết Quả ${State.rollLabel}` : 'Kết Quả Quay Số';
+                // Không trúng -> gửi lời chúc Tết
+                const lose = $('me-lose');
+                if (!IS_HOST && !iWon) {
+                    const mine = ME ? State.playerNumbers.find(p => p.user === ME) : null;
+                    const more = LuckySchedule.pending();
+                    const wish = Game.wishes[Math.floor(Math.random() * Game.wishes.length)];
+                    $('me-lose-wish').innerText = wish;
+                    $('me-lose-sub').innerText = !mine
+                        ? 'Bạn chưa chọn số. Vào trang chủ chọn số may mắn để tham gia' + (more ? ' lượt sau nhé!' : ' lần tới nhé!')
+                        : `Số ${pad(parseInt(mine.number))} của bạn chưa trúng lần này` + (more ? `, hẹn lộc ở ${LuckySchedule.get().label} nhé!` : '. Lộc xuân còn cả năm, chúc bạn luôn may mắn!');
+                    lose.classList.add('show');
+                } else lose.classList.remove('show');
 
-                // Hiện popup sau 1.2 giây để người xem nhìn rõ số trên màn hình trước
                 setTimeout(() => {
-                    const modal = document.getElementById('modal-result');
+                    const modal = $('modal-result');
                     modal.style.display = 'flex'; void modal.offsetWidth; modal.classList.add('active');
                 }, 1200);
 
-                // Reset nút bấm
                 setTimeout(() => {
-                    State.isRolling = false;
+                    State.isRolling = false; State.rollRound = null;
+                    Game.renderBoard();
                     btn.disabled = false;
-                    btn.innerHTML = `<i class="fa-solid fa-rotate-right"></i> Quay Phiên Mới`;
+                    btn.innerHTML = `🧧 Quay Lượt Mới`;
+                    Game.renderLive();
+                    if (!IS_HOST) $('viewer-note').innerText = Game.isLive() ? `Kết quả: ${pad(finalResult)}. Chờ lượt quay tiếp theo...` : $('viewer-note').innerText;
                 }, 2000);
             },
 
-            closeModal: () => {
-                const modal = document.getElementById('modal-result');
-                modal.classList.remove('active'); 
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                    document.getElementById('rolling-number').className = "number-display";
-                }, 400);
+            // Đếm ngược tới giờ hẹn: dòng thông báo + 10 giây cuối hiện số đếm trên đồng tiền
+            countdown: () => {
+                const el = $('sched-note'), ms = LuckySchedule.remaining(), display = $('rolling-number'), med = $('medallion');
+                if (ms == null || State.isRolling) {
+                    el.hidden = true;
+                    if (med.classList.contains('counting')) { med.classList.remove('counting'); if (!State.isRolling) { display.className = 'number-display'; display.innerText = '00'; } }
+                    State.lastCountSec = null; return;
+                }
+                const sc = LuckySchedule.get();
+                el.hidden = false;
+                QDSmooth.html(el, ms > 0
+                    ? `⏰ <b>${sc.label || 'Lượt tới'}</b> · quay lúc <b>${LuckySchedule.fmtTime(sc.at)}</b> · còn <b>${LuckySchedule.fmtLeft(ms)}</b>`
+                    : `🧧 Đến giờ ${sc.label || ''} rồi! Đang quay số...`);
+                if (ms <= 10000 && ms > -20000) {
+                    const sec = Math.max(0, Math.ceil(ms / 1000));
+                    med.classList.add('counting');
+                    display.className = 'number-display count';
+                    display.innerText = pad(sec);
+                    if (sec !== State.lastCountSec) {
+                        State.lastCountSec = sec;
+                        if (sec > 0) Sound.playCount(sec);
+                        display.style.animation = 'none'; void display.offsetWidth; display.style.animation = '';
+                    }
+                }
+            },
+
+            // Bảng các lượt quay: Lượt 1 · 27 | Lượt 2 · 20:30 ...  (lượt đang quay thì giấu số cho tới khi quay xong)
+            renderBoard: () => {
+                const box = $('rounds-board'), all = LuckySchedule.all();
+                if (!all.length) { box.hidden = true; return; }
+                const mine = (!IS_HOST && ME) ? State.playerNumbers.find(p => p.user === ME) : null;
+                const myN = mine ? parseInt(mine.number) : null, next = LuckySchedule.get();
+                box.hidden = false;
+                box.innerHTML = all.map(r => {
+                    let cls = 'rb', val;
+                    if (r.done && r.missed) { cls += ' miss'; val = 'Bỏ qua'; }
+                    else if (r.done && State.isRolling && r.id === State.rollRound) { cls += ' now'; val = 'Đang quay...'; }
+                    else if (r.done) { cls += ' done'; val = pad(r.number); if (myN != null && r.number === myN) { cls += ' mine'; val += ' 🎉'; } }
+                    else { cls += next && r.id === next.id ? ' next' : ''; val = LuckySchedule.fmtTime(r.at).replace(' hôm nay', ''); }
+                    return `<span class="${cls}"><small>${r.label || ''}</small><b>${val}</b></span>`;
+                }).join('');
+            },
+
+            wishes: [
+                'Chúc bạn năm mới An Khang Thịnh Vượng, Vạn Sự Như Ý! 🧧',
+                'Lộc chưa gọi tên nhưng Phúc vẫn đầy nhà! Chúc bạn Tấn Tài Tấn Lộc 🌸',
+                'Chúc bạn Xuân Đinh Mùi Sức Khỏe Dồi Dào, Tiền Vào Như Nước! 🌼',
+                'Cung Chúc Tân Xuân! Chúc bạn một năm Phúc – Lộc – Thọ trọn vẹn 🏮',
+                'Năm mới Phát Tài Phát Lộc, Công Việc Hanh Thông, Gia Đình Hạnh Phúc! 🎆',
+                'Chúc bạn năm Mùi bình an, mọi điều mong ước đều thành hiện thực! 🐐',
+                'Xuân sang lộc tới, chúc bạn Cát Tường Như Ý, Đại Cát Đại Lợi! 🧧'
+            ],
+
+            closeModal: (instant) => {
+                const modal = $('modal-result');
+                if (!modal.classList.contains('active')) return;
+                modal.classList.remove('active');
+                const done = () => { modal.style.display = 'none'; if (!State.isRolling) $('rolling-number').className = "number-display"; };
+                if (instant === true) done(); else setTimeout(done, 400);
             }
         };
 
@@ -448,5 +1103,114 @@
             Game.init();
         });
     </script>
+    <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
+    <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>
+        <div class="qd-net-card">
+            <span class="qd-net-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="qd-off" d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path class="qd-off" d="M19 12.9a10 10 0 0 0-2.3-1.7"/><path class="qd-on" d="M19 12.9a10 10 0 0 0-14 0" style="display:none"/><path d="M2 9.3a15 15 0 0 1 4.2-2.8"/><path class="qd-off" d="M22 9.3A15 15 0 0 0 10.7 5"/><path class="qd-on" d="M22 9.3a15 15 0 0 0-20 0" style="display:none"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+            </span>
+            <span class="qd-net-txt">
+                <b id="qd-net-title">Không có kết nối Internet</b>
+                <small id="qd-net-sub">Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.</small>
+            </span>
+            <button type="button" class="qd-net-btn" id="qd-net-retry">Thử lại</button>
+        </div>
+    </div>
+    <style>
+        .qd-net { position: fixed; left: 0; right: 0; top: 0; z-index: 2147483000; display: flex; justify-content: center; padding: max(10px, env(safe-area-inset-top)) 12px 0; pointer-events: none; }
+        .qd-net[hidden] { display: none !important; }
+        .qd-net-card { pointer-events: auto; display: flex; align-items: center; gap: 12px; width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 16px; box-sizing: border-box;
+            font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; text-align: left; color: #fff;
+            background: linear-gradient(135deg, #b3121b, #7a0000); border: 2px solid #ffd95a; box-shadow: 0 12px 30px rgba(0,0,0,.45); animation: qdNetIn .35s cubic-bezier(.2, 1.4, .4, 1); }
+        .qd-net-card * { text-shadow: none !important; box-sizing: border-box; }
+        .qd-net-ico { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .qd-net-txt b { font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; }
+        .qd-net-txt small { font-size: 12.5px; font-weight: 600; color: #fef08a; line-height: 1.4; }
+        .qd-net-btn { flex: 0 0 auto; padding: 9px 14px; border-radius: 999px; border: none; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-btn:disabled { opacity: .7; cursor: wait; }
+        .qd-net.ok .qd-net-card { background: linear-gradient(135deg, #059669, #065f46); border-color: #a7f3d0; }
+        .qd-net.ok .qd-net-ico { color: #065f46; background: #d1fae5; }
+        .qd-net.ok .qd-net-btn, .qd-net.ok .qd-off { display: none; }
+        .qd-net.ok .qd-on { display: inline !important; }
+        .qd-net:not(.ok) .qd-net-ico { animation: qdNetPulse 1.6s ease-in-out infinite; }
+        @keyframes qdNetIn { from { transform: translateY(-120%); opacity: 0; } }
+        @keyframes qdNetPulse { 50% { transform: scale(.88); } }
+        @media (max-width: 420px) { .qd-net-card { gap: 10px; padding: 10px 12px; } .qd-net-txt b { font-size: 14px; } .qd-net-txt small { font-size: 12px; } .qd-net-btn { padding: 8px 11px; } }
+        @media (prefers-reduced-motion: reduce) { .qd-net-card, .qd-net-ico { animation: none !important; } }
+    </style>
+    <script>
+    /* Phát hiện mất mạng: sự kiện online/offline của trình duyệt + kiểm tra thật định kỳ
+       (navigator.onLine có thể báo "có mạng" khi Wi-Fi đã kết nối nhưng không ra được Internet) */
+    (function () {
+        'use strict';
+        if (window.__qdNetGuard) return; window.__qdNetGuard = true;
+        var box = document.getElementById('qd-net'), title = document.getElementById('qd-net-title'), sub = document.getElementById('qd-net-sub'), btn = document.getElementById('qd-net-retry');
+        var PROBES = ['https://www.gstatic.com/generate_204', 'https://firestore.googleapis.com/', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
+        var offline = false, fails = 0, okTimer = null, checking = false;
+
+        function probe(url) {
+            return new Promise(function (resolve, reject) {
+                var ctrl = window.AbortController ? new AbortController() : null;
+                var t = setTimeout(function () { if (ctrl) ctrl.abort(); reject(new Error('timeout')); }, 6000);
+                fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { mode: 'no-cors', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+                    .then(function () { clearTimeout(t); resolve(true); }, function (e) { clearTimeout(t); reject(e); });
+            });
+        }
+        function anyOk() {   // chỉ cần 1 máy chủ phản hồi là có mạng
+            return new Promise(function (resolve) {
+                var left = PROBES.length;
+                PROBES.forEach(function (u) { probe(u).then(function () { resolve(true); }, function () { if (--left === 0) resolve(false); }); });
+            });
+        }
+        function show() {
+            if (offline) return; offline = true;
+            clearTimeout(okTimer);
+            box.classList.remove('ok');
+            title.textContent = 'Không có kết nối Internet';
+            sub.textContent = 'Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.';
+            box.hidden = false;
+        }
+        function hide() {
+            if (!offline) return; offline = false;
+            box.classList.add('ok');
+            title.textContent = 'Đã kết nối lại Internet';
+            sub.textContent = 'Dữ liệu đang được đồng bộ lại.';
+            clearTimeout(okTimer);
+            okTimer = setTimeout(function () { box.hidden = true; box.classList.remove('ok'); }, 2500);
+        }
+        function check() {
+            if (checking) return; checking = true;
+            if (navigator.onLine === false) { checking = false; fails = 2; show(); return; }
+            anyOk().then(function (ok) {
+                checking = false;
+                if (ok) { fails = 0; hide(); }
+                else if (++fails >= 2 || offline) show();   // lỗi 2 lần liên tiếp mới báo, tránh báo nhầm
+                else setTimeout(check, 3000);
+            });
+        }
+
+        window.addEventListener('offline', function () { fails = 2; show(); });
+        window.addEventListener('online', function () { setTimeout(check, 500); });
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+        btn.addEventListener('click', function () {
+            btn.disabled = true; btn.textContent = 'Đang thử...';
+            sub.textContent = 'Đang kiểm tra kết nối...';
+            fails = 1; checking = false;
+            check();
+            setTimeout(function () {
+                btn.disabled = false; btn.textContent = 'Thử lại';
+                if (offline) sub.textContent = 'Vẫn chưa có mạng. Vui lòng kiểm tra Wi-Fi hoặc 4G.';
+            }, 2500);
+        });
+        // Kiểm tra định kỳ: mất mạng thì 5 giây/lần để báo có mạng lại nhanh; bình thường 20 giây/lần
+        (function loop() { setTimeout(function () { if (!document.hidden || offline) check(); loop(); }, offline ? 5000 : 20000); })();
+        if (navigator.onLine === false) show();
+    })();
+    </script>
+    <style id="qd-smooth-page">
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background-image: var(--qd-bg); }
+.decor { contain: strict; }
+    </style>
 </body>
 </html>
