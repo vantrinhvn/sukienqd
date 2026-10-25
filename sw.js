@@ -1,5 +1,6 @@
 /* QD Elite Service Worker
-   - Bấm thông báo: mở / focus lại web (giữ nguyên như cũ)
+   - Bấm thông báo: mở / focus lại web và vào đúng phòng chat
+   - Hẹn giờ hiện thông báo theo yêu cầu của trang (nút Test 5s)
    - Bộ nhớ đệm: thư viện CDN (Font Awesome, Firebase SDK, Google Fonts) + ảnh lưu sẵn -> mở lại trang gần như tức thì
    - Trang HTML: luôn lấy bản mới nhất từ mạng, chỉ dùng bản lưu khi mất mạng
    - Không đụng tới: Firestore / API (dữ liệu thời gian thực), nhạc / video (yêu cầu theo đoạn), kiểm tra mạng (cache: no-store) */
@@ -65,21 +66,35 @@ self.addEventListener('fetch', (event) => {
     }
 });
 
+// Trang nhờ hẹn giờ hiện thông báo (nút Test 5s): trang bị ẩn / đóng băng vẫn hiện đúng giờ
+self.addEventListener('message', (event) => {
+    const d = event.data || {};
+    if (d.type !== 'qd-notify-later') return;
+    const ms = Math.min(Math.max(Number(d.delay) || 0, 0), 25000);
+    event.waitUntil(new Promise(r => setTimeout(r, ms)).then(() =>
+        self.registration.showNotification(String(d.title || 'QD Elite'), d.options || {})
+    ));
+});
+
+// Bấm thông báo: mở / focus lại web rồi vào đúng phòng chat
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
-    event.waitUntil(
-        clients.matchAll({type: 'window', includeUncontrolled: true}).then(windowClients => {
-            // Focus vào tab đang mở nếu web đang chạy ngầm
-            for (let i = 0; i < windowClients.length; i++) {
-                const client = windowClients[i];
-                if (client.url && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            // Mở tab mới nếu web đang bị đóng hẳn
-            if (clients.openWindow) {
-                return clients.openWindow('/');
-            }
-        })
-    );
+    const data = event.notification.data || {};
+    const roomId = data.roomId || '';
+    event.waitUntil((async () => {
+        const all = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+        // Ưu tiên tab đang mở trang user.html, không có thì tab bất kỳ của web
+        const target = all.find(c => c.url && /user\.html/i.test(c.url)) || all.find(c => c.url);
+        if (target) {
+            try { await target.focus(); } catch (e) {}
+            try { target.postMessage({ type: 'qd-notif-click', roomId }); } catch (e) {}
+            return;
+        }
+        // Web đang đóng hẳn: mở lại trang đã gửi thông báo (mặc định trang chủ)
+        if (clients.openWindow) {
+            let url = '/';
+            try { const u = new URL(data.url || '/', self.location.href); if (u.origin === self.location.origin) url = u.href; } catch (e) {}
+            return clients.openWindow(url);
+        }
+    })());
 });

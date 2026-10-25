@@ -9406,21 +9406,53 @@ html.qd-lite .qd-fx { display: none !important; }
             </div>
             <div class="form-group mb-8">
                 <label class="form-label">Nhạc Nền Hệ Thống</label>
-                <div class="flex justify-between items-center p-5 bg-elevated rounded-lg border-strong" style="border: 1px solid var(--border-strong);">
-                    <div class="flex items-center gap-3 font-bold text-lg">
-                        <i class="fa-solid fa-music text-muted" id="music-icon"></i> 
-                        <span id="music-text">Đang tắt</span>
+                <div class="p-5 bg-elevated rounded-lg border-strong" style="border: 1px solid var(--border-strong);">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3 font-bold text-lg">
+                            <i class="fa-solid fa-music text-muted" id="music-icon"></i>
+                            <span id="music-text">Đang tắt</span>
+                        </div>
+                        <button class="btn btn-outline" id="music-toggle-btn" style="padding: 10px 20px; font-size: 13px;" onclick="window.Music.toggle()">Bật / Tắt</button>
                     </div>
-                    <button class="btn btn-outline" style="padding: 10px 20px; font-size: 13px;" onclick="window.Music.toggle()">Bật / Tắt</button>
+                    <div class="qd-vol">
+                        <button type="button" class="qd-vol-ico" id="music-vol-ico" onclick="window.Music.toggleMute()" aria-label="Tắt / mở tiếng"><i class="fa-solid fa-volume-low"></i></button>
+                        <input type="range" id="music-vol" class="qd-vol-range" min="0" max="100" step="1" value="50" aria-label="Âm lượng nhạc nền"
+                               oninput="window.Music.setVolume(this.value)" onchange="window.Music.setVolume(this.value, true)">
+                        <span class="qd-vol-val" id="music-vol-val">50%</span>
+                    </div>
+                    <div class="text-sm text-muted" style="margin-top: 8px;">Âm lượng và trạng thái Bật/Tắt được lưu lại cho lần đăng nhập sau.</div>
                 </div>
+                <style>
+                    .qd-vol { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-strong); }
+                    .qd-vol-ico { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-strong); background: transparent; color: var(--brand-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+                    .qd-vol-val { flex: 0 0 auto; min-width: 44px; text-align: right; font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--text-main); }
+                    .qd-vol-range { --p: 50%; flex: 1 1 auto; min-width: 0; height: 28px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; touch-action: pan-y; }
+                    .qd-vol-range:focus { outline: none; }
+                    .qd-vol-range::-webkit-slider-runnable-track { height: 6px; border-radius: 99px; background: linear-gradient(to right, var(--brand-primary) var(--p), rgba(128,128,128,.35) var(--p)); }
+                    .qd-vol-range::-moz-range-track { height: 6px; border-radius: 99px; background: rgba(128,128,128,.35); }
+                    .qd-vol-range::-moz-range-progress { height: 6px; border-radius: 99px; background: var(--brand-primary); }
+                    .qd-vol-range::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -7px; border-radius: 50%; background: #fff; border: 3px solid var(--brand-primary); box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+                    .qd-vol-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid var(--brand-primary); box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+                    .qd-vol-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--brand-primary-soft, rgba(0,0,0,.2)); }
+                </style>
             </div>
             <div class="form-group mb-8">
                 <label class="form-label">Kiểm tra Thông báo (Push Notif)</label>
-                <div class="flex justify-between items-center p-5 bg-elevated rounded-lg border-strong" style="border: 1px solid var(--border-strong);">
-                    <div class="flex items-center gap-3 font-bold text-sm text-muted">
-                        Bấm Test rồi lập tức thoát ra màn hình chính điện thoại để kiểm tra banner có nhảy xuống không.
+                <div class="p-5 bg-elevated rounded-lg border-strong" style="border: 1px solid var(--border-strong);">
+                    <div class="flex justify-between items-center gap-3">
+                        <div class="flex items-center gap-3 font-bold text-lg" style="min-width: 0;">
+                            <i class="fa-solid fa-bell text-muted" id="notif-icon"></i>
+                            <span>Nhận thông báo mới: <span id="notif-text">Đang tắt</span></span>
+                        </div>
+                        <button class="btn btn-outline" id="notif-toggle-btn" style="padding: 10px 20px; font-size: 13px; flex: 0 0 auto;" onclick="window.Notif.toggle()">Bật / Tắt</button>
                     </div>
-                    <button class="btn btn-info" style="padding: 10px 20px; font-size: 13px;" onclick="window.Chat.testNotification()">Test (5s)</button>
+                    <div class="text-sm font-bold" id="notif-perm" style="margin-top: 8px;"></div>
+                    <div style="margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-strong);">
+                        <div class="font-bold text-sm text-muted" style="margin-bottom: 12px;">
+                            Bấm Test rồi lập tức thoát ra màn hình chính điện thoại để kiểm tra banner có nhảy xuống không.
+                        </div>
+                        <button class="btn btn-info w-full" id="notif-test-btn" style="padding: 12px 20px; font-size: 13px;" onclick="window.Chat.testNotification()">Test (5s)</button>
+                    </div>
                 </div>
             </div>
             <button class="btn btn-primary w-full" onclick="window.UI.closeModal('modal-settings')">Hoàn Tất</button>
@@ -10430,7 +10462,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         }
                         
                         document.getElementById('auth-gate').style.opacity = '0';
-                        setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; if(window.HomeVideo) window.HomeVideo.start(); if(window.LiXi) window.LiXi.start(); if(window.WheelTab) window.WheelTab.start(); if(window.RxTab) window.RxTab.start(); if(window.LnTab) window.LnTab.start(); Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
+                        setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; if(window.HomeVideo) window.HomeVideo.start(); if(window.Music) window.Music.autoStart(); if(window.LiXi) window.LiXi.start(); if(window.WheelTab) window.WheelTab.start(); if(window.RxTab) window.RxTab.start(); if(window.LnTab) window.LnTab.start(); Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
                     }
                 } catch(e) { 
                     console.error("Login Error:", e);
@@ -10546,7 +10578,7 @@ html.qd-lite .qd-fx { display: none !important; }
         /** 6. PRIVATE CHAT MODULE WITH HEART, UNREAD BADGES & GENERAL CHANNEL */
         window.Chat = {
             showNotification: (title, body, roomId) => {
-                if (localStorage.getItem('qd_notif_state') === 'false') return;
+                if (window.Notif && !window.Notif.enabled()) return;
 
                 try {
                     if (window.Sound.msgAudio) {
@@ -10555,58 +10587,23 @@ html.qd-lite .qd-fx { display: none !important; }
                     }
                 } catch(e) {}
 
-                if ("Notification" in window && Notification.permission === "granted") {
-                    const options = {
-                        body: body,
-                        icon: "https://cdn-icons-png.flaticon.com/512/1041/1041916.png",
-                        badge: "https://cdn-icons-png.flaticon.com/512/1041/1041916.png",
-                        vibrate: [200, 100, 200, 100, 200],
-                        tag: roomId,
-                        renotify: true,
-                        requireInteraction: true
-                    };
-
-                    const handleNotifClick = function() {
-                        window.focus();
-                        window.UI.navigate('chat');
-                        if (roomId === 'general_room') window.Chat.selectTarget('general');
-                        else {
-                            const users = roomId.split('_');
-                            const target = users[0] === State.currentUser ? users[1] : users[0];
-                            if(target) window.Chat.selectTarget(target);
-                        }
-                    };
-
-                    try {
-                        // 1. Phóng thẳng thông báo hệ thống (Instant Local Notification - Tốc độ bàn thờ)
-                        const notif = new Notification(title, options);
-                        notif.onclick = handleNotifClick;
-                    } catch(err) {
-                        // 2. Fallback: Nếu trình duyệt (Chrome Android/Safari) chặn tạo Notification trực tiếp khi ở chế độ ngầm (Background)
-                        // Bắt buộc phải mượn tay Service Worker để bắn thông báo
-                        if ('serviceWorker' in navigator) {
-                            navigator.serviceWorker.getRegistration().then(function(reg) {
-                                if (reg) {
-                                    reg.showNotification(title, options);
-                                }
-                            });
-                        }
-                    }
+                if (window.Notif) window.Notif.show(title, body, roomId);
+            },
+            // Bấm vào thông báo -> mở đúng phòng chat
+            openFromNotif: (roomId) => {
+                try { window.focus(); } catch (e) {}
+                if (!roomId || !State.currentUser) return;
+                window.UI.navigate('chat');
+                if (roomId === 'general_room') window.Chat.selectTarget('general');
+                else if (roomId.indexOf('_') > 0) {
+                    const users = roomId.split('_');
+                    const target = users[0] === State.currentUser ? users[1] : users[0];
+                    if (target) window.Chat.selectTarget(target);
                 }
             },
             init: () => {
-                if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-                    Notification.requestPermission();
-                }
-                
-                // Đăng ký Service Worker vật lý để hiển thị Notification trên Mobile
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('./sw.js').then(function(registration) {
-                        console.log('Service Worker registered!');
-                    }).catch(function(err) {
-                        console.log('Service Worker registration failed:', err);
-                    });
-                }
+                // Đăng ký Service Worker + xin quyền thông báo (nếu người dùng đang để Bật)
+                if (window.Notif) window.Notif.boot();
 
                 State.appStartTime = Date.now();
 
@@ -10748,14 +10745,25 @@ html.qd-lite .qd-fx { display: none !important; }
                 const st = document.getElementById('active-status'); if(st) { st.innerText = Utils.timeAgo(lP); st.className = isOn ? "text-xs text-success font-bold" : "text-xs text-muted font-bold"; }
             },
             
-            testNotification: () => {
-                if ("Notification" in window && Notification.permission !== "granted") {
-                    Notification.requestPermission();
-                }
+            testNotification: async () => {
+                const N = window.Notif, btn = document.getElementById('notif-test-btn');
+                if (!N) return;
+                const r = await N.ensure(true);   // tự bật + xin quyền nếu cần
+                if (!r.ok) return;
                 window.Utils.toast("Sẽ gửi thông báo sau 5 giây! Hãy ẩn trình duyệt xuống màn hình chính ngay lúc này.", "info");
-                setTimeout(() => {
-                    window.Chat.showNotification("🔔 Hệ Thống QD Elite", "Đây là thông báo thử nghiệm! Nếu bạn thấy dòng này thì hệ thống hoạt động 100%.", "general_room");
-                }, 5000);
+                if (btn) btn.disabled = true;
+                const T = "🔔 Hệ Thống QD Elite", B = "Đây là thông báo thử nghiệm! Nếu bạn thấy dòng này thì hệ thống hoạt động 100%.";
+                // Service Worker tự hẹn giờ: điện thoại đóng băng trang khi ẩn xuống vẫn hiện được thông báo
+                const viaSW = await N.showLater(T, B, "general_room", 5000).catch(() => false);
+                let left = 5;
+                const tick = () => {
+                    if (btn) btn.textContent = left > 0 ? `Đang gửi (${left}s)` : 'Test (5s)';
+                    if (left-- > 0) return setTimeout(tick, 1000);
+                    if (btn) btn.disabled = false;
+                    if (!viaSW) return window.Chat.showNotification(T, B, "general_room");
+                    try { if (!document.hidden && window.Sound.msgAudio) { window.Sound.msgAudio.currentTime = 0; window.Sound.msgAudio.play().catch(() => {}); } } catch (e) {}
+                };
+                tick();
             },
             openNicknameEditor: () => { 
                 if(State.chatTarget === 'general') return Utils.toast("Không thể đổi biệt danh cho Kênh Chung.", "info");
@@ -15937,33 +15945,279 @@ document.addEventListener("DOMContentLoaded", () => {
             stop: function () { this.started = false; if (this.el) this.el.pause(); }
         };
 
+        /* Nhạc nền hệ thống
+           - Lưu trên máy: qd_music_on ('1' bật / '0' tắt, mặc định bật), qd_music_vol (0-100, mặc định 50)
+           - Đăng nhập xong -> tự phát (nếu đang để Bật). Trình duyệt chặn tự phát -> phát ở lần chạm đầu tiên
+           - iPhone/iPad không cho chỉnh audio.volume bằng JS -> dùng Web Audio (GainNode) để thanh âm lượng vẫn có tác dụng */
         window.Music = {
-            el: null,
+            el: null, vol: 50, lastVol: 50, enabled: true, active: false,
+            ctx: null, gain: null, useGain: false, _waitGesture: false, _fadeT: 0,
+            load: function () {
+                try {
+                    var on = localStorage.getItem('qd_music_on'); this.enabled = on !== '0';
+                    var v = parseInt(localStorage.getItem('qd_music_vol'), 10); this.vol = isNaN(v) ? 50 : Math.min(100, Math.max(0, v));
+                    var lv = parseInt(localStorage.getItem('qd_music_lastvol'), 10); this.lastVol = isNaN(lv) || lv <= 0 ? (this.vol || 50) : lv;
+                } catch (e) {}
+            },
+            save: function () {
+                try {
+                    localStorage.setItem('qd_music_on', this.enabled ? '1' : '0');
+                    localStorage.setItem('qd_music_vol', String(this.vol));
+                    localStorage.setItem('qd_music_lastvol', String(this.lastVol));
+                } catch (e) {}
+            },
             init: function () {
+                if (this.el) return;
+                var self = this;
                 this.el = document.getElementById('bg-music');
-                if (this.el) this.el.volume = 0.5;
+                this.load();
+                if (this.el) {
+                    // Kiểm tra trình duyệt có cho chỉnh volume không (iOS luôn trả về 1)
+                    try { var t = new Audio(); t.volume = 0.5; this.useGain = Math.abs(t.volume - 0.5) > 0.01 && !!(window.AudioContext || window.webkitAudioContext); } catch (e) {}
+                    this.applyVolume(this.vol);
+                    this.el.addEventListener('play', function () { self.updateUI(); });
+                    this.el.addEventListener('pause', function () { self.updateUI(); });
+                    // Đăng nhập bằng tay: "mở khóa" âm thanh ngay trong cú bấm để phát được sau khi xác thực xong
+                    document.addEventListener('click', function (e) {
+                        var b = e.target && e.target.closest ? e.target.closest('#btn-login') : null;
+                        if (b && e.isTrusted) self.unlock();
+                    }, true);
+                    document.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter' && e.target && (e.target.id === 'login-usr' || e.target.id === 'login-pwd')) self.unlock();
+                    }, true);
+                    document.addEventListener('visibilitychange', function () {
+                        if (!document.hidden && self.ctx && self.ctx.state !== 'running') { try { self.ctx.resume(); } catch (e) {} }
+                    });
+                }
                 this.updateUI();
             },
-            toggle: function () {
+            // Tạo đường Web Audio (chỉ trên máy không chỉnh được volume, ví dụ iPhone) - phải gọi trong lúc người dùng bấm
+            setupGain: function () {
+                if (!this.useGain || this.gain || !this.el) return;
+                try {
+                    var AC = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AC();
+                    var src = this.ctx.createMediaElementSource(this.el);
+                    this.gain = this.ctx.createGain();
+                    src.connect(this.gain); this.gain.connect(this.ctx.destination);
+                    this.applyVolume(this.vol);
+                } catch (e) { this.useGain = false; this.gain = null; }
+            },
+            unlock: function () {
+                if (!this.el || !this.enabled) return;
+                this.setupGain();
+                if (this.ctx && this.ctx.state !== 'running') { try { this.ctx.resume(); } catch (e) {} }
+                if (!this.el.paused) return;
+                // Phát tắt tiếng rồi dừng ngay: đủ để trình duyệt cho phép phát sau khi đăng nhập xong
+                var el = this.el; el.muted = true;
+                var p = el.play();
+                var done = function () { if (!window.Music.active) el.pause(); el.muted = false; };
+                if (p && p.then) p.then(done, function () { el.muted = false; }); else done();
+            },
+            applyVolume: function (v) {
+                var x = Math.min(100, Math.max(0, v)) / 100;
+                x = x * x;   // cảm nhận âm lượng tự nhiên hơn (kéo 50% không quá to)
+                if (this.gain) { try { this.gain.gain.setTargetAtTime(x, this.ctx.currentTime, 0.03); } catch (e) { this.gain.gain.value = x; } if (this.el) this.el.volume = 1; }
+                else if (this.el) this.el.volume = x;
+            },
+            fadeIn: function () {
+                var self = this, target = this.vol, t0 = performance.now(), dur = 1200;
+                clearInterval(this._fadeT);
+                this.applyVolume(0);
+                this._fadeT = setInterval(function () {
+                    var k = Math.min(1, (performance.now() - t0) / dur);
+                    self.applyVolume(target * k);
+                    if (k >= 1) clearInterval(self._fadeT);
+                }, 50);
+            },
+            play: function (quiet) {
                 var self = this;
                 if (!this.el) return;
-                if (this.el.paused) {
-                    var p = this.el.play();
-                    if (p && p.then) p.then(function () { self.updateUI(); }).catch(function () {
-                        if (window.Utils && window.Utils.toast) window.Utils.toast('Không thể phát nhạc nền trên thiết bị này.', 'warning');
-                    });
-                } else { this.el.pause(); this.updateUI(); }
+                this.setupGain();
+                if (this.ctx && this.ctx.state !== 'running') { try { this.ctx.resume(); } catch (e) {} }
+                this.active = true; this.el.muted = false;
+                if (!this.el.paused) return this.updateUI();
+                this.fadeIn();
+                var p = this.el.play();
+                if (p && p.then) p.then(function () { self._waitGesture = false; self.updateUI(); }).catch(function (err) {
+                    if (err && err.name === 'NotAllowedError') return self.waitGesture();
+                    self.active = false; self.updateUI();
+                    if (!quiet && window.Utils && window.Utils.toast) window.Utils.toast('Không thể phát nhạc nền trên thiết bị này.', 'warning');
+                });
+            },
+            // Trình duyệt chặn tự phát (vd: tự đăng nhập lại không có cú bấm) -> phát ở lần chạm/bấm phím đầu tiên
+            waitGesture: function () {
+                var self = this;
+                if (this._waitGesture) return; this._waitGesture = true;
+                var evs = ['pointerdown', 'touchend', 'keydown', 'click'];
+                var go = function (e) {
+                    var tg = e && e.target && e.target.closest ? e.target.closest('#music-toggle-btn') : null;
+                    evs.forEach(function (ev) { document.removeEventListener(ev, go, true); });
+                    self._waitGesture = false;
+                    if (tg) return;   // bấm nút Bật/Tắt: để nút tự xử lý
+                    if (self.enabled && self.active && self.el && self.el.paused) self.play(true);
+                };
+                evs.forEach(function (ev) { document.addEventListener(ev, go, true); });
+            },
+            // Gọi khi đăng nhập thành công: bật nhạc nếu người dùng đang để chế độ Bật (mặc định)
+            autoStart: function () {
+                if (!this.el) this.init();
+                if (this.enabled) this.play(true); else this.updateUI();
+            },
+            toggle: function () {
+                if (!this.el) return;
+                if (this.el.paused) { this.enabled = true; this.save(); this.play(false); }
+                else { this.enabled = false; this.active = false; this.save(); this.el.pause(); this.updateUI(); }
+            },
+            setVolume: function (v, commit) {
+                v = Math.min(100, Math.max(0, parseInt(v, 10) || 0));
+                this.vol = v; if (v > 0) this.lastVol = v;
+                clearInterval(this._fadeT);
+                this.applyVolume(v);
+                if (commit !== false) this.save();
+                this.updateUI();
+            },
+            toggleMute: function () {
+                if (this.vol > 0) { this.lastVol = this.vol; this.setVolume(0); }
+                else this.setVolume(this.lastVol || 50);
             },
             updateUI: function () {
                 var on = !!(this.el && !this.el.paused);
                 var t = document.getElementById('music-text'); if (t) t.textContent = on ? 'Đang bật' : 'Đang tắt';
                 var i = document.getElementById('music-icon'); if (i) i.className = on ? 'fa-solid fa-music text-primary' : 'fa-solid fa-music text-muted';
+                var r = document.getElementById('music-vol');
+                if (r) { if (String(r.value) !== String(this.vol)) r.value = this.vol; r.style.setProperty('--p', this.vol + '%'); }
+                var lb = document.getElementById('music-vol-val'); if (lb) lb.textContent = this.vol + '%';
+                var ic = document.getElementById('music-vol-ico');
+                if (ic) {
+                    var cls = this.vol === 0 ? 'fa-volume-xmark' : this.vol < 50 ? 'fa-volume-low' : 'fa-volume-high';
+                    if (ic.__cls !== cls) { ic.__cls = cls; ic.innerHTML = '<i class="fa-solid ' + cls + '"></i>'; }
+                }
+            }
+        };
+
+        /* Nhận thông báo mới (tin nhắn riêng, Kênh Chung, quay số trực tiếp...)
+           - Lưu trên máy: qd_notif_state ('false' = tắt, còn lại = bật; mặc định bật)
+           - Hiện thông báo qua Service Worker (chạy được cả khi web đang ẩn trên Android/Chrome), lỗi mới dùng new Notification
+           - Bấm vào thông báo -> mở lại web và vào đúng phòng chat */
+        window.Notif = {
+            _swReady: null, _bound: false,
+            supported: function () { return 'Notification' in window; },
+            isIOS: function () { return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); },
+            standalone: function () { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; },
+            enabled: function () { try { return localStorage.getItem('qd_notif_state') !== 'false'; } catch (e) { return true; } },
+            setEnabled: function (on) { try { localStorage.setItem('qd_notif_state', on ? 'true' : 'false'); } catch (e) {} this.updateUI(); },
+            perm: function () { return this.supported() ? Notification.permission : 'unsupported'; },
+            toast: function (m, t) { if (window.Utils && window.Utils.toast) window.Utils.toast(m, t || 'info'); },
+            sw: function () {
+                if (!('serviceWorker' in navigator)) return Promise.resolve(null);
+                if (!this._swReady) {
+                    this._swReady = navigator.serviceWorker.register('./sw.js').then(function () {
+                        return Promise.race([navigator.serviceWorker.ready, new Promise(function (r) { setTimeout(function () { r(null); }, 4000); })]);
+                    }).catch(function (err) { console.log('Service Worker registration failed:', err); return null; });
+                }
+                return this._swReady;
+            },
+            bind: function () {
+                var self = this;
+                if (this._bound) return; this._bound = true;
+                if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', function (e) {
+                    var d = e.data || {};
+                    if (d.type === 'qd-notif-click' && window.Chat && window.Chat.openFromNotif) window.Chat.openFromNotif(d.roomId);
+                });
+                document.addEventListener('visibilitychange', function () { if (!document.hidden) self.updateUI(); });
+                try { navigator.permissions.query({ name: 'notifications' }).then(function (st) { st.onchange = function () { self.updateUI(); }; }).catch(function () {}); } catch (e) {}
+            },
+            // Gọi sau khi đăng nhập
+            boot: function () {
+                this.bind(); this.sw();
+                if (this.enabled() && this.perm() === 'default') { try { Notification.requestPermission().then(this.updateUI.bind(this), function () {}); } catch (e) {} }
+                this.updateUI();
+            },
+            // Bật nhận thông báo + xin quyền. Trả về { ok }
+            ensure: async function () {
+                this.bind();
+                if (!this.supported()) {
+                    if (this.isIOS() && !this.standalone()) this.toast('iPhone/iPad: bấm nút Chia sẻ → "Thêm vào MH chính", mở web từ biểu tượng đó rồi bật lại thông báo.', 'warning');
+                    else this.toast('Trình duyệt này không hỗ trợ thông báo. Hãy dùng Chrome, Edge, Firefox hoặc Safari mới.', 'warning');
+                    this.updateUI(); return { ok: false };
+                }
+                if (!this.enabled()) this.setEnabled(true);
+                var p = Notification.permission;
+                if (p === 'default') {
+                    try { p = await Notification.requestPermission(); } catch (e) { p = Notification.permission; }
+                }
+                this.updateUI();
+                if (p !== 'granted') {
+                    this.toast(p === 'denied'
+                        ? 'Thông báo đang bị chặn. Bấm biểu tượng ổ khóa cạnh địa chỉ web → Quyền → Thông báo → Cho phép, rồi tải lại trang.'
+                        : 'Bạn chưa cho phép thông báo. Bấm lại và chọn "Cho phép".', 'warning');
+                    return { ok: false };
+                }
+                await this.sw();
+                return { ok: true };
+            },
+            toggle: async function () {
+                if (this.enabled() && this.perm() === 'granted') {
+                    this.setEnabled(false);
+                    this.toast('Đã tắt nhận thông báo mới.', 'info');
+                    return;
+                }
+                var r = await this.ensure();
+                if (r.ok) this.toast('Đã bật nhận thông báo mới!', 'success');
+            },
+            options: function (body, roomId) {
+                var url = location.href.split('#')[0].split('?')[0];
+                return {
+                    body: body,
+                    icon: 'https://cdn-icons-png.flaticon.com/512/1041/1041916.png',
+                    badge: 'https://cdn-icons-png.flaticon.com/512/1041/1041916.png',
+                    vibrate: [200, 100, 200, 100, 200],
+                    tag: roomId || 'qd', renotify: true, requireInteraction: true,
+                    data: { roomId: roomId || '', url: url }
+                };
+            },
+            show: function (title, body, roomId) {
+                if (!this.supported() || Notification.permission !== 'granted') return;
+                var self = this, opts = this.options(body, roomId);
+                var direct = function () {
+                    try {
+                        var n = new Notification(title, opts);
+                        n.onclick = function () { n.close(); if (window.Chat && window.Chat.openFromNotif) window.Chat.openFromNotif(roomId); };
+                    } catch (err) {}
+                };
+                this.sw().then(function (reg) {
+                    if (reg && reg.showNotification) return reg.showNotification(title, opts).catch(direct);
+                    direct();
+                }, direct);
+            },
+            // Nhờ Service Worker hẹn giờ (trang bị ẩn/đóng băng vẫn hiện thông báo). Trả về false nếu không làm được
+            showLater: async function (title, body, roomId, ms) {
+                var reg = await this.sw();
+                var sw = reg && (reg.active || navigator.serviceWorker.controller);
+                if (!sw) return false;
+                sw.postMessage({ type: 'qd-notify-later', delay: ms, title: title, options: this.options(body, roomId) });
+                return true;
+            },
+            updateUI: function () {
+                var on = this.enabled(), p = this.perm(), active = on && p === 'granted';
+                var t = document.getElementById('notif-text'); if (t) t.textContent = active ? 'Đang bật' : 'Đang tắt';
+                var i = document.getElementById('notif-icon'); if (i) i.className = active ? 'fa-solid fa-bell text-primary' : 'fa-solid fa-bell-slash text-muted';
+                var el = document.getElementById('notif-perm'); if (!el) return;
+                var msg, cls;
+                if (p === 'unsupported') { msg = this.isIOS() && !this.standalone() ? 'iPhone/iPad: cần "Thêm vào MH chính" và mở web từ biểu tượng đó mới nhận được thông báo.' : 'Trình duyệt này không hỗ trợ thông báo.'; cls = 'text-warning'; }
+                else if (!on) { msg = 'Bạn sẽ không nhận được thông báo tin nhắn mới.'; cls = 'text-muted'; }
+                else if (p === 'granted') { msg = '✓ Đã cho phép - sẽ báo khi có tin nhắn mới.'; cls = 'text-main'; }
+                else if (p === 'denied') { msg = 'Trình duyệt đang chặn thông báo. Bấm ổ khóa cạnh địa chỉ web → Thông báo → Cho phép.'; cls = 'text-danger'; }
+                else { msg = 'Chưa cấp quyền - bấm Bật / Tắt rồi chọn "Cho phép".'; cls = 'text-warning'; }
+                el.textContent = msg; el.className = 'text-sm font-bold ' + cls;
             }
         };
 
         document.addEventListener('DOMContentLoaded', function () {
             window.TetColor.init();
             window.HomeVideo.init();
+            window.Notif.updateUI();
         });
     })();
     </script>
