@@ -312,44 +312,6 @@ html.qd-lite .qd-fx { display: none !important; }
         el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
     };
 
-    /* ---------- Vòng quay: quay NGAY khi bấm, giảm tốc êm vào ô trúng khi máy chủ trả kết quả ----------
-       var s = QDSmooth.spinner(canvas, gocHienTai, { slice: 360 / soO, onTick: fn });
-       s.land(gocDich).then(gocCuoi => ...)   // gocDich: góc cuối mong muốn (mod 360)
-       s.stop().then(gocCuoi => ...)          // lỗi: dừng nhẹ nhàng
-       Tốc độ tính theo thời gian thực -> mượt như nhau ở 60/90/120Hz, tiếng "tách" khớp đúng với ô đi qua. */
-    Q.spinner = function (el, from, opt) {
-        opt = opt || {};
-        var V = opt.vmax || 1.2, ACC = 450, MIN = opt.min || 800, DEC = opt.decel || 2600, slice = opt.slice || 0, onTick = opt.onTick;
-        var t0 = 0, angle = from = +from || 0, target = null, failed = false, phase = 0, tc = 0, ac = 0, D = 0, T = 1, last = null, done;
-        var p = new Promise(function (r) { done = r; });
-        el.style.transition = 'none'; el.style.willChange = 'transform';
-        function put(a) {
-            el.style.transform = 'rotate(' + a + 'deg)';
-            if (slice && onTick) { var i = Math.floor((a - from) / slice); if (i !== last) { if (last !== null) { try { onTick(); } catch (e) {} } last = i; } }
-        }
-        function frame(now) {
-            if (!t0) t0 = now;
-            var t = now - t0;
-            if (phase === 0) {
-                angle = t < ACC ? from + V * t * t / (2 * ACC) : from + V * ACC / 2 + V * (t - ACC);
-                if ((target !== null || failed) && t >= (failed ? 0 : MIN)) {
-                    phase = 1; tc = now; ac = angle;
-                    var v = t < ACC ? V * t / ACC : V;
-                    if (failed) { T = 700; D = v * T / 3; }
-                    else { D = ((target - ac) % 360 + 360) % 360; while (D < V * DEC / 3) D += 360; T = 3 * D / Math.max(v, 0.2); }
-                }
-            }
-            if (phase === 1) {
-                var u = Math.min(1, (now - tc) / T);
-                angle = ac + D * (1 - Math.pow(1 - u, 3));     // giảm tốc kiểu bánh xe thật (ease-out)
-                if (u >= 1) { put(angle); el.style.willChange = ''; return done(angle); }
-            }
-            put(angle); requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
-        return { land: function (deg) { target = +deg || 0; return p; }, stop: function () { failed = true; return p; }, done: p };
-    };
-
     /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
     var MOVE = /^(transform|translate|rotate|scale|left|top|right|bottom|offset|inset|margin)/;
     var io = W.IntersectionObserver ? new IntersectionObserver(function (es) {
@@ -802,30 +764,24 @@ html.qd-lite .qd-fx { display: none !important; }
                 if (State.availableTickets <= 0 || !State.currentDocId) { Utils.toast("Bạn đã hết lượt rút lì xì!", "warning"); return; }
 
                 State.hasPlayed = true;
-                const pendingEl = document.getElementById(`ticket-${index}`); if (pendingEl) pendingEl.classList.add('pending');   // phản hồi ngay khi chạm
-                TetSound.unlock();// mở khóa âm thanh ngay lúc bấm (trình duyệt yêu cầu thao tác người dùng)
+                TetSound.unlock();   // mở khóa âm thanh ngay lúc bấm (trình duyệt yêu cầu thao tác người dùng)
                 const accRef = db.collection("accounts").doc(State.currentDocId);
                 const cfgRef = db.collection("settings").doc("tranhthuong_config");
                 const stockRef = db.collection("tranhthuong_stock").doc("counts");
 
                 // Giao dịch: kiểm tra đóng/mở + còn lượt + còn số lượng giải, rồi trừ 1 lượt và cộng "đã trúng" cho giải đó
                 db.runTransaction(async (tx) => {
-                    const [acc, c] = await Promise.all([tx.get(accRef), tx.get(cfgRef)]);
+                    const acc = await tx.get(accRef), c = await tx.get(cfgRef), st = await tx.get(stockRef);
                     const cfg = c.exists ? c.data() : {};
                     if (this.closedBy(cfg)) throw { code: 'CLOSED' };
                     const left = (acc.exists && acc.data().tickets) || 0;
                     if (left <= 0) throw { code: 'NOTICKET' };
-                    const prizes = this.normPrizes(cfg.prizes);
-                    let prize = this.pickFrom(prizes, State.counts || {});   // chọn theo số liệu trực tiếp đang có
-                    if (prize && prize.qty != null) {                        // giải giới hạn: kiểm tra lại kho trong giao dịch
-                        const st = await tx.get(stockRef), counts = (st.exists && st.data().counts) || {};
-                        if ((counts[prize.id] || 0) >= prize.qty) prize = this.pickFrom(prizes, counts);
-                    }
+                    const counts = (st.exists && st.data().counts) || {};
+                    const prize = this.pickFrom(this.normPrizes(cfg.prizes), counts);
                     tx.update(accRef, { tickets: firebase.firestore.FieldValue.increment(-1) });
                     if (prize && prize.qty != null) tx.set(stockRef, { counts: { [prize.id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
                     return { remain: left - 1, text: prize ? prize.text : "Lời Chúc Tết", prizeId: prize ? prize.id : null };
                 }).then(({ remain, text, prizeId }) => {
-                    if (pendingEl) pendingEl.classList.remove('pending');
                     const isWish = this.isWishPrize(text);
                     const winningPrize = isWish ? "Lời Chúc Tết" : text;
                     const wish = isWish ? this.randomWish() : null;
@@ -838,7 +794,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     env.classList.add('opened');
 
                     const r = env.getBoundingClientRect();
-                    setTimeout(() => Utils.burst(r.left + r.width / 2, r.top), 550);
+                    setTimeout(() => Utils.burst(r.left + r.width / 2, r.top), 650);
 
                     setTimeout(() => {
                         const w = State.wishes, a = Math.floor(Math.random() * w.length);
@@ -861,9 +817,8 @@ html.qd-lite .qd-fx { display: none !important; }
                             remain: remain,
                             timestamp: Date.now()
                         }).catch(e => console.error("Lỗi lưu lịch sử:", e));
-                    }, 1150);   // vừa đủ cho hoạt ảnh mở bao (trước: 1,5 giây)
+                    }, 1500);
                 }).catch(err => {
-                    if (pendingEl) pendingEl.classList.remove('pending');
                     State.hasPlayed = false;
                     if (err && err.code === 'CLOSED') Utils.toast("Cửa rút lì xì vừa đóng, lượt của bạn không bị trừ.", "warning");
                     else if (err && err.code === 'NOTICKET') Utils.toast("Bạn đã hết lượt rút lì xì!", "warning");
@@ -932,10 +887,6 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .lixi-grid.locked .lixi-seal::after { animation: none; }
 @keyframes qdSeal { 0%, 100% { transform: scale(1); opacity: 0; } 25%, 75% { transform: scale(1.2); opacity: .6; } 50% { transform: scale(1.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .spin-counter.glow::after, .lixi-seal::after { animation: none !important; opacity: 0; } }
-
-.lixi.pending { animation: qdWiggle .45s ease-in-out infinite; }
-.lixi.pending .lixi-flap { transform: rotateX(18deg); }
-@keyframes qdWiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-3deg) translateY(-3px); } 75% { transform: rotate(3deg) translateY(-3px); } }
     </style>
 </body>
 </html>

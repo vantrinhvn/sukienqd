@@ -9076,44 +9076,6 @@ html.qd-lite .qd-fx { display: none !important; }
         el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
     };
 
-    /* ---------- Vòng quay: quay NGAY khi bấm, giảm tốc êm vào ô trúng khi máy chủ trả kết quả ----------
-       var s = QDSmooth.spinner(canvas, gocHienTai, { slice: 360 / soO, onTick: fn });
-       s.land(gocDich).then(gocCuoi => ...)   // gocDich: góc cuối mong muốn (mod 360)
-       s.stop().then(gocCuoi => ...)          // lỗi: dừng nhẹ nhàng
-       Tốc độ tính theo thời gian thực -> mượt như nhau ở 60/90/120Hz, tiếng "tách" khớp đúng với ô đi qua. */
-    Q.spinner = function (el, from, opt) {
-        opt = opt || {};
-        var V = opt.vmax || 1.2, ACC = 450, MIN = opt.min || 800, DEC = opt.decel || 2600, slice = opt.slice || 0, onTick = opt.onTick;
-        var t0 = 0, angle = from = +from || 0, target = null, failed = false, phase = 0, tc = 0, ac = 0, D = 0, T = 1, last = null, done;
-        var p = new Promise(function (r) { done = r; });
-        el.style.transition = 'none'; el.style.willChange = 'transform';
-        function put(a) {
-            el.style.transform = 'rotate(' + a + 'deg)';
-            if (slice && onTick) { var i = Math.floor((a - from) / slice); if (i !== last) { if (last !== null) { try { onTick(); } catch (e) {} } last = i; } }
-        }
-        function frame(now) {
-            if (!t0) t0 = now;
-            var t = now - t0;
-            if (phase === 0) {
-                angle = t < ACC ? from + V * t * t / (2 * ACC) : from + V * ACC / 2 + V * (t - ACC);
-                if ((target !== null || failed) && t >= (failed ? 0 : MIN)) {
-                    phase = 1; tc = now; ac = angle;
-                    var v = t < ACC ? V * t / ACC : V;
-                    if (failed) { T = 700; D = v * T / 3; }
-                    else { D = ((target - ac) % 360 + 360) % 360; while (D < V * DEC / 3) D += 360; T = 3 * D / Math.max(v, 0.2); }
-                }
-            }
-            if (phase === 1) {
-                var u = Math.min(1, (now - tc) / T);
-                angle = ac + D * (1 - Math.pow(1 - u, 3));     // giảm tốc kiểu bánh xe thật (ease-out)
-                if (u >= 1) { put(angle); el.style.willChange = ''; return done(angle); }
-            }
-            put(angle); requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
-        return { land: function (deg) { target = +deg || 0; return p; }, stop: function () { failed = true; return p; }, done: p };
-    };
-
     /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
     var MOVE = /^(transform|translate|rotate|scale|left|top|right|bottom|offset|inset|margin)/;
     var io = W.IntersectionObserver ? new IntersectionObserver(function (es) {
@@ -11207,7 +11169,6 @@ html.qd-lite .qd-fx { display: none !important; }
                 this.isSpinning = true;
                 const spinBtn = document.getElementById("spinBtn");
                 spinBtn.disabled = true; spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG QUAY...`;
-                const spin = QDSmooth.spinner(this.canvas, this.currentRotation, { slice: 360 / Math.max(1, State.wheelPrizes.length), decel: 2300, min: 700, onTick: () => window.Sound.playTick() });
 
                 db.collection("accounts").doc(State.currentDocId).update({ spins: firebase.firestore.FieldValue.increment(-1) }).then(() => {
                     let totalChance = 0; State.wheelPrizes.forEach(p => totalChance += (parseFloat(p.chance) || 0));
@@ -11227,15 +11188,30 @@ html.qd-lite .qd-fx { display: none !important; }
 
                     const spinsCount = Math.floor(Math.random() * 5) + 5;
                     const randomOffset = (Math.random() * (sliceDeg - 8)) - (sliceDeg / 2 - 4);
-                    return spin.land(finalDeg + randomOffset).then((deg) => {
-                        this.currentRotation = deg;
+                    let rotateAmount = finalDeg - (this.currentRotation % 360);
+                    if (rotateAmount < 0) rotateAmount += 360; 
+                    rotateAmount += (360 * spinsCount) + randomOffset;
+                    this.currentRotation += rotateAmount;
+
+                    this.canvas.style.transform = `rotate(${this.currentRotation}deg)`;
+
+                    let start = null;
+                    const animateTick = (time) => {
+                        if (!start) start = time; const progress = time - start;
+                        const currentGoc = (progress / 5000) * rotateAmount; 
+                        const curIdx = Math.floor(currentGoc / sliceDeg);
+                        if(curIdx !== this.lastTickIndex) { window.Sound.playTick(); this.lastTickIndex = curIdx; }
+                        if(progress < 5000) requestAnimationFrame(animateTick);
+                    };
+                    requestAnimationFrame(animateTick);
+
+                    setTimeout(() => {
                         this.isSpinning = false; spinBtn.disabled = false; spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
                         this.processResult(winningIndex);
-                    });
+                    }, 5000);
                 }).catch(err => {
-                    spin.stop().then(deg => { this.currentRotation = deg; });
                     Utils.toast("Lỗi kết nối máy chủ.", "error");
-                    this.isSpinning = false; spinBtn.disabled = false;spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
+                    this.isSpinning = false; spinBtn.disabled = false; spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
                 });
             },
             processResult: function(winIndex) {
@@ -11480,20 +11456,16 @@ html.qd-lite .qd-fx { display: none !important; }
                 let got = null;
                 try {
                     await db.runTransaction(async (t) => {
-                        // chỉ đọc kho / hạn mức ngày khi vật phẩm có giới hạn (đoán trước từ dữ liệu trực tiếp, đọc bù nếu cấu hình vừa đổi)
-                        const pre = (this.items || []).find(i => i.id === id) || {};
-                        const [acc, c, st0, dd0] = await Promise.all([t.get(accRef), t.get(cfgRef), pre.stock != null ? t.get(stRef) : null, pre.dailyLimit != null ? t.get(dRef) : null]);
+                        const acc = await t.get(accRef), c = await t.get(cfgRef), st = await t.get(stRef), dd = await t.get(dRef);
                         const cfg = c.exists ? c.data() : {};
                         if (cfg.isEnabled === false) throw 'CLOSED';
                         const x = this.norm(cfg).find(i => i.id === id);
                         if (!x || !x.active) throw 'GONE';
                         const cost = x.cost * qty, pts = (acc.exists && acc.data().points) || 0;
                         if (pts < cost) throw 'POINTS';
-                        const st = x.stock != null ? (st0 || await t.get(stRef)) : null;
-                        const dd = x.dailyLimit != null ? (dd0 || await t.get(dRef)) : null;
-                        const sold = ((st && st.exists && st.data().counts) || {})[id] || 0;
+                        const sold = ((st.exists && st.data().counts) || {})[id] || 0;
                         if (x.stock != null && sold + qty > x.stock) throw 'STOCK';
-                        const used = ((dd && dd.exists && dd.data().counts) || {})[id] || 0;
+                        const used = ((dd.exists && dd.data().counts) || {})[id] || 0;
                         if (x.dailyLimit != null && used + qty > x.dailyLimit) throw 'DAILY';
                         const upd = { points: FV.increment(-cost) };
                         if (x.type !== 'gift') upd[x.type] = FV.increment(x.amount * qty);
@@ -16261,8 +16233,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 var dayRef = db.collection('lixi_daily').doc(key);
                 var big = false;
                 var tx = db.runTransaction(async function (t) {
-                    var needDay = !!(self.cfg && self.cfg.dailyBudget > 0);
-                    var [accD, cfgD, dayD] = await Promise.all([t.get(ref), t.get(cfgRef), needDay ? t.get(dayRef) : null]);
+                    var accD = await t.get(ref), cfgD = await t.get(cfgRef), dayD = await t.get(dayRef);
                     var data = (accD && accD.data && accD.data()) || {};
                     var cfg = normCfg(cfgD && cfgD.exists ? cfgD.data() : null);
                     var same = data.lixiDate === today;
@@ -16270,7 +16241,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     var sum = same ? (data.lixiTotal != null ? data.lixiTotal : (data.lixiAmount || 0)) : 0;
                     if (used >= drawLimit(cfg)) throw { code: 'LIXI_CLAIMED', count: used, total: sum, last: data.lixiAmount || 0, cfg: cfg };
                     if (!cfgOpen(cfg)) throw { code: 'LIXI_CLOSED', cfg: cfg };  // gồm cả 'chưa tới giờ mở'
-                    if (cfg.dailyBudget > 0 && !dayD) dayD = await t.get(dayRef);
                     var spent = (dayD && dayD.exists && dayD.data().points) || 0;
                     var list = cfg.prizes.filter(function (p) { return p.chance > 0; });
                     if (cfg.dailyBudget > 0) {
@@ -16287,7 +16257,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 var prize = 0;
-                Promise.all([tx, sleep(450)]).then(function (res) {
+                Promise.all([tx, sleep(650)]).then(function (res) {
                     prize = res[0].prize;
                     self.justClaimed = { date: today, count: res[0].count, total: res[0].total, last: prize };
                     env.classList.remove('shaking');

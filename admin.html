@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#121217">
     <meta name="description" content="QD Elite Admin Panel - Central Management System Version 2.0">
     <meta name="author" content="QD Elite System">
     <meta name="robots" content="noindex, nofollow">
@@ -296,6 +296,339 @@
         .lx-prize-table input { min-width: 90px; }
     </style>
 
+    <!-- QD ADMIN LAYOUT 2.1: thanh bên (máy tính) + thanh dưới & menu (điện thoại) -->
+    <style id="qd-admin-layout">
+        /* ---------- biến bổ sung (trước đây chưa khai báo -> nền trong suốt) ---------- */
+        :root { --sidebar-w: 264px; --header-h: 64px; --content-max: 1320px; }
+        [data-theme="dark"] { --bg-base: #0d0d11; --border-subtle: #24242c; --sb-bg: #0e0e13; --th-bg: #17171d; }
+        [data-theme="light"] { --bg-base: #f1f5f9; --border-subtle: #e9eef5; --sb-bg: #ffffff; --th-bg: #f1f5f9; }
+        html { -webkit-text-size-adjust: 100%; }
+        body { -webkit-tap-highlight-color: transparent; }
+        :focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+
+        /* ---------- lớp tiện ích đang dùng trong HTML nhưng chưa có CSS ---------- */
+        .flex-wrap { flex-wrap: wrap; } .items-start { align-items: flex-start; } .flex-center { display: flex; align-items: center; justify-content: center; }
+        .block { display: block; } .uppercase { text-transform: uppercase; } .italic { font-style: italic; } .cursor-pointer { cursor: pointer; }
+        .text-left { text-align: left; } .text-md { font-size: 1rem; } .text-xl { font-size: 1.25rem; } .text-2xl { font-size: 1.5rem; } .text-3xl { font-size: 1.875rem; }
+        .font-normal { font-weight: 400; } .font-semibold { font-weight: 600; } .tracking-wide { letter-spacing: .05em; } .opacity-50 { opacity: .5; }
+        .overflow-hidden { overflow: hidden; } .max-w-md { max-width: 28rem; } .min-w-\[300px\] { min-width: min(300px, 100%); }
+        .w-full { width: 100%; height: auto; }
+        .mb-0 { margin-bottom: 0 !important; } .mb-1 { margin-bottom: .25rem; } .mb-3 { margin-bottom: .75rem; } .mt-1 { margin-top: .25rem; } .mt-6 { margin-top: 1.5rem; }
+        .mr-1 { margin-right: .25rem; } .mr-2 { margin-right: .5rem; } .mr-4 { margin-right: 1rem; } .ml-2 { margin-left: .5rem; } .mx-2 { margin-left: .5rem; margin-right: .5rem; } .mx-auto { margin-left: auto; margin-right: auto; }
+        .btn > i.mr-1, .btn > i.mr-2, .btn > i.ml-2 { margin: 0; }
+        .gap-1 { gap: .25rem; } .gap-3 { gap: .75rem; }
+        .p-5 { padding: 1.25rem; } .p-10 { padding: 2.5rem; } .pb-3 { padding-bottom: .75rem; } .pb-4 { padding-bottom: 1rem; }
+        .px-2 { padding-left: .5rem; padding-right: .5rem; } .px-4 { padding-left: 1rem; padding-right: 1rem; } .py-2 { padding-top: .5rem; padding-bottom: .5rem; } .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; } .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+        .rounded { border-radius: var(--radius-sm); } .rounded-md { border-radius: var(--radius-md); } .rounded-lg { border-radius: var(--radius-lg); } .rounded-xl { border-radius: var(--radius-xl); } .rounded-full { border-radius: var(--radius-full); }
+        .bg-elevated { background: var(--bg-elevated); } .bg-base { background: var(--bg-base); } .border-strong { border-color: var(--border-strong); }
+        .hover\:bg-hover:hover { background: var(--bg-hover); }
+        .badge-success { background-color: var(--color-success-bg); color: var(--color-success); border: 1px solid rgba(16, 185, 129, .3); }
+        .btn-icon-danger { color: var(--color-danger); background: var(--color-danger-bg); border-color: transparent; }
+        .btn-icon-danger:hover { background: var(--color-danger); border-color: var(--color-danger); color: #fff; }
+        .btn-icon:hover { transform: none; }
+
+        /* ---------- thẻ: chỉ thẻ bấm được mới nổi lên khi rê chuột ---------- */
+        .card { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+        .card:hover { transform: none; box-shadow: var(--shadow-sm); }
+        .card[onclick] { cursor: pointer; }
+        .card[onclick]:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: color-mix(in srgb, var(--tone, var(--brand-primary)) 55%, var(--border-strong)); }
+        .card-header { border-bottom-color: var(--border-strong); }
+
+        /* ---------- KHUNG ỨNG DỤNG ---------- */
+        #app-shell { min-height: 100vh; min-height: 100dvh; }
+        .app-header { height: calc(var(--header-h) + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 32px 0; gap: 16px; box-shadow: none;
+            background-color: var(--bg-surface); background-color: color-mix(in srgb, var(--bg-surface) 88%, transparent); }
+        html.qd-lite .app-header { background-color: var(--bg-surface); }
+        .app-container { max-width: var(--content-max); padding: 28px 32px 56px; gap: 0; grid-template-columns: minmax(0, 1fr); }
+        .workspace { min-height: 0; min-width: 0; }
+
+        .hdr-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .hdr-brand { display: none; width: 38px; height: 38px; flex: 0 0 auto; border-radius: 12px; place-items: center; font-size: 17px; color: #fff; background: var(--brand-primary); box-shadow: 0 4px 12px var(--brand-glow); }
+        .hdr-titles { min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+        .hdr-crumb { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+        .hdr-title { font-size: 18px; font-weight: 800; letter-spacing: -.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hdr-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+        .hdr-user { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px 0 4px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); }
+        .hdr-user:hover { border-color: var(--brand-primary); }
+        .hdr-user-name { font-size: 14px; font-weight: 700; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .avatar { width: 32px; height: 32px; flex: 0 0 auto; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase;
+            background: linear-gradient(135deg, var(--brand-primary), #8b5cf6); }
+
+        /* thanh bên */
+        .sidebar { display: none; }
+        .sb-brand { display: flex; align-items: center; gap: 12px; height: var(--header-h); padding: 0 20px; flex: 0 0 auto; cursor: pointer; border-bottom: 1px solid var(--border-strong); }
+        .sb-logo { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; color: #fff; background: var(--brand-primary); box-shadow: 0 6px 16px var(--brand-glow); }
+        .sb-brand-txt { display: flex; flex-direction: column; line-height: 1.2; }
+        .sb-brand-txt b { font-size: 16px; font-weight: 800; letter-spacing: -.2px; color: var(--text-main); }
+        .sb-brand-txt small { font-size: 12px; color: var(--text-muted); }
+        .sb-nav { flex: 1 1 auto; overflow-y: auto; padding: 14px 12px 18px; overscroll-behavior: contain; }
+        .nav-group { margin-top: 16px; }
+        .nav-label { padding: 0 12px 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+        .nav-item { position: relative; width: 100%; display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; text-align: left;
+            color: var(--text-muted); transition: background var(--transition-fast), color var(--transition-fast); }
+        .nav-item i { width: 20px; flex: 0 0 auto; text-align: center; font-size: 15px; color: var(--tone, currentColor); }
+        .nav-item span:not(.nav-badge) { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nav-item:hover { background: var(--bg-elevated); color: var(--text-main); }
+        .nav-item.active { background: var(--brand-primary-soft); color: var(--text-main); }
+        .nav-item.active::before { content: ''; position: absolute; left: -12px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--brand-primary); }
+        .nav-badge { flex: 0 0 auto; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--color-danger); color: #fff; font-size: 11px; font-weight: 800; line-height: 22px; text-align: center; }
+        .sb-foot { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 12px; border-top: 1px solid var(--border-strong); }
+        .sb-user { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 12px; text-align: left; }
+        .sb-user:hover { background: var(--bg-elevated); }
+        .sb-user .avatar { width: 36px; height: 36px; font-size: 14px; }
+        .sb-user-txt { min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+        .sb-user-txt b { font-size: 14px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sb-user-txt small { font-size: 12px; color: var(--text-muted); }
+
+        @media (min-width: 1024px) {
+            #app-shell { padding-left: var(--sidebar-w); }
+            .sidebar { display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; width: var(--sidebar-w); z-index: var(--z-index-fixed); background: var(--sb-bg); border-right: 1px solid var(--border-strong); }
+            .mobile-nav { display: none !important; }
+            #modal-mobile-menu { display: none !important; }
+        }
+        /* máy tính nhỏ / máy tính bảng ngang: thu thanh bên thành cột biểu tượng để bảng có chỗ */
+        @media (min-width: 1024px) and (max-width: 1365px) {
+            :root { --sidebar-w: 78px; }
+            .sb-brand { justify-content: center; padding: 0; }
+            .sb-brand-txt, .nav-label, .sb-user-txt, .nav-item span:not(.nav-badge) { display: none; }
+            .sb-nav { padding: 10px 10px 16px; }
+            .nav-group { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-strong); }
+            .nav-item { justify-content: center; padding: 11px 0; }
+            .nav-item i { font-size: 17px; }
+            .nav-item.active::before { left: -10px; }
+            .nav-badge { position: absolute; top: 3px; right: 6px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 10px; line-height: 18px; }
+            .sb-foot { flex-direction: column; padding: 10px 0; }
+            .sb-user { flex: 0 0 auto; padding: 4px; }
+            .app-container { padding: 24px 24px 48px; }
+            .app-header { padding-left: 24px; padding-right: 24px; }
+        }
+
+        /* ---------- TIÊU ĐỀ MỖI TRANG ---------- */
+        .page-head { margin-bottom: 24px !important; align-items: flex-end !important; gap: 16px !important; }
+        .page-head h1 { font-size: 26px !important; letter-spacing: -.5px; margin-bottom: 4px !important; }
+        .page-head p { font-size: 14.5px; max-width: 70ch; }
+        .page-head .btn { box-shadow: none; }
+
+        /* ---------- BẢNG ĐIỀU KHIỂN ---------- */
+        .dash-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 18px 24px; padding: 26px 28px; margin-bottom: 20px;
+            border-radius: var(--radius-2xl); color: #fff; background: radial-gradient(120% 160% at 100% 0%, rgba(167, 139, 250, .55), transparent 55%), linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6d28d9 100%);
+            box-shadow: 0 18px 40px -20px rgba(79, 70, 229, .75); }
+        .dash-hello h1 { color: #fff; font-size: 28px; letter-spacing: -.5px; margin: 2px 0 4px; }
+        .dash-hello p { color: rgba(255, 255, 255, .78); font-size: 14.5px; }
+        .dash-hello .dash-date { font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, .72); }
+        .dash-clock { display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 14px; font-family: var(--font-family-mono); font-size: 26px; font-weight: 800; letter-spacing: 1px;
+            font-variant-numeric: tabular-nums; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .22); }
+        .dash-clock i { font-size: 20px; opacity: .85; }
+        .dash-quick { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; }
+        .q-act { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: #fff;
+            background: rgba(255, 255, 255, .15); border: 1px solid rgba(255, 255, 255, .24); transition: background var(--transition-fast); }
+        .q-act:hover { background: rgba(255, 255, 255, .26); }
+        .q-act-plain { background: transparent; }
+        .q-badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 800; color: #4338ca; background: #fff; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 8px; }
+        .stat-card { margin: 0 !important; padding: 18px 20px !important; }
+        .stat-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .stat-lbl { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+        .stat-ico { width: 36px; height: 36px; flex: 0 0 auto; border-radius: 10px; display: grid; place-items: center; font-size: 15px; color: var(--tone);
+            background: var(--bg-elevated); background: color-mix(in srgb, var(--tone) 16%, transparent); }
+        .stat-num { margin: 10px 0 0 !important; font-size: 34px !important; line-height: 1.1; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+        .stat-card + .stat-card .stat-num { color: var(--tone); }
+
+        .mod-group { margin-top: 28px; }
+        .mod-group-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15px; font-weight: 800; color: var(--text-main); }
+        .mod-group-title i { color: var(--brand-primary); font-size: 14px; }
+        .mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 14px; }
+        .mod-card { margin: 0 !important; padding: 16px !important; display: flex; align-items: flex-start; gap: 14px; }
+        .mod-ico { width: 42px; height: 42px; flex: 0 0 auto; border-radius: 12px; display: grid; place-items: center; font-size: 18px; color: var(--tone);
+            background: var(--bg-elevated); background: color-mix(in srgb, var(--tone) 15%, transparent); }
+        .mod-card h4 { margin: 1px 0 4px; font-size: 15px; font-weight: 800; color: var(--text-main); }
+        .mod-card p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+
+        /* ---------- BẢNG DỮ LIỆU (máy tính) ---------- */
+        th { background-color: var(--th-bg); }
+        .table-responsive { -webkit-overflow-scrolling: touch; }
+        .table-responsive thead th { position: sticky; top: 0; z-index: 2; background-color: var(--th-bg); }
+        td { padding: 14px 20px; }
+        tbody tr:last-child td { border-bottom: 0; }
+        @media (min-width: 769px) {
+            /* ô thao tác có class flex làm vỡ bảng (nút bị xếp 3 hàng) -> trả về ô bảng, nút nằm 1 hàng */
+            tbody td.flex { display: table-cell; white-space: nowrap; vertical-align: middle; }
+            tbody td.flex > .btn-icon + .btn-icon { margin-left: 4px; }
+            th, td { padding-left: 14px; padding-right: 14px; }
+            tbody td .btn-icon { width: 36px; height: 36px; font-size: 14px; }
+        }
+        @media (min-width: 769px) and (max-width: 1499px) {
+            tbody td.flex { white-space: normal; min-width: 128px; }
+            tbody td.flex > .btn-icon { margin: 2px !important; }
+        }
+
+        /* ---------- HỘP THOẠI ---------- */
+        .modal-content { max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain; padding: 32px; }
+        .modal-close-btn { z-index: 3; }
+        .modal-close-btn + .flex, .modal-close-btn + h2 { padding-right: 44px; }
+        .modal-content.text-center .modal-close-btn + * { padding-right: 0; }
+
+        /* menu chức năng dạng tấm trượt */
+        .sheet-overlay { align-items: flex-end; padding: 0; }
+        .sheet { max-width: 640px !important; border-radius: 24px 24px 0 0 !important; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)) !important; max-height: 88dvh; border-bottom: 0; }
+        .sheet::before { content: ''; display: block; width: 40px; height: 4px; margin: 0 auto 14px; border-radius: 4px; background: var(--border-strong); }
+        #modal-mobile-menu.active .sheet { animation: slideUpMobile .3s cubic-bezier(.16, 1, .3, 1) both; }
+        .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+        .sheet-head h2 { font-size: 18px; font-weight: 800; }
+        .menu-group { margin-top: 14px; }
+        .menu-label { margin-bottom: 10px; font-size: 12.5px; font-weight: 700; color: var(--text-muted); }
+        .m-menu-grid { display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 14px 8px !important; }
+        .m-menu-item { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 4px 2px; border-radius: 14px; cursor: pointer; text-align: center; -webkit-user-select: none; user-select: none; }
+        .m-menu-icon { position: relative; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 21px; color: var(--tone);
+            background: var(--bg-elevated); background: color-mix(in srgb, var(--tone) 15%, transparent); transition: transform .15s; }
+        .m-menu-item:active .m-menu-icon { transform: scale(.92); }
+        .m-menu-item span { font-size: 12px; font-weight: 700; line-height: 1.3; color: var(--text-main); }
+        .m-menu-item.active .m-menu-icon { box-shadow: 0 0 0 2px var(--tone); }
+        .m-menu-badge { position: absolute; top: -5px; right: -7px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center;
+            font-size: 11px !important; font-weight: 800; color: #fff !important; background: var(--color-danger); border: 2px solid var(--bg-surface); }
+        .sheet-foot { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border-strong); }
+        .sheet-foot .btn { padding: 11px 8px; font-size: 13px; white-space: normal; text-align: center; line-height: 1.25; }
+
+        /* ---------- THÔNG BÁO NHỎ ---------- */
+        .toast { min-width: 300px; }
+        #toast-container { top: calc(var(--header-h) + 14px + env(safe-area-inset-top)); right: 20px; }
+
+        /* ---------- ĐĂNG NHẬP ---------- */
+        #auth-gate { background: radial-gradient(70% 55% at 0% 0%, rgba(79, 70, 229, .32), transparent 60%), radial-gradient(60% 50% at 100% 100%, rgba(139, 92, 246, .22), transparent 60%), var(--bg-body); overflow-y: auto; }
+        .auth-box { max-width: 420px; padding: 38px 34px 30px; text-align: left; background: var(--bg-surface); -webkit-backdrop-filter: none; backdrop-filter: none; margin: auto; }
+        .auth-logo { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; margin-bottom: 18px; font-size: 24px; color: #fff; background: var(--brand-primary); box-shadow: 0 10px 24px var(--brand-glow); }
+        .auth-title { font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
+        .auth-sub { margin: 6px 0 26px; font-size: 14px; color: var(--text-muted); line-height: 1.55; }
+        .input-ico { position: relative; }
+        .input-ico > i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; pointer-events: none; }
+        .input-ico .form-control { padding-left: 44px; }
+        .input-ico:has(.pass-eye) .form-control { padding-right: 48px; }
+        .pass-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 8px; color: var(--text-muted); }
+        .pass-eye:hover { color: var(--text-main); }
+        .auth-btn { padding: 16px; font-size: 15px; }
+        .auth-back { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 18px; font-size: 13.5px; font-weight: 600; color: var(--text-muted); }
+        .auth-back:hover { color: var(--brand-primary); }
+
+        /* ================= MÁY TÍNH BẢNG & ĐIỆN THOẠI (< 1024px) ================= */
+        @media (max-width: 1023px) {
+            .app-header { padding: env(safe-area-inset-top) 16px 0; }
+            .hdr-brand { display: grid; }
+            .hdr-user { padding: 0; border: 0; background: none; height: auto; }
+            .hdr-user .avatar { width: 36px; height: 36px; font-size: 14px; }
+            .hdr-user-name { display: none; }
+            .app-container { padding: 20px 20px calc(96px + env(safe-area-inset-bottom)) !important; }
+            .mobile-nav { display: flex; gap: 4px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 24px rgba(0, 0, 0, .18);
+                background-color: var(--bg-surface); background-color: color-mix(in srgb, var(--bg-surface) 94%, transparent); }
+            html.qd-lite .mobile-nav { background-color: var(--bg-surface); }
+            .m-nav-item { min-width: 0; gap: 3px; padding: 7px 2px; font-size: 11px; border-radius: 12px; }
+            .m-nav-item i { font-size: 20px; }
+            .m-nav-item > span { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .m-badge { position: absolute; top: -7px; right: -11px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; align-items: center; justify-content: center;
+                font-size: 10px; font-weight: 800; color: #fff; background: var(--color-danger); border: 2px solid var(--bg-surface); }
+            .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        /* ================= ĐIỆN THOẠI (≤ 768px) ================= */
+        @media (max-width: 768px) {
+            .app-container { padding: 16px 14px calc(92px + env(safe-area-inset-bottom)) !important; }
+            .hdr-title { font-size: 16px; }
+            .hdr-actions { gap: 6px; }
+            .hdr-actions .btn-icon { width: 36px; height: 36px; }
+
+            .page-head { margin-bottom: 18px !important; }
+            .page-head > div:first-child { flex: 1 1 100%; }
+            .page-head h1 { font-size: 22px !important; }
+            .page-head p { font-size: 13.5px; }
+            .page-head > .btn { width: 100%; padding: 12px 16px !important; }
+            .page-head > .flex { width: 100%; display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px !important; }
+            .page-head > .flex .btn { width: 100%; padding: 12px 10px !important; white-space: normal; line-height: 1.25; }
+
+            /* bảng điều khiển */
+            .dash-hero { grid-template-columns: 1fr; padding: 20px 18px; gap: 14px; border-radius: 18px; }
+            .dash-hello h1 { font-size: 23px !important; }
+            .dash-clock { justify-self: start; font-size: 20px; padding: 8px 14px; }
+            .dash-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .q-act { justify-content: center; padding: 10px 8px; font-size: 12.5px; border-radius: 12px; text-align: center; }
+            .stat-grid { gap: 10px; }
+            .stat-card { padding: 14px !important; border-radius: 14px !important; }
+            .stat-lbl { font-size: 12px; }
+            .stat-ico { width: 30px; height: 30px; font-size: 13px; border-radius: 9px; }
+            .stat-num { font-size: 28px !important; }
+            .mod-group { margin-top: 22px; }
+            .mod-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .mod-card { flex-direction: column; gap: 10px; padding: 14px !important; border-radius: 14px !important; }
+            .mod-ico { width: 38px; height: 38px; font-size: 16px; border-radius: 11px; }
+            .mod-card h4 { font-size: 14px; }
+            .mod-card p { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+            /* thẻ cấu hình: mô tả ở trên, ô điều khiển chiếm hết chiều ngang */
+            .view-section > .card:not(.p-0) { padding: 18px 16px !important; }
+            .view-section .card .flex.justify-between.flex-wrap { gap: 16px !important; }
+            .view-section .card .max-w-md { max-width: none; flex: 1 1 100%; }
+            .view-section .card .bg-base { width: 100%; flex: 1 1 100% !important; min-width: 0 !important; padding: 14px !important; gap: 12px !important; }
+            .bg-base div:has(> input[type="date"]), .bg-base div:has(> input[type="time"]), .bg-base > div:has(> .time-picker-row) { flex: 1 1 130px; }
+            .bg-base input[type="date"], .bg-base input[type="time"] { width: 100% !important; }
+            .bg-base > .mt-6, .bg-base > .mt-4 { flex: 1 1 100%; margin-top: 2px; }
+            .bg-base > .mt-6 .btn, .bg-base > .mt-4 .btn { width: 100%; }
+            .bg-base > .text-muted.mt-6, .bg-base > .text-muted.mt-4 { display: none; }
+            .bg-base .flex.justify-between.items-center { gap: 10px; }
+            .bg-base .text-right .btn, .bg-base > .text-right .btn { width: 100%; }
+            .time-picker-row { justify-content: center; }
+            .lx-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+            .lx-tile { padding: 12px; }
+            .lx-tile b { font-size: 19px; }
+            .card .flex.justify-end.gap-2.flex-wrap > .btn { flex: 1 1 calc(50% - 8px); }
+            .card .flex.justify-end.gap-2.flex-wrap > .btn:last-child { flex-basis: 100%; }
+            .card-header .card-title { font-size: 16px; }
+            .wq-set, .wq-bank { padding: 14px; }
+
+            /* bảng dữ liệu -> thẻ */
+            tbody tr { border-radius: 14px; overflow: hidden; }
+            /* nhãn trái nổi (float) thay cho định vị tuyệt đối -> nhãn 2 dòng không bị cắt, ô tự cao theo nội dung */
+            tbody td { display: flow-root !important; border-bottom: 1px dashed var(--border-strong) !important; padding: 11px 14px !important; min-height: 44px; }
+            tbody td::before { position: static !important; float: left; width: 40% !important; padding-right: 10px; margin-top: 2px; font-size: 11.5px; line-height: 1.35; letter-spacing: .3px; }
+            tbody td input:not([type="checkbox"]):not([type="radio"]), tbody td select, tbody td textarea { max-width: 58% !important; }
+            tbody td:last-child { background: var(--bg-elevated) !important; padding: 12px 14px !important; border-bottom: 0 !important; }
+            tbody td:only-child { padding: 14px !important; }
+            .table-responsive thead th { position: static; }
+            tbody td::before { font-family: var(--font-family-base) !important; letter-spacing: .3px !important; font-style: normal; }
+            /* ô cuối là dữ liệu (không có nút) -> giữ nhãn như các ô khác */
+            tbody td:last-child:not(:has(button, a.btn, input, select)):not([colspan]) { display: flow-root !important; text-align: right !important; background: transparent !important;
+                padding: 11px 14px !important; }
+            tbody td:last-child:not(:has(button, a.btn, input, select)):not([colspan])::before { display: block !important; }
+            .ln-rounds-box { padding: 12px !important; }
+
+            /* hộp thoại -> tấm trượt từ dưới lên */
+            .modal-overlay { padding: 0 !important; align-items: flex-end !important; }
+            .modal-content { width: 100% !important; max-width: 100% !important; max-height: 92dvh; border-radius: 22px 22px 0 0 !important; border-bottom: 0;
+                padding: 22px 18px calc(20px + env(safe-area-inset-bottom)) !important; transform: translateY(40px) !important; }
+            .modal-overlay.active .modal-content { transform: none !important; }
+            .modal-content:not(.sheet)::before { content: ''; display: block; width: 40px; height: 4px; margin: -8px auto 14px; border-radius: 4px; background: var(--border-strong); }
+            .modal-close-btn { top: 14px; right: 14px; }
+            .modal-content > .flex.items-center { flex-wrap: wrap; }
+            #modal-user-history .modal-content > .flex.items-center > .flex-1 { flex: 1 1 calc(100% - 64px); }
+            #modal-user-history .modal-content > .flex.items-center > div:last-child { flex: 1 1 100%; }
+            #modal-user-history .modal-content > .flex.items-center > div:last-child .btn { width: 100%; }
+            .modal-content .flex.gap-4 > .btn { flex: 1 1 0; }
+
+            #toast-container { top: calc(10px + env(safe-area-inset-top)); left: 12px; right: 12px; align-items: stretch; }
+            .toast { min-width: 0; max-width: none; width: 100%; }
+        }
+        @media (max-width: 400px) {
+            .auth-box { padding: 30px 20px 24px; }
+            .hdr-crumb { display: none; }
+        }
+        @media (max-width: 350px) {
+            .m-menu-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+            .mod-grid { grid-template-columns: 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .view-section, .modal-content, .toast, .card { animation: none !important; transition: none !important; }
+            .view-section { opacity: 1; transform: none; }
+        }
+    </style>
+
     <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
     <style id="qd-smooth-css">
 /* ===== QD SMOOTH (dùng chung) ===== */
@@ -374,44 +707,6 @@ html.qd-lite .qd-fx { display: none !important; }
         s = s == null ? '' : String(s);
         if (el.__qdH === s && el.__qdF === el.firstChild && el.__qdL === el.lastChild) return;
         el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
-    };
-
-    /* ---------- Vòng quay: quay NGAY khi bấm, giảm tốc êm vào ô trúng khi máy chủ trả kết quả ----------
-       var s = QDSmooth.spinner(canvas, gocHienTai, { slice: 360 / soO, onTick: fn });
-       s.land(gocDich).then(gocCuoi => ...)   // gocDich: góc cuối mong muốn (mod 360)
-       s.stop().then(gocCuoi => ...)          // lỗi: dừng nhẹ nhàng
-       Tốc độ tính theo thời gian thực -> mượt như nhau ở 60/90/120Hz, tiếng "tách" khớp đúng với ô đi qua. */
-    Q.spinner = function (el, from, opt) {
-        opt = opt || {};
-        var V = opt.vmax || 1.2, ACC = 450, MIN = opt.min || 800, DEC = opt.decel || 2600, slice = opt.slice || 0, onTick = opt.onTick;
-        var t0 = 0, angle = from = +from || 0, target = null, failed = false, phase = 0, tc = 0, ac = 0, D = 0, T = 1, last = null, done;
-        var p = new Promise(function (r) { done = r; });
-        el.style.transition = 'none'; el.style.willChange = 'transform';
-        function put(a) {
-            el.style.transform = 'rotate(' + a + 'deg)';
-            if (slice && onTick) { var i = Math.floor((a - from) / slice); if (i !== last) { if (last !== null) { try { onTick(); } catch (e) {} } last = i; } }
-        }
-        function frame(now) {
-            if (!t0) t0 = now;
-            var t = now - t0;
-            if (phase === 0) {
-                angle = t < ACC ? from + V * t * t / (2 * ACC) : from + V * ACC / 2 + V * (t - ACC);
-                if ((target !== null || failed) && t >= (failed ? 0 : MIN)) {
-                    phase = 1; tc = now; ac = angle;
-                    var v = t < ACC ? V * t / ACC : V;
-                    if (failed) { T = 700; D = v * T / 3; }
-                    else { D = ((target - ac) % 360 + 360) % 360; while (D < V * DEC / 3) D += 360; T = 3 * D / Math.max(v, 0.2); }
-                }
-            }
-            if (phase === 1) {
-                var u = Math.min(1, (now - tc) / T);
-                angle = ac + D * (1 - Math.pow(1 - u, 3));     // giảm tốc kiểu bánh xe thật (ease-out)
-                if (u >= 1) { put(angle); el.style.willChange = ''; return done(angle); }
-            }
-            put(angle); requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
-        return { land: function (deg) { target = +deg || 0; return p; }, stop: function () { failed = true; return p; }, done: p };
     };
 
     /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
@@ -558,7 +853,7 @@ html.qd-lite .qd-fx { display: none !important; }
 
         <!-- Modal Cập Nhật Điểm Giải Đấu -->
     <div class="modal-overlay" id="modal-tournament-points">
-        <div class="modal-box text-center" style="max-width: 400px;">
+        <div class="modal-content text-center" style="max-width: 400px;">
             <button class="modal-close-btn" onclick="UI.closeModal('modal-tournament-points')"><i class="fa-solid fa-xmark"></i></button>
             <div class="flex-center mx-auto mb-4 bg-success text-success" style="width: 70px; height: 70px; border-radius: 50%; font-size: 32px; display: flex; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.15);">
                 <i class="fa-solid fa-star"></i>
@@ -844,104 +1139,155 @@ html.qd-lite .qd-fx { display: none !important; }
     </div>
 
     
-    <!-- MOBILE MENU MODAL -->
-    <div class="modal-overlay" id="modal-mobile-menu" style="align-items: flex-end; padding: 0;">
-        <div class="modal-content" style="border-radius: 24px 24px 0 0; padding: 30px 20px; max-width: 100%; width: 100%; margin: 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl m-0"><i class="fa-solid fa-layer-group text-primary mr-2"></i> Chức Năng Hệ Thống</h2>
-                <button class="btn-icon" onclick="UI.closeModal('modal-mobile-menu')"><i class="fa-solid fa-xmark"></i></button>
+    <!-- MENU CHỨC NĂNG (điện thoại / máy tính bảng) -->
+    <div class="modal-overlay sheet-overlay" id="modal-mobile-menu" onclick="if(event.target===this) UI.closeModal('modal-mobile-menu')">
+        <div class="modal-content sheet">
+            <div class="sheet-head">
+                <h2>Chức năng hệ thống</h2>
+                <button type="button" class="btn-icon" onclick="UI.closeModal('modal-mobile-menu')" aria-label="Đóng menu"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
-            <div class="m-menu-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 10px;">
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('registration')">
-                    <div class="m-menu-icon text-warning" style="background: var(--color-warning-bg);"><i class="fa-solid fa-file-signature"></i></div>
-                    <span>Đăng Ký ID</span>
+
+            <div class="menu-group">
+                <p class="menu-label">Thành viên</p>
+                <div class="m-menu-grid">
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('approvals')" style="--tone: var(--color-danger);"><div class="m-menu-icon"><i class="fa-solid fa-user-clock"></i><span class="m-menu-badge js-pending" style="display: none;">0</span></div><span>Phê duyệt</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('accounts')" style="--tone: #94a3b8;"><div class="m-menu-icon"><i class="fa-solid fa-users-gear"></i></div><span>Tài khoản</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('attendance')" style="--tone: var(--color-success);"><div class="m-menu-icon"><i class="fa-solid fa-calendar-check"></i></div><span>Điểm danh</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('registration')" style="--tone: var(--color-warning);"><div class="m-menu-icon"><i class="fa-solid fa-file-signature"></i></div><span>Đăng ký ID</span></div>
                 </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('pointshop')">
-                    <div class="m-menu-icon text-success" style="background: rgba(16, 185, 129, 0.15);"><i class="fa-solid fa-store"></i></div>
-                    <span>Cửa Hàng</span>
+            </div>
+
+            <div class="menu-group">
+                <p class="menu-label">Sự kiện Tết</p>
+                <div class="m-menu-grid">
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('tranhthuong')" style="--tone: var(--color-danger);"><div class="m-menu-icon"><i class="fa-solid fa-envelope"></i></div><span>Rút lì xì</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('lixi')" style="--tone: #f43f5e;"><div class="m-menu-icon"><i class="fa-solid fa-envelope-open-text"></i></div><span>Lì xì điểm</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('wheel')" style="--tone: var(--color-warning);"><div class="m-menu-icon"><i class="fa-solid fa-dharmachakra"></i></div><span>Vòng quay</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('luckynumber')" style="--tone: #ec4899;"><div class="m-menu-icon"><i class="fa-solid fa-gem"></i></div><span>Quay số</span></div>
                 </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('tournament')">
-                    <div class="m-menu-icon text-primary" style="background: var(--brand-primary-soft);"><i class="fa-solid fa-trophy"></i></div>
-                    <span>Giải Đấu</span>
+            </div>
+
+            <div class="menu-group">
+                <p class="menu-label">Giải trí &amp; thưởng</p>
+                <div class="m-menu-grid">
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('pointshop')" style="--tone: var(--color-success);"><div class="m-menu-icon"><i class="fa-solid fa-store"></i></div><span>Cửa hàng</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('rps')" style="--tone: #fb7185;"><div class="m-menu-icon"><i class="fa-regular fa-hand-scissors"></i></div><span>Kéo búa bao</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('invite')" style="--tone: var(--brand-primary);"><div class="m-menu-icon"><i class="fa-solid fa-handshake"></i></div><span>Mã mời</span></div>
                 </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('luckynumber')">
-                    <div class="m-menu-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;"><i class="fa-solid fa-gem"></i></div>
-                    <span>Quay Số</span>
+            </div>
+
+            <div class="menu-group">
+                <p class="menu-label">Thi đấu &amp; tin tức</p>
+                <div class="m-menu-grid">
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('tournament')" style="--tone: #818cf8;"><div class="m-menu-icon"><i class="fa-solid fa-trophy"></i></div><span>Giải đấu</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('news')" style="--tone: var(--color-info);"><div class="m-menu-icon"><i class="fa-solid fa-newspaper"></i></div><span>Bản tin</span></div>
                 </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('wheel')">
-                    <div class="m-menu-icon text-warning" style="background: var(--color-warning-bg);"><i class="fa-solid fa-dharmachakra"></i></div>
-                    <span>Vòng Quay</span>
-                </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('tranhthuong')">
-                    <div class="m-menu-icon text-danger" style="background: var(--color-danger-bg);"><i class="fa-solid fa-envelope"></i></div>
-                    <span>Rút Lì Xì</span>
-                </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('lixi')">
-                    <div class="m-menu-icon text-danger" style="background: var(--color-danger-bg);"><i class="fa-solid fa-envelope-open-text"></i></div>
-                    <span>Lì Xì</span>
-                </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('rps')">
-                    <div class="m-menu-icon text-danger" style="background: rgba(239, 68, 68, 0.15);"><i class="fa-regular fa-hand-scissors"></i></div>
-                    <span>Kéo Búa</span>
-                </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('invite')">
-                    <div class="m-menu-icon text-primary" style="background: var(--brand-primary-soft);"><i class="fa-solid fa-handshake"></i></div>
-                    <span>Mã Mời</span>
-                </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('accounts')">
-                    <div class="m-menu-icon text-muted" style="background: var(--bg-hover);"><i class="fa-solid fa-users-gear"></i></div>
-                    <span>Tài Khoản</span>
-                </div>
-                <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('news')">
-                    <div class="m-menu-icon text-info" style="background: var(--color-info-bg);"><i class="fa-solid fa-newspaper"></i></div>
-                    <span>Bản Tin</span>
-                </div>
+            </div>
+
+            <div class="sheet-foot">
+                <button type="button" class="btn btn-outline" onclick="Theme.toggle()"><i class="js-theme-ico fa-solid fa-moon"></i> <span class="js-theme-txt">Giao diện tối</span></button>
+                <button type="button" class="btn btn-outline" onclick="UI.closeModal('modal-mobile-menu'); UI.openModal('modal-settings')"><i class="fa-solid fa-gear"></i> Cài đặt</button>
+                <button type="button" class="btn btn-danger" onclick="UI.closeModal('modal-mobile-menu'); UI.openModal('modal-logout')"><i class="fa-solid fa-power-off"></i> Đăng xuất</button>
             </div>
         </div>
     </div>
 
     <div id="auth-gate">
         <div class="auth-box">
-            <h1 class="mb-2 text-3xl mt-4" style="letter-spacing: -1px; color: var(--brand-primary);">BẢNG QUẢN TRỊ / ĐĂNG NHẬP</h1>
-            <p class="text-muted mb-8 text-sm">Trung tâm Kiểm soát Dữ liệu Hệ thống v2.0</p>
+            <div class="auth-logo"><i class="fa-solid fa-shield-halved"></i></div>
+            <h1 class="auth-title">QD Admin</h1>
+            <p class="auth-sub">Đăng nhập bằng tài khoản Quản trị viên hoặc Quản lý để vào bảng điều khiển.</p>
 
             <div class="form-group">
-                <label class="form-label text-left">Tài khoản</label>
-                <input type="text" id="log-u" class="form-control" placeholder="Nhập username..." autocomplete="off">
+                <label class="form-label" for="log-u">Tài khoản</label>
+                <div class="input-ico">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="log-u" class="form-control" placeholder="Nhập tên đăng nhập" autocomplete="username" autocapitalize="none" spellcheck="false">
+                </div>
             </div>
-            
+
             <div class="form-group mb-4">
-                <label class="form-label text-left">Mật khẩu bảo mật</label>
-                <input type="password" id="log-p" class="form-control" placeholder="Nhập password..." onkeypress="if(event.key==='Enter') Auth.login()">
+                <label class="form-label" for="log-p">Mật khẩu</label>
+                <div class="input-ico">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="log-p" class="form-control" placeholder="Nhập mật khẩu" autocomplete="current-password" onkeypress="if(event.key==='Enter') Auth.login()">
+                    <button type="button" class="pass-eye" aria-label="Hiện mật khẩu" onclick="const p=document.getElementById('log-p'), s=p.type==='password'; p.type=s?'text':'password'; this.firstElementChild.className=s?'fa-solid fa-eye-slash':'fa-solid fa-eye';"><i class="fa-solid fa-eye"></i></button>
+                </div>
             </div>
 
             <!-- NÚT GHI NHỚ TÀI KHOẢN -->
-            <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center justify-between mb-6">
                 <label class="flex items-center gap-2 cursor-pointer" style="user-select: none;">
                     <input type="checkbox" id="remember-me" style="width: 18px; height: 18px; accent-color: var(--brand-primary); cursor: pointer;">
-                    <span class="text-sm font-bold text-muted">Ghi nhớ tài khoản</span>
+                    <span class="text-sm font-bold text-muted">Ghi nhớ đăng nhập</span>
                 </label>
             </div>
 
-            <button class="btn btn-primary w-full" style="padding: 18px; font-size: 16px;" id="btn-login" onclick="Auth.login()">
-                XÁC THỰC QUYỀN TRUY CẬP <i class="fa-solid fa-arrow-right ml-2"></i>
+            <button class="btn btn-primary w-full auth-btn" id="btn-login" onclick="Auth.login()">
+                Đăng nhập <i class="fa-solid fa-arrow-right-to-bracket"></i>
             </button>
+            <a class="auth-back" href="index.html"><i class="fa-solid fa-arrow-left"></i> Về trang sự kiện</a>
         </div>
     </div>
 
     <div id="app-shell">
-        <header class="app-header">
-            <div class="header-brand" onclick="UI.navigate('dashboard')">
-                <i class="fa-solid fa-shield-halved"></i> 
-                <span>QD ADMIN</span>
-                <span class="header-version">v2.0</span>
+        <!-- THANH ĐIỀU HƯỚNG BÊN TRÁI (máy tính, từ 1024px) -->
+        <aside class="sidebar" id="sidebar" aria-label="Điều hướng quản trị">
+            <div class="sb-brand" onclick="UI.navigate('dashboard')" role="button" tabindex="0">
+                <span class="sb-logo"><i class="fa-solid fa-shield-halved"></i></span>
+                <span class="sb-brand-txt"><b>QD Admin</b><small>Control Panel v2.0</small></span>
             </div>
-            <div class="flex items-center gap-4">
-                <button class="btn-icon" title="Hồ sơ quản trị" onclick="AdminActions.openAdminProfile()" style="color: var(--brand-primary); border-color: var(--brand-primary-soft); background: var(--brand-primary-soft);"><i class="fa-solid fa-user-shield"></i></button>
-                <button class="btn-icon" title="Tổng quan hệ thống" onclick="UI.navigate('dashboard')"><i class="fa-solid fa-house"></i></button>
-                <button class="btn-icon" title="Cài đặt hệ thống" onclick="UI.openModal('modal-settings')"><i class="fa-solid fa-gear"></i></button>
-                <button class="btn-icon" title="Đăng xuất" style="color: var(--color-danger); border-color: var(--color-danger-bg); background: var(--color-danger-bg);" onclick="UI.openModal('modal-logout')"><i class="fa-solid fa-power-off"></i></button>
+            <nav class="sb-nav">
+                <button type="button" title="Tổng quan" class="nav-item active" onclick="UI.navigate('dashboard', this)" style="--tone: var(--brand-primary);"><i class="fa-solid fa-house"></i><span>Tổng quan</span></button>
+                <div class="nav-group">
+                    <p class="nav-label">Thành viên</p>
+                    <button type="button" title="Phê duyệt tài khoản" class="nav-item" onclick="UI.navigate('approvals', this)" style="--tone: var(--color-danger);"><i class="fa-solid fa-user-clock"></i><span>Phê duyệt tài khoản</span><span class="nav-badge" id="pending-count" style="display: none;">0</span></button>
+                    <button type="button" title="Quản trị tài khoản" class="nav-item" onclick="UI.navigate('accounts', this)" style="--tone: #94a3b8;"><i class="fa-solid fa-users-gear"></i><span>Quản trị tài khoản</span></button>
+                    <button type="button" title="Điểm danh" class="nav-item" onclick="UI.navigate('attendance', this)" style="--tone: var(--color-success);"><i class="fa-solid fa-calendar-check"></i><span>Điểm danh</span></button>
+                    <button type="button" title="Đăng ký ID game" class="nav-item" onclick="UI.navigate('registration', this)" style="--tone: var(--color-warning);"><i class="fa-solid fa-file-signature"></i><span>Đăng ký ID game</span></button>
+                </div>
+                <div class="nav-group">
+                    <p class="nav-label">Sự kiện Tết</p>
+                    <button type="button" title="Rút lì xì" class="nav-item" onclick="UI.navigate('tranhthuong', this)" style="--tone: var(--color-danger);"><i class="fa-solid fa-envelope"></i><span>Rút lì xì</span></button>
+                    <button type="button" title="Lì xì điểm" class="nav-item" onclick="UI.navigate('lixi', this)" style="--tone: #f43f5e;"><i class="fa-solid fa-envelope-open-text"></i><span>Lì xì điểm</span></button>
+                    <button type="button" title="Vòng quay" class="nav-item" onclick="UI.navigate('wheel', this)" style="--tone: var(--color-warning);"><i class="fa-solid fa-dharmachakra"></i><span>Vòng quay</span></button>
+                    <button type="button" title="Quay số may mắn" class="nav-item" onclick="UI.navigate('luckynumber', this)" style="--tone: #ec4899;"><i class="fa-solid fa-gem"></i><span>Quay số may mắn</span></button>
+                </div>
+                <div class="nav-group">
+                    <p class="nav-label">Giải trí &amp; thưởng</p>
+                    <button type="button" title="Cửa hàng điểm" class="nav-item" onclick="UI.navigate('pointshop', this)" style="--tone: var(--color-success);"><i class="fa-solid fa-store"></i><span>Cửa hàng điểm</span></button>
+                    <button type="button" title="Kéo búa bao" class="nav-item" onclick="UI.navigate('rps', this)" style="--tone: #fb7185;"><i class="fa-regular fa-hand-scissors"></i><span>Kéo búa bao</span></button>
+                    <button type="button" title="Mã mời" class="nav-item" onclick="UI.navigate('invite', this)" style="--tone: var(--brand-primary);"><i class="fa-solid fa-handshake"></i><span>Mã mời</span></button>
+                </div>
+                <div class="nav-group">
+                    <p class="nav-label">Thi đấu &amp; tin tức</p>
+                    <button type="button" title="Giải đấu" class="nav-item" onclick="UI.navigate('tournament', this)" style="--tone: #818cf8;"><i class="fa-solid fa-trophy"></i><span>Giải đấu</span></button>
+                    <button type="button" title="Bản tin" class="nav-item" onclick="UI.navigate('news', this)" style="--tone: var(--color-info);"><i class="fa-solid fa-newspaper"></i><span>Bản tin</span></button>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <button type="button" class="sb-user" onclick="AdminActions.openAdminProfile()" title="Hồ sơ quản trị">
+                    <span class="avatar js-avatar">A</span>
+                    <span class="sb-user-txt"><b class="js-user">admin</b><small class="js-role">Quản trị viên</small></span>
+                </button>
+                <button type="button" class="btn-icon btn-icon-danger" title="Đăng xuất" onclick="UI.openModal('modal-logout')"><i class="fa-solid fa-power-off"></i></button>
+            </div>
+        </aside>
+
+        <header class="app-header">
+            <div class="hdr-left">
+                <button type="button" class="hdr-brand" onclick="UI.navigate('dashboard')" title="Về bảng điều khiển"><i class="fa-solid fa-shield-halved"></i></button>
+                <div class="hdr-titles">
+                    <span class="hdr-crumb" id="page-crumb">Tổng quan</span>
+                    <h2 class="hdr-title" id="page-title">Bảng điều khiển</h2>
+                </div>
+            </div>
+            <div class="hdr-actions">
+                <button type="button" class="btn-icon" title="Chuyển giao diện sáng / tối" onclick="Theme.toggle()"><i class="js-theme-ico fa-solid fa-moon"></i></button>
+                <button type="button" class="btn-icon" title="Cài đặt hệ thống &amp; bảo trì" onclick="UI.openModal('modal-settings')"><i class="fa-solid fa-gear"></i></button>
+                <button type="button" class="hdr-user" title="Hồ sơ quản trị" onclick="AdminActions.openAdminProfile()">
+                    <span class="avatar js-avatar">A</span><span class="hdr-user-name js-user">admin</span>
+                </button>
             </div>
         </header>
 
@@ -949,147 +1295,113 @@ html.qd-lite .qd-fx { display: none !important; }
             <div class="workspace">
 
                 <section id="view-dashboard" class="view-section active">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
-                        <div>
-                            <h1 style="font-size: 32px; margin-bottom: 6px; letter-spacing: -0.5px;">Bảng Điều Khiển</h1>
-                            <p class="text-muted text-md">Thống kê số liệu hệ thống theo thời gian thực.</p>
+                    <div class="dash-hero">
+                        <div class="dash-hello">
+                            <p class="dash-date" id="dash-date">Hôm nay</p>
+                            <h1>Xin chào, <span class="js-user">admin</span></h1>
+                            <p>Thống kê số liệu hệ thống theo thời gian thực.</p>
                         </div>
-                        <div class="flex items-center gap-3" style="background: var(--bg-surface); border: 1px solid var(--border-strong); padding: 12px 24px; border-radius: var(--radius-full); font-weight: 800; color: var(--brand-primary); font-family: var(--font-family-mono); font-size: 18px; box-shadow: var(--shadow-sm);">
-                            <i class="fa-regular fa-clock"></i> <span id="live-clock">00:00:00</span>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px;">
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('accounts')">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="text-muted font-bold text-xs uppercase tracking-wide">Tổng Tài Khoản</span>
-                                <div class="flex-center rounded-md bg-primary-soft text-primary" style="width:32px; height:32px; background:var(--brand-primary-soft); color:var(--brand-primary); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-users"></i></div>
-                            </div>
-                            <h2 style="font-size: 40px; margin: 0;" id="stat-accs">0</h2>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('attendance')">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="text-muted font-bold text-xs uppercase tracking-wide">Có mặt hôm nay</span>
-                                <div class="flex-center rounded-md bg-success-bg text-success" style="width:32px; height:32px; background:var(--color-success-bg); color:var(--color-success); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-calendar-check"></i></div>
-                            </div>
-                            <h2 style="font-size: 40px; margin: 0; color: var(--color-success);" id="stat-atts">0</h2>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('registration')">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="text-muted font-bold text-xs uppercase tracking-wide">Đơn Đăng Ký ID mới</span>
-                                <div class="flex-center rounded-md bg-warning-bg text-warning" style="width:32px; height:32px; background:var(--color-warning-bg); color:var(--color-warning); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-id-card"></i></div>
-                            </div>
-                            <h2 style="font-size: 40px; margin: 0; color: var(--color-warning);" id="stat-regs">0</h2>
+                        <div class="dash-clock" title="Giờ hệ thống"><i class="fa-regular fa-clock"></i> <span id="live-clock">00:00:00</span></div>
+                        <div class="dash-quick">
+                            <button type="button" class="q-act" onclick="UI.navigate('approvals')"><i class="fa-solid fa-user-check"></i> Duyệt tài khoản <span class="q-badge js-pending" style="display: none;">0</span></button>
+                            <button type="button" class="q-act" onclick="UI.navigate('accounts'); UI.openModal('modal-add-user')"><i class="fa-solid fa-user-plus"></i> Cấp tài khoản</button>
+                            <button type="button" class="q-act" onclick="UI.navigate('news'); AdminActions.openNewsEditor()"><i class="fa-solid fa-pen-nib"></i> Soạn bản tin</button>
+                            <button type="button" class="q-act q-act-plain" onclick="UI.openModal('modal-settings')"><i class="fa-solid fa-screwdriver-wrench"></i> Bảo trì hệ thống</button>
                         </div>
                     </div>
 
-                    <h3 class="text-xl mb-4 font-bold" style="display: flex; align-items: center; gap: 10px; margin-top: 40px;"><i class="fa-solid fa-cubes text-primary"></i> Phân Hệ Quản Lý Hệ Thống</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
-                        
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('pointshop')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-success" style="width: 40px; height: 40px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-store"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
-                            </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Cửa Hàng Điểm</h4>
-                            <p class="text-muted text-xs m-0">Định giá vật phẩm quy đổi và kiểm soát dòng tiền.</p>
+                    <div class="stat-grid">
+                        <div class="card stat-card" onclick="UI.navigate('accounts')" style="--tone: var(--brand-primary);">
+                            <div class="stat-top"><span class="stat-lbl">Tổng tài khoản</span><span class="stat-ico"><i class="fa-solid fa-users"></i></span></div>
+                            <h2 class="stat-num" id="stat-accs">0</h2>
                         </div>
+                        <div class="card stat-card" onclick="UI.navigate('attendance')" style="--tone: var(--color-success);">
+                            <div class="stat-top"><span class="stat-lbl">Có mặt hôm nay</span><span class="stat-ico"><i class="fa-solid fa-calendar-check"></i></span></div>
+                            <h2 class="stat-num" id="stat-atts">0</h2>
+                        </div>
+                        <div class="card stat-card" onclick="UI.navigate('registration')" style="--tone: var(--color-warning);">
+                            <div class="stat-top"><span class="stat-lbl">Đơn đăng ký ID</span><span class="stat-ico"><i class="fa-solid fa-id-card"></i></span></div>
+                            <h2 class="stat-num" id="stat-regs">0</h2>
+                        </div>
+                        <div class="card stat-card" onclick="UI.navigate('approvals')" style="--tone: var(--color-danger);">
+                            <div class="stat-top"><span class="stat-lbl">Chờ phê duyệt</span><span class="stat-ico"><i class="fa-solid fa-user-clock"></i></span></div>
+                            <h2 class="stat-num" id="stat-pending">0</h2>
+                        </div>
+                    </div>
 
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('attendance')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-success" style="width: 40px; height: 40px; background: var(--color-success-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-calendar-check"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                    <div class="mod-group">
+                        <h3 class="mod-group-title"><i class="fa-solid fa-users"></i> Thành viên</h3>
+                        <div class="mod-grid">
+                            <div class="card mod-card" onclick="UI.navigate('approvals')" style="--tone: var(--color-danger);">
+                                <span class="mod-ico"><i class="fa-solid fa-user-clock"></i></span>
+                                <div><h4>Phê duyệt tài khoản</h4><p>Kiểm duyệt các yêu cầu đăng ký tài khoản mới từ người dùng.</p></div>
                             </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Điểm Danh</h4>
-                            <p class="text-muted text-xs m-0">Cấu hình khung giờ và trích xuất báo cáo chuyên cần.</p>
+                            <div class="card mod-card" onclick="UI.navigate('accounts')" style="--tone: #94a3b8;">
+                                <span class="mod-ico"><i class="fa-solid fa-users-gear"></i></span>
+                                <div><h4>Quản trị tài khoản</h4><p>Cấp tài khoản, khóa / mở khóa và phân quyền quản lý.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('attendance')" style="--tone: var(--color-success);">
+                                <span class="mod-ico"><i class="fa-solid fa-calendar-check"></i></span>
+                                <div><h4>Điểm danh</h4><p>Cấu hình khung giờ, thưởng điểm danh và xuất báo cáo chuyên cần.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('registration')" style="--tone: var(--color-warning);">
+                                <span class="mod-ico"><i class="fa-solid fa-file-signature"></i></span>
+                                <div><h4>Đăng ký ID game</h4><p>Đóng / mở vòng đăng ký và cho phép nộp lại đơn khai báo ID.</p></div>
+                            </div>
                         </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('approvals')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-danger" style="width: 40px; height: 40px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-user-clock"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                    </div>
+
+                    <div class="mod-group">
+                        <h3 class="mod-group-title"><i class="fa-solid fa-envelope-open-text"></i> Sự kiện Tết</h3>
+                        <div class="mod-grid">
+                            <div class="card mod-card" onclick="UI.navigate('tranhthuong')" style="--tone: var(--color-danger);">
+                                <span class="mod-ico"><i class="fa-solid fa-envelope"></i></span>
+                                <div><h4>Rút lì xì</h4><p>Phần thưởng trong 6 bao lì xì may mắn (dùng lượt rút).</p></div>
                             </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Phê Duyệt Tài Khoản</h4>
-                            <p class="text-muted text-xs m-0">Kiểm duyệt các yêu cầu đăng ký tài khoản mới từ người dùng.</p>
+                            <div class="card mod-card" onclick="UI.navigate('lixi')" style="--tone: #f43f5e;">
+                                <span class="mod-ico"><i class="fa-solid fa-envelope-open-text"></i></span>
+                                <div><h4>Lì xì điểm</h4><p>Đóng / mở cửa, số điểm &amp; tỉ lệ, ngân sách điểm mỗi ngày.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('wheel')" style="--tone: var(--color-warning);">
+                                <span class="mod-ico"><i class="fa-solid fa-dharmachakra"></i></span>
+                                <div><h4>Vòng quay</h4><p>Giải thưởng, tỉ lệ trúng và câu hỏi nhận lượt quay.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('luckynumber')" style="--tone: #ec4899;">
+                                <span class="mod-ico"><i class="fa-solid fa-gem"></i></span>
+                                <div><h4>Quay số may mắn</h4><p>Lịch quay theo giờ, phát trực tiếp và kết quả trúng thưởng.</p></div>
+                            </div>
                         </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('registration')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-warning" style="width: 40px; height: 40px; background: var(--color-warning-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-file-signature"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                    </div>
+
+                    <div class="mod-group">
+                        <h3 class="mod-group-title"><i class="fa-solid fa-gift"></i> Giải trí &amp; thưởng</h3>
+                        <div class="mod-grid">
+                            <div class="card mod-card" onclick="UI.navigate('pointshop')" style="--tone: var(--color-success);">
+                                <span class="mod-ico"><i class="fa-solid fa-store"></i></span>
+                                <div><h4>Cửa hàng điểm</h4><p>Vật phẩm quy đổi, thưởng nhiệm vụ và lịch sử giao dịch.</p></div>
                             </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Danh Sách Đăng Ký</h4>
-                            <p class="text-muted text-xs m-0">Phê duyệt và cho phép nộp lại các đơn khai báo ID Game.</p>
+                            <div class="card mod-card" onclick="UI.navigate('rps')" style="--tone: #fb7185;">
+                                <span class="mod-ico"><i class="fa-regular fa-hand-scissors"></i></span>
+                                <div><h4>Kéo búa bao</h4><p>Giờ mở đấu trường, mức cược và nhật ký trận PvP.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('invite')" style="--tone: var(--brand-primary);">
+                                <span class="mod-ico"><i class="fa-solid fa-handshake"></i></span>
+                                <div><h4>Mã mời</h4><p>Bật / tắt nhập mã và mức thưởng lượt rút lì xì khi mời.</p></div>
+                            </div>
                         </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('tournament')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-primary" style="width: 40px; height: 40px; background: var(--brand-primary-soft); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-trophy"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                    </div>
+
+                    <div class="mod-group">
+                        <h3 class="mod-group-title"><i class="fa-solid fa-trophy"></i> Thi đấu &amp; tin tức</h3>
+                        <div class="mod-grid">
+                            <div class="card mod-card" onclick="UI.navigate('tournament')" style="--tone: #818cf8;">
+                                <span class="mod-ico"><i class="fa-solid fa-trophy"></i></span>
+                                <div><h4>Giải đấu</h4><p>Danh sách tuyển thủ, gộp đội và bảng điểm quân đoàn.</p></div>
                             </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Giải Đấu</h4>
-                            <p class="text-muted text-xs m-0">Phân chia nhánh đấu, gộp đội và quản lý tuyển thủ.</p>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('luckynumber')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md" style="width: 40px; height: 40px; background: rgba(236, 72, 153, 0.15); color: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-gem"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
+                            <div class="card mod-card" onclick="UI.navigate('news')" style="--tone: var(--color-info);">
+                                <span class="mod-ico"><i class="fa-solid fa-newspaper"></i></span>
+                                <div><h4>Bản tin</h4><p>Phát hành thông báo tới toàn bộ người dùng.</p></div>
                             </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Số Quay</h4>
-                            <p class="text-muted text-xs m-0">Theo dõi số dự đoán cá nhân và điều khiển kết quả trúng thưởng.</p>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('wheel')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-warning" style="width: 40px; height: 40px; background: var(--color-warning-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-dharmachakra"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
-                            </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Vòng Quay</h4>
-                            <p class="text-muted text-xs m-0">Cấu hình hệ thống giải thưởng vật phẩm và tỉ lệ trúng ngẫu nhiên.</p>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('tranhthuong')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-danger" style="width: 40px; height: 40px; background: var(--color-danger-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-ticket-alt"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
-                            </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Rút Lì Xì</h4>
-                            <p class="text-muted text-xs m-0">Thiết lập phần thưởng bên trong 6 bao lì xì may mắn (dùng lượt rút).</p>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('lixi')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-danger" style="width: 40px; height: 40px; background: var(--color-danger-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-envelope-open-text"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
-                            </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Lì Xì</h4>
-                            <p class="text-muted text-xs m-0">Đóng/mở cửa, chỉnh số điểm &amp; tỉ lệ, kiểm soát điểm đã phát và xuất báo cáo.</p>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('rps')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-danger" style="width: 40px; height: 40px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-regular fa-hand-scissors"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
-                            </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Kéo Búa Bao</h4>
-                            <p class="text-muted text-xs m-0">Theo dõi lịch sử thi đấu PvP, giám sát chiêu thức và kết quả trận đấu.</p>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('invite')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-primary" style="width: 40px; height: 40px; background: var(--brand-primary-soft); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-handshake"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
-                            </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Lý Mã Mời</h4>
-                            <p class="text-muted text-xs m-0">Bật/tắt tính năng, điều chỉnh mức thưởng lượt rút lì xì khi mời.</p>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('accounts')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-muted" style="width: 40px; height: 40px; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-users-gear"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
-                            </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Quản Trị Tài Khoản</h4>
-                            <p class="text-muted text-xs m-0">Cấp phát tài khoản, điều chỉnh tính năng khóa tài khoản và phân quyền.</p>
-                        </div>
-                        <div class="card p-6 mb-0 cursor-pointer" onclick="UI.navigate('news')" style="display: flex; flex-direction: column; gap: 12px;">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-center rounded-md text-info" style="width: 40px; height: 40px; background: var(--color-info-bg); display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-newspaper"></i></div>
-                                <i class="fa-solid fa-arrow-right text-muted text-xs"></i>
-                            </div>
-                            <h4 class="font-bold text-main m-0" style="font-size: 16px;">Bản Tin Máy Chủ</h4>
-                            <p class="text-muted text-xs m-0">Phát hành thông báo mới, bài viết công khai tới toàn bộ Client.</p>
                         </div>
                     </div>
                 </section>
@@ -1097,7 +1409,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 
                 <!-- VIEW PHÊ DUYỆT TÀI KHOẢN -->
                 <section id="view-approvals" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Phê Duyệt Đăng Ký</h1>
                             <p class="text-muted">Kiểm duyệt các tài khoản đăng ký mới từ người chơi.</p>
@@ -1126,7 +1438,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     </div>
                 </section>
 <section id="view-pointshop" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Quản Lý Cửa Hàng & Điểm Thưởng</h1>
                             <p class="text-muted">Cấu hình giá bán quy đổi, thưởng nhiệm vụ và xem lịch sử giao dịch điểm.</p>
@@ -1258,7 +1570,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-attendance" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Quản lý Điểm danh</h1>
                             <p class="text-muted">Kiểm soát thời gian, cấu hình phần thưởng và xuất báo cáo CSDL.</p>
@@ -1371,7 +1683,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-registration" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Danh sách Đăng ký</h1>
                             <p class="text-muted">Các đơn khai báo ID Game từ thành viên gửi lên.</p>
@@ -1435,7 +1747,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-tournament" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Quản Lý Giải Đấu</h1>
                             <p class="text-muted">Phân chia đội hình và quản lý thành viên thi đấu.</p>
@@ -1497,7 +1809,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-rps" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Lịch Sử Kéo Búa Bao</h1>
                             <p class="text-muted">Giám sát các trận đấu PvP, xem chiêu thức và kết quả thắng thua của người chơi.</p>
@@ -1599,7 +1911,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-luckynumber" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Quản Lý Số Quay Thưởng</h1>
                             <p class="text-muted">Kiểm soát các số dự đoán của thành viên và thiết lập kết quả quay số nhân phẩm.</p>
@@ -1744,7 +2056,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-wheel" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Quản Lý Vòng Quay</h1>
                             <p class="text-muted">Kiểm soát phần thưởng và xem lịch sử Vòng Quay.</p>
@@ -1964,7 +2276,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-tranhthuong" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">🧧 Quản Lý Rút Lì Xì</h1>
                             <p class="text-muted">Cấu hình phần thưởng trong bao lì xì và xem lịch sử rút chi tiết.</p>
@@ -2081,7 +2393,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-lixi" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Quản Lý Lì Xì</h1>
                             <p class="text-muted">Đóng/mở cửa rút lì xì, chỉnh số điểm &amp; tỉ lệ, kiểm soát điểm đã phát và xuất báo cáo.</p>
@@ -2285,7 +2597,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-invite" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Hệ Thống Mã Mời</h1>
                             <p class="text-muted">Quản lý tính năng nhập mã mời và xem lịch sử phần thưởng.</p>
@@ -2344,7 +2656,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-accounts" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Quản trị Tài khoản</h1>
                             <p class="text-muted">Kiểm soát danh sách người dùng và cấp quyền/lượt giải trí.</p>
@@ -2410,7 +2722,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-news" class="view-section">
-                    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Bản tin Máy chủ</h1>
                             <p class="text-muted">Phát hành thông báo công khai tới toàn bộ Client.</p>
@@ -2432,17 +2744,18 @@ html.qd-lite .qd-fx { display: none !important; }
             </div>
         </main>
 
-        <nav class="mobile-nav">
-            <div class="m-nav-item active" onclick="UI.navigate('dashboard', this, true)"><i class="fa-solid fa-house"></i><span>Trang Chủ</span></div>
+        <nav class="mobile-nav" aria-label="Điều hướng nhanh">
+            <div class="m-nav-item active" onclick="UI.navigate('dashboard', this, true)"><i class="fa-solid fa-house"></i><span>Tổng quan</span></div>
             <div class="m-nav-item" onclick="UI.navigate('approvals', this, true)">
                 <div style="position: relative;">
                     <i class="fa-solid fa-user-clock"></i>
-                    <span id="mobile-pending-badge" style="position: absolute; top: -5px; right: -8px; background: var(--color-danger); color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 9px; display: none; align-items: center; justify-content: center;">0</span>
+                    <span id="mobile-pending-badge" class="m-badge" style="display: none;">0</span>
                 </div>
                 <span>Duyệt TK</span>
             </div>
-            <div class="m-nav-item" onclick="UI.navigate('attendance', this, true)"><i class="fa-solid fa-calendar-check"></i><span>Đ.Danh</span></div>
-            <div class="m-nav-item" onclick="UI.openModal('modal-mobile-menu')"><i class="fa-solid fa-border-all"></i><span>Menu</span></div>
+            <div class="m-nav-item" onclick="UI.navigate('accounts', this, true)"><i class="fa-solid fa-users-gear"></i><span>Tài khoản</span></div>
+            <div class="m-nav-item" onclick="UI.navigate('attendance', this, true)"><i class="fa-solid fa-calendar-check"></i><span>Điểm danh</span></div>
+            <div class="m-nav-item" data-nav="menu" onclick="UI.openModal('modal-mobile-menu')"><i class="fa-solid fa-border-all"></i><span>Menu</span></div>
         </nav>
     </div>
 
@@ -2714,7 +3027,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             }, 800);
                         } else {
                             Utils.toast("Từ chối truy cập: Tài khoản không có quyền Quản trị.", "error");
-                            btn.innerHTML = `XÁC THỰC QUYỀN TRUY CẬP <i class="fa-solid fa-arrow-right ml-2"></i>`; btn.disabled = false;
+                            btn.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right-to-bracket"></i>`; btn.disabled = false;
                         }
                     } else if (u === 'admin' && p === '123') {
                         // Fallback for default admin
@@ -2731,11 +3044,11 @@ html.qd-lite .qd-fx { display: none !important; }
                         }, 800);
                     } else {
                         Utils.toast("Từ chối truy cập: Sai tài khoản hoặc mật khẩu.", "error");
-                        btn.innerHTML = `XÁC THỰC QUYỀN TRUY CẬP <i class="fa-solid fa-arrow-right ml-2"></i>`; btn.disabled = false;
+                        btn.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right-to-bracket"></i>`; btn.disabled = false;
                     }
                 }).catch(err => {
                     Utils.toast("Lỗi kết nối máy chủ.", "error");
-                    btn.innerHTML = `XÁC THỰC QUYỀN TRUY CẬP <i class="fa-solid fa-arrow-right ml-2"></i>`; btn.disabled = false;
+                    btn.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right-to-bracket"></i>`; btn.disabled = false;
                 });
             },
             logout: () => {
@@ -3265,7 +3578,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 const hRef = db.collection('lixi_history').doc(id), aRef = db.collection('accounts').doc(acc.docId);
                 let deducted = 0;
                 await db.runTransaction(async t => {
-                    const [hd, ad] = await Promise.all([t.get(hRef), t.get(aRef)]);
+                    const hd = await t.get(hRef), ad = await t.get(aRef);
                     if (!hd.exists) throw 'Bản ghi không còn tồn tại.';
                     if (hd.data().status === 'revoked') throw 'Lượt này đã được thu hồi trước đó.';
                     if (!ad.exists) throw 'Tài khoản không tồn tại.';
@@ -3759,7 +4072,7 @@ const QVis = {
                             if (myRole === 'manager') {
                                 allViews.forEach(v => {
                                     const cards = document.querySelectorAll(`.card[onclick="UI.navigate('${v}')"]`);
-                                    const navItems = document.querySelectorAll(`.m-nav-item[onclick*="'${v}'"]`);
+                                    const navItems = document.querySelectorAll(`.m-nav-item[onclick*="'${v}'"], .nav-item[onclick*="'${v}'"], .m-menu-item[onclick*="'${v}'"], .q-act[onclick*="'${v}'"]`);
                                     if (!myPerms.includes(v)) {
                                         cards.forEach(c => c.style.display = 'none');
                                         navItems.forEach(n => n.style.display = 'none');
@@ -3796,7 +4109,7 @@ const QVis = {
                             else if (myRole === 'admin') {
                                 allViews.forEach(v => {
                                     document.querySelectorAll(`.card[onclick="UI.navigate('${v}')"]`).forEach(c => c.style.display = '');
-                                    document.querySelectorAll(`.m-nav-item[onclick*="'${v}'"]`).forEach(n => n.style.display = '');
+                                    document.querySelectorAll(`.m-nav-item[onclick*="'${v}'"], .nav-item[onclick*="'${v}'"], .m-menu-item[onclick*="'${v}'"], .q-act[onclick*="'${v}'"]`).forEach(n => n.style.display = '');
                                 });
                                 const statAccCard = document.getElementById('stat-accs');
                                 if (statAccCard && statAccCard.parentElement) statAccCard.parentElement.style.display = '';
@@ -5642,6 +5955,114 @@ exportAttendanceExcel: () => {
             observer.observe(document.body, { childList: true, subtree: true });
         });
         
+    </script>
+    <script id="qd-admin-layout-js">
+    /* ===== QD ADMIN LAYOUT: đồng bộ menu bên / thanh dưới / menu chức năng, tiêu đề trang,
+       nút giao diện sáng-tối, số đơn chờ duyệt và ẩn nhóm trống khi Quản lý bị giới hạn quyền ===== */
+    (function () {
+        'use strict';
+        var VIEWS = {
+            dashboard: ['Tổng quan', 'Bảng điều khiển'],
+            approvals: ['Thành viên', 'Phê duyệt tài khoản'],
+            accounts: ['Thành viên', 'Quản trị tài khoản'],
+            attendance: ['Thành viên', 'Điểm danh'],
+            registration: ['Thành viên', 'Đăng ký ID game'],
+            tranhthuong: ['Sự kiện Tết', 'Rút lì xì'],
+            lixi: ['Sự kiện Tết', 'Lì xì điểm'],
+            wheel: ['Sự kiện Tết', 'Vòng quay'],
+            luckynumber: ['Sự kiện Tết', 'Quay số may mắn'],
+            pointshop: ['Giải trí & thưởng', 'Cửa hàng điểm'],
+            rps: ['Giải trí & thưởng', 'Kéo búa bao'],
+            invite: ['Giải trí & thưởng', 'Mã mời'],
+            tournament: ['Thi đấu & tin tức', 'Giải đấu'],
+            news: ['Thi đấu & tin tức', 'Bản tin']
+        };
+        function $(s, r) { return (r || document).querySelector(s); }
+        function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+        function viewOf(el) { var m = /navigate\('([a-z]+)'/.exec(el.getAttribute('onclick') || ''); return m ? m[1] : null; }
+        function current() { var s = $('.view-section.active'); return s ? s.id.replace('view-', '') : 'dashboard'; }
+
+        /* 1. Menu đang chọn + tiêu đề trang */
+        function syncNav() {
+            var v = current(), meta = VIEWS[v] || VIEWS.dashboard, hit = false;
+            $$('.nav-item, .m-menu-item').forEach(function (el) { el.classList.toggle('active', viewOf(el) === v); });
+            $$('.m-nav-item').forEach(function (el) { var on = viewOf(el) === v; if (on) hit = true; el.classList.toggle('active', on); });
+            var menu = $('.m-nav-item[data-nav="menu"]'); if (menu) menu.classList.toggle('active', !hit);
+            var t = $('#page-title'), c = $('#page-crumb');
+            if (t) t.textContent = meta[1];
+            if (c) c.textContent = v === 'dashboard' ? 'QD Admin' : meta[0];
+            document.title = meta[1] + ' - QD Admin';
+        }
+        if (typeof UI !== 'undefined' && UI.navigate) {
+            var baseNav = UI.navigate;
+            UI.navigate = function (viewId, el, isMobile) { baseNav(viewId, el, isMobile); syncNav(); };
+        }
+
+        /* 2. Giao diện sáng / tối: đồng bộ mọi nút */
+        function syncTheme() {
+            var dark = document.documentElement.getAttribute('data-theme') !== 'light';
+            $$('.js-theme-ico').forEach(function (i) { i.className = 'js-theme-ico fa-solid ' + (dark ? 'fa-moon' : 'fa-sun'); });
+            $$('.js-theme-txt').forEach(function (s) { s.textContent = dark ? 'Giao diện tối' : 'Giao diện sáng'; });
+            var m = $('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#121217' : '#ffffff');
+        }
+        if (typeof Theme !== 'undefined') {
+            var tInit = Theme.init, tToggle = Theme.toggle;
+            Theme.init = function () { tInit(); syncTheme(); };
+            Theme.toggle = function () { tToggle(); syncTheme(); };
+        }
+
+        /* 3. Thông tin người đăng nhập (sau khi xác thực) */
+        function fillUser() {
+            var u = (typeof State !== 'undefined' && State.currentUser) || 'admin';
+            var role = (typeof State !== 'undefined' && State.currentUserRole === 'manager') ? 'Quản lý' : 'Quản trị viên';
+            $$('.js-user').forEach(function (e) { e.textContent = u; });
+            $$('.js-role').forEach(function (e) { e.textContent = role; });
+            $$('.js-avatar').forEach(function (e) { e.textContent = u.charAt(0).toUpperCase(); });
+            var d = $('#dash-date');
+            if (d) { var s = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }); d.textContent = s.charAt(0).toUpperCase() + s.slice(1); }
+        }
+        if (typeof AdminCore !== 'undefined' && AdminCore.init) {
+            var coreInit = AdminCore.init;
+            AdminCore.init = function () { coreInit.apply(this, arguments); fillUser(); syncNav(); syncGroups(); syncPending(); };
+        }
+
+        /* 4. Số đơn chờ duyệt: hiện ở thẻ thống kê, nút nhanh, menu chức năng */
+        function syncPending() {
+            var n = 0, a = $('#pending-count'), b = $('#mobile-pending-badge');
+            if (a && a.style.display !== 'none') n = parseInt(a.textContent, 10) || 0;
+            if (b && b.style.display !== 'none') n = Math.max(n, parseInt(b.textContent, 10) || 0);
+            var s = $('#stat-pending'); if (s && s.textContent !== String(n)) s.textContent = n;
+            $$('.js-pending').forEach(function (x) { var t = String(n), d = n ? '' : 'none'; if (x.textContent !== t) x.textContent = t; if (x.style.display !== d) x.style.display = d; });
+        }
+
+        /* 5. Quản lý bị giới hạn quyền: ẩn cả nhóm khi mọi mục trong nhóm đều bị ẩn */
+        function syncGroups() {
+            $$('.mod-group, .nav-group, .menu-group').forEach(function (g) {
+                var items = $$('.mod-card, .nav-item, .m-menu-item', g);
+                var want = items.length && !items.some(function (i) { return i.style.display !== 'none'; }) ? 'none' : '';
+                if (g.style.display !== want) g.style.display = want;
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            try { Theme.init(); } catch (e) { syncTheme(); }   // trang đăng nhập cũng theo giao diện đã lưu
+            syncNav(); syncPending();
+            if (window.MutationObserver) {
+                var pc = $('#pending-count');
+                if (pc) new MutationObserver(syncPending).observe(pc, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+                var raf = 0, mo = new MutationObserver(function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(syncGroups); });
+                ['#view-dashboard', '#sidebar', '#modal-mobile-menu'].forEach(function (s) { var el = $(s); if (el) mo.observe(el, { attributes: true, attributeFilter: ['style'], subtree: true }); });
+            }
+            // Esc: đóng hộp thoại đang mở trên cùng
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Escape') return;
+                var open = $$('.modal-overlay.active'); if (!open.length) return;
+                UI.closeModal(open[open.length - 1].id);
+            });
+            // phím Enter / Space trên logo thanh bên
+            var sb = $('.sb-brand'); if (sb) sb.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); UI.navigate('dashboard'); } });
+        });
+    })();
     </script>
     <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
     <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>

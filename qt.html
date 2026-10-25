@@ -344,44 +344,6 @@ html.qd-lite .qd-fx { display: none !important; }
         el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
     };
 
-    /* ---------- Vòng quay: quay NGAY khi bấm, giảm tốc êm vào ô trúng khi máy chủ trả kết quả ----------
-       var s = QDSmooth.spinner(canvas, gocHienTai, { slice: 360 / soO, onTick: fn });
-       s.land(gocDich).then(gocCuoi => ...)   // gocDich: góc cuối mong muốn (mod 360)
-       s.stop().then(gocCuoi => ...)          // lỗi: dừng nhẹ nhàng
-       Tốc độ tính theo thời gian thực -> mượt như nhau ở 60/90/120Hz, tiếng "tách" khớp đúng với ô đi qua. */
-    Q.spinner = function (el, from, opt) {
-        opt = opt || {};
-        var V = opt.vmax || 1.2, ACC = 450, MIN = opt.min || 800, DEC = opt.decel || 2600, slice = opt.slice || 0, onTick = opt.onTick;
-        var t0 = 0, angle = from = +from || 0, target = null, failed = false, phase = 0, tc = 0, ac = 0, D = 0, T = 1, last = null, done;
-        var p = new Promise(function (r) { done = r; });
-        el.style.transition = 'none'; el.style.willChange = 'transform';
-        function put(a) {
-            el.style.transform = 'rotate(' + a + 'deg)';
-            if (slice && onTick) { var i = Math.floor((a - from) / slice); if (i !== last) { if (last !== null) { try { onTick(); } catch (e) {} } last = i; } }
-        }
-        function frame(now) {
-            if (!t0) t0 = now;
-            var t = now - t0;
-            if (phase === 0) {
-                angle = t < ACC ? from + V * t * t / (2 * ACC) : from + V * ACC / 2 + V * (t - ACC);
-                if ((target !== null || failed) && t >= (failed ? 0 : MIN)) {
-                    phase = 1; tc = now; ac = angle;
-                    var v = t < ACC ? V * t / ACC : V;
-                    if (failed) { T = 700; D = v * T / 3; }
-                    else { D = ((target - ac) % 360 + 360) % 360; while (D < V * DEC / 3) D += 360; T = 3 * D / Math.max(v, 0.2); }
-                }
-            }
-            if (phase === 1) {
-                var u = Math.min(1, (now - tc) / T);
-                angle = ac + D * (1 - Math.pow(1 - u, 3));     // giảm tốc kiểu bánh xe thật (ease-out)
-                if (u >= 1) { put(angle); el.style.willChange = ''; return done(angle); }
-            }
-            put(angle); requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
-        return { land: function (deg) { target = +deg || 0; return p; }, stop: function () { failed = true; return p; }, done: p };
-    };
-
     /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
     var MOVE = /^(transform|translate|rotate|scale|left|top|right|bottom|offset|inset|margin)/;
     var io = W.IntersectionObserver ? new IntersectionObserver(function (es) {
@@ -824,17 +786,13 @@ html.qd-lite .qd-fx { display: none !important; }
                 const stockRef = db.collection("wheel_stock").doc("counts");
                 // Giao dịch: kiểm tra đóng/mở + vé còn hiệu lực + còn số lượng giải; chọn ô trúng và cộng "đã trúng" cho ô đó
                 return db.runTransaction(async (tx) => {
-                    const [q, c] = await Promise.all([tx.get(qRef), tx.get(cfgRef)]);
+                    const q = await tx.get(qRef), c = await tx.get(cfgRef), st = await tx.get(stockRef);
                     const cfg = c.exists ? c.data() : {};
                     if (Wheel.closedBy(cfg)) throw { code: 'CLOSED' };
                     const d = q.exists ? q.data() : null;
                     if (!d || d.claimedBy !== State.currentUser || d.ticketUsed === true) throw { code: 'NOSPIN' };
-                    const prizes = Wheel.normPrizes(cfg.prizes);
-                    let idx = Wheel.pickIndex(prizes, State.counts || {});   // chọn theo số liệu trực tiếp đang có
-                    if (idx >= 0 && prizes[idx].qty != null) {               // giải giới hạn: kiểm tra lại kho trong giao dịch
-                        const st = await tx.get(stockRef), counts = (st.exists && st.data().counts) || {};
-                        if ((counts[prizes[idx].id] || 0) >= prizes[idx].qty) idx = Wheel.pickIndex(prizes, counts);
-                    }
+                    const prizes = Wheel.normPrizes(cfg.prizes), counts = (st.exists && st.data().counts) || {};
+                    const idx = Wheel.pickIndex(prizes, counts);
                     tx.update(qRef, { ticketUsed: true, usedAt: Date.now() });
                     if (idx >= 0 && prizes[idx].qty != null) tx.set(stockRef, { counts: { [prizes[idx].id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
                     return { idx, prizes };
@@ -845,17 +803,13 @@ html.qd-lite .qd-fx { display: none !important; }
                 const accRef = db.collection("accounts").doc(State.accountDocId), cfgRef = db.collection("settings").doc("wheel_config");
                 const stockRef = db.collection("wheel_stock").doc("counts");
                 return db.runTransaction(async (tx) => {
-                    const [a, c] = await Promise.all([tx.get(accRef), tx.get(cfgRef)]);
+                    const a = await tx.get(accRef), c = await tx.get(cfgRef), st = await tx.get(stockRef);
                     const cfg = c.exists ? c.data() : {};
                     if (Wheel.closedBy(cfg)) throw { code: 'CLOSED' };
                     const left = (a.exists && a.data().spins) || 0;
                     if (left <= 0) throw { code: 'NOSPIN' };
-                    const prizes = Wheel.normPrizes(cfg.prizes);
-                    let idx = Wheel.pickIndex(prizes, State.counts || {});   // chọn theo số liệu trực tiếp đang có
-                    if (idx >= 0 && prizes[idx].qty != null) {               // giải giới hạn: kiểm tra lại kho trong giao dịch
-                        const st = await tx.get(stockRef), counts = (st.exists && st.data().counts) || {};
-                        if ((counts[prizes[idx].id] || 0) >= prizes[idx].qty) idx = Wheel.pickIndex(prizes, counts);
-                    }
+                    const prizes = Wheel.normPrizes(cfg.prizes), counts = (st.exists && st.data().counts) || {};
+                    const idx = Wheel.pickIndex(prizes, counts);
                     tx.update(accRef, { spins: firebase.firestore.FieldValue.increment(-1) });
                     if (idx >= 0 && prizes[idx].qty != null) tx.set(stockRef, { counts: { [prizes[idx].id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
                     return { idx, prizes, remain: left - 1 };
@@ -881,10 +835,9 @@ html.qd-lite .qd-fx { display: none !important; }
 
                 this.isSpinning = true;
                 this.spinBtn.disabled = true;
-                this.spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG QUAY...`;
+                this.spinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TÍNH TOÁN...`;
 
-                // Bánh xe quay NGAY khi bấm; trừ lượt trên Firestore chạy song song
-                const spin = QDSmooth.spinner(this.canvas, this.currentRotation, { slice: 360 / State.prizes.length, decel: 2300, min: 700, onTick: () => Sound.playTick() });
+                // Trừ lượt trên Firestore (spins)
                 this.consumeSpin().then(({ idx, prizes }) => {
                     // Đồng bộ bánh xe nếu admin vừa đổi ô
                     if (prizes.map(p => p.id).join() !== State.prizes.map(p => p.id).join()) { State.prizes = prizes; this.drawGraphics(); }
@@ -906,17 +859,43 @@ html.qd-lite .qd-fx { display: none !important; }
                     const maxOffset = (sliceDeg / 2) - 4; 
                     const randomOffset = (Math.random() * (maxOffset * 2)) - maxOffset;
 
-                    // Giảm tốc êm vào đúng ô trúng (khoảng 2,6 - 3,5 giây)
-                    return spin.land(finalDeg + randomOffset).then((deg) => {
-                        this.currentRotation = deg;
+                    let currentMod = this.currentRotation % 360;
+                    let rotateAmount = finalDeg - currentMod;
+                    if (rotateAmount < 0) rotateAmount += 360; 
+                    
+                    rotateAmount += (360 * spinsCount) + randomOffset;
+                    this.currentRotation += rotateAmount;
+
+                    this.canvas.style.transform = `rotate(${this.currentRotation}deg)`;
+
+                    // Tick Sound Loop
+                    let start = null;
+                    const animateTick = (time) => {
+                        if (!start) start = time;
+                        const progress = time - start;
+                        
+                        const currentGoc = (progress / 5000) * rotateAmount; 
+                        const curIdx = Math.floor(currentGoc / sliceDeg);
+                        
+                        if(curIdx !== this.lastTickIndex) { 
+                            Sound.playTick(); 
+                            this.lastTickIndex = curIdx; 
+                        }
+                        
+                        if(progress < 5000) requestAnimationFrame(animateTick);
+                    };
+                    requestAnimationFrame(animateTick);
+
+                    // Hiển thị kết quả sau 5s
+                    setTimeout(() => {
                         this.isSpinning = false;
                         this.spinBtn.disabled = false;
                         this.spinBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> BẮT ĐẦU QUAY`;
+
                         this.processResult(winningIndex);
-                    });
+                    }, 5000);
 
                 }).catch(err => {
-                    spin.stop().then(deg => { this.currentRotation = deg; });
                     if (err && err.code === 'CLOSED') Utils.toast("Vòng quay vừa đóng cửa, lượt quay của bạn không bị trừ.", "warning");
                     else if (err && err.code === 'NOSPIN') Utils.toast("Bạn đã hết lượt quay!", "warning");
                     else Utils.toast("Lỗi xác thực dữ liệu lượt quay với máy chủ. Vui lòng thử lại sau.", "error");
@@ -1235,7 +1214,7 @@ const QVis = {
                 try {
                     // Giao dịch: chỉ người ghi thành công ĐẦU TIÊN được xác thực câu hỏi
                     await db.runTransaction(async (tx) => {
-                        const [snap, c] = await Promise.all([tx.get(ref), tx.get(cfgRef)]);
+                        const snap = await tx.get(ref), c = await tx.get(cfgRef);
                         if (Wheel.closedBy(c.exists ? c.data() : {})) throw { code: 'CLOSED' };
                         const d = snap.exists ? snap.data() : null;
                         if (!d || d.active === false) throw { code: 'GONE' };
