@@ -998,5 +998,172 @@ html.qd-lite .qd-fx { display: none !important; }
     })();
     </script>
 
+    <!-- ===== QD TẾT MUSIC: nhạc nền Tết dùng chung (mọi trang trừ admin; user.html có trình phát riêng) ===== -->
+    <script id="qd-music-js">
+    /* - Vào trang tự bật nhạc Tết (mặc định Bật). Trình duyệt chặn tự phát -> phát ở lần chạm / bấm phím đầu tiên
+       - 4 bài: mặc định tự chuyển bài lần lượt; chọn lặp 1 bài trong Cài đặt của trang user (qd_music_track: 'auto' | '0'..'3')
+       - Dùng chung cài đặt với trang user: qd_music_on ('0' = tắt), qd_music_vol (0-100, mặc định 50)
+       - Chuyển trang -> nghe tiếp đúng đoạn đang phát; ẩn tab -> tạm dừng, quay lại -> phát tiếp
+       - Nút tròn góc trái dưới: bấm để Bật / Tắt nhạc */
+    (function () {
+        'use strict';
+        if (window.QDMusic || document.getElementById('bg-music')) return;
+        try { if (window.top !== window && /admin\.html/i.test(window.top.location.pathname)) return; } catch (e) {}
+        var d = document, W = window;
+        var TRACKS = [
+            { src: 'nhac-tet.mp3', name: 'Xuân Về Phơi Phới' },
+            { src: 'nhac-tet-2.mp3', name: 'Xuân Rộn Ràng' },
+            { src: 'nhac-tet-3.mp3', name: 'Lân Về Phố' },
+            { src: 'nhac-tet-4.mp3', name: 'Sum Vầy Ngày Xuân' }
+        ];
+        function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+        function readVol() { var v = parseInt(ls('qd_music_vol'), 10); return isNaN(v) ? 50 : Math.min(100, Math.max(0, v)); }
+        function readMode() { var m = ls('qd_music_track'); return m != null && m !== '' && TRACKS[+m] ? String(+m) : 'auto'; }
+        var M = W.QDMusic = { tracks: TRACKS, mode: readMode(), idx: 0, enabled: ls('qd_music_on') !== '0', vol: readVol(), active: false, waiting: false, el: null, btn: null, ctx: null, gain: null, useGain: false };
+
+        var CSS = '#qd-music-btn{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(16px,calc(env(safe-area-inset-bottom) + 10px));z-index:9990;width:46px;height:46px;padding:0;border-radius:50%;border:2px solid #ffd95a;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#ffd95a;background:radial-gradient(circle at 35% 30%,#e3262d,#a10b12 58%,#6a0000);box-shadow:0 6px 18px rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent;transition:transform .2s;font-family:"Be Vietnam Pro","Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}'
+            + '#qd-music-btn:active{transform:scale(.9)}#qd-music-btn:focus-visible{outline:3px solid rgba(255,217,90,.6);outline-offset:3px}'
+            + '#qd-music-btn svg{width:22px;height:22px;display:block}'
+            + '.qd-mu-ring{position:absolute;inset:-6px;border-radius:50%;border:2px dashed rgba(255,217,90,.75);opacity:0;pointer-events:none;transition:opacity .3s}'
+            + '#qd-music-btn.on .qd-mu-ring{opacity:1;animation:qdMuSpin 8s linear infinite}'
+            + '#qd-music-btn.wait .qd-mu-ring{opacity:1;border-style:solid;animation:qdMuPing 1.6s ease-out infinite}'
+            + '.qd-mu-eq{display:none;gap:3px;align-items:flex-end;height:18px}.qd-mu-eq i{display:block;width:4px;height:18px;border-radius:2px;background:#ffd95a;transform-origin:50% 100%;animation:qdMuEq .9s ease-in-out infinite}'
+            + '.qd-mu-eq i:nth-child(2){animation-delay:-.3s}.qd-mu-eq i:nth-child(3){animation-delay:-.6s}'
+            + '#qd-music-btn.on .qd-mu-eq{display:flex}#qd-music-btn.on .qd-mu-note{display:none}.qd-mu-x{display:none}#qd-music-btn.off .qd-mu-x{display:inline}#qd-music-btn.off{opacity:.8}'
+            + '.qd-mu-tip{position:absolute;left:58px;top:50%;transform:translateY(-50%);white-space:nowrap;padding:8px 13px;border-radius:999px;font-size:12.5px;font-weight:800;line-height:1;color:#7a0000;background:linear-gradient(135deg,#fff6c8,#ffd95a 55%,#e9a91c);box-shadow:0 6px 16px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .35s}'
+            + '#qd-music-btn.tip .qd-mu-tip{opacity:1}'
+            + '@keyframes qdMuSpin{to{transform:rotate(360deg)}}@keyframes qdMuEq{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}@keyframes qdMuPing{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.35);opacity:0}}'
+            + '@media (prefers-reduced-motion:reduce){#qd-music-btn *{animation:none!important}}';
+        var ICON = '<span class="qd-mu-ring" aria-hidden="true"></span>'
+            + '<svg class="qd-mu-note" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13" /><circle cx="6" cy="18" r="3" fill="currentColor" /><circle cx="17" cy="16" r="3" fill="currentColor" /><path class="qd-mu-x" d="M3 3l18 18" stroke="#fff6c8" stroke-width="2.6" /></svg>'
+            + '<span class="qd-mu-eq" aria-hidden="true"><i></i><i></i><i></i></span>'
+            + '<span class="qd-mu-tip"></span>';
+
+        function ui() {
+            var b = M.btn; if (!b) return;
+            var on = !!(M.el && !M.el.paused);
+            b.classList.toggle('on', on);
+            b.classList.toggle('wait', !on && M.waiting);
+            b.classList.toggle('off', !on && !M.waiting);
+            b.setAttribute('aria-label', on ? 'Tắt nhạc nền' : 'Bật nhạc nền');
+            b.title = on ? 'Tắt nhạc nền' : 'Bật nhạc nền';
+            if (on && M.waiting === false && shown === M.idx && b.querySelector('.qd-mu-tip').textContent.indexOf('Chạm') >= 0) b.classList.remove('tip');
+        }
+        // Gán bài thứ i (không tự phát)
+        function setTrack(i) {
+            var n = TRACKS.length; i = ((i % n) + n) % n;
+            M.idx = i; M.el.loop = M.mode !== 'auto';
+            var url = new URL(TRACKS[i].src, location.href).href;
+            if (M.el.src !== url) M.el.src = url;
+            ls('qd_music_last', String(i));
+        }
+        M.next = function () { var on = !M.el.paused || M.active; setTrack(M.idx + 1); if (on && M.enabled) M.play(true); };
+        function vol(v) {
+            var x = Math.min(100, Math.max(0, v)) / 100; x = x * x;   // 50% -> 25%: nghe tự nhiên hơn
+            if (M.gain) { try { M.gain.gain.setTargetAtTime(x, M.ctx.currentTime, 0.03); } catch (e) { M.gain.gain.value = x; } M.el.volume = 1; }
+            else if (M.el) M.el.volume = x;
+        }
+        var fadeT = 0;
+        function fadeIn() {
+            var t0 = performance.now(); clearInterval(fadeT); vol(0);
+            fadeT = setInterval(function () { var k = Math.min(1, (performance.now() - t0) / 1200); vol(M.vol * k); if (k >= 1) clearInterval(fadeT); }, 50);
+        }
+        // iPhone/iPad không cho JS chỉnh audio.volume -> đi qua Web Audio (phải tạo trong lúc người dùng chạm)
+        function setupGain() {
+            if (!M.useGain || M.gain) return;
+            try {
+                var AC = W.AudioContext || W.webkitAudioContext; M.ctx = new AC();
+                var src = M.ctx.createMediaElementSource(M.el); M.gain = M.ctx.createGain();
+                src.connect(M.gain); M.gain.connect(M.ctx.destination); vol(M.vol);
+            } catch (e) { M.useGain = false; M.gain = null; }
+        }
+        var GEST = ['touchend', 'click', 'keydown', 'mousedown'], tipT = 0, shown = -1;
+        function tip(text, ms) {
+            var b = M.btn; if (!b) return;
+            b.querySelector('.qd-mu-tip').textContent = text;
+            clearTimeout(tipT); b.classList.add('tip'); tipT = setTimeout(function () { b.classList.remove('tip'); }, ms);
+        }
+        function wait() {
+            if (M.waiting) return; M.waiting = true; ui();
+            tip('🎵 Chạm để bật nhạc Tết', 6000);
+            GEST.forEach(function (ev) { d.addEventListener(ev, go, true); });
+        }
+        function go(e) {
+            if (e && e.target && e.target.closest && e.target.closest('#qd-music-btn')) return;   // bấm nút: để nút tự xử lý
+            GEST.forEach(function (ev) { d.removeEventListener(ev, go, true); });
+            M.waiting = false;
+            if (M.enabled && M.active && M.el.paused) M.play(true); else ui();
+        }
+        M.play = function (gesture) {
+            var el = M.el; M.active = true;
+            if (d.hidden) { M.hid = true; return; }
+            if (M.useGain && !M.gain) { if (!gesture) return wait(); setupGain(); }
+            if (M.ctx && M.ctx.state !== 'running') { try { M.ctx.resume(); } catch (e) {} }
+            if (!el.paused) return ui();
+            fadeIn();
+            var p = el.play();
+            if (p && p.then) p.then(function () {
+                M.waiting = false; GEST.forEach(function (ev) { d.removeEventListener(ev, go, true); }); ui();
+            }, function (err) {
+                if (err && err.name === 'NotAllowedError') { M.waiting = false; return wait(); }
+                M.active = false; ui();
+            });
+        };
+        M.stop = function () { M.active = false; clearInterval(fadeT); if (M.el) M.el.pause(); ui(); };
+        M.toggle = function () {
+            if (M.el.paused) { M.enabled = true; ls('qd_music_on', '1'); M.play(true); }
+            else { M.enabled = false; ls('qd_music_on', '0'); M.stop(); }
+        };
+
+        function boot() {
+            var st = d.createElement('style'); st.id = 'qd-music-css'; st.textContent = CSS; d.head.appendChild(st);
+            var el = M.el = d.createElement('audio');
+            el.id = 'qd-music'; el.preload = 'auto'; el.setAttribute('playsinline', '');
+            // chọn bài: nghe tiếp bài của trang trước; lần đầu ở chế độ tự động -> bài sau bài nghe lần trước
+            var sp = null; try { sp = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'); } catch (e) {}
+            var start = 0;
+            if (M.mode !== 'auto') start = +M.mode;
+            else if (sp && TRACKS[sp.i] && Date.now() - sp.at < 15000) start = sp.i;
+            else { var last = parseInt(ls('qd_music_last'), 10); start = isNaN(last) ? 0 : last + 1; }
+            setTrack(start);
+            el.addEventListener('ended', function () { if (M.mode === 'auto') M.next(); });
+            el.addEventListener('playing', function () { if (shown !== M.idx) { shown = M.idx; tip('🎵 ' + TRACKS[M.idx].name, 3500); } });
+            var b = M.btn = d.createElement('button');
+            b.type = 'button'; b.id = 'qd-music-btn'; b.innerHTML = ICON;
+            b.addEventListener('click', function (e) { e.stopPropagation(); M.toggle(); });
+            d.body.appendChild(el); d.body.appendChild(b);
+            try { var t = new Audio(); t.volume = 0.5; M.useGain = Math.abs(t.volume - 0.5) > 0.01 && !!(W.AudioContext || W.webkitAudioContext); } catch (e) {}
+            vol(M.vol);
+            el.addEventListener('play', ui); el.addEventListener('pause', ui);
+            el.addEventListener('error', function () { M.active = false; M.waiting = false; if (M.btn) M.btn.style.display = 'none'; });
+            // nghe tiếp đoạn nhạc từ trang trước
+            el.addEventListener('loadedmetadata', function () {
+                try {
+                    var s = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'), du = el.duration;
+                    if (s && s.i === M.idx && du && isFinite(du) && Date.now() - s.at < 15000) { el.currentTime = Math.min(s.t + (Date.now() - s.at) / 1000, du - 0.5); shown = M.idx; }
+                } catch (e) {}
+            }, { once: true });
+            W.addEventListener('pagehide', function () {
+                try { if (!el.paused) sessionStorage.setItem('qd_music_pos', JSON.stringify({ i: M.idx, t: el.currentTime, at: Date.now() })); else sessionStorage.removeItem('qd_music_pos'); } catch (e) {}
+            });
+            d.addEventListener('visibilitychange', function () {
+                if (d.hidden) { if (!el.paused) { M.hid = true; el.pause(); } return; }
+                if (M.hid) { M.hid = false; if (M.enabled && M.active) M.play(false); }
+            });
+            // đổi âm lượng / bật tắt ở tab khác (trang user) -> áp dụng ngay
+            W.addEventListener('storage', function (e) {
+                if (e.key === 'qd_music_vol') { M.vol = readVol(); clearInterval(fadeT); vol(M.vol); }
+                else if (e.key === 'qd_music_on') { M.enabled = e.newValue !== '0'; if (!M.enabled) M.stop(); }
+                else if (e.key === 'qd_music_track') {
+                    M.mode = readMode(); el.loop = M.mode !== 'auto';
+                    if (M.mode !== 'auto' && +M.mode !== M.idx) { var on = !el.paused; setTrack(+M.mode); if (on) M.play(true); }
+                }
+            });
+            ui();
+            if (M.enabled) M.play(false);   // mặc định: vào trang là bật nhạc
+        }
+        if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+    })();
+    </script>
 </body>
 </html>

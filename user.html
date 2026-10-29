@@ -9143,6 +9143,157 @@ html.qd-lite .qd-fx { display: none !important; }
     if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
 })();
     </script>
+    <!-- ===== KÉO BÚA BAO: giao diện Tết ===== -->
+    <style id="rps2-css">
+/* Ô "Kéo Búa Bao" ở trang chủ (cùng khung với Vòng Quay / Rút Lì Xì) */
+.rps-mini { display: flex; gap: 10px; }
+.rps-mini span { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; line-height: 1;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.18), rgba(0,0,0,.3)); border: 2px solid rgba(255,215,0,.65); box-shadow: 0 6px 12px rgba(0,0,0,.35);
+    animation: rpsMiniPump 1.8s ease-in-out infinite; }
+.rps-mini span:nth-child(2) { animation-delay: .25s; } .rps-mini span:nth-child(3) { animation-delay: .5s; }
+.wheel-tab.rps-tab:hover .rps-mini span { animation-duration: .8s; }
+.wheel-tab.rps-tab[data-state="locked"] .rps-mini { filter: grayscale(.85) brightness(.7); }
+.wheel-tab.rps-tab[data-state="locked"] .rps-mini span { animation: none; }
+.wheel-tab.rps-tab.in-game .wheel-badge { background: #ff0844; border-color: #ffd700; color: #fff; }
+@keyframes rpsMiniPump { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-7px) rotate(-8deg); } 60% { transform: translateY(0) rotate(4deg); } }
+
+/* Trang đấu trường */
+.rps2 { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; color: #fff; }
+.rps2 [hidden] { display: none !important; }
+.rps2-top { display: flex; align-items: center; gap: 12px; }
+.rps2-back { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,215,0,.7); background: rgba(0,0,0,.28); color: #ffd700;
+    font: 800 26px/1 system-ui, sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 0 3px; }
+.rps2-back:hover { background: rgba(255,215,0,.15); }
+.rps2-headline { min-width: 0; flex: 1 1 auto; }
+.rps2-sfx { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,215,0,.7); background: rgba(0,0,0,.28); font-size: 19px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+.rps2-sfx:hover { background: rgba(255,215,0,.15); } .rps2-sfx.off { opacity: .65; border-style: dashed; }
+.rps2-headline h1 { margin: 0; font-size: clamp(20px, 5.4vw, 28px); font-weight: 900; color: #ffd700; line-height: 1.2; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.rps2-headline p { margin: 3px 0 0; font-size: 13px; color: #fef08a; font-weight: 600; }
+.rps2-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rps2-chips span { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: rgba(0,0,0,.3); border: 1px solid rgba(255,215,0,.45); color: #fef08a; white-space: nowrap; }
+.rps2-chips b { color: #fff; } .rps2-chips .ok b { color: #86efac; } .rps2-chips .bad b { color: #fca5a5; }
+.rps2-card { position: relative; overflow: hidden; border-radius: 24px; padding: 22px 18px; text-align: center;
+    background: radial-gradient(120% 90% at 50% 0%, var(--bg-elevated) 0%, var(--bg-body) 100%);
+    border: 2px solid rgba(255,215,0,.7); box-shadow: 0 10px 28px rgba(0,0,0,.4), inset 0 0 22px rgba(255,215,0,.12); }
+.rps2-card::before { content: ''; position: absolute; inset: 7px; border-radius: 18px; border: 1px dashed rgba(255,215,0,.32); pointer-events: none; }
+
+/* Sảnh chờ */
+.rps2-hands { display: flex; justify-content: center; gap: 14px; margin: 4px 0 14px; }
+.rps2-hands span { width: 74px; height: 74px; border-radius: 50%; font-size: 38px; line-height: 1; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 35% 30%, #fff6b0, #ffd700 55%, #d99a00); box-shadow: 0 8px 16px rgba(0,0,0,.4), inset 0 -4px 0 rgba(0,0,0,.15);
+    animation: rpsChant 1.2s ease-in-out infinite; }
+.rps2-hands span:nth-child(2) { animation-delay: .15s; } .rps2-hands span:nth-child(3) { animation-delay: .3s; }
+@keyframes rpsChant { 0%, 100% { transform: translateY(0); } 25% { transform: translateY(-10px); } 50% { transform: translateY(0); } }
+.rps2-lobby h2 { font-size: 18px; color: #ffd700; margin: 0 0 6px; font-weight: 900; }
+.rps2-bal { margin: 0 0 16px; color: #fef08a; font-weight: 600; font-size: 14px; }
+.rps2-bal b { color: #fff; font-size: 20px; }
+.rps2-go { appearance: none; border: 2px solid #fff6c8; border-radius: 999px; padding: 15px 24px; width: 100%; max-width: 360px; font: inherit; font-weight: 900; font-size: 16px; line-height: 1.1;
+    letter-spacing: .5px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 45%, #e9a91c); box-shadow: 0 8px 20px rgba(0,0,0,.35), 0 0 0 4px rgba(255,215,0,.18);
+    cursor: pointer; transition: transform .15s, filter .15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.rps2-go:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.05); }
+.rps2-go:disabled { cursor: not-allowed; filter: grayscale(.55) brightness(.85); }
+.rps2-ghost { background: transparent; color: #fef08a; border-color: rgba(254,240,138,.6); box-shadow: none; }
+.rps2-note { margin: 10px 0 0; font-size: 12.5px; color: #fde68a; }
+.rps2-rules { list-style: none; padding: 0; margin: 16px 0 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; }
+.rps2-rules li { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 10px; background: rgba(0,0,0,.25); color: #fff; }
+.rps2-spin { width: 16px; height: 16px; border-radius: 50%; border: 3px solid rgba(122,0,0,.25); border-top-color: #7a0000; animation: rpsSpin .8s linear infinite; }
+@keyframes rpsSpin { to { transform: rotate(360deg); } }
+
+/* Bảng tỉ số */
+.rps2-board { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.rps2-pl { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.rps2-pl b { font-size: 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rps2-avt { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; color: #7a0000;
+    background: radial-gradient(circle at 35% 30%, #fff6b0, #ffd700 60%, #d99a00); border: 2px solid #fff6c8; box-shadow: 0 4px 10px rgba(0,0,0,.35); }
+.rps2-pl.opp .rps2-avt { background: radial-gradient(circle at 35% 30%, #ffd0d0, #ef4444 60%, #991b1b); color: #fff; border-color: #fecaca; }
+.rps2-pips { display: flex; gap: 5px; }
+.rps2-pips i { width: 13px; height: 13px; border-radius: 50%; border: 2px solid rgba(255,215,0,.6); background: rgba(0,0,0,.3); transition: background .3s, box-shadow .3s; }
+.rps2-pips i.on { background: #ffd700; box-shadow: 0 0 8px #ffd700; }
+.rps2-mid { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.rps2-round { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fef08a; background: rgba(0,0,0,.3); padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.rps2-score { font-size: 30px; font-weight: 900; font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.4); white-space: nowrap; }
+.rps2-bo { font-size: 10.5px; color: #fde68a; white-space: nowrap; }
+
+/* Đồng hồ đếm ngược */
+.rps2-timer { margin-top: 12px; display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13px; color: #fff; font-variant-numeric: tabular-nums; }
+.rps2-timer .bar { flex: 1; height: 8px; border-radius: 999px; background: rgba(0,0,0,.35); overflow: hidden; }
+.rps2-timer .bar i { display: block; height: 100%; width: 100%; transform-origin: left center; transform: scaleX(var(--p, 1)); transition: transform .25s linear;
+    background: linear-gradient(90deg, #ef4444, #facc15 45%, #22c55e); }
+.rps2-timer.urgent { color: #fecaca; }
+.rps2-timer.urgent .bar { animation: rpsBlink .5s steps(2) infinite; }
+@keyframes rpsBlink { 50% { background: rgba(239,68,68,.45); } }
+
+/* Hai ô ra chiêu */
+.rps2-arena { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin: 16px 0 12px; }
+.rps2-slot { aspect-ratio: 1 / 1; max-width: 170px; width: 100%; justify-self: center; box-sizing: border-box; border-radius: 22px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px; padding: 6px; background: rgba(0,0,0,.28); border: 2px dashed rgba(255,215,0,.45);
+    transition: transform .25s, box-shadow .25s, border-color .25s, opacity .25s, filter .25s; }
+.rps2-hand { display: block; font-size: clamp(46px, 14vw, 70px); line-height: 1; filter: drop-shadow(0 6px 8px rgba(0,0,0,.4)); }
+.rps2-slot.opp .rps2-hand { scale: -1 1; }   /* 2 bàn tay quay mặt vào nhau */
+.rps2-slot small { font-size: 12px; font-weight: 700; color: #fef08a; line-height: 1.25; }
+.rps2-slot.locked { border-style: solid; border-color: #ffd700; box-shadow: inset 0 0 18px rgba(255,215,0,.35); }
+.rps2-slot.win { border-style: solid; border-color: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.35), 0 0 26px rgba(74,222,128,.45); transform: scale(1.05); }
+.rps2-slot.lose { opacity: .55; filter: grayscale(.5); }
+.rps2-slot.draw { border-style: solid; border-color: #facc15; }
+.rps2-slot.thinking .rps2-hand { animation: rpsThink 1.4s ease-in-out infinite; }
+.rps2-slot.shake .rps2-hand { animation: rpsShake .8s ease-in-out; }
+.rps2-slot.reveal .rps2-hand { animation: rpsPop .45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes rpsShake { 0%, 100% { transform: translateY(0) rotate(0); } 20%, 60% { transform: translateY(-16px) rotate(-12deg); } 40%, 80% { transform: translateY(4px) rotate(6deg); } }
+@keyframes rpsThink { 0%, 100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.08); opacity: 1; } }
+@keyframes rpsPop { from { transform: scale(.3); opacity: 0; } }
+.rps2-vs { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-style: italic; font-size: 15px; color: #7a0000;
+    background: radial-gradient(circle at 35% 30%, #fff6b0, #ffd700 60%, #d99a00); box-shadow: 0 0 0 4px rgba(255,215,0,.2), 0 6px 14px rgba(0,0,0,.4); }
+
+.rps2-status { padding: 10px 14px; border-radius: 14px; font-weight: 800; font-size: 14px; line-height: 1.35; background: rgba(0,0,0,.3); color: #fef08a; border: 1px solid rgba(255,215,0,.3); }
+.rps2-status.good { color: #bbf7d0; border-color: rgba(74,222,128,.6); background: rgba(22,101,52,.45); }
+.rps2-status.bad { color: #fecaca; border-color: rgba(248,113,113,.6); background: rgba(127,29,29,.45); }
+.rps2-status.warn { color: #fde68a; border-color: rgba(250,204,21,.7); background: rgba(113,63,18,.45); }
+
+/* Ba nút ra chiêu */
+.rps2-picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.rps2-pick { appearance: none; border: 2px solid rgba(255,215,0,.7); border-radius: 18px; padding: 12px 6px 10px; font: inherit; color: #fff; cursor: pointer;
+    background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(0,0,0,.25)), var(--bg-surface); display: flex; flex-direction: column; align-items: center; gap: 4px;
+    box-shadow: 0 6px 0 rgba(0,0,0,.35); transition: transform .15s, box-shadow .15s, border-color .15s, opacity .2s; -webkit-tap-highlight-color: transparent; }
+.rps2-pick span { font-size: 38px; line-height: 1.1; }
+.rps2-pick b { font-size: 14px; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; color: #ffd700; }
+.rps2-pick:hover:not(:disabled) { transform: translateY(-3px); border-color: #fff6c8; box-shadow: 0 9px 0 rgba(0,0,0,.35), 0 0 18px rgba(255,215,0,.35); }
+.rps2-pick:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,.35); }
+.rps2-pick:disabled { cursor: default; opacity: .4; }
+.rps2-pick.selected { opacity: 1; border-color: #4ade80; background: linear-gradient(180deg, rgba(74,222,128,.28), rgba(0,0,0,.25)), var(--bg-surface); box-shadow: 0 0 0 3px rgba(74,222,128,.35), 0 6px 0 rgba(0,0,0,.35); }
+.rps2-picks.ready .rps2-pick { animation: rpsReady 1.6s ease-in-out infinite; }
+.rps2-picks.ready .rps2-pick:nth-child(2) { animation-delay: .2s; } .rps2-picks.ready .rps2-pick:nth-child(3) { animation-delay: .4s; }
+@keyframes rpsReady { 0%, 100% { border-color: rgba(255,215,0,.7); } 50% { border-color: #fff6c8; } }
+.rps2-leave { margin-top: 14px; background: none; border: 1px solid rgba(254,240,138,.5); color: #fef08a; border-radius: 999px; padding: 9px 18px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }
+.rps2-leave:hover { background: rgba(0,0,0,.25); }
+
+/* Bảng kết quả */
+#modal-rps-result .rps2-result { text-align: center; max-width: 380px; padding: 28px 22px 22px; overflow: hidden; color: #fff;
+    background: radial-gradient(120% 90% at 50% 0%, var(--bg-elevated), var(--bg-body)); border: 2px solid #ffd700; }
+.rps2-res-ico { font-size: 72px; line-height: 1; margin-bottom: 8px; animation: rpsPop .6s cubic-bezier(.2, 1.6, .4, 1); }
+.rps2-result h2 { margin: 0 0 2px; font-size: 26px; font-weight: 900; color: #ffd700; text-transform: uppercase; }
+.rps2-result.lose h2 { color: #fecaca; }
+.rps2-res-score { font-size: 34px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+.rps2-result p { color: #fef08a; font-weight: 600; margin: 4px 0 12px; font-size: 14px; line-height: 1.45; }
+.rps2-res-pts { display: inline-block; padding: 8px 16px; border-radius: 999px; font-weight: 900; font-size: 18px; margin-bottom: 16px; background: rgba(22,101,52,.5); color: #bbf7d0; border: 1px solid #4ade80; }
+.rps2-result.lose .rps2-res-pts { background: rgba(127,29,29,.5); color: #fecaca; border-color: #f87171; }
+.rps2-res-btns { display: flex; gap: 8px; } .rps2-res-btns .rps2-go { padding: 13px 8px; font-size: 14px; }
+.rps2-res-auto { font-size: 11.5px; color: #fde68a; opacity: .85; margin: 10px 0 0 !important; }
+.rps2-fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.rps2-fx i { position: absolute; top: -30px; font-style: normal; font-size: 22px; animation: rpsFall 1.8s ease-in forwards; }
+@keyframes rpsFall { to { transform: translateY(460px) rotate(300deg); opacity: 0; } }
+
+/* Điện thoại: chừa chỗ cho đèn lồng trang trí ở 2 góc trên (thanh trên cùng bị ẩn ở trang này) */
+@media (max-width: 1023px) { .rps2 { padding-top: 64px; } }
+@media (max-width: 420px) {
+    .rps2-card { padding: 18px 12px; }
+    .rps2-hands span { width: 64px; height: 64px; font-size: 32px; }
+    .rps2-pick span { font-size: 32px; } .rps2-pick b { font-size: 13px; }
+    .rps2-score { font-size: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rps-mini span, .rps2-hands span, .rps2-slot .rps2-hand, .rps2-picks.ready .rps2-pick, .rps2-fx i, .rps2-res-ico { animation: none !important; }
+}
+    </style>
 </head>
 <body>
     <!-- LỒNG ĐÈN TẾT -->
@@ -9339,16 +9490,18 @@ html.qd-lite .qd-fx { display: none !important; }
     </div>
 
     <div class="modal-overlay" id="modal-rps-result" style="z-index: 999999;">
-        <div class="modal-box text-center" style="max-width: 380px; padding: 32px 24px; border-radius: var(--radius-xl);">
-            <div class="flex-center mx-auto mb-4" id="rps-result-icon" style="width: 80px; height: 80px; border-radius: 50%; font-size: 36px; display: flex; align-items: center; justify-content: center;">
-                <i class="fa-solid fa-fire text-warning fa-bounce"></i>
+        <div class="modal-box rps2-result" id="rps2-result-box">
+            <div class="rps2-fx qd-fx" id="rps2-fx" aria-hidden="true"></div>
+            <div class="rps2-res-ico" id="rps-result-icon">🏆</div>
+            <h2 id="rps-result-title">KẾT THÚC!</h2>
+            <div class="rps2-res-score" id="rps2-res-score">0 : 0</div>
+            <p id="rps-result-desc">Đang tải kết quả...</p>
+            <div class="rps2-res-pts" id="rps2-res-pts">0 điểm lì xì</div>
+            <div class="rps2-res-btns">
+                <button type="button" class="rps2-go rps2-ghost" id="btn-rps-result-close" onclick="window.RPSGame.leaveRoom('quiet')">Về sảnh</button>
+                <button type="button" class="rps2-go" onclick="window.RPSGame.playAgain()">⚔️ Đấu tiếp</button>
             </div>
-            <h2 class="text-2xl mb-2 font-bold uppercase" id="rps-result-title">KẾT THÚC!</h2>
-            <p class="text-main font-bold text-md mb-2" id="rps-result-desc">Đang tải kết quả...</p>
-            <p class="text-muted text-xs mb-6 bg-elevated py-2 rounded-md" style="background: var(--bg-body); color: var(--text-muted);">Hệ thống tự động thoát sau 5 giây...</p>
-            <button class="btn w-full" id="btn-rps-result-close" style="padding: 14px; font-size: 15px;" onclick="window.RPSGame.leaveRoom()">
-                <i class="fa-solid fa-right-from-bracket mr-2"></i> THOÁT PHÒNG
-            </button>
+            <p class="rps2-res-auto">Tự về sảnh sau <b id="rps2-res-cd">8</b> giây...</p>
         </div>
     </div>
 
@@ -9420,9 +9573,38 @@ html.qd-lite .qd-fx { display: none !important; }
                                oninput="window.Music.setVolume(this.value)" onchange="window.Music.setVolume(this.value, true)">
                         <span class="qd-vol-val" id="music-vol-val">50%</span>
                     </div>
-                    <div class="text-sm text-muted" style="margin-top: 8px;">Âm lượng và trạng thái Bật/Tắt được lưu lại cho lần đăng nhập sau.</div>
+                    <div class="qd-trk-box">
+                        <div class="qd-trk-head">
+                            <span class="qd-trk-title"><i class="fa-solid fa-compact-disc"></i> Bài nhạc</span>
+                            <button type="button" class="qd-trk-next" onclick="window.Music.next(true)"><i class="fa-solid fa-forward-step"></i> Bài tiếp</button>
+                        </div>
+                        <div class="qd-trk-list" id="music-tracks"></div>
+                    </div>
+                    <div class="text-sm text-muted" style="margin-top: 8px;">Âm lượng, bài nhạc và trạng thái Bật/Tắt được lưu lại và dùng chung cho mọi trang.</div>
                 </div>
                 <style>
+                    .qd-trk-box { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-strong); }
+                    .qd-trk-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+                    .qd-trk-title { font-weight: 800; font-size: 14px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+                    .qd-trk-title i { color: var(--brand-primary); }
+                    .qd-trk-next { border: 1px solid var(--border-strong); background: transparent; color: var(--text-main); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+                    .qd-trk-next i { color: var(--brand-primary); }
+                    .qd-trk-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+                    .qd-trk { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-main); font: inherit; text-align: left; cursor: pointer; transition: border-color .2s, background-color .2s; }
+                    .qd-trk.auto { grid-column: 1 / -1; }
+                    .qd-trk-n { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: var(--brand-primary); border: 1px solid var(--border-strong); }
+                    .qd-trk-t { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+                    .qd-trk-t b { font-size: 13.5px; font-weight: 800; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                    .qd-trk-t small { font-size: 11.5px; line-height: 1.3; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                    .qd-trk.sel { border-color: var(--brand-primary); background: rgba(128,128,128,.10); box-shadow: inset 0 0 0 1px var(--brand-primary); }
+                    .qd-trk.sel .qd-trk-n { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary); }
+                    .qd-trk-eq { display: none; position: absolute; right: 10px; top: 10px; gap: 2px; align-items: flex-end; height: 12px; }
+                    .qd-trk-eq i { display: block; width: 3px; height: 12px; border-radius: 2px; background: var(--brand-primary); transform-origin: 50% 100%; animation: qdTrkEq .9s ease-in-out infinite; }
+                    .qd-trk-eq i:nth-child(2) { animation-delay: -.3s; } .qd-trk-eq i:nth-child(3) { animation-delay: -.6s; }
+                    .qd-trk.now .qd-trk-eq { display: flex; }
+                    .qd-trk.now .qd-trk-t { padding-right: 16px; }
+                    @keyframes qdTrkEq { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+                    @media (max-width: 560px) { .qd-trk-list { grid-template-columns: 1fr; } .qd-trk { padding: 9px 12px; } }
                     .qd-vol { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-strong); }
                     .qd-vol-ico { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-strong); background: transparent; color: var(--brand-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; }
                     .qd-vol-val { flex: 0 0 auto; min-width: 44px; text-align: right; font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--text-main); }
@@ -9675,6 +9857,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div class="nav-item" onclick="window.UI.navigate('attendance', this)"><i class="fa-solid fa-calendar-check"></i> <span>Điểm Danh </span></div>
                 <div class="nav-item" onclick="window.UI.navigate('news', this)"><i class="fa-solid fa-newspaper"></i> <span>Bản Tin Quân Đoàn</span></div>
                 <div class="nav-item" onclick="window.UI.navigate('tournament', this)"><i class="fa-solid fa-fire"></i> <span>Giải Đấu Máy Chủ</span></div>
+                <div class="nav-item" onclick="window.UI.navigate('rps', this)"><i class="fa-regular fa-hand-scissors"></i> <span>Kéo Búa Bao</span></div>
             </nav>
             
             <div class="sidebar-profile" onclick="window.UI.openModal('modal-profile')">
@@ -9795,6 +9978,15 @@ html.qd-lite .qd-fx { display: none !important; }
                             </div>
                             <div class="wheel-tab-stage"><div class="ln-mini" aria-hidden="true"><span>?</span><span id="ln-tab-ball">?</span><span>?</span></div></div>
                             <p class="wheel-msg" id="ln-tab-go">Chạm để chọn số ›</p>
+                        </button>
+
+                        <button type="button" class="wheel-tab rps-tab" id="rps-tab" data-state="open" onclick="window.RPSGame.openFromTab()" aria-label="Mở Đấu Trường Kéo Búa Bao" style="font: inherit;">
+                            <div class="wheel-head">
+                                <h3 class="wheel-title"><span aria-hidden="true">⚔️</span> Kéo Búa Bao</h3>
+                                <span class="wheel-badge" id="rps-tab-sub">Đang tải...</span>
+                            </div>
+                            <div class="wheel-tab-stage"><div class="rps-mini" aria-hidden="true"><span>✌️</span><span>✊</span><span>🖐️</span></div></div>
+                            <p class="wheel-msg" id="rps-tab-go">Chạm để vào đấu trường ›</p>
                         </button>
 
                     </div>
@@ -9942,53 +10134,66 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-rps" class="view-section">
-                    <div class="flex justify-between items-center mb-8">
-                        <div>
-                            <h1 class="text-3xl mb-2">Đấu Trường Kéo Búa Bao</h1>
-                            <p class="text-muted text-lg" id="rps-rules-text">Đang tải thể lệ phòng đấu...</p>
-                        </div>
-                    </div>
-
-                    <div class="card text-center flex-col items-center">
-                        <div id="rps-lobby" style="display: block;">
-                            <div style="font-size: 80px; color: var(--color-warning); margin-bottom: 20px;"><i class="fa-regular fa-hand-sparkles"></i></div>
-                            <h2 class="text-2xl mb-4">Sẵn sàng thử thách?</h2>
-                            <p class="text-muted mb-6">Bạn đang có <b class="text-success" id="rps-current-points">0</b> điểm lì xì.</p>
-                            <button class="btn btn-warning" style="padding: 16px 40px; font-size: 18px;" onclick="window.RPSGame.findMatch()" id="btn-find-match">
-                                <i class="fa-solid fa-magnifying-glass mr-2"></i> TÌM ĐỐI THỦ NGAY
-                            </button>
-                        </div>
-
-                        <div id="rps-gameplay" style="display: none; width: 100%; max-width: 600px; margin: 0 auto;">
-                            <div class="rps-arena">
-                                <div class="rps-players">
-                                    <div class="rps-player-card">
-                                        <div class="rps-avatar" id="rps-my-avt">U</div>
-                                        <span class="font-bold text-main" id="rps-my-name">Bạn</span>
-                                        <div class="rps-score" id="rps-my-score">0</div>
-                                    </div>
-                                    <div class="rps-vs">VS</div>
-                                    <div class="rps-player-card">
-                                        <div class="rps-avatar" style="border-color: var(--color-danger); color: var(--color-danger); background: var(--color-danger-bg);" id="rps-opp-avt">?</div>
-                                        <span class="font-bold text-main" id="rps-opp-name">Đang tìm...</span>
-                                        <div class="rps-score" style="color: var(--color-danger);" id="rps-opp-score">0</div>
-                                    </div>
-                                </div>
-
-                                <div class="text-center font-bold text-muted text-sm uppercase tracking-wide mt-4">
-                                    Vòng <span id="rps-round-num">1</span>/3
-                                    <span id="rps-timer-wrap" style="display: none;"> - <span id="rps-timer" class="text-danger font-bold text-lg" style="font-size: 18px;">10</span>s</span>
-                                </div>
-
-                                <div class="rps-controls" id="rps-controls">
-                                    <button class="rps-btn" id="btn-rock" onclick="window.RPSGame.makeChoice('rock')"><i class="fa-regular fa-hand-back-fist"></i></button>
-                                    <button class="rps-btn" id="btn-paper" onclick="window.RPSGame.makeChoice('paper')"><i class="fa-regular fa-hand"></i></button>
-                                    <button class="rps-btn" id="btn-scissors" onclick="window.RPSGame.makeChoice('scissors')"><i class="fa-regular fa-hand-sparkles"></i></button>
-                                </div>
-
-                                <div class="rps-status" id="rps-status-text">Đang kết nối vào phòng...</div>
+                    <div class="rps2">
+                        <div class="rps2-top">
+                            <button type="button" class="rps2-back" onclick="window.RPSGame.back()" aria-label="Về trang chủ">‹</button>
+                            <div class="rps2-headline">
+                                <h1>⚔️ Đấu Trường Kéo Búa Bao</h1>
+                                <p id="rps-rules-text">Đang tải thể lệ phòng đấu...</p>
                             </div>
-                            <button class="btn btn-outline mt-6" onclick="window.RPSGame.leaveRoom()">Thoát Phòng</button>
+                            <button type="button" class="rps2-sfx" id="rps2-sfx" onclick="window.RPSSound.toggle()" aria-label="Bật / tắt âm thanh trò chơi" aria-pressed="true">🔊</button>
+                        </div>
+                        <div class="rps2-chips" id="rps2-chips"></div>
+
+                        <!-- Sảnh chờ -->
+                        <div class="rps2-card rps2-lobby" id="rps-lobby">
+                            <div class="rps2-hands" aria-hidden="true"><span>✌️</span><span>✊</span><span>🖐️</span></div>
+                            <h2>Oẳn tù tì, ra cái gì ra cái này!</h2>
+                            <p class="rps2-bal">Điểm lì xì của bạn: <b id="rps-current-points">0</b></p>
+                            <button type="button" class="rps2-go" id="btn-find-match" onclick="window.RPSGame.findMatch()">⚔️ TÌM ĐỐI THỦ NGAY</button>
+                            <p class="rps2-note" id="rps2-lobby-note">Ghép trận tự động với người chơi đang chờ.</p>
+                            <ul class="rps2-rules">
+                                <li>✊ Búa thắng ✌️ Kéo</li><li>✌️ Kéo thắng 🖐️ Bao</li><li>🖐️ Bao thắng ✊ Búa</li>
+                            </ul>
+                        </div>
+
+                        <!-- Trận đấu -->
+                        <div class="rps2-card rps2-game" id="rps-gameplay" hidden>
+                            <div class="rps2-board">
+                                <div class="rps2-pl me">
+                                    <div class="rps2-avt" id="rps-my-avt">U</div>
+                                    <b id="rps-my-name">Bạn</b>
+                                    <div class="rps2-pips" id="rps-my-pips"><i></i><i></i></div>
+                                </div>
+                                <div class="rps2-mid">
+                                    <span class="rps2-round" id="rps-round-label">Hiệp 1</span>
+                                    <span class="rps2-score"><span id="rps-my-score">0</span> : <span id="rps-opp-score">0</span></span>
+                                    <span class="rps2-bo">Thắng 2 hiệp là thắng trận</span>
+                                </div>
+                                <div class="rps2-pl opp">
+                                    <div class="rps2-avt" id="rps-opp-avt">?</div>
+                                    <b id="rps-opp-name">Đang tìm...</b>
+                                    <div class="rps2-pips" id="rps-opp-pips"><i></i><i></i></div>
+                                </div>
+                            </div>
+
+                            <div class="rps2-timer" id="rps2-timer" hidden>⏱️ <div class="bar"><i id="rps2-timer-bar"></i></div> <span><span id="rps-timer">10</span>s</span></div>
+
+                            <div class="rps2-arena">
+                                <div class="rps2-slot me" id="rps2-slot-me"><span class="rps2-hand" id="rps2-hand-me">❔</span><small id="rps2-cap-me">Bạn</small></div>
+                                <div class="rps2-vs">VS</div>
+                                <div class="rps2-slot opp" id="rps2-slot-opp"><span class="rps2-hand" id="rps2-hand-opp">🔍</span><small id="rps2-cap-opp">Đang tìm đối thủ...</small></div>
+                            </div>
+
+                            <div class="rps2-status" id="rps-status-text" role="status" aria-live="polite">Đang kết nối vào phòng...</div>
+
+                            <div class="rps2-picks" id="rps-controls">
+                                <button type="button" class="rps2-pick" id="btn-scissors" onclick="window.RPSGame.makeChoice('scissors')" disabled><span>✌️</span><b>Kéo</b></button>
+                                <button type="button" class="rps2-pick" id="btn-rock" onclick="window.RPSGame.makeChoice('rock')" disabled><span>✊</span><b>Búa</b></button>
+                                <button type="button" class="rps2-pick" id="btn-paper" onclick="window.RPSGame.makeChoice('paper')" disabled><span>🖐️</span><b>Bao</b></button>
+                            </div>
+
+                            <button type="button" class="rps2-leave" onclick="window.RPSGame.leaveRoom()">Thoát phòng</button>
                         </div>
                     </div>
                 </section>
@@ -10005,9 +10210,7 @@ html.qd-lite .qd-fx { display: none !important; }
         </nav>
     </div>
 
-    <audio id="bg-music" loop preload="none">
-        <source src="nhac.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bg-music" preload="auto"></audio>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
         /* =====================================================================
@@ -10218,7 +10421,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = `toast ${type} show`;
                 let iconStr = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-xmark' : (type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'));
                 t.innerHTML = `<div style="font-size:28px; flex-shrink:0;"><i class="fa-solid ${iconStr}"></i></div><div class="flex-col"><span style="font-size: 15px; font-weight:700;">${msg}</span></div>`;
-                c.appendChild(t); setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+                c.appendChild(t); setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 1300);   // thông báo chỉ hiện 1,3 giây rồi ẩn
             },
             getTodayString: () => new Date().toLocaleDateString('vi-VN'),
             getRoomId: (u1, u2) => [u1, u2].sort().join('_'),
@@ -11513,319 +11716,567 @@ html.qd-lite .qd-fx { display: none !important; }
             exchange: function(type) { this.attemptExchange(type); }
         };
 
-        /** MODULE KÉO BÚA BAO MULTIPLAYER */
+        /** ÂM THANH KÉO BÚA BAO — tự tổng hợp bằng Web Audio (không tải file), phong cách Tết
+            tap: bấm tìm trận | matchFound: ghép được đối thủ (trống lân + chiêng) | yourTurn: hiệp mới, tới lượt bạn
+            oppLocked: đối thủ vừa khóa chiêu (mõ gõ 2 tiếng) | pick: bạn ra chiêu (Búa: trống, Kéo: tiếng kéo xoẹt, Bao: tiếng giấy)
+            tick: 3 giây cuối | timeout: hết giờ | reveal: "oẳn - tù - tì" 3 tiếng trống + chũm chọe rồi báo thắng / thua / hòa hiệp
+            matchWin: chiêng + pháo + đàn tranh vút lên | matchLose: cồng trầm + đàn tranh buồn | oppLeft: đối thủ rời phòng */
+        window.RPSSound = {
+            ctx: null, on: true, _str: {},
+            NOTES: [261.63, 293.66, 349.23, 392.00, 440.00, 523.25, 587.33, 698.46, 783.99, 880.00, 1046.50, 1174.66, 1396.91],   // ngũ cung Đô Rê Fa Sol La
+
+            init: function() { try { this.on = localStorage.getItem('qd_rps_sfx') !== '0'; } catch (e) {} this.renderBtn(); },
+            toggle: function() {
+                this.on = !this.on;
+                try { localStorage.setItem('qd_rps_sfx', this.on ? '1' : '0'); } catch (e) {}
+                this.renderBtn();
+                if (this.on) this.play('yourTurn');
+                else if (this._ducked) { this.duck(false); }
+                if (this.on && window.RPSGame && window.RPSGame.roomId) this.duck(true);
+            },
+            renderBtn: function() {
+                const b = document.getElementById('rps2-sfx'); if (!b) return;
+                b.textContent = this.on ? '🔊' : '🔇'; b.setAttribute('aria-pressed', this.on ? 'true' : 'false');
+                b.title = this.on ? 'Đang bật âm thanh trò chơi (bấm để tắt)' : 'Đang tắt âm thanh trò chơi (bấm để bật)';
+                b.classList.toggle('off', !this.on);
+            },
+            // Gọi trong lúc người dùng bấm để trình duyệt cho phép phát tiếng
+            unlock: function() {
+                if (!this.on) return null;
+                if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+                if (this.ctx.state === 'suspended') { const p = this.ctx.resume(); if (p && p.catch) p.catch(() => {}); }
+                return this._bus();
+            },
+            play: function(name, arg) {
+                if (!this.on || typeof this['_' + name] !== 'function' || !this.unlock()) return;
+                const c = this.ctx, go = () => { try { this['_' + name](c.currentTime + 0.02, arg); } catch (e) {} };
+                if (c.state === 'running') return go();
+                const t0 = performance.now();   // chưa được phép phát: chỉ phát nếu mở khóa ngay, không dồn tiếng cũ
+                c.resume().then(() => { if (performance.now() - t0 < 600) go(); }).catch(() => {});
+            },
+            // Nhạc nền nhỏ lại khi đang trong trận để nghe rõ tiếng trò chơi
+            duck: function(on) {
+                const M = window.Music; on = !!on && this.on;
+                if (!M || typeof M.applyVolume !== 'function' || this._ducked === on) return;
+                this._ducked = on; M.applyVolume(on ? M.vol * 0.35 : M.vol);
+            },
+
+            /* ---------- bộ tạo âm ---------- */
+            _bus: function() {
+                const c = this.ctx; if (this.out) return this.out;
+                const comp = c.createDynamicsCompressor();
+                comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 5; comp.attack.value = 0.002; comp.release.value = 0.18;
+                comp.connect(c.destination);
+                this.out = c.createGain(); this.out.gain.value = 0.8; this.out.connect(comp);
+                const dl = c.createDelay(1), fb = c.createGain(), lp = c.createBiquadFilter(), wet = c.createGain();
+                dl.delayTime.value = 0.16; fb.gain.value = 0.28; lp.type = 'lowpass'; lp.frequency.value = 2400; wet.gain.value = 0.28;
+                dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(wet); wet.connect(comp);
+                this.verb = c.createGain(); this.verb.connect(dl);
+                return this.out;
+            },
+            _env: function(p, t, peak, decay, attack) {
+                p.setValueAtTime(0.0001, t);
+                p.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t + (attack || 0.003));
+                p.exponentialRampToValueAtTime(0.0001, t + decay);
+            },
+            _noiseBuf: function() {
+                if (this._nb) return this._nb;
+                const c = this.ctx, len = c.sampleRate * 2, b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0);
+                for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+                return this._nb = b;
+            },
+            _noise: function(t, dur) { const s = this.ctx.createBufferSource(); s.buffer = this._noiseBuf(); s.start(t, Math.random() * 1.5, dur + 0.05); return s; },
+            _filter: function(type, f, q) { const b = this.ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; },
+            _string: function(f) {   // dây đàn tranh (Karplus-Strong), tính 1 lần mỗi nốt
+                const sr = this.ctx.sampleRate, N = Math.max(2, Math.round(sr / f));
+                if (this._str[N]) return this._str[N];
+                const len = Math.floor(sr * 1.8), b = this.ctx.createBuffer(1, len, sr), d = b.getChannelData(0), k = Math.pow(0.001, N / (sr * 1.5));
+                let prev = 0;
+                for (let i = 0; i < N; i++) { prev = prev * 0.35 + (Math.random() * 2 - 1) * 0.65; d[i] = prev * 0.8; }
+                for (let i = N; i < len; i++) d[i] = k * 0.5 * (d[i - N] + (i - N - 1 >= 0 ? d[i - N - 1] : 0));
+                return this._str[N] = b;
+            },
+            _pluck: function(t, f, vol, bend, dur) {
+                const c = this.ctx, s = c.createBufferSource(), g = c.createGain(), N = Math.max(2, Math.round(c.sampleRate / f));
+                dur = dur || 1.4; s.buffer = this._string(f);
+                const r = f * (N + 0.5) / c.sampleRate;
+                s.playbackRate.setValueAtTime(r, t);
+                if (bend) { s.playbackRate.setValueAtTime(r, t + 0.09); s.playbackRate.linearRampToValueAtTime(r * bend, t + 0.26); s.playbackRate.linearRampToValueAtTime(r, t + 0.5); }
+                g.gain.setValueAtTime(vol, t); g.gain.setTargetAtTime(0.0001, t + dur * 0.65, dur * 0.12);
+                s.connect(g); g.connect(this.out); g.connect(this.verb); s.start(t); s.stop(t + dur);
+            },
+            _clave: function(t, vol, f) {   // mõ / phách tre
+                const c = this.ctx, o = c.createOscillator(), g = c.createGain(), n = this._noise(t, 0.04), bp = this._filter('bandpass', f, 7), g2 = c.createGain();
+                o.type = 'triangle'; o.frequency.setValueAtTime(f * 0.5, t); o.frequency.exponentialRampToValueAtTime(f * 0.42, t + 0.05);
+                this._env(g.gain, t, vol, 0.06, 0.001); this._env(g2.gain, t, vol * 1.4, 0.035, 0.001);
+                o.connect(g); g.connect(this.out); n.connect(bp); bp.connect(g2); g2.connect(this.out); o.start(t); o.stop(t + 0.08);
+            },
+            _drum: function(t, vol) {   // trống lân "tùng"
+                const c = this.ctx, o = c.createOscillator(), g = c.createGain();
+                o.type = 'sine'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(58, t + 0.16); o.frequency.exponentialRampToValueAtTime(48, t + 0.5);
+                this._env(g.gain, t, vol, 0.5, 0.002); o.connect(g); g.connect(this.out); o.start(t); o.stop(t + 0.55);
+                const n = this._noise(t, 0.08), lp = this._filter('lowpass', 900), g2 = c.createGain();
+                this._env(g2.gain, t, vol * 0.5, 0.07, 0.001); n.connect(lp); lp.connect(g2); g2.connect(this.out);
+            },
+            _cymbal: function(t, vol, len) {   // chũm chọe
+                const c = this.ctx, n = this._noise(t, len), hp = this._filter('highpass', 4500), pk = this._filter('peaking', 8200, 1.2), g = c.createGain();
+                pk.gain.value = 8; this._env(g.gain, t, vol, len, 0.002);
+                n.connect(hp); hp.connect(pk); pk.connect(g); g.connect(this.out);
+                [3120, 4370].forEach(f => { const o = c.createOscillator(), og = c.createGain(); o.type = 'square'; o.frequency.value = f; this._env(og.gain, t, vol * 0.08, len * 0.7, 0.002); o.connect(og); og.connect(hp); o.start(t); o.stop(t + len); });
+            },
+            _gong: function(t, vol, base, len) {   // chiêng / cồng
+                const c = this.ctx;
+                [[1, 1], [1.48, 0.55], [2.02, 0.42], [2.74, 0.3], [3.36, 0.18], [4.1, 0.12]].forEach(([m, a], i) => {
+                    const o = c.createOscillator(), g = c.createGain(), f = base * m;
+                    o.type = 'sine'; o.frequency.setValueAtTime(f * 1.012, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.5);
+                    this._env(g.gain, t, vol * a, len / (1 + i * 0.35), 0.006 + i * 0.002);
+                    o.connect(g); g.connect(this.out); g.connect(this.verb); o.start(t); o.stop(t + len);
+                });
+                const n = this._noise(t, 0.12), bp = this._filter('bandpass', base * 6, 1.5), g2 = c.createGain();
+                this._env(g2.gain, t, vol * 0.35, 0.12, 0.001); n.connect(bp); bp.connect(g2); g2.connect(this.out);
+            },
+            _bell: function(t, f, vol) {
+                const c = this.ctx;
+                [[1, 1], [2.76, 0.35], [5.4, 0.12]].forEach(([m, a]) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = f * m; this._env(g.gain, t, vol * a, 1.4 / m + 0.3, 0.002); o.connect(g); g.connect(this.out); g.connect(this.verb); o.start(t); o.stop(t + 1.8); });
+            },
+            _swish: function(t, vol, f0, f1, dur, q) {   // tiếng gió / kéo / giấy
+                const c = this.ctx, n = this._noise(t, dur), bp = this._filter('bandpass', f0, q || 1.2), g = c.createGain();
+                bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
+                this._env(g.gain, t, vol, dur, dur * 0.3); n.connect(bp); bp.connect(g); g.connect(this.out);
+            },
+            _cracker: function(t, vol) {
+                const c = this.ctx, d = 0.018 + Math.random() * 0.03, n = this._noise(t, d + 0.06), bp = this._filter('bandpass', 900 + Math.random() * 2600, 0.8), g = c.createGain();
+                g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.0015); g.gain.exponentialRampToValueAtTime(vol * 0.25, t + d * 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.05);
+                n.connect(bp); bp.connect(g);
+                if (c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = Math.random() * 1.4 - 0.7; g.connect(p); p.connect(this.out); } else g.connect(this.out);
+            },
+
+            /* ---------- âm thanh theo tình huống ---------- */
+            _tap: function(t) { this._drum(t, 0.3); this._clave(t + 0.1, 0.07, 2400); },
+            _matchFound: function(t) {   // vào trận: tùng tùng cắc tùng - xèng! + chiêng
+                const N = this.NOTES;
+                [0, 0.14, 0.42].forEach((o, i) => this._drum(t + o, 0.34 + i * 0.03)); this._clave(t + 0.28, 0.1, 1800);
+                this._cymbal(t + 0.56, 0.12, 0.6); this._gong(t + 0.56, 0.28, 131, 2.2);
+                [5, 7, 9].forEach((ni, i) => this._pluck(t + 0.7 + i * 0.09, N[ni], 0.16));
+            },
+            _yourTurn: function(t) { const N = this.NOTES; this._pluck(t, N[8], 0.16, 0, 1); this._pluck(t + 0.1, N[10], 0.18, 0, 1.2); },
+            _oppLocked: function(t) { this._clave(t, 0.1, 1700); this._clave(t + 0.09, 0.1, 2200); },
+            _pick: function(t, c) {
+                const N = this.NOTES;
+                this._clave(t, 0.06, 3000);   // tiếng "chốt"
+                if (c === 'rock') { this._drum(t, 0.42); this._pluck(t + 0.02, N[3], 0.14, 0, 0.9); }
+                else if (c === 'scissors') { this._swish(t, 0.16, 2500, 7500, 0.09, 2.5); this._swish(t + 0.1, 0.16, 2800, 8000, 0.08, 2.5); this._pluck(t + 0.02, N[11], 0.14, 0, 0.9); }
+                else { this._swish(t, 0.2, 900, 2600, 0.2, 0.7); this._pluck(t + 0.03, N[7], 0.14, 0, 0.9); }
+            },
+            _tick: function(t, sec) { this._clave(t, sec === 1 ? 0.13 : 0.09, sec === 1 ? 3200 : 2400); if (sec === 1) this._clave(t + 0.12, 0.1, 3200); },
+            _timeout: function(t) { this._gong(t, 0.26, 82, 1.6); this._pluck(t + 0.05, this.NOTES[0], 0.16, 0.94, 1.4); },
+            _reveal: function(t, res) {   // oẳn - tù - tì (khớp lúc 2 bàn tay lắc) ... ra!
+                const N = this.NOTES;
+                [0, 0.27, 0.53].forEach((o, i) => { this._drum(t + o, 0.28 + i * 0.04); this._clave(t + o, 0.05, 2200 + i * 300); });
+                this._cymbal(t + 0.8, 0.12, 0.7);
+                const r = t + 0.9;
+                if (res === 'win') { [7, 9, 10].forEach((ni, i) => this._pluck(r + i * 0.08, N[ni], 0.2)); this._bell(r + 0.24, N[12] * 2, 0.06); }
+                else if (res === 'lose') { [6, 4, 1].forEach((ni, i) => this._pluck(r + i * 0.13, N[ni], 0.18, i === 2 ? 0.95 : 0, 1.4)); }
+                else { this._pluck(r, N[7], 0.18); this._pluck(r + 0.16, N[7], 0.18); this._clave(r + 0.32, 0.08, 2000); }
+            },
+            _matchWin: function(t) {   // chiêng + pháo + đàn tranh vút lên
+                const N = this.NOTES;
+                this._gong(t, 0.45, 98, 3.2); this._cymbal(t, 0.14, 1.2);
+                for (let x = t + 0.08, end = t + 1.7; x < end; x += 0.02 + Math.random() * 0.06) this._cracker(x, 0.28 * (0.45 + Math.random() * 0.55));
+                [0.2, 0.75].forEach(o => this._drum(t + o, 0.3));
+                [5, 6, 7, 8, 9, 10, 11, 12].forEach((ni, i) => this._pluck(t + 0.3 + i * 0.065, N[ni], 0.18));
+                [[0, 0.2, 0], [5, 0.18, 0], [8, 0.18, 0], [10, 0.24, 1.06]].forEach(([ni, v, b]) => this._pluck(t + 0.92, N[ni], v, b, 2.2));
+            },
+            _matchLose: function(t) {   // cồng trầm + câu đàn tranh buồn
+                const N = this.NOTES;
+                this._gong(t, 0.32, 73, 3);
+                [[9, 0.2], [7, 0.48], [6, 0.76], [4, 1.04]].forEach(([ni, o]) => this._pluck(t + o, N[ni], 0.17));
+                this._pluck(t + 1.4, N[2], 0.2, 0.94, 2.2); this._pluck(t + 1.4, N[0], 0.12, 0, 2.2);
+            },
+            _oppLeft: function(t) { this._drum(t, 0.24); this._pluck(t + 0.05, this.NOTES[2], 0.16, 0.95, 1.4); }
+        };
+        window.RPSSound.init();
+
+        /** MODULE KÉO BÚA BAO MULTIPLAYER (giao diện Tết)
+            - Dữ liệu phòng giữ nguyên như cũ (rps_rooms / rps_history / accounts.points) -> trang admin không cần sửa
+            - Ghép trận: bỏ qua phòng chờ bị bỏ hoang (người tạo đã tắt trang), nhận phòng bằng giao dịch (2 người không vào trùng 1 phòng)
+            - Chấm hiệp / sang hiệp / kết thúc trận chạy bằng giao dịch: chỉ 1 máy ghi, đối thủ thoát giữa chừng trận vẫn chạy tiếp
+            - Hết giờ mà đối thủ không ra chiêu (kể cả đã tắt trang) -> đối thủ bị xử thua hiệp đó */
         window.RPSGame = {
-            roomId: null,
-            isPlayer1: false,
-            unsubscribe: null,
-            timerInt: null,
-            currentRound: 0,
-            myCurrentChoice: null,
+            roomId: null, isPlayer1: false, unsubscribe: null,
+            timerInt: null, hbInt: null, cdInt: null, nextT: null, revealT: null,
+            myCurrentChoice: null, pending: null, lastStatus: null, lastKey: '', lastData: null,
+            searching: false, finished: false, resolving: false, claiming: false, nextFor: '',
+            STALE_MS: 90000,   // phòng chờ không có tín hiệu quá 90 giây = bỏ hoang
+            HANDS: { rock: '✊', paper: '🖐️', scissors: '✌️', timeout: '⌛' },
+            NAMES: { rock: 'Búa', paper: 'Bao', scissors: 'Kéo', timeout: 'Hết giờ' },
 
-            getIcon: function(choice) {
-                if (choice === 'rock') return '<i class="fa-regular fa-hand-back-fist text-warning"></i>';
-                if (choice === 'paper') return '<i class="fa-regular fa-hand text-success"></i>';
-                if (choice === 'scissors') return '<i class="fa-regular fa-hand-sparkles text-danger"></i>';
-                if (choice === 'timeout') return '<i class="fa-solid fa-hourglass-end text-muted"></i>';
-                return '?';
+            getIcon: function(c) { return this.HANDS[c] || '❔'; },
+            getChoiceName: function(c) { return this.NAMES[c] || 'Chưa ra chiêu'; },
+            $: (id) => document.getElementById(id),
+            setText: function(id, v) { const el = this.$(id); if (el) el.textContent = v; },
+            setHTML: function(el, s) { if (!el) return; if (window.QDSmooth) window.QDSmooth.html(el, s); else el.innerHTML = s; },
+            esc: (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+            fmtPts: (n) => (n > 0 ? '+' : '') + n,
+            room: function() { return db.collection("rps_rooms").doc(this.roomId); },
+            keyOf: (d) => `${d.turn || 0}|${d.round}|${d.p1Score}|${d.p2Score}`,
+
+            cfg: function() {
+                const c = window.AppCore.rpsConfig || {}, n = (v, d) => { const x = parseInt(v); return isNaN(x) ? d : x; };
+                return { isEnabled: c.isEnabled !== false, start: c.start || '00:00', end: c.end || '23:59',
+                         fee: n(c.fee, 5), win: n(c.winReward, 10), lose: n(c.loseReward, -5), limit: Math.max(3, n(c.timeLimit, 10)) };
+            },
+            // 'open' | 'off' (admin tắt) | 'hours' (ngoài giờ)
+            openState: function() {
+                const c = this.cfg(); if (!c.isEnabled) return 'off';
+                const toM = (s) => { const p = String(s).split(':').map(Number); return (p[0] || 0) * 60 + (p[1] || 0); };
+                const d = new Date(), cur = d.getHours() * 60 + d.getMinutes(), s = toM(c.start), e = toM(c.end);
+                return (s <= e ? (cur >= s && cur <= e) : (cur >= s || cur <= e)) ? 'open' : 'hours';   // hỗ trợ khung giờ qua đêm
             },
 
-            getChoiceName: function(c) {
-                if(c === 'rock') return 'Búa';
-                if(c === 'paper') return 'Bao';
-                if(c === 'scissors') return 'Kéo';
-                if(c === 'timeout') return 'Hết Giờ';
-                return 'Chưa ra chiêu';
-            },
-
-            updatePoints: function(points) { window.Utils.safeText('rps-current-points', points); },
-
-            findMatch: async function() {
-                if (window.AppCore.rpsConfig) {
-                    if (window.AppCore.rpsConfig.isEnabled === false) {
-                        return window.Utils.toast("Kéo Búa Bao hiện đang được bảo trì!", "warning");
-                    }
-                    const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes(); 
-                    const [sH, sM] = (window.AppCore.rpsConfig.start || "00:00").split(':').map(Number); 
-                    const [eH, eM] = (window.AppCore.rpsConfig.end || "23:59").split(':').map(Number);
-                    if(cur < (sH*60+sM) || cur > (eH*60+eM)) {
-                        return window.Utils.toast(`Đấu trường chỉ mở cửa từ ${window.AppCore.rpsConfig.start} đến ${window.AppCore.rpsConfig.end}!`, "error");
-                    }
+            /* ---------- Cấu hình / ô trang chủ / sảnh ---------- */
+            applyConfig: function() {
+                if (!this._tick) this._tick = setInterval(() => this.applyConfig(), 30000);   // tự mở/đóng theo giờ
+                const c = this.cfg(), st = this.openState();
+                this.setHTML(this.$('rps2-chips'), `<span>🎟️ Vào bàn: cần <b>${c.fee}</b> điểm</span><span class="ok">🏆 Thắng <b>${this.fmtPts(c.win)}</b></span><span class="bad">💀 Thua <b>${this.fmtPts(c.lose)}</b></span><span>⏱️ <b>${c.limit}s</b> / lượt</span><span>🕘 <b>${c.start} – ${c.end}</b></span>`);
+                this.setText('rps-rules-text', 'Đấu 1 chọi 1, ai thắng 2 hiệp trước sẽ thắng trận.');
+                const tab = this.$('rps-tab');
+                if (tab) {
+                    const inGame = !!this.roomId;
+                    tab.dataset.state = st === 'open' || inGame ? 'open' : 'locked';
+                    tab.classList.toggle('in-game', inGame);
+                    this.setText('rps-tab-sub', inGame ? '● Đang thi đấu' : st === 'off' ? '🔒 Bảo trì' : st === 'hours' ? `Mở ${c.start} – ${c.end}` : `Vào bàn: ${c.fee} điểm`);
+                    this.setText('rps-tab-go', inGame ? 'Chạm để quay lại trận đấu ›' : st === 'off' ? 'Đấu trường đang bảo trì' : st === 'hours' ? 'Ngoài giờ mở cửa' : 'Chạm để vào đấu trường ›');
                 }
+                this.renderLobbyBtn();
+            },
+            renderLobbyBtn: function() {
+                const btn = this.$('btn-find-match'); if (!btn || this.searching) return;
+                const c = this.cfg(), st = this.openState(), pts = window.State.availablePoints || 0;
+                btn.disabled = st !== 'open';
+                this.setHTML(btn, st === 'off' ? '🔒 ĐANG BẢO TRÌ' : st === 'hours' ? `🕘 MỞ CỬA LÚC ${this.esc(c.start)}` : '⚔️ TÌM ĐỐI THỦ NGAY');
+                this.setText('rps2-lobby-note', st === 'off' ? 'Ban Quản Trị đang tạm đóng đấu trường.'
+                    : st === 'hours' ? `Đấu trường mở từ ${c.start} đến ${c.end}.`
+                    : pts < c.fee ? `Bạn cần ít nhất ${c.fee} điểm lì xì để vào bàn.` : 'Ghép trận tự động với người chơi đang chờ.');
+            },
+            updatePoints: function(points) { this.setText('rps-current-points', points); this.renderLobbyBtn(); },
+            openFromTab: function() {
+                window.RPSSound.unlock();
+                const el = document.querySelector('.nav-item[onclick*="\'rps\'"]');
+                window.UI.navigate('rps', el);
+                document.querySelectorAll('.m-nav-item').forEach(n => n.classList.remove('active'));
+                this.applyConfig();
+                const w = document.querySelector('.workspace-area'); if (w && w.scrollTo) w.scrollTo({ top: 0 });
+                window.scrollTo && window.scrollTo({ top: 0 });
+            },
+            back: function() { window.UI.navigate('dashboard', document.querySelector('.m-nav-item[onclick*="dashboard"]'), true); },
 
-                let reqFee = 5;
-                if (window.AppCore.rpsConfig && window.AppCore.rpsConfig.fee !== undefined) reqFee = parseInt(window.AppCore.rpsConfig.fee);
-
-                if (window.State.availablePoints < reqFee) return window.Utils.toast(`Bạn cần ít nhất ${reqFee} điểm để vào bàn!`, "error");
-                const btn = document.getElementById('btn-find-match');
-                btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TÌM...`;
-
+            /* ---------- Ghép trận ---------- */
+            findMatch: async function() {
+                if (this.roomId || this.searching) return;
+                window.RPSSound.unlock();   // mở khóa âm thanh ngay trong cú bấm (để lát nữa ghép được trận còn phát tiếng)
+                const c = this.cfg(), st = this.openState(), me = window.State.currentUser;
+                if (st === 'off') return window.Utils.toast("Kéo Búa Bao hiện đang được bảo trì!", "warning");
+                if (st === 'hours') return window.Utils.toast(`Đấu trường chỉ mở cửa từ ${c.start} đến ${c.end}!`, "error");
+                if ((window.State.availablePoints || 0) < c.fee) return window.Utils.toast(`Bạn cần ít nhất ${c.fee} điểm để vào bàn!`, "error");
+                const btn = this.$('btn-find-match');
+                window.RPSSound.play('tap');
+                this.searching = true; btn.disabled = true; this.setHTML(btn, '<span class="rps2-spin"></span> ĐANG TÌM ĐỐI THỦ...');
                 try {
-                    const snapshot = await db.collection("rps_rooms").where("status", "==", "waiting").limit(1).get();
-                    if (snapshot.empty) {
-                        const newRoomRef = await db.collection("rps_rooms").add({
-                            player1: window.State.currentUser, player2: null, p1Choice: null, p2Choice: null,
-                            p1Score: 0, p2Score: 0, round: 1, status: "waiting", roundWinner: null, deadline: null, createdAt: Date.now()
-                        });
-                        this.roomId = newRoomRef.id; this.isPlayer1 = true; this.enterRoom();
-                    } else {
-                        const roomDoc = snapshot.docs[0];
-                        if(roomDoc.data().player1 === window.State.currentUser) {
-                            btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-magnifying-glass mr-2"></i> TÌM ĐỐI THỦ`;
-                            return window.Utils.toast("Bạn đang mở phòng ở tab khác!", "warning");
-                        }
-                        this.roomId = roomDoc.id; this.isPlayer1 = false;
-                        await db.collection("rps_rooms").doc(this.roomId).update({ player2: window.State.currentUser, status: "playing" });
-                        this.enterRoom();
+                    const snap = await db.collection("rps_rooms").where("status", "==", "waiting").limit(10).get();
+                    const now = Date.now(); let joined = null;
+                    const docs = snap.docs.slice().sort((a, b) => (a.data().createdAt || 0) - (b.data().createdAt || 0));
+                    for (const d of docs) {
+                        const r = d.data();
+                        if (now - (r.ping || r.createdAt || 0) > this.STALE_MS) { d.ref.delete().catch(() => {}); continue; }   // phòng bỏ hoang
+                        if (r.player1 === me) { this.searching = false; this.renderLobbyBtn(); return window.Utils.toast("Bạn đang mở phòng ở tab khác!", "warning"); }
+                        const ok = await db.runTransaction(async (tx) => {
+                            const s = await tx.get(d.ref), x = s.exists ? s.data() : null;
+                            if (!x || x.status !== 'waiting' || x.player2) return false;
+                            tx.update(d.ref, { player2: me, status: 'playing', ping: Date.now() });
+                            return true;
+                        }).catch(() => false);
+                        if (ok) { joined = d.id; break; }
                     }
-                } catch (error) { window.Utils.toast("Lỗi kết nối máy chủ.", "error"); btn.disabled = false; }
+                    if (joined) { this.roomId = joined; this.isPlayer1 = false; }
+                    else {
+                        const ref = await db.collection("rps_rooms").add({
+                            player1: me, player2: null, p1Choice: null, p2Choice: null, p1Score: 0, p2Score: 0, round: 1, turn: 1,
+                            status: "waiting", roundWinner: null, deadline: null, createdAt: Date.now(), ping: Date.now()
+                        });
+                        this.roomId = ref.id; this.isPlayer1 = true;
+                    }
+                    this.searching = false;
+                    this.enterRoom();
+                } catch (e) {
+                    console.error('RPS findMatch', e);
+                    this.searching = false; this.renderLobbyBtn();
+                    window.Utils.toast("Lỗi kết nối máy chủ.", "error");
+                }
             },
 
             enterRoom: function() {
-                document.getElementById('rps-lobby').style.display = 'none'; document.getElementById('rps-gameplay').style.display = 'block';
-                window.Utils.safeText('rps-my-name', window.State.currentUser); window.Utils.safeText('rps-my-avt', window.State.currentUser.charAt(0).toUpperCase());
-                document.getElementById('rps-status-text').style.color = "var(--color-info)";
-                document.querySelectorAll('.rps-btn').forEach(b => b.classList.remove('selected'));
-
+                this.myCurrentChoice = null; this.pending = null; this.lastStatus = null; this.lastKey = ''; this.lastData = null;
+                this.finished = false; this.nextFor = '';
+                this.$('rps-lobby').hidden = true; this.$('rps-gameplay').hidden = false;
+                const me = window.State.currentUser;
+                this.setText('rps-my-name', me); this.setText('rps-my-avt', me.charAt(0).toUpperCase());
                 this.unsubscribe = db.collection("rps_rooms").doc(this.roomId).onSnapshot(doc => {
-                    if (!doc.exists) { this.resetLobby("Phòng đã bị hủy hoặc đối thủ đã rời đi."); return; }
+                    if (!doc.exists) {
+                        if (this.finished) return;
+                        const wasWaiting = !this.lastStatus || this.lastStatus === 'waiting';
+                        if (!wasWaiting) window.RPSSound.play('oppLeft');
+                        this.leaveRoom('gone', wasWaiting ? "Phòng chờ đã đóng." : "Đối thủ đã rời phòng, trận đấu bị hủy.");
+                        return;
+                    }
                     const data = doc.data(); this.updateUI(data); this.checkGameLogic(data);
-                });
+                }, err => { console.error('RPS room', err); });
+                // Chủ phòng báo "còn ở đây" trong lúc chờ, để người khác không bỏ qua phòng
+                if (this.isPlayer1) this.hbInt = setInterval(() => {
+                    if (this.roomId && this.lastStatus === 'waiting') this.room().update({ ping: Date.now() }).catch(() => {});
+                }, 20000);
+                window.RPSSound.duck(true);
+                this.applyConfig();
             },
 
+            /* ---------- Vẽ giao diện theo dữ liệu phòng ---------- */
             updateUI: function(data) {
-                const oppName = this.isPlayer1 ? data.player2 : data.player1;
-                const myChoice = this.isPlayer1 ? data.p1Choice : data.p2Choice;
-                const oppChoice = this.isPlayer1 ? data.p2Choice : data.p1Choice;
-                
-                this.myCurrentChoice = myChoice; 
+                const me = this.isPlayer1 ? 'p1' : 'p2', op = this.isPlayer1 ? 'p2' : 'p1';
+                const oppName = data[op === 'p1' ? 'player1' : 'player2'];
+                const key = this.keyOf(data), prev = this.lastStatus;
+                if (key !== this.lastKey) { this.lastKey = key; this.pending = null; }
+                const mine = data[me + 'Choice'] || this.pending, theirs = data[op + 'Choice'];
+                const myScore = data[me + 'Score'] || 0, oppScore = data[op + 'Score'] || 0;
+                this.myCurrentChoice = mine || null; this.lastStatus = data.status; this.lastData = data;
 
-                if (data.status === 'revealing' || data.status === 'finished') {
-                    document.getElementById('rps-opp-avt').innerHTML = this.getIcon(oppChoice);
-                    document.getElementById('rps-my-avt').innerHTML = this.getIcon(myChoice);
-                    document.getElementById('rps-opp-avt').style.fontSize = "34px";
-                    document.getElementById('rps-my-avt').style.fontSize = "34px";
-                } else {
-                    document.getElementById('rps-opp-avt').innerHTML = oppName ? oppName.charAt(0).toUpperCase() : "?";
-                    document.getElementById('rps-my-avt').innerHTML = window.State.currentUser.charAt(0).toUpperCase();
-                    document.getElementById('rps-opp-avt').style.fontSize = "24px";
-                    document.getElementById('rps-my-avt').style.fontSize = "24px";
-                }
-                
-                window.Utils.safeText('rps-opp-name', oppName || "Đang chờ...");
-                window.Utils.safeText('rps-my-score', this.isPlayer1 ? data.p1Score : data.p2Score);
-                window.Utils.safeText('rps-opp-score', this.isPlayer1 ? data.p2Score : data.p1Score);
-                window.Utils.safeText('rps-round-num', data.round);
+                this.setText('rps-opp-name', oppName || 'Đang tìm...');
+                this.setText('rps-opp-avt', oppName ? oppName.charAt(0).toUpperCase() : '?');
+                this.setText('rps-my-score', myScore); this.setText('rps-opp-score', oppScore);
+                this.setText('rps-round-label', data.status === 'finished' ? 'Kết thúc' : data.status === 'waiting' ? 'Phòng chờ' : `Hiệp ${data.round || 1}`);
+                const pips = (id, n) => { const el = this.$(id); if (el) Array.from(el.children).forEach((p, i) => p.classList.toggle('on', i < n)); };
+                pips('rps-my-pips', myScore); pips('rps-opp-pips', oppScore);
 
-                const controls = document.getElementById('rps-controls');
-                
+                const sMe = this.$('rps2-slot-me'), sOp = this.$('rps2-slot-opp');
+                const slot = (el, hand, cap, cls) => {
+                    el.className = 'rps2-slot ' + (el === sMe ? 'me' : 'opp') + (cls ? ' ' + cls : '');
+                    this.setText(el === sMe ? 'rps2-hand-me' : 'rps2-hand-opp', hand);
+                    this.setText(el === sMe ? 'rps2-cap-me' : 'rps2-cap-opp', cap);
+                };
+                const status = (txt, tone) => { const el = this.$('rps-status-text'); el.textContent = txt; el.className = 'rps2-status' + (tone ? ' ' + tone : ''); };
+                const canPick = data.status === 'playing' && !mine;
+                const picks = this.$('rps-controls');
+                picks.classList.toggle('ready', canPick);
+                ['rock', 'paper', 'scissors'].forEach(c => { const b = this.$('btn-' + c); if (b) { b.disabled = !canPick; b.classList.toggle('selected', mine === c); } });
+
                 if (data.status === 'waiting') {
-                    window.Utils.safeText('rps-status-text', "Đang chờ đối thủ..."); controls.style.pointerEvents = 'none'; controls.style.opacity = '0.5';
+                    slot(sMe, '✊', 'Sẵn sàng', 'thinking'); slot(sOp, '🔍', 'Đang tìm đối thủ...', 'thinking');
+                    status('Đang chờ đối thủ vào bàn... Bạn có thể ở lại trang này.');
                 } else if (data.status === 'playing') {
-                    if (myChoice) {
-                        window.Utils.safeText('rps-status-text', "Đã chọn! Chờ đối thủ..."); controls.style.pointerEvents = 'none'; controls.style.opacity = '0.5';
-                    } else {
-                        window.Utils.safeText('rps-status-text', "Đến lượt bạn ra chiêu!"); controls.style.pointerEvents = 'auto'; controls.style.opacity = '1';
-                        if(!this.myCurrentChoice && (!data.deadline)) document.querySelectorAll('.rps-btn').forEach(b => b.classList.remove('selected'));
+                    clearTimeout(this.revealT);
+                    slot(sMe, mine ? this.getIcon(mine) : '❔', mine ? `Bạn ra ${this.getChoiceName(mine)}` : 'Chọn chiêu bên dưới', mine ? 'locked' : '');
+                    slot(sOp, theirs ? '🧧' : '💭', theirs ? 'Đã ra chiêu!' : 'Đang suy nghĩ...', theirs ? 'locked' : 'thinking');
+                    if (mine) status('Đã khóa chiêu! Chờ đối thủ...');
+                    else if (theirs) status('Đối thủ đã ra chiêu, nhanh tay lên!', 'warn');
+                    else status(prev === 'revealing' && data.round === (this._lastRound || 0) ? 'Hòa! Đấu lại hiệp này, ra chiêu đi!' : 'Đến lượt bạn ra chiêu!');
+                    if (prev === 'waiting') { window.RPSSound.play('matchFound'); if (navigator.vibrate) navigator.vibrate([60, 40, 60]); }   // vừa ghép được đối thủ
+                    else if (prev === 'revealing' && !mine) window.RPSSound.play('yourTurn');   // sang hiệp mới
+                    if (theirs && !mine && prev === 'playing' && this._oppSeen !== key) window.RPSSound.play('oppLocked');   // đối thủ vừa khóa chiêu
+                    if (theirs) this._oppSeen = key;
+                } else if (data.status === 'revealing' || data.status === 'finished') {
+                    const w = data.roundWinner, iWin = w === me, draw = w === 'draw';
+                    const show = () => {
+                        slot(sMe, this.getIcon(mine), this.getChoiceName(mine), (draw ? 'draw' : iWin ? 'win' : 'lose') + (prev === 'playing' ? ' reveal' : ''));
+                        slot(sOp, this.getIcon(theirs), this.getChoiceName(theirs), (draw ? 'draw' : iWin ? 'lose' : 'win') + (prev === 'playing' ? ' reveal' : ''));
+                        if (data.status === 'finished') status(myScore > oppScore ? '🎉 Bạn đã thắng trận!' : '💀 Bạn đã thua trận!', myScore > oppScore ? 'good' : 'bad');
+                        else if (draw) status(`Hòa! Cả hai cùng ra ${this.getChoiceName(mine)}.`, 'warn');
+                        else if (iWin) status(`Bạn thắng hiệp này! ${this.getChoiceName(mine)} thắng ${this.getChoiceName(theirs)}.`, 'good');
+                        else status(`Bạn thua hiệp này! ${this.getChoiceName(theirs)} thắng ${this.getChoiceName(mine)}.`, 'bad');
+                    };
+                    if (prev === 'playing') {   // oẳn tù tì... ra!
+                        window.RPSSound.play('reveal', draw ? 'draw' : iWin ? 'win' : 'lose');
+                        slot(sMe, '✊', 'Oẳn tù tì...', 'shake'); slot(sOp, '✊', 'Oẳn tù tì...', 'shake');
+                        status('Oẳn tù tì... ra cái gì ra cái này!');
+                        clearTimeout(this.revealT); this.revealT = setTimeout(show, 800);
+                    } else if (prev !== data.status || !this.revealT) show();
+                    this._lastRound = data.round;
+                    if (data.status === 'finished' && !this.finished) {
+                        this.finished = true;
+                        setTimeout(() => { if (this.roomId) this.showResult(data); }, prev === 'playing' ? 1500 : 700);
                     }
-                } else if (data.status === 'revealing') {
-                    controls.style.pointerEvents = 'none'; controls.style.opacity = '0.5';
-                    let msg = "HÒA NHAU!"; let color = "var(--color-warning)";
-                    if (data.roundWinner === (this.isPlayer1 ? 'p1' : 'p2')) { msg = "BẠN THẮNG HIỆP NÀY!"; color = "var(--color-success)"; } 
-                    else if (data.roundWinner !== 'draw') { msg = "BẠN THUA HIỆP NÀY!"; color = "var(--color-danger)"; }
-                    window.Utils.safeText('rps-status-text', `Đối thủ ra ${this.getChoiceName(oppChoice)}. ${msg}`); document.getElementById('rps-status-text').style.color = color;
-                } else if (data.status === 'finished') {
-                    controls.style.pointerEvents = 'none';
-                    const iWon = (this.isPlayer1 && data.p1Score >= 2) || (!this.isPlayer1 && data.p2Score >= 2);
-                    
-                    let winR = 10; let loseR = -5;
-                    if (window.AppCore.rpsConfig) {
-                        if (window.AppCore.rpsConfig.winReward !== undefined) winR = parseInt(window.AppCore.rpsConfig.winReward);
-                        if (window.AppCore.rpsConfig.loseReward !== undefined) loseR = parseInt(window.AppCore.rpsConfig.loseReward);
-                    }
-
-                    const mTitle = document.getElementById('rps-result-title');
-                    const mDesc = document.getElementById('rps-result-desc');
-                    const mIcon = document.getElementById('rps-result-icon');
-                    const mBtn = document.getElementById('btn-rps-result-close');
-
-                    if (iWon) { 
-                        window.Utils.safeText('rps-status-text', `🎉 CHIẾN THẮNG (+${winR} ĐIỂM)`); 
-                        document.getElementById('rps-status-text').style.color = "var(--color-success)";
-                        if(mTitle) {
-                            mTitle.innerText = "CHIẾN THẮNG!"; mTitle.className = "text-2xl mb-2 font-bold uppercase text-success";
-                            mDesc.innerText = `Tuyệt vời! Bạn nhận được +${winR} Điểm Lì Xì.`;
-                            mIcon.innerHTML = '<div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-success-bg); color: var(--color-success); font-size:36px; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-fire fa-bounce"></i></div>';
-                            mBtn.className = "btn btn-success w-full";
-                        }
-                    } else { 
-                        window.Utils.safeText('rps-status-text', `💀 BẠN ĐÃ THUA! (${loseR} ĐIỂM)`); 
-                        document.getElementById('rps-status-text').style.color = "var(--color-danger)";
-                        if(mTitle) {
-                            mTitle.innerText = "THẤT BẠI!"; mTitle.className = "text-2xl mb-2 font-bold uppercase text-danger";
-                            mDesc.innerText = `Rất tiếc! Điểm của bạn bị thay đổi: ${loseR} Điểm Lì Xì.`;
-                            mIcon.innerHTML = '<div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-danger-bg); color: var(--color-danger); font-size:36px; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-skull-crossbones fa-shake"></i></div>';
-                            mBtn.className = "btn btn-danger w-full";
-                        }
-                    }
-
-                    window.UI.openModal('modal-rps-result');
-
-                    if(this.timerInt) { clearInterval(this.timerInt); this.timerInt = null; }
-                    this.timerInt = setTimeout(() => {
-                        this.leaveRoom();
-                    }, 5000);
                 }
+                this.renderTimer(data, mine, theirs);
+                if (prev !== data.status) this.applyConfig();
+            },
 
-                if (data.status === 'playing' && data.deadline) {
-                    document.getElementById('rps-timer-wrap').style.display = 'inline';
-                    
-                    if (!this.timerInt) {
+            renderTimer: function(data, mine, theirs) {
+                const box = this.$('rps2-timer');
+                const active = data.status === 'playing' && data.deadline && !(mine && theirs);
+                box.hidden = !active;
+                if (!active) { if (this.timerInt) { clearInterval(this.timerInt); this.timerInt = null; } return; }
+                this.deadline = data.deadline;
+                if (this.timerInt) return;
+                const total = this.cfg().limit * 1000 + 500;
+                const tick = () => {
+                    const left = this.deadline - Date.now();
+                    this.setText('rps-timer', Math.max(0, Math.ceil(left / 1000)));
+                    const bar = this.$('rps2-timer-bar'); if (bar) bar.style.setProperty('--p', Math.max(0, Math.min(1, left / total)).toFixed(3));
+                    box.classList.toggle('urgent', left < 3500);
+                    const sec = Math.ceil(left / 1000);   // tiếng mõ đếm 3 giây cuối khi mình chưa ra chiêu
+                    if (sec !== this._lastSec) { this._lastSec = sec; if (sec > 0 && sec <= 3 && !this.myCurrentChoice) window.RPSSound.play('tick', sec); }
+                    if (left <= 0 && this.lastStatus === 'playing') {
                         if (!this.myCurrentChoice) {
-                            let tLimit = 10;
-                            if(window.AppCore.rpsConfig && window.AppCore.rpsConfig.timeLimit) {
-                                tLimit = parseInt(window.AppCore.rpsConfig.timeLimit);
-                            }
-                            const alertDesc = document.querySelector('#modal-rps-alert .text-muted.text-sm.mb-6');
-                            if(alertDesc) {
-                                alertDesc.innerHTML = `Đối thủ đã khóa chiêu. Bạn có <b class="text-danger text-lg">${tLimit} giây</b> để quyết định. Nếu không chọn, hệ thống sẽ tự động xử thua.`;
-                            }
-                            window.UI.openModal('modal-rps-alert');
-                        }
-
-                        this.timerInt = setInterval(() => {
-                            let timeLeft = Math.ceil((data.deadline - Date.now()) / 1000);
-                            if (timeLeft < 0) timeLeft = 0;
-                            window.Utils.safeText('rps-timer', timeLeft);
-                            
-                            if (timeLeft <= 0) {
-                                clearInterval(this.timerInt); this.timerInt = null;
-                                if (!this.myCurrentChoice) {
-                                    this.makeChoice('timeout'); 
-                                    window.Utils.toast("Hết thời gian! Bạn bị xử thua hiệp này.", "error");
-                                    window.UI.closeModal('modal-rps-alert');
-                                }
-                            }
-                        }, 500);
+                            this.makeChoice('timeout');
+                            window.Utils.toast("Hết thời gian! Bạn bị xử thua hiệp này.", "error");
+                        } else if (left < -1500) this.claimTimeout();   // đối thủ không ra chiêu (có thể đã tắt trang)
                     }
-                } else {
-                    document.getElementById('rps-timer-wrap').style.display = 'none';
-                    if (this.timerInt && data.status !== 'finished') { clearInterval(this.timerInt); this.timerInt = null; }
-                }
+                };
+                tick(); this.timerInt = setInterval(tick, 250);
             },
 
+            /* ---------- Ra chiêu ---------- */
             makeChoice: async function(choice) {
-                if (this.myCurrentChoice) return; 
-                this.myCurrentChoice = choice;
-                document.querySelectorAll('.rps-btn').forEach(b => b.classList.remove('selected'));
-                if(document.getElementById(`btn-${choice}`)) document.getElementById(`btn-${choice}`).classList.add('selected');
-                window.UI.closeModal('modal-rps-alert');
-
+                if (!this.roomId || this.myCurrentChoice || this.lastStatus !== 'playing') return;
+                this.pending = choice; this.myCurrentChoice = choice;
+                window.RPSSound.play(choice === 'timeout' ? 'timeout' : 'pick', choice);
+                if (this.lastData) this.updateUI(this.lastData);   // hiện ngay, không đợi máy chủ
+                if (choice !== 'timeout' && navigator.vibrate) navigator.vibrate(15);
+                const ref = this.room(), field = this.isPlayer1 ? 'p1Choice' : 'p2Choice', limit = this.cfg().limit;
                 try {
-                    const doc = await db.collection("rps_rooms").doc(this.roomId).get();
-                    let updateData = this.isPlayer1 ? { p1Choice: choice } : { p2Choice: choice };
-                    
-                    if (!doc.data().deadline) {
-                        let tLimit = 10;
-                        if(window.AppCore.rpsConfig && window.AppCore.rpsConfig.timeLimit) {
-                            tLimit = parseInt(window.AppCore.rpsConfig.timeLimit);
-                        }
-                        updateData.deadline = Date.now() + (tLimit * 1000) + 500;
-                    }
-                    await db.collection("rps_rooms").doc(this.roomId).update(updateData);
-                } catch(e) {}
-            },
-
-            checkGameLogic: async function(data) {
-                if (this.isPlayer1 && data.status === 'playing' && data.p1Choice && data.p2Choice) {
-                    let p1WinsRound = false; let p2WinsRound = false; let roundWinner = 'draw';
-
-                    if (data.p1Choice === data.p2Choice) roundWinner = 'draw';
-                    else if (data.p1Choice === 'timeout') { p2WinsRound = true; roundWinner = 'p2'; }
-                    else if (data.p2Choice === 'timeout') { p1WinsRound = true; roundWinner = 'p1'; }
-                    else if ((data.p1Choice === 'rock' && data.p2Choice === 'scissors') || (data.p1Choice === 'paper' && data.p2Choice === 'rock') || (data.p1Choice === 'scissors' && data.p2Choice === 'paper')) { p1WinsRound = true; roundWinner = 'p1'; } 
-                    else { p2WinsRound = true; roundWinner = 'p2'; }
-
-                    let newP1Score = data.p1Score + (p1WinsRound ? 1 : 0);
-                    let newP2Score = data.p2Score + (p2WinsRound ? 1 : 0);
-                    let gameFinished = (newP1Score >= 2 || newP2Score >= 2);
-
-                    db.collection("rps_rooms").doc(this.roomId).update({ status: 'revealing', roundWinner: roundWinner, p1Score: newP1Score, p2Score: newP2Score });
-
-                    setTimeout(async () => {
-                        if (gameFinished) {
-                            const winner = newP1Score >= 2 ? data.player1 : data.player2;
-                            const loser = newP1Score >= 2 ? data.player2 : data.player1;
-                            
-                            await db.collection("rps_history").add({
-                                player1: data.player1, player2: data.player2,
-                                p1Choice: data.p1Choice, p2Choice: data.p2Choice,
-                                p1Score: newP1Score, p2Score: newP2Score,
-                                winner: winner, timestamp: Date.now()
-                            }).catch(e => console.log(e));
-
-                            await db.collection("rps_rooms").doc(this.roomId).update({ status: 'finished' });
-                            this.finalizeGame(winner, loser);
-                        } else {
-                            await db.collection("rps_rooms").doc(this.roomId).update({ p1Choice: null, p2Choice: null, roundWinner: null, deadline: null, round: data.round + (roundWinner !== 'draw' ? 1 : 0), status: 'playing' });
-                        }
-                    }, 3000);
+                    await db.runTransaction(async (tx) => {
+                        const s = await tx.get(ref); if (!s.exists) return;
+                        const d = s.data(); if (d.status !== 'playing' || d[field]) return;
+                        const upd = { [field]: choice };
+                        if (!d.deadline) upd.deadline = Date.now() + limit * 1000 + 500;   // người ra trước bắt đầu đếm giờ cho đối thủ
+                        tx.update(ref, upd);
+                    });
+                } catch (e) {
+                    console.error('RPS choice', e);
+                    this.pending = null; this.myCurrentChoice = null;
+                    if (this.lastData) this.updateUI(this.lastData);
+                    window.Utils.toast("Không gửi được chiêu, thử lại nhé.", "error");
                 }
             },
+            claimTimeout: async function() {
+                if (this.claiming || !this.roomId) return; this.claiming = true;
+                const ref = this.room(), op = this.isPlayer1 ? 'p2Choice' : 'p1Choice';
+                try {
+                    await db.runTransaction(async (tx) => {
+                        const s = await tx.get(ref); if (!s.exists) return;
+                        const d = s.data();
+                        if (d.status !== 'playing' || !d.deadline || Date.now() < d.deadline + 1500 || d[op]) return;
+                        tx.update(ref, { [op]: 'timeout' });
+                    });
+                } catch (e) {}
+                this.claiming = false;
+            },
 
+            /* ---------- Chấm hiệp / sang hiệp / kết thúc ---------- */
+            judge: function(a, b) {
+                if (a === b) return 'draw';
+                if (a === 'timeout') return 'p2'; if (b === 'timeout') return 'p1';
+                return ({ rock: 'scissors', scissors: 'paper', paper: 'rock' })[a] === b ? 'p1' : 'p2';
+            },
+            checkGameLogic: function(data) {
+                if (data.status === 'playing' && data.p1Choice && data.p2Choice) this.resolveRound();
+                else if (data.status === 'revealing') this.scheduleNext(data);
+            },
+            resolveRound: async function() {
+                if (this.resolving || !this.roomId) return; this.resolving = true;
+                const ref = this.room();
+                try {
+                    await db.runTransaction(async (tx) => {
+                        const s = await tx.get(ref); if (!s.exists) return;
+                        const d = s.data(); if (d.status !== 'playing' || !d.p1Choice || !d.p2Choice) return;
+                        const w = this.judge(d.p1Choice, d.p2Choice);
+                        tx.update(ref, { status: 'revealing', roundWinner: w, revealAt: Date.now(),
+                            p1Score: (d.p1Score || 0) + (w === 'p1' ? 1 : 0), p2Score: (d.p2Score || 0) + (w === 'p2' ? 1 : 0) });
+                    });
+                } catch (e) { console.warn('RPS resolve', e); }
+                this.resolving = false;
+            },
+            scheduleNext: function(data) {
+                const key = this.keyOf(data); if (this.nextFor === key) return; this.nextFor = key;
+                const since = Date.now() - (data.revealAt || Date.now());
+                const wait = Math.min(3000, Math.max(900, 3000 - since)) + (this.isPlayer1 ? 0 : 1800);   // chủ phòng làm trước, khách làm thay nếu chủ phòng đã rời
+                clearTimeout(this.nextT); this.nextT = setTimeout(() => this.advance(key), wait);
+            },
+            advance: async function(key) {
+                if (!this.roomId) return;
+                const ref = this.room(); let fin = null;
+                try {
+                    await db.runTransaction(async (tx) => {
+                        fin = null;
+                        const s = await tx.get(ref); if (!s.exists) return;
+                        const d = s.data(); if (d.status !== 'revealing' || this.keyOf(d) !== key) return;
+                        if ((d.p1Score || 0) >= 2 || (d.p2Score || 0) >= 2) { tx.update(ref, { status: 'finished', finishedAt: Date.now() }); fin = d; }
+                        else tx.update(ref, { p1Choice: null, p2Choice: null, roundWinner: null, deadline: null, revealAt: null, status: 'playing',
+                                              round: (d.round || 1) + (d.roundWinner !== 'draw' ? 1 : 0), turn: (d.turn || 1) + 1 });
+                    });
+                } catch (e) { fin = null; console.warn('RPS advance', e); }
+                if (!fin) return;
+                const p1Won = fin.p1Score >= 2, winner = p1Won ? fin.player1 : fin.player2, loser = p1Won ? fin.player2 : fin.player1;
+                db.collection("rps_history").add({ player1: fin.player1, player2: fin.player2, p1Choice: fin.p1Choice, p2Choice: fin.p2Choice,
+                    p1Score: fin.p1Score, p2Score: fin.p2Score, winner: winner, timestamp: Date.now() }).catch(e => console.log(e));
+                this.finalizeGame(winner, loser);
+            },
             finalizeGame: async function(winnerName, loserName) {
                 try {
-                    let winR = 10; let loseR = -5;
-                    if (window.AppCore.rpsConfig) {
-                        if (window.AppCore.rpsConfig.winReward !== undefined) winR = parseInt(window.AppCore.rpsConfig.winReward);
-                        if (window.AppCore.rpsConfig.loseReward !== undefined) loseR = parseInt(window.AppCore.rpsConfig.loseReward);
-                    }
-
-                    await db.runTransaction(async (t) => {
-                        const winSnap = await db.collection("accounts").where("user", "==", winnerName).get();
-                        const loseSnap = await db.collection("accounts").where("user", "==", loserName).get();
-                        if (!winSnap.empty && !loseSnap.empty) {
-                            t.update(db.collection("accounts").doc(winSnap.docs[0].id), { points: firebase.firestore.FieldValue.increment(winR) });
-                            t.update(db.collection("accounts").doc(loseSnap.docs[0].id), { points: firebase.firestore.FieldValue.increment(loseR) });
-                        }
-                    });
-                } catch (e) { console.error(e); }
+                    const c = this.cfg(), inc = firebase.firestore.FieldValue.increment;
+                    const [w, l] = await Promise.all([winnerName, loserName].map(u => db.collection("accounts").where("user", "==", u).limit(1).get()));
+                    if (w.empty || l.empty) return;
+                    const b = db.batch(), now = Date.now();
+                    b.update(w.docs[0].ref, { points: inc(c.win) });
+                    b.update(l.docs[0].ref, { points: inc(c.lose) });
+                    b.set(db.collection("point_history").doc(), { user: winnerName, action: 'rps', detail: `Kéo Búa Bao: thắng ${loserName}`, pointsChanged: c.win, timestamp: now });
+                    b.set(db.collection("point_history").doc(), { user: loserName, action: 'rps', detail: `Kéo Búa Bao: thua ${winnerName}`, pointsChanged: c.lose, timestamp: now });
+                    await b.commit();
+                } catch (e) { console.error('RPS finalize', e); }
             },
 
-            leaveRoom: async function() {
-                if (this.timerInt) { clearInterval(this.timerInt); this.timerInt = null; }
+            /* ---------- Kết quả trận ---------- */
+            showResult: function(d) {
+                const me = this.isPlayer1 ? 'p1' : 'p2', op = this.isPlayer1 ? 'p2' : 'p1';
+                const my = d[me + 'Score'] || 0, their = d[op + 'Score'] || 0, won = my > their, c = this.cfg();
+                const opp = d[op === 'p1' ? 'player1' : 'player2'] || 'đối thủ';
+                const box = this.$('rps2-result-box'); box.classList.toggle('lose', !won);
+                this.setText('rps-result-icon', won ? '🏆' : '😵');
+                this.setText('rps-result-title', won ? 'Chiến thắng!' : 'Thua mất rồi!');
+                this.setText('rps2-res-score', `${my} : ${their}`);
+                this.setText('rps-result-desc', won ? `Bạn đã hạ gục ${opp}. Lộc đầu xuân về túi rồi!` : `${opp} đã thắng trận này. Đấu tiếp để gỡ lộc nhé!`);
+                this.setText('rps2-res-pts', `${this.fmtPts(won ? c.win : c.lose)} điểm lì xì`);
+                const fx = this.$('rps2-fx');
+                if (fx) this.setHTML(fx, won ? Array.from({ length: 16 }, (_, i) => `<i style="left:${(i * 6.3 + Math.random() * 4).toFixed(1)}%;animation-delay:${(Math.random() * .6).toFixed(2)}s">${['🧧', '✨', '🎉', '🌸'][i % 4]}</i>`).join('') : '');
+                window.UI.openModal('modal-rps-result');
+                window.RPSSound.play(won ? 'matchWin' : 'matchLose');
+                if (navigator.vibrate) navigator.vibrate(won ? [80, 50, 80, 50, 160] : 200);
+                let n = 8; this.setText('rps2-res-cd', n);
+                clearInterval(this.cdInt);
+                this.cdInt = setInterval(() => { n--; this.setText('rps2-res-cd', Math.max(0, n)); if (n <= 0) { clearInterval(this.cdInt); this.leaveRoom('quiet'); } }, 1000);
+            },
+            playAgain: async function() { await this.leaveRoom('quiet'); this.findMatch(); },
+
+            /* ---------- Rời phòng ---------- */
+            leaveRoom: async function(mode, msg) {
+                [this.timerInt, this.hbInt, this.cdInt].forEach(clearInterval); clearTimeout(this.nextT); clearTimeout(this.revealT);
+                this.timerInt = this.hbInt = this.cdInt = this.nextT = this.revealT = null;
                 if (this.unsubscribe) { this.unsubscribe(); this.unsubscribe = null; }
-                if (this.roomId) { try { await db.collection("rps_rooms").doc(this.roomId).delete(); } catch(e) {} }
-                this.resetLobby("Đã rời phòng đấu.");
+                const id = this.roomId; this.roomId = null;
+                if (id && mode !== 'gone') { try { await db.collection("rps_rooms").doc(id).delete(); } catch (e) {} }
+                this.resetLobby(mode === 'quiet' ? null : (msg || "Đã rời phòng đấu."));
             },
-
             resetLobby: function(msg) {
-                this.roomId = null; this.currentRound = 0; 
+                this.roomId = null; this.myCurrentChoice = null; this.pending = null; this.lastStatus = null; this.lastData = null; this.searching = false;
                 window.UI.closeModal('modal-rps-alert');
                 window.UI.closeModal('modal-rps-result');
-                
-                document.getElementById('rps-lobby').style.display = 'block'; 
-                document.getElementById('rps-gameplay').style.display = 'none';
-                document.getElementById('btn-find-match').disabled = false; 
-                
+                this.$('rps-lobby').hidden = false; this.$('rps-gameplay').hidden = true; this.$('rps2-timer').hidden = true;
+                window.RPSSound.duck(false);
                 if (window.State.currentDocId) {
                     db.collection("accounts").doc(window.State.currentDocId).get().then(doc => {
-                        if (doc.exists) {
-                            window.State.availablePoints = doc.data().points || 0;
-                            this.updatePoints(window.State.availablePoints);
-                        }
-                    });
+                        if (doc.exists) { window.State.availablePoints = doc.data().points || 0; this.updatePoints(window.State.availablePoints); }
+                    }).catch(() => {});
                 }
-                
-                if (window.AppCore.rpsConfig && window.AppCore.rpsConfig.isEnabled === false) {
-                    document.getElementById('btn-find-match').innerHTML = `<i class="fa-solid fa-lock mr-2"></i> ĐANG BẢO TRÌ`;
-                    document.getElementById('btn-find-match').className = "btn btn-danger";
-                } else {
-                    document.getElementById('btn-find-match').innerHTML = `<i class="fa-solid fa-magnifying-glass mr-2"></i> TÌM ĐỐI THỦ NGAY`;
-                    document.getElementById('btn-find-match').className = "btn btn-warning";
-                }
-                
-                if(msg) window.Utils.toast(msg, "info"); 
+                this.applyConfig();
+                if (msg) window.Utils.toast(msg, "info");
             }
         };
 
@@ -11903,28 +12354,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 });
 
                 db.collection("settings").doc("rps_config").onSnapshot(doc => {
-                    if(doc.exists) {
-                        window.AppCore.rpsConfig = doc.data();
-                        const btn = document.getElementById('btn-find-match');
-                        
-                        const rText = document.getElementById('rps-rules-text');
-                        if(rText) {
-                            const fee = window.AppCore.rpsConfig.fee !== undefined ? window.AppCore.rpsConfig.fee : 5;
-                            const wR = window.AppCore.rpsConfig.winReward !== undefined ? window.AppCore.rpsConfig.winReward : 10;
-                            const lR = window.AppCore.rpsConfig.loseReward !== undefined ? window.AppCore.rpsConfig.loseReward : -5;
-                            rText.innerText = `Điều kiện vào bàn: ${fee} Điểm. Thắng nhận +${wR} Điểm, Thua bị ${lR} Điểm. Thi đấu BO3.`;
-                        }
-
-                        if (btn && window.AppCore.rpsConfig.isEnabled === false) {
-                            btn.innerHTML = `<i class="fa-solid fa-lock mr-2"></i> ĐANG BẢO TRÌ`;
-                            btn.className = "btn btn-danger";
-                        } else if (btn) {
-                            btn.innerHTML = `<i class="fa-solid fa-magnifying-glass mr-2"></i> TÌM ĐỐI THỦ NGAY`;
-                            btn.className = "btn btn-warning";
-                        }
-                    } else {
-                        window.AppCore.rpsConfig = { isEnabled: true, start: "00:00", end: "23:59", fee: 5, winReward: 10, loseReward: -5, timeLimit: 10 };
-                    }
+                    window.AppCore.rpsConfig = doc.exists ? doc.data() : { isEnabled: true, start: "00:00", end: "23:59", fee: 5, winReward: 10, loseReward: -5, timeLimit: 10 };
+                    if (window.RPSGame) window.RPSGame.applyConfig();
                 });
 
                 db.collection("accounts").doc(State.currentDocId).onSnapshot(doc => {
@@ -15945,11 +16376,20 @@ document.addEventListener("DOMContentLoaded", () => {
             stop: function () { this.started = false; if (this.el) this.el.pause(); }
         };
 
-        /* Nhạc nền hệ thống
-           - Lưu trên máy: qd_music_on ('1' bật / '0' tắt, mặc định bật), qd_music_vol (0-100, mặc định 50)
-           - Đăng nhập xong -> tự phát (nếu đang để Bật). Trình duyệt chặn tự phát -> phát ở lần chạm đầu tiên
+        /* Nhạc nền hệ thống (nhac-tet.mp3 - nhạc Tết dùng chung mọi trang, trừ admin)
+           - Lưu trên máy: qd_music_on ('1' bật / '0' tắt, mặc định bật), qd_music_vol (0-100, mặc định 50) - dùng chung với các trang khác
+           - Vào trang -> tự phát (nếu đang để Bật). Trình duyệt chặn tự phát -> phát ở lần chạm đầu tiên
+           - Chuyển trang -> phát tiếp đúng đoạn đang nghe (qd_music_pos trong sessionStorage); ẩn tab -> tạm dừng, quay lại -> phát tiếp
            - iPhone/iPad không cho chỉnh audio.volume bằng JS -> dùng Web Audio (GainNode) để thanh âm lượng vẫn có tác dụng */
         window.Music = {
+            // Danh sách nhạc Tết (dùng chung với các trang khác: index, tranht, quays, qt, baotri)
+            TRACKS: [
+                { src: 'nhac-tet.mp3',   name: 'Xuân Về Phơi Phới', desc: 'Sáo trúc · đàn tranh' },
+                { src: 'nhac-tet-2.mp3', name: 'Xuân Rộn Ràng',     desc: 'Pop sôi động · đàn bầu' },
+                { src: 'nhac-tet-3.mp3', name: 'Lân Về Phố',        desc: 'Trống lân · kèn · pháo' },
+                { src: 'nhac-tet-4.mp3', name: 'Sum Vầy Ngày Xuân', desc: 'Đàn tranh · đàn bầu' }
+            ],
+            mode: 'auto', idx: 0,   // mode: 'auto' = tự chuyển bài lần lượt, '0'..'3' = lặp 1 bài
             el: null, vol: 50, lastVol: 50, enabled: true, active: false,
             ctx: null, gain: null, useGain: false, _waitGesture: false, _fadeT: 0,
             load: function () {
@@ -15957,6 +16397,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     var on = localStorage.getItem('qd_music_on'); this.enabled = on !== '0';
                     var v = parseInt(localStorage.getItem('qd_music_vol'), 10); this.vol = isNaN(v) ? 50 : Math.min(100, Math.max(0, v));
                     var lv = parseInt(localStorage.getItem('qd_music_lastvol'), 10); this.lastVol = isNaN(lv) || lv <= 0 ? (this.vol || 50) : lv;
+                    var md = localStorage.getItem('qd_music_track'); this.mode = md != null && this.TRACKS[+md] && md !== '' ? String(+md) : 'auto';
                 } catch (e) {}
             },
             save: function () {
@@ -15964,7 +16405,57 @@ document.addEventListener("DOMContentLoaded", () => {
                     localStorage.setItem('qd_music_on', this.enabled ? '1' : '0');
                     localStorage.setItem('qd_music_vol', String(this.vol));
                     localStorage.setItem('qd_music_lastvol', String(this.lastVol));
+                    localStorage.setItem('qd_music_track', this.mode);
                 } catch (e) {}
+            },
+            // Gán bài thứ i cho trình phát (không tự phát)
+            setTrack: function (i) {
+                var n = this.TRACKS.length; i = ((i % n) + n) % n;
+                this.idx = i; this.el.loop = this.mode !== 'auto';
+                var url = new URL(this.TRACKS[i].src, location.href).href;
+                if (this.el.src !== url) { this.el.src = url; }
+                try { localStorage.setItem('qd_music_last', String(i)); } catch (e) {}
+                this.renderTracks();
+            },
+            // Bài tiếp theo (nút "Bài tiếp" hoặc hết bài ở chế độ tự chuyển)
+            next: function (byUser) {
+                if (!this.el) return;
+                var wasOn = !this.el.paused || this.active;
+                if (byUser && this.mode !== 'auto') this.mode = String((this.idx + 1) % this.TRACKS.length);   // đang lặp 1 bài -> chuyển sang lặp bài kế
+                this.setTrack(this.idx + 1);
+                if (byUser) { this.enabled = true; this.save(); this.play(false); if (window.Utils && window.Utils.toast) window.Utils.toast('🎵 ' + this.TRACKS[this.idx].name, 'info'); }
+                else if (wasOn && this.enabled) this.play(true);
+                this.updateUI();
+            },
+            // Chọn chế độ: 'auto' hoặc số thứ tự bài (lặp bài đó)
+            pick: function (m) {
+                if (!this.el) return;
+                this.mode = m === 'auto' ? 'auto' : String(+m);
+                this.enabled = true; this.save();
+                if (this.mode === 'auto') { this.el.loop = false; this.renderTracks(); if (this.el.paused) this.play(false); return this.updateUI(); }
+                if (+this.mode !== this.idx) this.setTrack(+this.mode); else this.el.loop = true;
+                this.play(false);
+                this.updateUI();
+            },
+            renderTracks: function () {
+                var box = document.getElementById('music-tracks'); if (!box) return;
+                var self = this, playing = !!(this.el && !this.el.paused);
+                if (!box.__built) {
+                    box.__built = true;
+                    var h = '<button type="button" class="qd-trk auto" data-m="auto"><span class="qd-trk-n"><i class="fa-solid fa-shuffle"></i></span><span class="qd-trk-t"><b>Tự động chuyển bài</b><small>Phát lần lượt cả 4 bài</small></span></button>';
+                    this.TRACKS.forEach(function (t, i) {
+                        h += '<button type="button" class="qd-trk" data-m="' + i + '"><span class="qd-trk-n">' + (i + 1) + '</span><span class="qd-trk-t"><b>' + t.name + '</b><small>' + t.desc + '</small></span><span class="qd-trk-eq" aria-hidden="true"><i></i><i></i><i></i></span></button>';
+                    });
+                    box.innerHTML = h;
+                    box.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.qd-trk'); if (b) self.pick(b.getAttribute('data-m')); });
+                }
+                var btns = box.children;
+                for (var k = 0; k < btns.length; k++) {
+                    var m = btns[k].getAttribute('data-m');
+                    btns[k].classList.toggle('sel', m === this.mode);
+                    btns[k].classList.toggle('now', m !== 'auto' && +m === this.idx && playing);
+                    btns[k].setAttribute('aria-pressed', m === this.mode ? 'true' : 'false');
+                }
             },
             init: function () {
                 if (this.el) return;
@@ -15974,6 +16465,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (this.el) {
                     // Kiểm tra trình duyệt có cho chỉnh volume không (iOS luôn trả về 1)
                     try { var t = new Audio(); t.volume = 0.5; this.useGain = Math.abs(t.volume - 0.5) > 0.01 && !!(window.AudioContext || window.webkitAudioContext); } catch (e) {}
+                    // Chọn bài: nghe tiếp bài của trang trước; lần đầu vào ở chế độ tự động -> bài sau bài nghe lần trước
+                    var start = 0, sp = null;
+                    try { sp = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'); } catch (e) {}
+                    if (this.mode !== 'auto') start = +this.mode;
+                    else if (sp && this.TRACKS[sp.i] && Date.now() - sp.at < 15000) start = sp.i;
+                    else { var last = parseInt(localStorage.getItem('qd_music_last'), 10); start = isNaN(last) ? 0 : last + 1; }
+                    this.setTrack(start);
+                    this.el.addEventListener('ended', function () { if (self.mode === 'auto') self.next(false); });
                     this.applyVolume(this.vol);
                     this.el.addEventListener('play', function () { self.updateUI(); });
                     this.el.addEventListener('pause', function () { self.updateUI(); });
@@ -15986,10 +16485,32 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (e.key === 'Enter' && e.target && (e.target.id === 'login-usr' || e.target.id === 'login-pwd')) self.unlock();
                     }, true);
                     document.addEventListener('visibilitychange', function () {
-                        if (!document.hidden && self.ctx && self.ctx.state !== 'running') { try { self.ctx.resume(); } catch (e) {} }
+                        if (document.hidden) { if (!self.el.paused) { self._hidPause = true; self.el.pause(); } return; }
+                        if (self.ctx && self.ctx.state !== 'running') { try { self.ctx.resume(); } catch (e) {} }
+                        if (self._hidPause) { self._hidPause = false; if (self.enabled && self.active) self.play(true); }
                     });
+                    // Nghe tiếp đoạn nhạc từ trang trước
+                    this.el.addEventListener('loadedmetadata', function () {
+                        try {
+                            var s = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'), d = self.el.duration;
+                            if (s && s.i === self.idx && d && isFinite(d) && Date.now() - s.at < 15000) self.el.currentTime = Math.min(s.t + (Date.now() - s.at) / 1000, d - 0.5);
+                        } catch (e) {}
+                    }, { once: true });
+                    window.addEventListener('pagehide', function () {
+                        try { if (!self.el.paused) sessionStorage.setItem('qd_music_pos', JSON.stringify({ i: self.idx, t: self.el.currentTime, at: Date.now() })); else sessionStorage.removeItem('qd_music_pos'); } catch (e) {}
+                    });
+                    // Vào trang là bật nhạc (mặc định Bật)
+                    this.enter();
                 }
                 this.updateUI();
+            },
+            // Tự phát khi vào trang; máy cần Web Audio (iPhone) hoặc trình duyệt chặn -> phát ở lần chạm đầu tiên
+            enter: function () {
+                if (!this.el || !this.enabled) return;
+                this.active = true;
+                if (document.hidden) { this._hidPause = true; return; }
+                if (this.useGain && !this.gain) return this.waitGesture();
+                this.play(true);
             },
             // Tạo đường Web Audio (chỉ trên máy không chỉnh được volume, ví dụ iPhone) - phải gọi trong lúc người dùng bấm
             setupGain: function () {
@@ -16051,7 +16572,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (this._waitGesture) return; this._waitGesture = true;
                 var evs = ['pointerdown', 'touchend', 'keydown', 'click'];
                 var go = function (e) {
-                    var tg = e && e.target && e.target.closest ? e.target.closest('#music-toggle-btn') : null;
+                    var tg = e && e.target && e.target.closest ? e.target.closest('#music-toggle-btn, .qd-trk, .qd-trk-next') : null;
                     evs.forEach(function (ev) { document.removeEventListener(ev, go, true); });
                     self._waitGesture = false;
                     if (tg) return;   // bấm nút Bật/Tắt: để nút tự xử lý
@@ -16084,6 +16605,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updateUI: function () {
                 var on = !!(this.el && !this.el.paused);
                 var t = document.getElementById('music-text'); if (t) t.textContent = on ? 'Đang bật' : 'Đang tắt';
+                this.renderTracks();
                 var i = document.getElementById('music-icon'); if (i) i.className = on ? 'fa-solid fa-music text-primary' : 'fa-solid fa-music text-muted';
                 var r = document.getElementById('music-vol');
                 if (r) { if (String(r.value) !== String(this.vol)) r.value = this.vol; r.style.setProperty('--p', this.vol + '%'); }

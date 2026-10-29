@@ -588,34 +588,213 @@ html.qd-lite .qd-fx { display: none !important; }
             }
         };
 
-        /** 4. AUDIO ENGINE (WEB AUDIO API) */
+        /** 4. AUDIO ENGINE (WEB AUDIO API) — ÂM THANH TẾT (tự tổng hợp, không cần tải file)
+            - Bấm quay: tiếng trống lân "tùng tùng cắc" + chũm chọe, chậm dần theo bánh xe, dồn trống khi sắp dừng
+            - Mỗi ô lướt qua kim: một nốt đàn tranh ngũ cung (Hò - Xự - Xang - Xê - Cống) + tiếng phách tre
+            - Trúng quà: tiếng chiêng + pháo tép nổ ran + đàn tranh vút lên
+            - Trúng lời chúc: chiêng nhỏ + chuông gió + câu đàn tranh luyến láy
+            - Trả lời đúng câu hỏi: 3 nốt đàn tranh + chuông */
         const Sound = {
-            ctx: new (window.AudioContext || window.webkitAudioContext)(),
-            playTick() {
-                if(this.ctx.state === 'suspended') this.ctx.resume();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+            ctx: (() => { try { return new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } })(),
+            // Ngũ cung: Đô Rê Fa Sol La (C D F G A) qua 3 quãng tám
+            NOTES: [261.63, 293.66, 349.23, 392.00, 440.00, 523.25, 587.33, 698.46, 783.99, 880.00, 1046.50, 1174.66, 1396.91],
+            TICK_SEQ: [5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6],   // nốt khi kim lướt qua từng ô: lên rồi xuống như vuốt dây đàn
+            _str: {}, _lastTick: 0,
+
+            unlock() { if (this.ctx && this.ctx.state === 'suspended') { const p = this.ctx.resume(); if (p && p.catch) p.catch(() => {}); } return this._bus(); },
+            _bus() {
+                const c = this.ctx; if (!c) return null;
+                if (this.out) return this.out;
+                const comp = c.createDynamicsCompressor();   // chống rè khi pháo + chiêng + trống vang cùng lúc
+                comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 5; comp.attack.value = 0.002; comp.release.value = 0.18;
+                comp.connect(c.destination);
+                this.out = c.createGain(); this.out.gain.value = 0.85; this.out.connect(comp);
+                // Vang nhẹ (hồi âm) cho đàn tranh, chiêng
+                const dl = c.createDelay(1), fb = c.createGain(), lp = c.createBiquadFilter(), wet = c.createGain();
+                dl.delayTime.value = 0.17; fb.gain.value = 0.3; lp.type = 'lowpass'; lp.frequency.value = 2400; wet.gain.value = 0.3;
+                dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(wet); wet.connect(comp);
+                this.verb = c.createGain(); this.verb.connect(dl);
+                return this.out;
             },
-            playWin() {
-                if(this.ctx.state === 'suspended') this.ctx.resume();
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // Đô, Mi, Sol, Đố
-                notes.forEach((freq, i) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.frequency.value = freq;
-                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime + i * 0.1);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + i * 0.1 + 0.3);
-                    osc.connect(gain); gain.connect(this.ctx.destination);
-                    osc.start(this.ctx.currentTime + i * 0.1); osc.stop(this.ctx.currentTime + i * 0.1 + 0.3);
+            _now() { return this.ctx.currentTime + 0.01; },
+            _env(param, t, peak, decay, attack) {
+                param.setValueAtTime(0.0001, t);
+                param.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t + (attack || 0.003));
+                param.exponentialRampToValueAtTime(0.0001, t + decay);
+            },
+            _pan(node, v) {   // đặt âm sang trái/phải (pháo nổ khắp nơi)
+                if (!this.ctx.createStereoPanner) { node.connect(this.out); return; }
+                const p = this.ctx.createStereoPanner(); p.pan.value = v; node.connect(p); p.connect(this.out);
+            },
+            _noiseBuf() {
+                if (this._nb) return this._nb;
+                const c = this.ctx, len = c.sampleRate * 2, b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0);
+                for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+                return this._nb = b;
+            },
+            _noise(t, dur) {
+                const s = this.ctx.createBufferSource(); s.buffer = this._noiseBuf();
+                s.start(t, Math.random() * 1.5, dur + 0.05); return s;
+            },
+            _filter(type, f, q) { const b = this.ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; },
+
+            // Dây đàn tranh gảy (thuật toán Karplus-Strong): tính 1 lần cho mỗi nốt rồi dùng lại
+            _string(f) {
+                const sr = this.ctx.sampleRate, N = Math.max(2, Math.round(sr / f));
+                if (this._str[N]) return this._str[N];
+                const len = Math.floor(sr * 1.8), b = this.ctx.createBuffer(1, len, sr), d = b.getChannelData(0);
+                const k = Math.pow(0.001, N / (sr * 1.5));   // tắt dần ~1,5 giây
+                let prev = 0;
+                for (let i = 0; i < N; i++) { prev = prev * 0.35 + (Math.random() * 2 - 1) * 0.65; d[i] = prev * 0.8; }   // móng gảy
+                for (let i = N; i < len; i++) d[i] = k * 0.5 * (d[i - N] + (i - N - 1 >= 0 ? d[i - N - 1] : 0));
+                return this._str[N] = b;
+            },
+            pluck(f, t, vol, bend, dur) {
+                const c = this.ctx, s = c.createBufferSource(), g = c.createGain(), N = Math.max(2, Math.round(c.sampleRate / f));
+                dur = dur || 1.6;
+                s.buffer = this._string(f);
+                const r = f * (N + 0.5) / c.sampleRate;   // chỉnh đúng cao độ
+                s.playbackRate.setValueAtTime(r, t);
+                if (bend) {   // nhấn luyến kiểu đàn tranh: nắn dây lên rồi nhả về
+                    s.playbackRate.setValueAtTime(r, t + 0.09);
+                    s.playbackRate.linearRampToValueAtTime(r * bend, t + 0.24);
+                    s.playbackRate.linearRampToValueAtTime(r, t + 0.48);
+                    s.playbackRate.linearRampToValueAtTime(r * (1 + (bend - 1) * 0.4), t + 0.7);
+                    s.playbackRate.linearRampToValueAtTime(r, t + 0.92);
+                }
+                g.gain.setValueAtTime(vol, t);
+                g.gain.setTargetAtTime(0.0001, t + dur * 0.65, dur * 0.12);
+                s.connect(g); g.connect(this.out); g.connect(this.verb);
+                s.start(t); s.stop(t + dur);
+            },
+            _clave(t, vol, f) {   // phách tre / mõ gỗ
+                const c = this.ctx, o = c.createOscillator(), g = c.createGain(), n = this._noise(t, 0.04), bp = this._filter('bandpass', f || 2600, 7), g2 = c.createGain();
+                o.type = 'triangle'; o.frequency.setValueAtTime((f || 2600) * 0.5, t); o.frequency.exponentialRampToValueAtTime((f || 2600) * 0.42, t + 0.05);
+                this._env(g.gain, t, vol, 0.06, 0.001); this._env(g2.gain, t, vol * 1.4, 0.035, 0.001);
+                o.connect(g); g.connect(this.out); n.connect(bp); bp.connect(g2); g2.connect(this.out);
+                o.start(t); o.stop(t + 0.08);
+            },
+            _drum(t, vol) {   // trống lân "tùng"
+                const c = this.ctx, o = c.createOscillator(), g = c.createGain();
+                o.type = 'sine'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(58, t + 0.16); o.frequency.exponentialRampToValueAtTime(48, t + 0.5);
+                this._env(g.gain, t, vol, 0.5, 0.002);
+                o.connect(g); g.connect(this.out); o.start(t); o.stop(t + 0.55);
+                const n = this._noise(t, 0.08), lp = this._filter('lowpass', 900), g2 = c.createGain();   // tiếng da trống
+                this._env(g2.gain, t, vol * 0.5, 0.07, 0.001);
+                n.connect(lp); lp.connect(g2); g2.connect(this.out);
+            },
+            _rim(t, vol) { this._clave(t, vol, 1800); },   // "cắc": gõ tang trống
+            _cymbal(t, vol, len) {   // chũm chọe "xèng"
+                const c = this.ctx, n = this._noise(t, len), hp = this._filter('highpass', 4500), bp = this._filter('peaking', 8200, 1.2), g = c.createGain();
+                bp.gain.value = 8;
+                this._env(g.gain, t, vol, len, 0.002);
+                n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(this.out);
+                // tiếng kim loại rung (2 tần số lệch nhau)
+                [3120, 4370].forEach((f, i) => {
+                    const o = c.createOscillator(), og = c.createGain(); o.type = 'square'; o.frequency.value = f;
+                    this._env(og.gain, t, vol * 0.08, len * 0.7, 0.002);
+                    o.connect(og); og.connect(hp); o.start(t); o.stop(t + len);
                 });
+            },
+            _gong(t, vol, base, len) {   // chiêng / cồng
+                const c = this.ctx; len = len || 3.2;
+                [[1, 1], [1.48, 0.55], [2.02, 0.42], [2.74, 0.3], [3.36, 0.18], [4.1, 0.12], [5.3, 0.06]].forEach(([m, a], i) => {
+                    const o = c.createOscillator(), g = c.createGain(), f = base * m;
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(f * 1.012, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.5);
+                    this._env(g.gain, t, vol * a, len / (1 + i * 0.35), 0.006 + i * 0.002);
+                    o.connect(g); g.connect(this.out); g.connect(this.verb);
+                    o.start(t); o.stop(t + len);
+                });
+                const n = this._noise(t, 0.12), bp = this._filter('bandpass', base * 6, 1.5), g2 = c.createGain();   // tiếng dùi chạm
+                this._env(g2.gain, t, vol * 0.35, 0.12, 0.001);
+                n.connect(bp); bp.connect(g2); g2.connect(this.out);
+            },
+            _bell(t, f, vol) {   // chuông gió
+                const c = this.ctx;
+                [[1, 1], [2.76, 0.35], [5.4, 0.12]].forEach(([m, a]) => {
+                    const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = f * m;
+                    this._env(g.gain, t, vol * a, 1.6 / m + 0.3, 0.002);
+                    o.connect(g); g.connect(this.out); g.connect(this.verb); o.start(t); o.stop(t + 2);
+                });
+            },
+            _cracker(t, vol) {   // 1 tiếng pháo tép "đẹt"
+                const c = this.ctx, d = 0.018 + Math.random() * 0.03, n = this._noise(t, d + 0.06);
+                const bp = this._filter('bandpass', 900 + Math.random() * 2600, 0.8), g = c.createGain();
+                g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.0015);
+                g.gain.exponentialRampToValueAtTime(vol * 0.25, t + d * 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.05);
+                n.connect(bp); bp.connect(g); this._pan(g, Math.random() * 1.4 - 0.7);
+            },
+            _firecrackers(t, len, vol) {   // tràng pháo nổ ran
+                let x = t, end = t + len;
+                while (x < end) {
+                    const k = (x - t) / len;
+                    this._cracker(x, vol * (0.45 + Math.random() * 0.55) * (1 - k * 0.5));
+                    if (Math.random() < 0.08) this._cracker(x + 0.006, vol);   // tiếng nổ đôi
+                    x += 0.018 + Math.random() * (0.03 + k * 0.08);
+                }
+                [0.15, 0.62, 1.1].forEach(o => { if (o < len) { this._drum(t + o, vol * 0.9); this._cracker(t + o, vol * 1.3); } });   // vài quả pháo to
+            },
+
+            // ===== Dùng trong trang =====
+            tap() {   // phản hồi ngay khi bấm nút quay
+                if (!this.unlock()) return;
+                const t = this._now(); this._drum(t, 0.35); this._rim(t + 0.12, 0.12);
+            },
+            startSpin(dur) {   // nhạc nền trống lân trong lúc bánh xe quay (chậm dần theo bánh xe)
+                if (!this.unlock()) return;
+                dur = dur || 5;
+                const t0 = this._now();
+                // Nhịp 16 bước: D = tùng, C = cắc, X = chũm chọe
+                const P = ['DX', '', 'D', 'C', 'DX', '', 'C', 'D', 'DX', '', 'D', 'D', 'DX', '', 'C', 'C'];
+                let t = t0, i = 0;
+                while (t < t0 + dur - 0.75) {
+                    const k = (t - t0) / dur, s = P[i % 16], v = 1 - 0.4 * k;
+                    if (s.indexOf('D') >= 0) this._drum(t, 0.36 * v);
+                    if (s.indexOf('C') >= 0) this._rim(t, 0.09 * v);
+                    if (s.indexOf('X') >= 0) this._cymbal(t, 0.07 * v, i === 0 ? 0.6 : 0.22);
+                    t += 0.1 + 0.16 * k * k; i++;
+                }
+                // Dồn trống khi bánh xe sắp dừng: tùng... tùng.. tùng
+                [0.62, 0.4, 0.2].forEach((b, j) => this._drum(t0 + dur - b, 0.4 + j * 0.06));
+            },
+            playTick(n) {   // kim lướt qua 1 ô
+                if (!this.unlock()) return;
+                const t = this._now(), fast = t - this._lastTick < 0.045;
+                this._lastTick = t;
+                this._clave(t, fast ? 0.05 : 0.07, 2900);
+                if (!fast) this.pluck(this.NOTES[this.TICK_SEQ[(n || 0) % this.TICK_SEQ.length]], t, 0.2, 0, 0.9);
+            },
+            playWin(kind) {
+                if (!this.unlock()) return;
+                const t = this._now(), N = this.NOTES;
+                if (kind === 'prize') {   // TRÚNG QUÀ: chiêng + pháo + đàn tranh vút lên
+                    this._gong(t, 0.5, 98, 3.4);
+                    this._cymbal(t, 0.16, 1.4);
+                    this._firecrackers(t + 0.08, 1.9, 0.32);
+                    [5, 6, 7, 8, 9, 10, 11, 12].forEach((ni, i) => this.pluck(N[ni], t + 0.3 + i * 0.065, 0.2));
+                    [[0, 0.22, 0], [5, 0.2, 0], [8, 0.2, 0], [10, 0.26, 1.06]].forEach(([ni, v, b]) => this.pluck(N[ni], t + 0.92, v, b, 2.2));
+                    this._gong(t + 1.6, 0.22, 147, 2.2);
+                } else if (kind === 'wish') {   // LỜI CHÚC TẾT: chiêng nhỏ + chuông gió + đàn tranh
+                    this._gong(t, 0.3, 156, 2.6);
+                    for (let i = 0; i < 9; i++) this._bell(t + 0.1 + i * (0.07 + Math.random() * 0.05), N[7 + Math.floor(Math.random() * 6)] * 2, 0.05);
+                    [[7, 0], [9, 0.18], [10, 0.36], [9, 0.54], [7, 0.72], [8, 0.9]].forEach(([ni, o]) => this.pluck(N[ni], t + 0.25 + o, 0.2));
+                    this.pluck(N[5], t + 1.35, 0.24, 1.06, 2.2); this.pluck(N[0], t + 1.35, 0.16, 0, 2.2);
+                    this._firecrackers(t + 0.1, 0.6, 0.14);
+                } else {   // TRẢ LỜI ĐÚNG: 3 nốt + chuông
+                    [8, 10, 12].forEach((ni, i) => this.pluck(N[ni], t + i * 0.09, 0.22, i === 2 ? 1.05 : 0, 1.4));
+                    this._bell(t + 0.27, N[12] * 2, 0.07);
+                    this._clave(t, 0.08, 2600);
+                }
             }
+        };
+        // Đường cong chậm dần của bánh xe (CSS cubic-bezier(0.25, 0.1, 0.25, 1)) để tiếng "tách" khớp từng ô
+        const easeWheel = (x) => {
+            if (x <= 0) return 0; if (x >= 1) return 1;
+            const B = (t, a, b) => 3 * (1 - t) * (1 - t) * t * a + 3 * (1 - t) * t * t * b + t * t * t;
+            let lo = 0, hi = 1, t = x;
+            for (let i = 0; i < 22; i++) { t = (lo + hi) / 2; if (B(t, 0.25, 0.25) < x) lo = t; else hi = t; }
+            return B(t, 0.1, 1);
         };
 
         /** 5. WHEEL LOGIC & RENDERING ENGINE */
@@ -830,8 +1009,8 @@ html.qd-lite .qd-fx { display: none !important; }
                     return;
                 }
 
-                // Mở khóa AudioContext
-                Sound.ctx.resume();
+                // Mở khóa âm thanh (phải gọi ngay trong lúc bấm) + tiếng trống báo hiệu
+                Sound.tap();
 
                 this.isSpinning = true;
                 this.spinBtn.disabled = true;
@@ -868,21 +1047,21 @@ html.qd-lite .qd-fx { display: none !important; }
 
                     this.canvas.style.transform = `rotate(${this.currentRotation}deg)`;
 
-                    // Tick Sound Loop
-                    let start = null;
+                    // Âm thanh Tết: trống lân suốt lượt quay + nốt đàn tranh mỗi khi 1 ô lướt qua kim (khớp đà chậm dần)
+                    Sound.startSpin(5);
+                    const startRot = this.currentRotation - rotateAmount;
+                    const idxAt = (deg) => Math.floor((deg - 270) / sliceDeg);   // kim ở đỉnh bánh xe (270°)
+                    this.lastTickIndex = idxAt(startRot);
+                    let start = null, tickNo = 0;
                     const animateTick = (time) => {
                         if (!start) start = time;
-                        const progress = time - start;
-                        
-                        const currentGoc = (progress / 5000) * rotateAmount; 
-                        const curIdx = Math.floor(currentGoc / sliceDeg);
-                        
-                        if(curIdx !== this.lastTickIndex) { 
-                            Sound.playTick(); 
-                            this.lastTickIndex = curIdx; 
+                        const p = Math.min(1, (time - start) / 5000);
+                        const curIdx = idxAt(startRot + easeWheel(p) * rotateAmount);
+                        if (curIdx !== this.lastTickIndex) {
+                            Sound.playTick(tickNo++);
+                            this.lastTickIndex = curIdx;
                         }
-                        
-                        if(progress < 5000) requestAnimationFrame(animateTick);
+                        if (p < 1) requestAnimationFrame(animateTick);
                     };
                     requestAnimationFrame(animateTick);
 
@@ -906,10 +1085,9 @@ html.qd-lite .qd-fx { display: none !important; }
             },
 
             processResult: function(winIndex) {
-                Sound.playWin();
-
                 const rawText = State.prizes[winIndex].text;
                 const isWish = this.forceWish || this.isWishPrize(rawText);
+                Sound.playWin(isWish ? 'wish' : 'prize');   // lời chúc: chuông gió + đàn tranh; trúng quà: chiêng + pháo
                 const resultText = isWish ? "Lời Chúc Tết" : rawText;
                 const wish = isWish ? this.randomWish() : null;
 
@@ -1410,5 +1588,172 @@ html[data-theme="tet"] body::before { content: ''; position: fixed; inset: 0; z-
 #wheelCanvas { will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .spin-counter.glow::after { animation: none !important; opacity: 0; } }
     </style>
+    <!-- ===== QD TẾT MUSIC: nhạc nền Tết dùng chung (mọi trang trừ admin; user.html có trình phát riêng) ===== -->
+    <script id="qd-music-js">
+    /* - Vào trang tự bật nhạc Tết (mặc định Bật). Trình duyệt chặn tự phát -> phát ở lần chạm / bấm phím đầu tiên
+       - 4 bài: mặc định tự chuyển bài lần lượt; chọn lặp 1 bài trong Cài đặt của trang user (qd_music_track: 'auto' | '0'..'3')
+       - Dùng chung cài đặt với trang user: qd_music_on ('0' = tắt), qd_music_vol (0-100, mặc định 50)
+       - Chuyển trang -> nghe tiếp đúng đoạn đang phát; ẩn tab -> tạm dừng, quay lại -> phát tiếp
+       - Nút tròn góc trái dưới: bấm để Bật / Tắt nhạc */
+    (function () {
+        'use strict';
+        if (window.QDMusic || document.getElementById('bg-music')) return;
+        try { if (window.top !== window && /admin\.html/i.test(window.top.location.pathname)) return; } catch (e) {}
+        var d = document, W = window;
+        var TRACKS = [
+            { src: 'nhac-tet.mp3', name: 'Xuân Về Phơi Phới' },
+            { src: 'nhac-tet-2.mp3', name: 'Xuân Rộn Ràng' },
+            { src: 'nhac-tet-3.mp3', name: 'Lân Về Phố' },
+            { src: 'nhac-tet-4.mp3', name: 'Sum Vầy Ngày Xuân' }
+        ];
+        function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+        function readVol() { var v = parseInt(ls('qd_music_vol'), 10); return isNaN(v) ? 50 : Math.min(100, Math.max(0, v)); }
+        function readMode() { var m = ls('qd_music_track'); return m != null && m !== '' && TRACKS[+m] ? String(+m) : 'auto'; }
+        var M = W.QDMusic = { tracks: TRACKS, mode: readMode(), idx: 0, enabled: ls('qd_music_on') !== '0', vol: readVol(), active: false, waiting: false, el: null, btn: null, ctx: null, gain: null, useGain: false };
+
+        var CSS = '#qd-music-btn{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(16px,calc(env(safe-area-inset-bottom) + 10px));z-index:9990;width:46px;height:46px;padding:0;border-radius:50%;border:2px solid #ffd95a;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#ffd95a;background:radial-gradient(circle at 35% 30%,#e3262d,#a10b12 58%,#6a0000);box-shadow:0 6px 18px rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent;transition:transform .2s;font-family:"Be Vietnam Pro","Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}'
+            + '#qd-music-btn:active{transform:scale(.9)}#qd-music-btn:focus-visible{outline:3px solid rgba(255,217,90,.6);outline-offset:3px}'
+            + '#qd-music-btn svg{width:22px;height:22px;display:block}'
+            + '.qd-mu-ring{position:absolute;inset:-6px;border-radius:50%;border:2px dashed rgba(255,217,90,.75);opacity:0;pointer-events:none;transition:opacity .3s}'
+            + '#qd-music-btn.on .qd-mu-ring{opacity:1;animation:qdMuSpin 8s linear infinite}'
+            + '#qd-music-btn.wait .qd-mu-ring{opacity:1;border-style:solid;animation:qdMuPing 1.6s ease-out infinite}'
+            + '.qd-mu-eq{display:none;gap:3px;align-items:flex-end;height:18px}.qd-mu-eq i{display:block;width:4px;height:18px;border-radius:2px;background:#ffd95a;transform-origin:50% 100%;animation:qdMuEq .9s ease-in-out infinite}'
+            + '.qd-mu-eq i:nth-child(2){animation-delay:-.3s}.qd-mu-eq i:nth-child(3){animation-delay:-.6s}'
+            + '#qd-music-btn.on .qd-mu-eq{display:flex}#qd-music-btn.on .qd-mu-note{display:none}.qd-mu-x{display:none}#qd-music-btn.off .qd-mu-x{display:inline}#qd-music-btn.off{opacity:.8}'
+            + '.qd-mu-tip{position:absolute;left:58px;top:50%;transform:translateY(-50%);white-space:nowrap;padding:8px 13px;border-radius:999px;font-size:12.5px;font-weight:800;line-height:1;color:#7a0000;background:linear-gradient(135deg,#fff6c8,#ffd95a 55%,#e9a91c);box-shadow:0 6px 16px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .35s}'
+            + '#qd-music-btn.tip .qd-mu-tip{opacity:1}'
+            + '@keyframes qdMuSpin{to{transform:rotate(360deg)}}@keyframes qdMuEq{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}@keyframes qdMuPing{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.35);opacity:0}}'
+            + '@media (prefers-reduced-motion:reduce){#qd-music-btn *{animation:none!important}}';
+        var ICON = '<span class="qd-mu-ring" aria-hidden="true"></span>'
+            + '<svg class="qd-mu-note" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13" /><circle cx="6" cy="18" r="3" fill="currentColor" /><circle cx="17" cy="16" r="3" fill="currentColor" /><path class="qd-mu-x" d="M3 3l18 18" stroke="#fff6c8" stroke-width="2.6" /></svg>'
+            + '<span class="qd-mu-eq" aria-hidden="true"><i></i><i></i><i></i></span>'
+            + '<span class="qd-mu-tip"></span>';
+
+        function ui() {
+            var b = M.btn; if (!b) return;
+            var on = !!(M.el && !M.el.paused);
+            b.classList.toggle('on', on);
+            b.classList.toggle('wait', !on && M.waiting);
+            b.classList.toggle('off', !on && !M.waiting);
+            b.setAttribute('aria-label', on ? 'Tắt nhạc nền' : 'Bật nhạc nền');
+            b.title = on ? 'Tắt nhạc nền' : 'Bật nhạc nền';
+            if (on && M.waiting === false && shown === M.idx && b.querySelector('.qd-mu-tip').textContent.indexOf('Chạm') >= 0) b.classList.remove('tip');
+        }
+        // Gán bài thứ i (không tự phát)
+        function setTrack(i) {
+            var n = TRACKS.length; i = ((i % n) + n) % n;
+            M.idx = i; M.el.loop = M.mode !== 'auto';
+            var url = new URL(TRACKS[i].src, location.href).href;
+            if (M.el.src !== url) M.el.src = url;
+            ls('qd_music_last', String(i));
+        }
+        M.next = function () { var on = !M.el.paused || M.active; setTrack(M.idx + 1); if (on && M.enabled) M.play(true); };
+        function vol(v) {
+            var x = Math.min(100, Math.max(0, v)) / 100; x = x * x;   // 50% -> 25%: nghe tự nhiên hơn
+            if (M.gain) { try { M.gain.gain.setTargetAtTime(x, M.ctx.currentTime, 0.03); } catch (e) { M.gain.gain.value = x; } M.el.volume = 1; }
+            else if (M.el) M.el.volume = x;
+        }
+        var fadeT = 0;
+        function fadeIn() {
+            var t0 = performance.now(); clearInterval(fadeT); vol(0);
+            fadeT = setInterval(function () { var k = Math.min(1, (performance.now() - t0) / 1200); vol(M.vol * k); if (k >= 1) clearInterval(fadeT); }, 50);
+        }
+        // iPhone/iPad không cho JS chỉnh audio.volume -> đi qua Web Audio (phải tạo trong lúc người dùng chạm)
+        function setupGain() {
+            if (!M.useGain || M.gain) return;
+            try {
+                var AC = W.AudioContext || W.webkitAudioContext; M.ctx = new AC();
+                var src = M.ctx.createMediaElementSource(M.el); M.gain = M.ctx.createGain();
+                src.connect(M.gain); M.gain.connect(M.ctx.destination); vol(M.vol);
+            } catch (e) { M.useGain = false; M.gain = null; }
+        }
+        var GEST = ['touchend', 'click', 'keydown', 'mousedown'], tipT = 0, shown = -1;
+        function tip(text, ms) {
+            var b = M.btn; if (!b) return;
+            b.querySelector('.qd-mu-tip').textContent = text;
+            clearTimeout(tipT); b.classList.add('tip'); tipT = setTimeout(function () { b.classList.remove('tip'); }, ms);
+        }
+        function wait() {
+            if (M.waiting) return; M.waiting = true; ui();
+            tip('🎵 Chạm để bật nhạc Tết', 6000);
+            GEST.forEach(function (ev) { d.addEventListener(ev, go, true); });
+        }
+        function go(e) {
+            if (e && e.target && e.target.closest && e.target.closest('#qd-music-btn')) return;   // bấm nút: để nút tự xử lý
+            GEST.forEach(function (ev) { d.removeEventListener(ev, go, true); });
+            M.waiting = false;
+            if (M.enabled && M.active && M.el.paused) M.play(true); else ui();
+        }
+        M.play = function (gesture) {
+            var el = M.el; M.active = true;
+            if (d.hidden) { M.hid = true; return; }
+            if (M.useGain && !M.gain) { if (!gesture) return wait(); setupGain(); }
+            if (M.ctx && M.ctx.state !== 'running') { try { M.ctx.resume(); } catch (e) {} }
+            if (!el.paused) return ui();
+            fadeIn();
+            var p = el.play();
+            if (p && p.then) p.then(function () {
+                M.waiting = false; GEST.forEach(function (ev) { d.removeEventListener(ev, go, true); }); ui();
+            }, function (err) {
+                if (err && err.name === 'NotAllowedError') { M.waiting = false; return wait(); }
+                M.active = false; ui();
+            });
+        };
+        M.stop = function () { M.active = false; clearInterval(fadeT); if (M.el) M.el.pause(); ui(); };
+        M.toggle = function () {
+            if (M.el.paused) { M.enabled = true; ls('qd_music_on', '1'); M.play(true); }
+            else { M.enabled = false; ls('qd_music_on', '0'); M.stop(); }
+        };
+
+        function boot() {
+            var st = d.createElement('style'); st.id = 'qd-music-css'; st.textContent = CSS; d.head.appendChild(st);
+            var el = M.el = d.createElement('audio');
+            el.id = 'qd-music'; el.preload = 'auto'; el.setAttribute('playsinline', '');
+            // chọn bài: nghe tiếp bài của trang trước; lần đầu ở chế độ tự động -> bài sau bài nghe lần trước
+            var sp = null; try { sp = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'); } catch (e) {}
+            var start = 0;
+            if (M.mode !== 'auto') start = +M.mode;
+            else if (sp && TRACKS[sp.i] && Date.now() - sp.at < 15000) start = sp.i;
+            else { var last = parseInt(ls('qd_music_last'), 10); start = isNaN(last) ? 0 : last + 1; }
+            setTrack(start);
+            el.addEventListener('ended', function () { if (M.mode === 'auto') M.next(); });
+            el.addEventListener('playing', function () { if (shown !== M.idx) { shown = M.idx; tip('🎵 ' + TRACKS[M.idx].name, 3500); } });
+            var b = M.btn = d.createElement('button');
+            b.type = 'button'; b.id = 'qd-music-btn'; b.innerHTML = ICON;
+            b.addEventListener('click', function (e) { e.stopPropagation(); M.toggle(); });
+            d.body.appendChild(el); d.body.appendChild(b);
+            try { var t = new Audio(); t.volume = 0.5; M.useGain = Math.abs(t.volume - 0.5) > 0.01 && !!(W.AudioContext || W.webkitAudioContext); } catch (e) {}
+            vol(M.vol);
+            el.addEventListener('play', ui); el.addEventListener('pause', ui);
+            el.addEventListener('error', function () { M.active = false; M.waiting = false; if (M.btn) M.btn.style.display = 'none'; });
+            // nghe tiếp đoạn nhạc từ trang trước
+            el.addEventListener('loadedmetadata', function () {
+                try {
+                    var s = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'), du = el.duration;
+                    if (s && s.i === M.idx && du && isFinite(du) && Date.now() - s.at < 15000) { el.currentTime = Math.min(s.t + (Date.now() - s.at) / 1000, du - 0.5); shown = M.idx; }
+                } catch (e) {}
+            }, { once: true });
+            W.addEventListener('pagehide', function () {
+                try { if (!el.paused) sessionStorage.setItem('qd_music_pos', JSON.stringify({ i: M.idx, t: el.currentTime, at: Date.now() })); else sessionStorage.removeItem('qd_music_pos'); } catch (e) {}
+            });
+            d.addEventListener('visibilitychange', function () {
+                if (d.hidden) { if (!el.paused) { M.hid = true; el.pause(); } return; }
+                if (M.hid) { M.hid = false; if (M.enabled && M.active) M.play(false); }
+            });
+            // đổi âm lượng / bật tắt ở tab khác (trang user) -> áp dụng ngay
+            W.addEventListener('storage', function (e) {
+                if (e.key === 'qd_music_vol') { M.vol = readVol(); clearInterval(fadeT); vol(M.vol); }
+                else if (e.key === 'qd_music_on') { M.enabled = e.newValue !== '0'; if (!M.enabled) M.stop(); }
+                else if (e.key === 'qd_music_track') {
+                    M.mode = readMode(); el.loop = M.mode !== 'auto';
+                    if (M.mode !== 'auto' && +M.mode !== M.idx) { var on = !el.paused; setTrack(+M.mode); if (on) M.play(true); }
+                }
+            });
+            ui();
+            if (M.enabled) M.play(false);   // mặc định: vào trang là bật nhạc
+        }
+        if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+    })();
+    </script>
 </body>
 </html>
