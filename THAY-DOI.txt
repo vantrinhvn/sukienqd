@@ -1,3 +1,64 @@
+QD ELITE - ADMIN THIẾT LẬP AI ĐI TIẾP (29/10/2026)
+==================================================
+File thay đổi: admin.html, user.html.
+
+Admin > Giải đấu > Sơ Đồ Giải Đấu > nút "Thiết Lập Đi Tiếp":
+- Danh sách trận theo vòng, mỗi bên có nút "Cho đi tiếp" -> bấm là lưu ngay, người đó vào vòng sau
+- Lọc "Cần quyết định" (trận chưa có người đi tiếp) / "Tất cả trận"; đã chọn thì hiện "✅ Đi tiếp", có nút Hủy
+- "Tỉ số / lý do": nhập tỉ số + chọn lý do đi tiếp: Thắng trận / Đối thủ bỏ cuộc (W.O) / Đối thủ bị loại / BQT đặc cách
+- Đổi hoặc hủy người đi tiếp mà các trận sau đã có kết quả -> hỏi xác nhận, báo số trận sẽ bị xóa kết quả
+- Bấm trận trên sơ đồ (hoặc toàn màn hình) vẫn mở hộp "Thiết Lập Đi Tiếp"
+Thành viên thấy lý do trên sơ đồ: W.O / BỎ, LOẠI, ★ (đặc cách); thẻ trận và tab Thành Tích ghi rõ lý do.
+
+QD ELITE - SƠ ĐỒ GIẢI ĐẤU HỢP ĐIỆN THOẠI & MÁY TÍNH (29/10/2026)
+=================================================================
+File thay đổi: user.html, admin.html (phần xem sơ đồ toàn màn hình dùng chung).
+
+Tự chọn cách xem theo màn hình (người xem bấm nút trên đầu để đổi, máy nhớ lựa chọn):
+- Điện thoại dọc / máy tính bảng dọc -> "Theo vòng": thanh tab Vòng 1/8 · Tứ Kết · Bán Kết · 🏆 Chung Kết · ⭐ Trận Của Tôi
+  + thẻ trận chữ to, dễ bấm; vuốt trái/phải để đổi vòng; tự mở đúng vòng đang thi đấu (chấm xanh)
+  + mỗi trận ghi rõ: Trận số, trạng thái (Sắp đấu / Đã đấu / Chờ đối thủ), "Thắng → Trận X (vòng sau)"
+  + trận của mình viền xanh; người được miễn đấu gom gọn ở cuối vòng
+  + tab Chung Kết: cúp Nhà Vô Địch lớn + Á quân / Hạng Ba + trận Chung kết, Tranh hạng 3
+  + tab Trận Của Tôi: toàn bộ hành trình của mình trong giải
+- Máy tính / điện thoại xoay ngang -> "Sơ đồ" cây World Cup, tự vừa khung màn hình
+  + Ctrl + lăn chuột (hoặc chụm 2 ngón touchpad) để phóng to quanh con trỏ, kéo chuột để di chuyển, phím + / -
+  + điện thoại/máy tính bảng: chụm 2 ngón để phóng to
+- Admin xem toàn màn hình trên điện thoại cũng dùng chế độ "Theo vòng", bấm thẻ trận để nhập kết quả.
+
+QD ELITE - MỞ ĐĂNG KÝ ID GAME Ở TRANG USER (29/10/2026)
+=======================================================
+File thay đổi: user.html. (Trước đây biểu mẫu đăng ký ID có sẵn nhưng không có nút nào mở được.)
+
+- Chỗ mở: thẻ "🪪 Đăng Ký ID Game" trên Trang chủ (đầu dãy thẻ tính năng), mục "Đăng Ký ID Game" ở menu bên,
+  nút "Đăng Ký ID Game" trong tab Giải Đấu (cạnh nút Xem Sơ Đồ).
+- Trạng thái theo Admin > Danh sách Đăng ký > Cấu hình Đóng/Mở (cập nhật ngay):
+  Đang mở / Còn x ngày y giờ (khi có hạn chót) / Đã đóng / Hết hạn -> khóa ô nhập + nút gửi.
+- Gửi đơn xong: thẻ đổi thành "Đã đăng ký ✓", bấm vào xem lại đơn (tên nhân vật, ID, thời gian gửi, đã vào danh sách thi đấu chưa).
+  Admin bấm "Cho Phép Nộp Lại" -> biểu mẫu tự hiện lại cho thành viên đó.
+- Ô ID chỉ nhận số, bàn phím số trên điện thoại; Enter để gửi.
+
+QD ELITE - SƠ ĐỒ GIẢI ĐẤU KIỂU WORLD CUP (29/10/2026)
+=====================================================
+File thay đổi: admin.html, user.html (các file khác giữ nguyên). Dữ liệu lưu ở Firestore: settings/tournament_bracket.
+
+ADMIN > Giải đấu > thẻ "Sơ Đồ Giải Đấu":
+- Tên giải, Thể thức: Giải Đơn (1 vs 1) / Giải Đôi (2 vs 2), Quy mô: 4 / 8 / 16 / 32 / 64 người (hoặc đội)
+- Cách xếp cặp: bốc thăm ngẫu nhiên / theo điểm tích lũy (hạt giống) / theo thứ tự thêm vào giải
+- Tùy chọn: trận tranh Hạng 3; hiện/ẩn nút "Sơ Đồ Giải Đấu" cho thành viên
+- Tuyển thủ lấy từ Danh sách giải đấu. Giải Đôi: dùng các đội đã "Gộp Đội" (mỗi đội 2 người), người chưa phân đội tự ghép đôi
+- Thiếu người -> suất "Miễn đấu" tự đi tiếp (rải đều theo hạt giống); dư người -> báo trước ai không có suất
+- Bấm 1 trận (dấu ✎) để nhập tỉ số + chọn bên thắng -> người thắng tự vào vòng sau.
+  Đổi bên thắng của trận cũ -> các trận sau phụ thuộc tự xóa kết quả để nhập lại (chỉ đổi tỉ số thì giữ nguyên)
+- Chỉnh Vị Trí (đổi người ở từng vị trí vòng đầu), Toàn Màn Hình, Xóa Kết Quả, Xóa Sơ Đồ
+
+USER > Giải Đấu: nút "🏆 Xem Sơ Đồ Giải Đấu" (hiện khi admin bật; có nhãn ● LIVE khi đang thi đấu)
+- Sơ đồ 2 nhánh gặp nhau ở Chung kết giữa, cúp + Nhà Vô Địch, Tranh Hạng 3; tự cập nhật khi admin nhập kết quả
+- Phóng to / thu nhỏ / xem toàn bộ, kéo để cuộn; tên của chính mình được tô vàng
+- Bấm tên tuyển thủ -> thẻ chi tiết 4 tab: Cá Nhân (họ tên, ingame, đội, điểm) | ID Game (mã ID + nút sao chép) |
+  Tài Khoản (tên tài khoản, vai trò, ngày tham gia, hoạt động) | Thành Tích (các trận đã đấu, vô địch / á quân / hạng 3)
+  Giải Đôi: chọn từng thành viên của đội để xem.
+
 QD ELITE - THÊM 3 BÀI NHẠC TẾT (29/10/2026)
 ============================================
 Cách cập nhật: chép đè các file trong gói lên host (nhớ chép đủ 4 file nhạc), xóa nhac.mp3 cũ nếu còn.

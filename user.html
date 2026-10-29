@@ -9427,20 +9427,34 @@ html.qd-lite .qd-fx { display: none !important; }
         <div class="modal-box text-center">
             <button class="modal-close-btn" onclick="window.UI.closeModal('modal-registration')"><i class="fa-solid fa-xmark"></i></button>
             <div class="flex-center mx-auto mb-4 bg-primary-soft text-primary" style="width: 80px; height: 80px; border-radius: 20px; font-size: 36px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-address-card"></i></div>
-            <h2 class="text-2xl mb-2">Khai Báo Dữ Liệu ID</h2>
-            <p class="text-muted text-sm mb-6">Mỗi tài khoản chỉ được phép đăng ký 1 lần duy nhất.</p>
+            <h2 class="text-2xl mb-2" id="reg-title">Đăng Ký ID Game</h2>
+            <p class="text-muted text-sm mb-4" id="reg-sub">Mỗi tài khoản chỉ được phép đăng ký 1 lần duy nhất.</p>
+            <div class="reg-status" id="reg-status" data-s="load"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra trạng thái...</div>
+
+            <div class="reg-done" id="reg-done" hidden>
+                <div class="reg-done-badge"><i class="fa-solid fa-circle-check"></i> Đã gửi đơn đăng ký</div>
+                <div class="reg-done-row"><span>Tên nhân vật</span><b id="reg-done-name">---</b></div>
+                <div class="reg-done-row"><span>ID Game</span><b id="reg-done-id" class="reg-done-id">---</b></div>
+                <div class="reg-done-row"><span>Thời gian gửi</span><b id="reg-done-time">---</b></div>
+                <div class="reg-done-row"><span>Giải đấu</span><b id="reg-done-tour">---</b></div>
+                <p class="reg-done-note">Cần sửa thông tin? Liên hệ Ban Quản Trị để được <b>"Cho phép nộp lại"</b>.</p>
+                <button type="button" class="btn btn-outline w-full" onclick="window.UI.closeModal('modal-registration')">Đóng</button>
+            </div>
+
+            <div id="reg-form">
 
             <div class="form-group mb-4 text-left">
                 <label class="form-label text-xs">Tên Nhân Vật (Ingame Name)</label>
-                <div class="relative"><i class="fa-solid fa-user-ninja absolute text-muted" style="left: 16px; top: 50%; transform: translateY(-50%);"></i><input type="text" id="reg-name" class="form-control" style="padding-left: 45px;" placeholder="Tên trong game..."></div>
+                <div class="relative"><i class="fa-solid fa-user-ninja absolute text-muted" style="left: 16px; top: 50%; transform: translateY(-50%);"></i><input type="text" id="reg-name" class="form-control" style="padding-left: 45px;" placeholder="Tên trong game..." maxlength="40" autocomplete="off" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('reg-id').focus();}"></div>
             </div>
             
             <div class="form-group mb-8 text-left">
                 <label class="form-label text-xs">Mã Định Danh (ID Game)</label>
-                <div class="relative"><i class="fa-solid fa-hashtag absolute text-primary" style="left: 16px; top: 50%; transform: translateY(-50%);"></i><input type="text" id="reg-id" class="form-control font-bold" style="font-family: var(--font-family-mono); letter-spacing: 2px; padding-left: 45px; color: var(--color-warning);" placeholder="Ví dụ: 1029384756" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+                <div class="relative"><i class="fa-solid fa-hashtag absolute text-primary" style="left: 16px; top: 50%; transform: translateY(-50%);"></i><input type="text" id="reg-id" class="form-control font-bold" style="font-family: var(--font-family-mono); letter-spacing: 2px; padding-left: 45px; color: var(--color-warning);" placeholder="Ví dụ: 1029384756" inputmode="numeric" maxlength="20" autocomplete="off" enterkeyhint="send" oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeydown="if(event.key==='Enter'){event.preventDefault();window.AppCore.sendRegistration();}"></div>
             </div>
 
             <button class="btn btn-primary w-full" style="padding: 18px;" onclick="window.AppCore.sendRegistration()"><i class="fa-solid fa-paper-plane mr-2"></i> Gửi Yêu Cầu Đăng Ký</button>
+            </div>
         </div>
     </div>
 
@@ -9857,6 +9871,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div class="nav-item" onclick="window.UI.navigate('attendance', this)"><i class="fa-solid fa-calendar-check"></i> <span>Điểm Danh </span></div>
                 <div class="nav-item" onclick="window.UI.navigate('news', this)"><i class="fa-solid fa-newspaper"></i> <span>Bản Tin Quân Đoàn</span></div>
                 <div class="nav-item" onclick="window.UI.navigate('tournament', this)"><i class="fa-solid fa-fire"></i> <span>Giải Đấu Máy Chủ</span></div>
+                <div class="nav-item" onclick="window.RegID.open()"><i class="fa-solid fa-id-card"></i> <span>Đăng Ký ID Game</span></div>
                 <div class="nav-item" onclick="window.UI.navigate('rps', this)"><i class="fa-regular fa-hand-scissors"></i> <span>Kéo Búa Bao</span></div>
             </nav>
             
@@ -9943,6 +9958,15 @@ html.qd-lite .qd-fx { display: none !important; }
                             <p class="lixi-msg" id="lixi-msg" aria-live="polite">Đang tải dữ liệu...</p>
                             <div class="lixi-fx" id="lixi-fx" aria-hidden="true"></div>
                         </div>
+
+                        <button type="button" class="wheel-tab reg-tab" id="reg-tab" data-state="open" onclick="window.RegID.open()" aria-label="Mở Đăng Ký ID Game" style="font: inherit;">
+                            <div class="wheel-head">
+                                <h3 class="wheel-title"><span aria-hidden="true">🪪</span> Đăng Ký ID Game</h3>
+                                <span class="wheel-badge" id="reg-tab-sub">Đang tải...</span>
+                            </div>
+                            <div class="wheel-tab-stage"><div class="reg-mini" aria-hidden="true"><span class="reg-card"><i>🎮</i><b></b><b></b><em id="reg-tab-id">ID ••••••</em></span><span class="reg-stamp">✓</span></div></div>
+                            <p class="wheel-msg" id="reg-tab-go">Chạm để khai báo ID ›</p>
+                        </button>
 
                         <a class="wheel-tab" id="wheel-tab" href="qt.html" data-state="open" aria-label="Mở Vòng Quay">
                             <div class="wheel-head">
@@ -10081,10 +10105,14 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
                 <section id="view-tournament" class="view-section">
-                    <div class="flex justify-between items-center mb-6">
+                    <div class="flex justify-between items-center mb-6 qdb-head">
                         <div>
                             <h1 class="text-3xl mb-2">Bảng Tham Gia Giải Đấu</h1>
                             <p class="text-muted text-lg">Danh sách vinh danh các thành viên và các đội tham gia.</p>
+                        </div>
+                        <div class="reg-head-btns">
+                        <button type="button" class="reg-open-btn" id="btn-reg-open" onclick="window.RegID.open()"><span aria-hidden="true">🪪</span> <span id="btn-reg-open-txt">Đăng Ký ID Game</span></button>
+                        <button type="button" class="qdb-open-btn" id="btn-qdb-open" style="display: none;"><span class="qdb-ob-ic">🏆</span> Xem Sơ Đồ Giải Đấu <small>Giải Đơn</small></button>
                         </div>
                     </div>
                     
@@ -17993,6 +18021,874 @@ html[data-theme="tet"] .btn-primary:not(:disabled)::after { content: ''; positio
     html[data-theme="tet"] .btn-primary::after, .inv2-dot::after, .ps2-go.confirm::after, .ln-live-dot::after, .ln-live-banner::after { animation: none !important; opacity: 0; }
 }
     </style>
+    <!-- ===== QD BRACKET: sơ đồ giải đấu kiểu World Cup (dùng chung admin + user) ===== -->
+    <style id="qdb-css">
+.qdb-root { --qdb-w: 158px; --qdb-g: 18px; --qdb-gold: #facc15; --qdb-gold2: #fde68a; --qdb-red: #b91c1c; --qdb-text: #fff7e0; --qdb-muted: rgba(254, 240, 138, .62);
+    --qdb-card: rgba(58, 6, 8, .92); --qdb-card2: rgba(90, 12, 14, .9); --qdb-line: rgba(250, 204, 21, .32); --qdb-line-on: #facc15;
+    color: var(--qdb-text); font-family: inherit; -webkit-tap-highlight-color: transparent; }
+.qdb-root *, .qdb-root *::before, .qdb-root *::after { box-sizing: border-box; }
+.qdb-tree { display: flex; align-items: stretch; width: max-content; padding: 6px 10px 14px; margin: 0 auto; }
+.qdb-half { display: flex; align-items: stretch; }
+.qdb-col { display: flex; flex-direction: column; width: calc(var(--qdb-w) + var(--qdb-g) * 2); }
+.qdb-rh { height: 30px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--qdb-gold); white-space: nowrap; }
+.qdb-rh span { padding: 4px 10px; border-radius: 999px; background: rgba(250, 204, 21, .1); border: 1px solid rgba(250, 204, 21, .25); }
+.qdb-colb { display: flex; flex-direction: column; height: var(--qdb-body); }
+.qdb-pair { flex: 2 1 0; display: flex; flex-direction: column; position: relative; }
+.qdb-cell { flex: 1 1 0; display: flex; align-items: center; justify-content: center; position: relative; padding: 4px var(--qdb-g); min-height: 0; }
+/* đường nối nửa trái */
+.qdb-left .qdb-cell::after { content: ''; position: absolute; right: 0; top: 50%; width: var(--qdb-g); border-top: 2px solid var(--qdb-line); }
+.qdb-left .qdb-pair::after { content: ''; position: absolute; right: 0; top: 25%; bottom: 25%; border-right: 2px solid var(--qdb-line); }
+.qdb-left .qdb-col + .qdb-col .qdb-cell::before { content: ''; position: absolute; left: 0; top: 50%; width: var(--qdb-g); border-top: 2px solid var(--qdb-line); }
+/* nửa phải (đối xứng) */
+.qdb-right .qdb-cell::after { content: ''; position: absolute; left: 0; top: 50%; width: var(--qdb-g); border-top: 2px solid var(--qdb-line); }
+.qdb-right .qdb-pair::after { content: ''; position: absolute; left: 0; top: 25%; bottom: 25%; border-left: 2px solid var(--qdb-line); }
+.qdb-right .qdb-col:not(:last-child) .qdb-cell::before { content: ''; position: absolute; right: 0; top: 50%; width: var(--qdb-g); border-top: 2px solid var(--qdb-line); }
+.qdb-left .qdb-cell.adv::after, .qdb-right .qdb-cell.adv::after { border-color: var(--qdb-line-on); }
+/* chung kết ở giữa */
+.qdb-mid { width: calc(var(--qdb-w) + var(--qdb-g) * 2 + 24px); }
+.qdb-mid .qdb-cell.fin::before { content: ''; position: absolute; left: 0; top: 50%; width: calc(var(--qdb-g) + 12px); border-top: 2px solid var(--qdb-line); }
+.qdb-mid .qdb-cell.fin::after { content: ''; position: absolute; right: 0; top: 50%; width: calc(var(--qdb-g) + 12px); border-top: 2px solid var(--qdb-line); }
+.qdb-mid .qdb-m.final { box-shadow: 0 0 0 2px var(--qdb-gold), 0 10px 30px rgba(250, 204, 21, .25); }
+.qdb-champ { position: absolute; left: 6px; right: 6px; bottom: calc(50% + 62px); text-align: center; padding: 10px 8px 12px; border-radius: 16px;
+    background: radial-gradient(120% 90% at 50% 0%, rgba(250, 204, 21, .22), rgba(250, 204, 21, 0) 70%); }
+.qdb-trophy { font-size: 40px; line-height: 1; filter: drop-shadow(0 6px 14px rgba(250, 204, 21, .45)); }
+.qdb-champ:not(.has) .qdb-trophy { filter: grayscale(.6) opacity(.55); }
+.qdb-ct { margin-top: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: var(--qdb-gold); }
+.qdb-cn { margin-top: 3px; font-size: 15px; font-weight: 800; color: #fff; line-height: 1.25; word-break: break-word; }
+.qdb-champ:not(.has) .qdb-cn { color: var(--qdb-muted); font-size: 12.5px; font-weight: 700; }
+.qdb-champ.has .qdb-cn { cursor: pointer; text-shadow: 0 0 14px rgba(250, 204, 21, .6); }
+.qdb-third { position: absolute; left: var(--qdb-g); right: var(--qdb-g); top: calc(50% + 66px); display: flex; flex-direction: column; align-items: center; }
+.qdb-third .qdb-rh { height: 24px; }
+.qdb-third .qdb-m { width: 100%; }
+/* thẻ trận */
+.qdb-m { position: relative; width: var(--qdb-w); padding-top: 6px; border-radius: 12px; background: var(--qdb-card); border: 1px solid rgba(250, 204, 21, .28); box-shadow: 0 6px 16px rgba(0, 0, 0, .35); }
+.qdb-mid .qdb-m { width: calc(var(--qdb-w) + 24px); }
+.qdb-mno { position: absolute; left: 8px; top: -8px; padding: 1px 7px; border-radius: 999px; font-size: 9.5px; font-weight: 800; letter-spacing: .5px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #facc15); line-height: 14px; white-space: nowrap; }
+.qdb-m.edit { cursor: pointer; }
+.qdb-m.edit:hover { border-color: var(--qdb-gold); }
+.qdb-m.edit .qdb-mno::after { content: ' ✎'; }
+.qdb-s { display: flex; align-items: center; gap: 6px; width: 100%; height: 38px; padding: 0 8px 0 6px; border: none; background: transparent; color: inherit; font: inherit; text-align: left; }
+button.qdb-s { cursor: pointer; }
+.qdb-s + .qdb-s { border-top: 1px dashed rgba(250, 204, 21, .2); }
+.qdb-s:first-of-type { border-radius: 0; }
+.qdb-s:last-child { border-radius: 0 0 11px 11px; }
+.qdb-seed { flex: 0 0 auto; width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: var(--qdb-gold); background: rgba(250, 204, 21, .1); }
+.qdb-nm { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.qdb-nm b { font-size: 12.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+.qdb-nm small { font-size: 10px; font-weight: 600; color: var(--qdb-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qdb-nm i { font-size: 11.5px; font-style: normal; font-weight: 700; color: var(--qdb-muted); opacity: .8; }
+.qdb-sc { flex: 0 0 auto; min-width: 18px; text-align: right; font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--qdb-gold2); }
+.qdb-s.win { background: linear-gradient(90deg, rgba(250, 204, 21, .26), rgba(250, 204, 21, .08)); }
+.qdb-s.win .qdb-seed { background: var(--qdb-gold); color: #7a0000; }
+.qdb-s.win .qdb-sc { color: var(--qdb-gold); }
+.qdb-s.lose { opacity: .5; }
+.qdb-s.lose .qdb-nm b { text-decoration: line-through; text-decoration-color: rgba(255, 255, 255, .35); }
+.qdb-s.me .qdb-nm b { color: var(--qdb-gold); }
+.qdb-s.hl { box-shadow: inset 3px 0 0 var(--qdb-gold); }
+button.qdb-s:hover .qdb-nm b { text-decoration: underline; text-underline-offset: 2px; }
+button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset: -2px; }
+/* nền khung (dùng trong admin) */
+.qdb-frame { border-radius: 16px; overflow: auto; background: radial-gradient(120% 80% at 50% 0%, #7f1d1d 0%, #450a0a 55%, #2a0505 100%); border: 1px solid rgba(250, 204, 21, .25); }
+/* lớp toàn màn hình */
+.qdb-ov { position: fixed; inset: 0; z-index: 2147482000; display: flex; flex-direction: column; background: radial-gradient(120% 70% at 50% 0%, #8b1a1a 0%, #4a0a0a 55%, #220303 100%); }
+.qdb-ov[hidden] { display: none !important; }
+.qdb-ov-top { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: max(10px, env(safe-area-inset-top)) 12px 10px; border-bottom: 1px solid rgba(250, 204, 21, .22); background: rgba(40, 3, 5, .55); }
+.qdb-ov-tt { flex: 1 1 auto; min-width: 0; }
+.qdb-ov-tt h3 { margin: 0; font-size: 16px; font-weight: 800; color: var(--qdb-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .3px; }
+.qdb-ov-tt div { margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; font-weight: 700; color: var(--qdb-muted); }
+.qdb-chip { padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(250, 204, 21, .3); color: var(--qdb-gold2); white-space: nowrap; }
+.qdb-chip.live { border-color: #22c55e; color: #86efac; }
+.qdb-chip.done { border-color: var(--qdb-gold); background: rgba(250, 204, 21, .15); color: var(--qdb-gold); }
+.qdb-ib { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(250, 204, 21, .4); background: rgba(250, 204, 21, .08); color: var(--qdb-gold); font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.qdb-ib.wide { width: auto; padding: 0 12px; border-radius: 999px; font-size: 12px; }
+.qdb-ib.x { background: var(--qdb-gold); color: #7a0000; border-color: var(--qdb-gold); }
+.qdb-ov { --qdb-ft: 40px; }
+.qdb-zb { position: absolute; right: 12px; bottom: calc(var(--qdb-ft) + 14px + env(safe-area-inset-bottom)); z-index: 2; display: flex; flex-direction: column; gap: 8px; }
+.qdb-zb .qdb-ib { width: 42px; height: 42px; font-size: 20px; background: rgba(60, 6, 8, .92); box-shadow: 0 6px 16px rgba(0, 0, 0, .45); }
+.qdb-ov-body { flex: 1 1 auto; overflow: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 10px 0 20px; }
+.qdb-ov-body.drag { cursor: grabbing; user-select: none; }
+.qdb-zw { position: relative; margin: 0 auto; }
+.qdb-z { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.qdb-ov-ft { flex: 0 0 auto; padding: 8px 12px max(8px, env(safe-area-inset-bottom)); text-align: center; font-size: 11.5px; font-weight: 700; color: var(--qdb-muted); border-top: 1px solid rgba(250, 204, 21, .15); }
+.qdb-empty { padding: 50px 20px; text-align: center; color: var(--qdb-muted); font-weight: 700; }
+/* thẻ chi tiết tuyển thủ */
+.qdb-dt { position: fixed; inset: 0; z-index: 2147482500; display: flex; align-items: flex-end; justify-content: center; background: rgba(15, 0, 0, .6); opacity: 0; transition: opacity .2s; }
+.qdb-dt.show { opacity: 1; }
+.qdb-dt[hidden] { display: none !important; }
+.qdb-dc { width: 100%; max-width: 460px; max-height: 88vh; display: flex; flex-direction: column; border-radius: 22px 22px 0 0; overflow: hidden; background: linear-gradient(180deg, #8b1a1a, #4a0a0a 40%, #2a0505); border: 1px solid rgba(250, 204, 21, .4); border-bottom: none; box-shadow: 0 -20px 50px rgba(0, 0, 0, .5); transform: translateY(30px); transition: transform .25s cubic-bezier(.2, .9, .3, 1); padding-bottom: env(safe-area-inset-bottom); }
+.qdb-dt.show .qdb-dc { transform: none; }
+@media (min-width: 640px) { .qdb-dt { align-items: center; } .qdb-dc { border-radius: 22px; border-bottom: 1px solid rgba(250, 204, 21, .4); } }
+.qdb-dh { position: relative; display: flex; align-items: center; gap: 12px; padding: 18px 16px 12px; }
+.qdb-av { flex: 0 0 auto; width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #facc15 60%, #e9a91c); box-shadow: 0 6px 18px rgba(250, 204, 21, .35); }
+.qdb-dn { min-width: 0; flex: 1 1 auto; }
+.qdb-dn b { display: block; font-size: 18px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qdb-dn small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 700; color: var(--qdb-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qdb-dx { position: absolute; right: 12px; top: 12px; width: 34px; height: 34px; }
+.qdb-mem { display: flex; gap: 8px; padding: 0 16px 10px; overflow-x: auto; }
+.qdb-mem button { flex: 0 0 auto; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(250, 204, 21, .35); background: transparent; color: var(--qdb-gold2); font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; }
+.qdb-mem button.on { background: var(--qdb-gold); color: #7a0000; border-color: var(--qdb-gold); }
+.qdb-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 0 12px; padding: 4px; border-radius: 14px; background: rgba(0, 0, 0, .25); }
+.qdb-tabs button { padding: 9px 4px; border: none; border-radius: 10px; background: transparent; color: var(--qdb-muted); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.qdb-tabs button.on { background: var(--qdb-gold); color: #7a0000; }
+.qdb-pane { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 18px; }
+.qdb-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px dashed rgba(250, 204, 21, .18); font-size: 13.5px; }
+.qdb-row:last-child { border-bottom: none; }
+.qdb-row span { color: var(--qdb-muted); font-weight: 700; flex: 0 0 auto; }
+.qdb-row b { color: #fff; font-weight: 800; text-align: right; min-width: 0; word-break: break-word; }
+.qdb-row b.on { color: #86efac; }
+.qdb-gid { margin: 4px 0 12px; padding: 16px; border-radius: 16px; text-align: center; border: 1px dashed var(--qdb-gold); background: rgba(250, 204, 21, .08); }
+.qdb-gid small { display: block; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: var(--qdb-muted); text-transform: uppercase; }
+.qdb-gid div { margin: 8px 0 12px; font-size: 26px; font-weight: 800; letter-spacing: 3px; color: var(--qdb-gold); font-family: 'JetBrains Mono', 'Courier New', monospace; word-break: break-all; }
+.qdb-gid button { padding: 9px 18px; border-radius: 999px; border: none; cursor: pointer; font: inherit; font-size: 13px; font-weight: 800; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #facc15 55%, #e9a91c); }
+.qdb-badge { display: inline-block; margin-bottom: 10px; padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #facc15); }
+.qdb-badge.out { background: rgba(255, 255, 255, .12); color: var(--qdb-text); }
+.qdb-jr { display: flex; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px dashed rgba(250, 204, 21, .18); font-size: 13px; }
+.qdb-jr:last-child { border-bottom: none; }
+.qdb-jr em { flex: 0 0 auto; width: 74px; font-style: normal; font-size: 11px; font-weight: 800; color: var(--qdb-gold); text-transform: uppercase; letter-spacing: .4px; }
+.qdb-jr span { flex: 1 1 auto; min-width: 0; color: #fff; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qdb-jr b { flex: 0 0 auto; font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; }
+.qdb-jr b.w { background: rgba(34, 197, 94, .2); color: #86efac; } .qdb-jr b.l { background: rgba(239, 68, 68, .2); color: #fca5a5; } .qdb-jr b.p { background: rgba(255, 255, 255, .1); color: var(--qdb-muted); }
+.qdb-load { padding: 18px; text-align: center; color: var(--qdb-muted); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .qdb-dt, .qdb-dc { transition: none; } }
+/* ----- 2 chế độ xem ----- */
+.qdb-ov[data-mode="rounds"] .qdb-zw, .qdb-ov[data-mode="rounds"] .qdb-zb { display: none; }
+.qdb-ov[data-mode="tree"] .qdb-ov-rt, .qdb-ov[data-mode="tree"] .qdb-rp { display: none; }
+.qdb-ov[data-mode="tree"] .qdb-ov-body { display: flex; }
+.qdb-ov[data-mode="tree"] .qdb-zw { margin: auto; flex: 0 0 auto; }
+.qdb-mode { gap: 6px; }
+.qdb-ov-rt { flex: 0 0 auto; display: flex; gap: 8px; overflow-x: auto; padding: 10px 12px; border-bottom: 1px solid rgba(250, 204, 21, .18); background: rgba(40, 3, 5, .35); scrollbar-width: none; scroll-behavior: smooth; }
+.qdb-ov-rt::-webkit-scrollbar { display: none; }
+.qdb-ov-rt button { flex: 0 0 auto; position: relative; padding: 9px 14px; border-radius: 999px; border: 1px solid rgba(250, 204, 21, .35); background: rgba(0, 0, 0, .2); color: var(--qdb-gold2); font: inherit; font-size: 13px; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.qdb-ov-rt button small { margin-left: 3px; padding: 1px 7px; border-radius: 999px; background: rgba(250, 204, 21, .15); font-size: 11px; }
+.qdb-ov-rt button.on { background: var(--qdb-gold); color: #7a0000; border-color: var(--qdb-gold); }
+.qdb-ov-rt button.on small { background: rgba(122, 0, 0, .15); }
+.qdb-ov-rt button.me:not(.on) { border-color: #86efac; color: #bbf7d0; }
+.qdb-dot { position: absolute; top: 3px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 2px rgba(34, 197, 94, .3); }
+.qdb-rp { padding: 4px 0 10px; }
+.qdb-rp.in-r { animation: qdbInR .26s ease; } .qdb-rp.in-l { animation: qdbInL .26s ease; }
+@keyframes qdbInR { from { transform: translateX(32px); opacity: 0; } } @keyframes qdbInL { from { transform: translateX(-32px); opacity: 0; } }
+.qdb-rh2 { max-width: 1100px; margin: 4px auto 12px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.qdb-rh2 b { font-size: 18px; font-weight: 800; color: var(--qdb-gold); }
+.qdb-rh2 span { font-size: 12.5px; font-weight: 700; color: var(--qdb-muted); }
+.qdb-rh2 .qdb-badge { margin: 0; color: #7a0000; } .qdb-rh2 .qdb-badge.out { color: var(--qdb-text); }
+.qdb-mcs { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; max-width: 1100px; margin: 0 auto; padding: 0 12px; }
+.qdb-mcs.one { grid-template-columns: repeat(auto-fit, minmax(280px, 420px)); justify-content: center; }
+.qdb-mc { border-radius: 16px; overflow: hidden; background: var(--qdb-card); border: 1px solid rgba(250, 204, 21, .3); box-shadow: 0 8px 20px rgba(0, 0, 0, .35); }
+.qdb-mc.final { box-shadow: 0 0 0 2px var(--qdb-gold), 0 10px 30px rgba(250, 204, 21, .22); }
+.qdb-mc.mine { border-color: #86efac; box-shadow: 0 0 0 2px rgba(134, 239, 172, .45), 0 8px 20px rgba(0, 0, 0, .35); }
+.qdb-mc.edit { cursor: pointer; } .qdb-mc.edit:hover { border-color: var(--qdb-gold); }
+.qdb-mc-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 12px; font-size: 12px; font-weight: 800; color: var(--qdb-gold2); background: rgba(0, 0, 0, .18); border-bottom: 1px solid rgba(250, 204, 21, .15); }
+.qdb-mc-no b { color: #86efac; }
+.qdb-mc-st { flex: 0 0 auto; padding: 2px 9px; border-radius: 999px; font-size: 11px; }
+.qdb-mc-st.done { background: rgba(250, 204, 21, .18); color: var(--qdb-gold); }
+.qdb-mc-st.wait { background: rgba(34, 197, 94, .18); color: #86efac; }
+.qdb-mc-st.bye, .qdb-mc-st.tbd { background: rgba(255, 255, 255, .1); color: var(--qdb-muted); }
+.qdb-mc .qdb-s { height: 56px; padding: 0 14px 0 10px; gap: 10px; border-radius: 0; }
+.qdb-mc .qdb-seed { width: 26px; height: 26px; font-size: 12px; border-radius: 8px; }
+.qdb-mc .qdb-nm b { font-size: 15.5px; } .qdb-mc .qdb-nm small { font-size: 12px; margin-top: 2px; } .qdb-mc .qdb-nm i { font-size: 14px; }
+.qdb-mc .qdb-sc { font-size: 22px; min-width: 26px; }
+.qdb-mc-f { display: flex; justify-content: space-between; gap: 4px 10px; flex-wrap: wrap; padding: 8px 12px 10px; font-size: 11.5px; font-weight: 700; color: var(--qdb-muted); border-top: 1px dashed rgba(250, 204, 21, .15); }
+.qdb-mc-f b { color: var(--qdb-gold); }
+.qdb-why { flex: 1 1 100%; color: #fca5a5; font-weight: 800; }
+.qdb-bigchamp { max-width: 420px; margin: 6px auto 12px; padding: 18px 14px; text-align: center; border-radius: 20px; background: radial-gradient(120% 90% at 50% 0%, rgba(250, 204, 21, .25), rgba(250, 204, 21, .03) 70%); border: 1px solid rgba(250, 204, 21, .3); }
+@media (max-width: 460px) { .qdb-bigchamp { margin-left: 12px; margin-right: 12px; } }
+.qdb-bigchamp .qdb-trophy { font-size: 56px; } .qdb-bigchamp:not(.has) .qdb-trophy { filter: grayscale(.6) opacity(.55); }
+.qdb-bigchamp .qdb-cn { font-size: 22px; margin-top: 6px; cursor: pointer; }
+.qdb-bigchamp:not(.has) .qdb-cn { font-size: 14px; color: var(--qdb-muted); cursor: default; }
+.qdb-bigchamp small { display: block; margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--qdb-muted); }
+.qdb-podium { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 0 12px 14px; }
+.qdb-podium span { padding: 7px 14px; border-radius: 999px; background: rgba(0, 0, 0, .25); border: 1px solid rgba(250, 204, 21, .3); font-size: 13.5px; font-weight: 800; cursor: pointer; }
+@media (max-width: 380px) { .qdb-ov-tt h3 { font-size: 15px; } .qdb-chip { font-size: 10.5px; } }
+.qdb-rh2.sub { margin-top: 20px; margin-bottom: 10px; }
+.qdb-mc.bye { box-shadow: none; background: rgba(58, 6, 8, .6); border-style: dashed; }
+.qdb-mc.bye .qdb-s { height: 50px; }
+@media (max-width: 640px) {
+    .qdb-ov-tt div { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .qdb-ov-tt div::-webkit-scrollbar { display: none; }
+    .qdb-ov-top { padding-bottom: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) { .qdb-rp.in-r, .qdb-rp.in-l { animation: none; } }
+
+    </style>
+    <script id="qdb-core-js">
+    /* Sơ đồ giải đấu loại trực tiếp kiểu World Cup: 2 nhánh trái / phải gặp nhau ở Chung kết giữa sơ đồ
+       Dữ liệu (Firestore settings/tournament_bracket):
+         { title, format: 'single' | 'double', size: 4|8|16|32|64, third: bool, enabled: bool, seedMode,
+           entries: [ { id, name, sub, seed, members: [ { u, ign, gid } ] } | null (miễn đấu) ]  -> theo vị trí trên sơ đồ
+           results: { 'vòng-trận': { w: 0|1, s0, s1 }, third: {...} }, updatedAt } */
+    (function () {
+        'use strict';
+        if (window.QDB) return;
+        var d = document;
+        function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        function seedOrder(n) { var a = [1, 2]; while (a.length < n) { var len = a.length * 2, b = []; a.forEach(function (s) { b.push(s, len + 1 - s); }); a = b; } return a.slice(0, n); }
+        function roundName(teams) { return teams === 2 ? 'Chung Kết' : teams === 4 ? 'Bán Kết' : teams === 8 ? 'Tứ Kết' : 'Vòng 1/' + (teams / 2); }
+        function sideOf(e, slot) { return e && (e.name || (e.members && e.members.length)) ? { t: 'e', e: e, slot: slot } : { t: 'bye' }; }
+        function mk(r, m, sides, rs, no, label) {
+            var o = { r: r, m: m, key: r + '-' + m, sides: sides, no: no, label: label, w: -1, res: rs || null, decided: '' };
+            var a = sides[0].t, b = sides[1].t;
+            if (a === 'e' && b === 'e') { if (rs && (rs.w === 0 || rs.w === 1)) { o.w = rs.w; o.decided = 'play'; } }
+            else if (a === 'e' && b === 'bye') { o.w = 0; o.decided = 'bye'; }
+            else if (a === 'bye' && b === 'e') { o.w = 1; o.decided = 'bye'; }
+            else if (a === 'bye' && b === 'bye') o.decided = 'void';
+            return o;
+        }
+        function adv(mt) { if (mt.decided === 'void') return { t: 'bye' }; return mt.w >= 0 ? mt.sides[mt.w] : { t: 'tbd' }; }
+        function lose(mt) { if (mt.decided === 'play') return mt.sides[1 - mt.w]; if (mt.decided) return { t: 'bye' }; return { t: 'tbd' }; }
+        function validSize(n) { return [4, 8, 16, 32, 64].indexOf(n) >= 0 ? n : 8; }
+
+        function compute(cfg) {
+            var N = validSize(+cfg.size), R = Math.round(Math.log(N) / Math.LN2), res = cfg.results || {}, ent = cfg.entries || [];
+            var rounds = [], no = 0;
+            for (var r = 0; r < R; r++) {
+                var cnt = N >> (r + 1), row = [];
+                for (var m = 0; m < cnt; m++) {
+                    var sides = r === 0 ? [sideOf(ent[2 * m], 2 * m), sideOf(ent[2 * m + 1], 2 * m + 1)] : [adv(rounds[r - 1][2 * m]), adv(rounds[r - 1][2 * m + 1])];
+                    var mt = mk(r, m, sides, res[r + '-' + m], 0, roundName(N >> r));
+                    if (mt.decided !== 'void' && !(mt.decided === 'bye' && r === 0)) mt.no = ++no;
+                    row.push(mt);
+                }
+                rounds.push(row);
+            }
+            var third = null;
+            if (cfg.third && R >= 2) {
+                var sf = rounds[R - 2];
+                third = mk('t', 0, [lose(sf[0]), lose(sf[1])], res.third, ++no, 'Tranh Hạng 3'); third.key = 'third';
+            }
+            var fin = rounds[R - 1][0], played = 0, total = 0;
+            rounds.forEach(function (row) { row.forEach(function (x) { if (x.sides[0].t === 'e' && x.sides[1].t === 'e' || !x.decided) { total++; if (x.decided === 'play') played++; } }); });
+            return {
+                N: N, R: R, rounds: rounds, third: third, final: fin, played: played, total: total,
+                champion: fin.w >= 0 ? fin.sides[fin.w] : null,
+                runnerUp: fin.decided === 'play' ? fin.sides[1 - fin.w] : null,
+                thirdPlace: third && third.w >= 0 ? third.sides[third.w] : null
+            };
+        }
+        function status(C) { return C.champion ? 'done' : C.played ? 'live' : 'wait'; }
+        var STATUS_TXT = { done: 'Đã kết thúc', live: 'Đang diễn ra', wait: 'Chưa bắt đầu' };
+        // Lý do đi tiếp (Admin chọn): thắng trận / đối thủ bỏ cuộc / đối thủ bị loại / BQT đặc cách
+        var WHY = { win: 'Thắng trận', wo: 'Đối thủ bỏ cuộc (W.O)', dq: 'Đối thủ bị loại', bq: 'BQT đặc cách' };
+        var WHY_W = { wo: 'W.O', dq: '✓', bq: '★' }, WHY_L = { wo: 'BỎ', dq: 'LOẠI', bq: '' };
+        function whyOf(mt) { return mt && mt.decided === 'play' && mt.res && WHY[mt.res.why] ? mt.res.why : 'win'; }
+
+        function sideHTML(s, mt, i, o) {
+            if (s.t === 'e') {
+                var e = s.e, cls = 'qdb-s', win = mt.w === i, lost = mt.decided === 'play' && mt.w !== i;
+                if (win) cls += ' win'; if (lost) cls += ' lose';
+                if (o.me && e.members && e.members.some(function (x) { return x.u === o.me; })) cls += ' me';
+                if (o.hl && e.id === o.hl) cls += ' hl';
+                var sc = '';
+                if (mt.decided === 'play' && mt.res) {
+                    var v = mt.res['s' + i], wy = whyOf(mt);
+                    if (v !== undefined && v !== null && v !== '') sc = v;
+                    else if (wy !== 'win') sc = (win ? WHY_W : WHY_L)[wy] || '';
+                }
+                return '<button type="button" class="' + cls + '" data-eid="' + esc(e.id) + '"><span class="qdb-seed">' + esc(e.seed || '') + '</span><span class="qdb-nm"><b>' + esc(e.name) + '</b><small>' + esc(e.sub || '') + '</small></span><span class="qdb-sc">' + esc(sc) + '</span></button>';
+            }
+            return '<div class="qdb-s ' + s.t + '"><span class="qdb-seed"></span><span class="qdb-nm"><i>' + (s.t === 'bye' ? 'Miễn đấu' : 'Chờ xác định') + '</i></span></div>';
+        }
+        function matchHTML(mt, o, extra) {
+            var editable = o.admin && mt.sides[0].t === 'e' && mt.sides[1].t === 'e';
+            var lbl = mt.no ? 'Trận ' + mt.no : (mt.decided === 'bye' ? 'Đi tiếp' : '—');
+            return '<div class="qdb-m' + (editable ? ' edit' : '') + (extra || '') + '" data-key="' + mt.key + '"><span class="qdb-mno">' + lbl + '</span>' + sideHTML(mt.sides[0], mt, 0, o) + sideHTML(mt.sides[1], mt, 1, o) + '</div>';
+        }
+        function cell(mt, o) { return '<div class="qdb-cell' + (mt.w >= 0 && mt.decided !== 'void' ? ' adv' : '') + '">' + matchHTML(mt, o) + '</div>'; }
+
+        // Dựng HTML sơ đồ. o: { admin, me (username đang đăng nhập), hl (id cần tô) }
+        function treeHTML(cfg, o) {
+            o = o || {};
+            var C = compute(cfg), R = C.R, N = C.N, dbl = cfg.format === 'double';
+            var H = 92, body = Math.max(N / 4, 1) * H; if (body < 400) body = 400;
+            function half(side) {
+                var h = '', rs = [];
+                for (var r = 0; r < R - 1; r++) rs.push(r);
+                if (side === 'R') rs.reverse();
+                rs.forEach(function (r) {
+                    var row = C.rounds[r], hl = row.length / 2, list = side === 'L' ? row.slice(0, hl) : row.slice(hl);
+                    h += '<div class="qdb-col"><div class="qdb-rh"><span>' + esc(row[0].label) + '</span></div><div class="qdb-colb">';
+                    if (list.length === 1) h += cell(list[0], o);
+                    else for (var i = 0; i < list.length; i += 2) h += '<div class="qdb-pair">' + cell(list[i], o) + cell(list[i + 1], o) + '</div>';
+                    h += '</div></div>';
+                });
+                return h;
+            }
+            var ch = C.champion && C.champion.t === 'e' ? C.champion.e : null;
+            var mid = '<div class="qdb-col qdb-mid"><div class="qdb-rh"><span>Chung Kết</span></div><div class="qdb-colb"><div class="qdb-cell fin">'
+                + '<div class="qdb-champ' + (ch ? ' has' : '') + '"><div class="qdb-trophy">🏆</div><div class="qdb-ct">NHÀ VÔ ĐỊCH</div>'
+                + (ch ? '<div class="qdb-cn" data-eid="' + esc(ch.id) + '">' + esc(ch.name) + '</div>' : '<div class="qdb-cn">Chưa xác định</div>') + '</div>'
+                + matchHTML(C.final, o, ' final')
+                + (C.third ? '<div class="qdb-third"><div class="qdb-rh"><span>Tranh Hạng 3</span></div>' + matchHTML(C.third, o) + '</div>' : '')
+                + '</div></div></div>';
+            return '<div class="qdb-tree" style="--qdb-body:' + body + 'px' + (dbl ? ';--qdb-w:188px' : '') + '">' + (R > 1 ? '<div class="qdb-half qdb-left">' + half('L') + '</div>' : '') + mid + (R > 1 ? '<div class="qdb-half qdb-right">' + half('R') + '</div>' : '') + '</div>';
+        }
+
+        function findEntry(cfg, id) { var es = cfg.entries || []; for (var i = 0; i < es.length; i++) if (es[i] && es[i].id === id) return es[i]; return null; }
+        function findMatch(C, key) {
+            if (key === 'third') return C.third;
+            var p = String(key).split('-'); return C.rounds[+p[0]] && C.rounds[+p[0]][+p[1]];
+        }
+        // Gắn sự kiện bấm: tên tuyển thủ -> onEntry(entry), thẻ trận (admin) -> onMatch(key)
+        function bind(root, getCfg, o) {
+            root.addEventListener('click', function (ev) {
+                var t = ev.target; if (!t.closest) return;
+                var s = t.closest('[data-eid]'), m = t.closest('.qdb-m');
+                if (o.admin && m && m.classList.contains('edit') && o.onMatch) { o.onMatch(m.getAttribute('data-key')); return; }
+                if (s && o.onEntry) { var e = findEntry(getCfg(), s.getAttribute('data-eid')); if (e) o.onEntry(e); }
+            });
+        }
+
+        /* ---------- Lớp xem toàn màn hình: 2 chế độ, tự chọn theo màn hình ----------
+           'tree'   : sơ đồ cây kiểu World Cup (máy tính, máy tính bảng, điện thoại xoay ngang) - tự vừa màn hình,
+                      Ctrl + lăn chuột / chụm 2 ngón để phóng to, kéo chuột để di chuyển
+           'rounds' : theo từng vòng (điện thoại dọc) - thẻ trận chữ to, vuốt trái/phải để đổi vòng, tab "Trận của tôi"
+           Người xem đổi chế độ bằng nút trên đầu -> nhớ lựa chọn (localStorage qd_bracket_view) */
+        var OV = null, ovCfg = null, ovOpt = null, scale = 1, lastFocus = null, mode = 'tree', rtab = null, userMode = null;
+        var NARROW = 720, TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+        try { userMode = localStorage.getItem('qd_bracket_view'); } catch (e) {}
+        // Mặc định: sơ đồ cây khi màn hình đủ rộng (>= 72% bề rộng thật của sơ đồ) hoặc màn ngang từ 700px (điện thoại xoay ngang);
+        // còn lại (điện thoại dọc, máy tính bảng dọc với giải lớn) -> theo vòng
+        function autoMode() {
+            if (userMode === 'tree' || userMode === 'rounds') return userMode;
+            var c = ovCfg || {}, N = [4, 8, 16, 32, 64].indexOf(+c.size) >= 0 ? +c.size : 8, R = Math.round(Math.log(N) / Math.LN2);
+            var natW = (2 * R - 1) * ((c.format === 'double' ? 188 : 158) + 36) + 44, w = window.innerWidth, h = window.innerHeight;
+            return w >= natW * 0.72 || (w > h && w >= 700) ? 'tree' : 'rounds';
+        }
+        function metaHTML(cfg) {
+            var C = compute(cfg), st = status(C), dbl = cfg.format === 'double', n = (cfg.entries || []).filter(Boolean).length;
+            return '<span class="qdb-chip">' + (dbl ? 'Giải Đôi · 2 vs 2' : 'Giải Đơn · 1 vs 1') + '</span><span class="qdb-chip">' + n + (dbl ? ' đội' : ' tuyển thủ') + ' / ' + C.N + ' suất</span>'
+                + '<span class="qdb-chip ' + st + '">' + STATUS_TXT[st] + (st === 'live' ? ' · ' + C.played + '/' + C.total + ' trận' : '') + '</span>';
+        }
+        function isMine(s, me) { return !!(me && s && s.t === 'e' && s.e.members && s.e.members.some(function (x) { return x.u === me; })); }
+        function myEntry(cfg, me) { var es = cfg.entries || []; for (var i = 0; i < es.length; i++) if (es[i] && es[i].members && es[i].members.some(function (x) { return x.u === me; })) return es[i]; return null; }
+
+        /* ----- chế độ theo vòng ----- */
+        function cardHTML(mt, C, o, withRound) {
+            if (!mt || mt.decided === 'void') return '';
+            var both = mt.sides[0].t === 'e' && mt.sides[1].t === 'e', editable = o.admin && both;
+            var st = mt.decided === 'play' ? ['done', 'Đã đấu'] : mt.decided === 'bye' ? ['bye', 'Đi tiếp'] : both ? ['wait', 'Sắp đấu'] : ['tbd', 'Chờ đối thủ'];
+            var mine = isMine(mt.sides[0], o.me) || isMine(mt.sides[1], o.me), nx = '';
+            if (mt.decided === 'bye') {   // được miễn đấu: thẻ gọn 1 dòng
+                var nb = mt.r < C.R - 1 ? C.rounds[mt.r + 1][mt.m >> 1] : null;
+                return '<div class="qdb-mc bye' + (mine ? ' mine' : '') + '" data-key="' + mt.key + '">' + sideHTML(mt.sides[mt.w], mt, mt.w, o)
+                    + '<div class="qdb-mc-f">Miễn đấu → ' + (nb ? 'Trận ' + nb.no + ' (' + nb.label + ')' : 'vòng sau') + '</div></div>';
+            }
+            if (mt.key === 'third') nx = 'Thắng → 🥉 Hạng Ba';
+            else if (mt.r === C.R - 1) nx = 'Thắng → 🏆 Vô Địch';
+            else { var n = C.rounds[mt.r + 1][mt.m >> 1]; nx = 'Thắng → Trận ' + n.no + ' (' + n.label + ')' + (mt.r === C.R - 2 && C.third ? ' · Thua → Tranh Hạng 3' : ''); }
+            return '<div class="qdb-mc' + (editable ? ' edit' : '') + (mine ? ' mine' : '') + (mt.r === C.R - 1 ? ' final' : '') + '" data-key="' + mt.key + '">'
+                + '<div class="qdb-mc-h"><span class="qdb-mc-no">' + (mt.no ? 'Trận ' + mt.no : 'Miễn đấu') + (withRound ? ' · ' + esc(mt.label) : '') + (mine ? ' · <b>Bạn</b>' : '') + '</span><span class="qdb-mc-st ' + st[0] + '">' + st[1] + '</span></div>'
+                + sideHTML(mt.sides[0], mt, 0, o) + sideHTML(mt.sides[1], mt, 1, o)
+                + '<div class="qdb-mc-f">' + (whyOf(mt) !== 'win' ? '<span class="qdb-why">' + esc(WHY[whyOf(mt)]) + '</span>' : '') + nx + (editable ? '<b>✎ Thiết lập đi tiếp</b>' : '') + '</div></div>';
+        }
+        function tabsOf(C, cfg, o) {
+            var t = [];
+            for (var r = 0; r < C.R - 1; r++) {
+                var row = C.rounds[r], n = row.filter(function (x) { return x.decided !== 'void'; }).length;
+                t.push({ k: 'r' + r, l: row[0].label, n: n });
+            }
+            t.push({ k: 'f', l: '🏆 Chung Kết', n: 0 });
+            if (o.me && myEntry(cfg, o.me)) t.push({ k: 'me', l: '⭐ Trận Của Tôi', n: 0 });
+            return t;
+        }
+        function currentTab(C) {
+            for (var r = 0; r < C.R; r++) if (C.rounds[r].some(function (x) { return !x.decided; })) return r === C.R - 1 ? 'f' : 'r' + r;
+            return 'f';
+        }
+        function roundsPanel(cfg, o) {
+            var C = compute(cfg), h = '', k = rtab;
+            if (k === 'f') {
+                var ch = C.champion && C.champion.t === 'e' ? C.champion.e : null;
+                h += '<div class="qdb-bigchamp' + (ch ? ' has' : '') + '"><div class="qdb-trophy">🏆</div><div class="qdb-ct">NHÀ VÔ ĐỊCH</div>'
+                    + (ch ? '<div class="qdb-cn" data-eid="' + esc(ch.id) + '">' + esc(ch.name) + '</div>' + (ch.sub ? '<small>' + esc(ch.sub) + '</small>' : '') : '<div class="qdb-cn">Chưa xác định</div>') + '</div>';
+                if (C.runnerUp || C.thirdPlace) {
+                    h += '<div class="qdb-podium">' + (C.runnerUp ? '<span data-eid="' + esc(C.runnerUp.e.id) + '">🥈 ' + esc(C.runnerUp.e.name) + '</span>' : '') + (C.thirdPlace ? '<span data-eid="' + esc(C.thirdPlace.e.id) + '">🥉 ' + esc(C.thirdPlace.e.name) + '</span>' : '') + '</div>';
+                }
+                h += '<div class="qdb-mcs one">' + cardHTML(C.final, C, o) + (C.third ? cardHTML(C.third, C, o) : '') + '</div>';
+            } else if (k === 'me') {
+                var e = myEntry(cfg, o.me), list = [];
+                C.rounds.concat(C.third ? [[C.third]] : []).forEach(function (row) { row.forEach(function (mt) { if (isMine(mt.sides[0], o.me) || isMine(mt.sides[1], o.me)) list.push(mt); }); });
+                var rd = e ? road(cfg, e) : null;
+                h += '<div class="qdb-rh2"><b>' + esc(e ? e.name : '') + '</b><span class="qdb-badge' + (rd && rd.out ? ' out' : '') + '">' + esc(rd ? rd.badge : '') + '</span></div>';
+                h += '<div class="qdb-mcs">' + list.map(function (mt) { return cardHTML(mt, C, o, true); }).join('') + '</div>';
+            } else {
+                var r = +String(k).slice(1), row = C.rounds[r] || [], live = row.filter(function (x) { return x.decided !== 'void'; });
+                var played = live.filter(function (x) { return x.decided === 'play'; }).length, playable = live.filter(function (x) { return x.decided !== 'bye'; }).length;
+                var byes = live.filter(function (x) { return x.decided === 'bye'; });
+                h += '<div class="qdb-rh2"><b>' + esc(row[0] ? row[0].label : '') + '</b><span>' + played + '/' + playable + ' trận đã đấu</span></div>';
+                h += '<div class="qdb-mcs">' + live.filter(function (x) { return x.decided !== 'bye'; }).map(function (mt) { return cardHTML(mt, C, o); }).join('') + '</div>';
+                if (byes.length) h += '<div class="qdb-rh2 sub"><span>🎟️ Được miễn đấu — đi thẳng vào vòng sau</span></div><div class="qdb-mcs">' + byes.map(function (mt) { return cardHTML(mt, C, o); }).join('') + '</div>';
+            }
+            return h;
+        }
+        function paintRounds(dir) {
+            var C = compute(ovCfg), o = viewOpt(), tabs = tabsOf(C, ovCfg, o);
+            if (!rtab || !tabs.some(function (t) { return t.k === rtab; })) rtab = currentTab(C);
+            var cur = currentTab(C);
+            OV.querySelector('.qdb-ov-rt').innerHTML = tabs.map(function (t) {
+                return '<button type="button" role="tab" data-rt="' + t.k + '" class="' + (t.k === rtab ? 'on' : '') + (t.k === 'me' ? ' me' : '') + '" aria-selected="' + (t.k === rtab) + '">'
+                    + esc(t.l) + (t.n ? ' <small>' + t.n + '</small>' : '') + (t.k === cur && t.k !== rtab ? ' <i class="qdb-dot"></i>' : '') + '</button>';
+            }).join('');
+            var p = OV.querySelector('.qdb-rp');
+            p.innerHTML = roundsPanel(ovCfg, o);
+            if (dir) { p.classList.remove('in-l', 'in-r'); void p.offsetWidth; p.classList.add(dir > 0 ? 'in-r' : 'in-l'); }
+            var on = OV.querySelector('.qdb-ov-rt .on');
+            if (on && on.scrollIntoView) { var bar = OV.querySelector('.qdb-ov-rt'); bar.scrollLeft = on.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2; }
+        }
+        function stepTab(dir) {
+            var tabs = tabsOf(compute(ovCfg), ovCfg, viewOpt()).map(function (t) { return t.k; }), i = tabs.indexOf(rtab), j = i + dir;
+            if (i < 0 || j < 0 || j >= tabs.length) return;
+            rtab = tabs[j]; paintRounds(dir); OV.querySelector('.qdb-ov-body').scrollTop = 0;
+        }
+        function viewOpt() { return { admin: !!(ovOpt && ovOpt.admin), me: ovOpt && ovOpt.me }; }
+
+        /* ----- khung lớp phủ ----- */
+        function ensureOV() {
+            if (OV) return OV;
+            OV = d.createElement('div'); OV.className = 'qdb-ov qdb-root'; OV.hidden = true; OV.setAttribute('role', 'dialog'); OV.setAttribute('aria-modal', 'true');
+            OV.innerHTML = '<div class="qdb-ov-top"><div class="qdb-ov-tt"><h3></h3><div></div></div>'
+                + '<button type="button" class="qdb-ib wide qdb-mode" data-z="mode"></button>'
+                + '<button type="button" class="qdb-ib x" data-z="x" aria-label="Đóng">✕</button></div>'
+                + '<div class="qdb-ov-rt" role="tablist" aria-label="Chọn vòng đấu"></div>'
+                + '<div class="qdb-zb"><button type="button" class="qdb-ib" data-z="+" aria-label="Phóng to" title="Phóng to">+</button><button type="button" class="qdb-ib" data-z="fit" aria-label="Xem toàn bộ sơ đồ" title="Xem toàn bộ">⤢</button><button type="button" class="qdb-ib" data-z="-" aria-label="Thu nhỏ" title="Thu nhỏ">−</button></div>'
+                + '<div class="qdb-ov-body"><div class="qdb-zw"><div class="qdb-z"></div></div><div class="qdb-rp"></div></div>'
+                + '<div class="qdb-ov-ft"></div>';
+            d.body.appendChild(OV);
+            var body = OV.querySelector('.qdb-ov-body');
+            OV.addEventListener('click', function (e) {
+                var t = e.target.closest ? e.target : null; if (!t) return;
+                var rt = t.closest('[data-rt]');
+                if (rt) { var tabs = tabsOf(compute(ovCfg), ovCfg, viewOpt()).map(function (x) { return x.k; }); var dir = tabs.indexOf(rt.getAttribute('data-rt')) - tabs.indexOf(rtab); rtab = rt.getAttribute('data-rt'); paintRounds(dir); body.scrollTop = 0; return; }
+                var b = t.closest('.qdb-ov-top [data-z], .qdb-zb [data-z]'); if (!b) return;
+                var z = b.getAttribute('data-z');
+                if (z === 'x') return QDB.close();
+                if (z === 'mode') return setMode(mode === 'tree' ? 'rounds' : 'tree', true);
+                if (z === 'fit') return fit(true);
+                zoomAt(scale * (z === '+' ? 1.25 : 0.8));
+            });
+            bind(body, function () { return ovCfg; }, {
+                admin: false,
+                onEntry: function (e) { if (ovOpt && ovOpt.onEntry) ovOpt.onEntry(e); }
+            });
+            body.addEventListener('click', function (ev) {   // admin: bấm trận để nhập kết quả
+                var m = ev.target.closest && ev.target.closest('.qdb-m.edit, .qdb-mc.edit');
+                if (m && ovOpt && ovOpt.admin && ovOpt.onMatch) { ev.stopPropagation(); ovOpt.onMatch(m.getAttribute('data-key')); }
+            }, true);
+            // kéo chuột để di chuyển sơ đồ
+            var drag = null;
+            body.addEventListener('pointerdown', function (e) {
+                if (mode !== 'tree' || e.pointerType !== 'mouse' || e.button !== 0 || (e.target.closest && e.target.closest('button, .qdb-m.edit, [data-eid]'))) return;
+                drag = { x: e.clientX, y: e.clientY, l: body.scrollLeft, t: body.scrollTop, moved: false };
+            });
+            window.addEventListener('pointermove', function (e) {
+                if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+                if (!drag.moved && Math.abs(dx) + Math.abs(dy) > 4) { drag.moved = true; body.classList.add('drag'); }
+                if (drag.moved) { body.scrollLeft = drag.l - dx; body.scrollTop = drag.t - dy; }
+            });
+            window.addEventListener('pointerup', function () { drag = null; body.classList.remove('drag'); });
+            // Ctrl + lăn chuột (hoặc chụm 2 ngón trên touchpad) để phóng to quanh con trỏ
+            body.addEventListener('wheel', function (e) {
+                if (mode !== 'tree' || !(e.ctrlKey || e.metaKey)) return;
+                e.preventDefault(); zoomAt(scale * Math.exp(-e.deltaY * 0.0025), e.clientX, e.clientY);
+            }, { passive: false });
+            // cảm ứng: chụm 2 ngón (sơ đồ) / vuốt ngang đổi vòng (theo vòng)
+            var pinch = null, sw = null;
+            body.addEventListener('touchstart', function (e) {
+                if (mode === 'tree' && e.touches.length === 2) {
+                    var a = e.touches[0], b = e.touches[1];
+                    pinch = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), s: scale }; sw = null; return;
+                }
+                if (mode === 'rounds' && e.touches.length === 1) sw = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+            }, { passive: true });
+            body.addEventListener('touchmove', function (e) {
+                if (!pinch || e.touches.length !== 2) return;
+                e.preventDefault();
+                var a = e.touches[0], b = e.touches[1], dd = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+                zoomAt(pinch.s * dd / pinch.d, (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+            }, { passive: false });
+            body.addEventListener('touchend', function (e) {
+                if (pinch && e.touches.length < 2) pinch = null;
+                if (!sw || mode !== 'rounds') return;
+                var t = e.changedTouches[0], dx = t.clientX - sw.x, dy = t.clientY - sw.y, dt = Date.now() - sw.t; sw = null;
+                if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6 && dt < 700) stepTab(dx < 0 ? 1 : -1);
+            }, { passive: true });
+            d.addEventListener('keydown', function (e) {
+                if (!OV || OV.hidden) return;
+                if (e.key === 'Escape') { if (DT && !DT.hidden) closeDetail(); else QDB.close(); return; }
+                if (DT && !DT.hidden) return;
+                if (mode === 'rounds' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) stepTab(e.key === 'ArrowRight' ? 1 : -1);
+                if (mode === 'tree' && (e.key === '+' || e.key === '=' || e.key === '-')) zoomAt(scale * (e.key === '-' ? 0.8 : 1.25));
+            });
+            var rsT = 0;
+            window.addEventListener('resize', function () {
+                if (!OV || OV.hidden) return;
+                clearTimeout(rsT); rsT = setTimeout(function () { var m = autoMode(); if (m !== mode) setMode(m, false); else if (mode === 'tree') zoomAt(scale); }, 120);
+            });
+            return OV;
+        }
+        // phóng to / thu nhỏ quanh 1 điểm trên màn hình (mặc định: giữa vùng xem)
+        function zoomAt(s, cx, cy) {
+            if (!OV) return;
+            var z = OV.querySelector('.qdb-z'), w = OV.querySelector('.qdb-zw'), body = OV.querySelector('.qdb-ov-body');
+            s = Math.min(1.8, Math.max(0.25, s));
+            var rb = body.getBoundingClientRect(), rw = w.getBoundingClientRect();
+            if (cx == null) { cx = rb.left + body.clientWidth / 2; cy = rb.top + body.clientHeight / 2; }
+            var px = (cx - rw.left) / scale, py = (cy - rw.top) / scale;   // điểm trên sơ đồ (kích thước gốc)
+            scale = s;
+            z.style.transform = 'scale(' + s + ')';
+            w.style.width = Math.ceil(z.offsetWidth * s) + 'px'; w.style.height = Math.ceil(z.offsetHeight * s) + 'px';
+            var rw2 = w.getBoundingClientRect();
+            body.scrollLeft += (rw2.left + px * s) - cx; body.scrollTop += (rw2.top + py * s) - cy;
+        }
+        function fit(all) {
+            var z = OV.querySelector('.qdb-z'), body = OV.querySelector('.qdb-ov-body');
+            var bw = body.clientWidth - 16, bh = body.clientHeight - 16, nw = z.offsetWidth || 1, nh = z.offsetHeight || 1;
+            var both = Math.min(bw / nw, bh / nh, 1.15), s;
+            if (all) s = Math.max(0.25, both);
+            else s = both >= 0.6 ? both : Math.max(0.6, Math.min(1, bw / nw));   // mở lần đầu: không nhỏ hơn 60% để còn đọc được
+            scale = s; z.style.transform = 'scale(' + s + ')';
+            var w = OV.querySelector('.qdb-zw'); w.style.width = Math.ceil(nw * s) + 'px'; w.style.height = Math.ceil(nh * s) + 'px';
+            body.scrollLeft = Math.max(0, (body.scrollWidth - body.clientWidth) / 2); body.scrollTop = 0;
+        }
+        function setMode(m, save) {
+            mode = m === 'rounds' ? 'rounds' : 'tree';
+            if (save) { userMode = mode; try { localStorage.setItem('qd_bracket_view', mode); } catch (e) {} }
+            paintOV(true);
+        }
+        function paintOV(first) {
+            if (!OV || !ovCfg) return;
+            OV.setAttribute('data-mode', mode);
+            OV.querySelector('.qdb-ov-tt h3').textContent = '🏆 ' + (ovCfg.title || 'Sơ Đồ Giải Đấu');
+            OV.querySelector('.qdb-ov-tt div').innerHTML = metaHTML(ovCfg);
+            var mb = OV.querySelector('.qdb-mode');
+            mb.innerHTML = mode === 'tree' ? '📋 <span>Theo vòng</span>' : '🌳 <span>Sơ đồ</span>';
+            mb.setAttribute('aria-label', mode === 'tree' ? 'Xem theo từng vòng' : 'Xem sơ đồ cây'); mb.title = mb.getAttribute('aria-label');
+            OV.querySelector('.qdb-ov-ft').textContent = mode === 'rounds'
+                ? (TOUCH ? '👈 Vuốt ngang để đổi vòng · Bấm tên để xem chi tiết 👉' : '← → đổi vòng · Bấm tên tuyển thủ để xem chi tiết')
+                : (TOUCH ? 'Chụm 2 ngón để phóng to · Bấm tên để xem chi tiết' : 'Bấm tên để xem chi tiết · Ctrl + lăn chuột để phóng to · kéo để di chuyển');
+            var body = OV.querySelector('.qdb-ov-body'), has = (ovCfg.entries || []).some(Boolean);
+            var sl = body.scrollLeft, st = body.scrollTop;
+            if (!has) {
+                OV.querySelector('.qdb-z').innerHTML = OV.querySelector('.qdb-rp').innerHTML = '<div class="qdb-empty">Ban quản trị chưa xếp cặp đấu.</div>';
+                OV.querySelector('.qdb-ov-rt').innerHTML = ''; return;
+            }
+            if (mode === 'rounds') {
+                if (first) rtab = null;
+                paintRounds(0);
+                if (first) body.scrollTop = 0; else body.scrollTop = st;
+                return;
+            }
+            var z = OV.querySelector('.qdb-z');
+            z.innerHTML = treeHTML(ovCfg, viewOpt());
+            if (first) fit(false);
+            else { zoomAt(scale); body.scrollLeft = sl; body.scrollTop = st; }
+        }
+
+        /* ---------- Thẻ chi tiết tuyển thủ (tab: Cá nhân / ID Game / Tài khoản / Thành tích) ---------- */
+        var DT = null, dtState = null;
+        function ensureDT() {
+            if (DT) return DT;
+            DT = d.createElement('div'); DT.className = 'qdb-dt qdb-root'; DT.hidden = true;
+            DT.innerHTML = '<div class="qdb-dc" role="dialog" aria-modal="true"><div class="qdb-dh"><div class="qdb-av"></div><div class="qdb-dn"><b></b><small></small></div><button type="button" class="qdb-ib x qdb-dx" aria-label="Đóng">✕</button></div>'
+                + '<div class="qdb-mem"></div><div class="qdb-tabs" role="tablist">'
+                + '<button type="button" data-t="me" class="on">Cá Nhân</button><button type="button" data-t="gid">ID Game</button><button type="button" data-t="acc">Tài Khoản</button><button type="button" data-t="road">Thành Tích</button></div>'
+                + '<div class="qdb-pane"></div></div>';
+            d.body.appendChild(DT);
+            DT.addEventListener('click', function (e) {
+                if (e.target === DT || (e.target.closest && e.target.closest('.qdb-dx'))) return closeDetail();
+                var tb = e.target.closest && e.target.closest('.qdb-tabs button');
+                if (tb) { dtState.tab = tb.getAttribute('data-t'); return paintDT(); }
+                var mb = e.target.closest && e.target.closest('.qdb-mem button');
+                if (mb) { dtState.mi = +mb.getAttribute('data-i'); return paintDT(); }
+                var cp = e.target.closest && e.target.closest('[data-copy]');
+                if (cp) copy(cp.getAttribute('data-copy'), cp);
+            });
+            return DT;
+        }
+        function copy(text, btn) {
+            var ok = function () { var o = btn.textContent; btn.textContent = '✓ Đã sao chép'; setTimeout(function () { btn.textContent = o; }, 1500); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fallback); else fallback();
+            function fallback() { var t = d.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; d.body.appendChild(t); t.select(); try { d.execCommand('copy'); ok(); } catch (e) {} t.remove(); }
+        }
+        function fmtDate(ms) { if (!ms) return 'Chưa có dữ liệu'; var x = new Date(+ms); return isNaN(x) ? 'Chưa có dữ liệu' : x.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+        function fmtAgo(ms) {
+            if (!ms) return { t: 'Chưa từng hoạt động', on: false };
+            var s = (Date.now() - ms) / 1000;
+            if (s < 300) return { t: '● Đang hoạt động', on: true };
+            if (s < 3600) return { t: Math.round(s / 60) + ' phút trước', on: false };
+            if (s < 86400) return { t: Math.round(s / 3600) + ' giờ trước', on: false };
+            return { t: Math.round(s / 86400) + ' ngày trước', on: false };
+        }
+        var ROLE = { admin: 'Quản trị viên', manager: 'Quản lý' };
+        function road(cfg, e) {
+            var C = compute(cfg), list = [], out = null;
+            C.rounds.concat(C.third ? [[C.third]] : []).forEach(function (row) {
+                row.forEach(function (mt) {
+                    var i = mt.sides[0].t === 'e' && mt.sides[0].e.id === e.id ? 0 : mt.sides[1].t === 'e' && mt.sides[1].e.id === e.id ? 1 : -1;
+                    if (i < 0) return;
+                    var op = mt.sides[1 - i], opn = op.t === 'e' ? op.e.name : op.t === 'bye' ? 'Miễn đấu' : 'Chờ xác định', r;
+                    if (mt.decided === 'bye') r = { c: 'w', t: 'Đi tiếp' };
+                    else if (mt.decided === 'play') {
+                        var sc = mt.res && mt.res.s0 !== undefined && mt.res.s0 !== '' && mt.res.s0 !== null ? ' ' + (i === 0 ? mt.res.s0 + '-' + mt.res.s1 : mt.res.s1 + '-' + mt.res.s0) : '';
+                        var wy = whyOf(mt), tag = wy === 'wo' ? (mt.w === i ? ' (W.O)' : ' (bỏ cuộc)') : wy === 'dq' ? (mt.w === i ? '' : ' (bị loại)') : wy === 'bq' ? (mt.w === i ? ' (đặc cách)' : '') : '';
+                        r = mt.w === i ? { c: 'w', t: 'Thắng' + sc + tag } : { c: 'l', t: 'Thua' + sc + tag };
+                        if (mt.w !== i && mt.key !== 'third' && !out) out = mt.label;
+                    } else r = { c: 'p', t: 'Chưa đấu' };
+                    list.push({ label: mt.label, op: opn, r: r });
+                });
+            });
+            var me = function (s) { return s && s.t === 'e' && s.e.id === e.id; };
+            var badge = me(C.champion) ? '🏆 Nhà Vô Địch' : me(C.runnerUp) ? '🥈 Á Quân' : me(C.thirdPlace) ? '🥉 Hạng Ba' : out ? 'Dừng bước ở ' + out : 'Đang thi đấu';
+            return { list: list, badge: badge, out: !!out && !me(C.thirdPlace) && !me(C.runnerUp) };
+        }
+        function paintDT() {
+            var s = dtState, e = s.e, mem = (e.members && e.members[s.mi]) || {}, dbl = (e.members || []).length > 1;
+            DT.querySelector('.qdb-av').textContent = String(e.name || '?').charAt(0).toUpperCase();
+            DT.querySelector('.qdb-dn b').textContent = e.name || '---';
+            DT.querySelector('.qdb-dn small').textContent = (s.cfg.format === 'double' ? 'Giải Đôi' : 'Giải Đơn') + (e.seed ? ' · Hạt giống #' + e.seed : '') + (e.sub ? ' · ' + e.sub : '');
+            var mh = '';
+            if (dbl) e.members.forEach(function (x, i) { mh += '<button type="button" data-i="' + i + '" class="' + (i === s.mi ? 'on' : '') + '">' + esc(x.ign || x.u) + '</button>'; });
+            DT.querySelector('.qdb-mem').innerHTML = mh; DT.querySelector('.qdb-mem').style.display = dbl ? '' : 'none';
+            DT.querySelectorAll('.qdb-tabs button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-t') === s.tab); b.setAttribute('aria-selected', b.getAttribute('data-t') === s.tab); });
+            var acc = s.acc[mem.u], ex = (s.ctx.getExtra && s.ctx.getExtra(mem.u)) || {}, p = DT.querySelector('.qdb-pane'), h = '';
+            var row = function (k, v, cls) { return '<div class="qdb-row"><span>' + k + '</span><b' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(v) + '</b></div>'; };
+            if (s.tab === 'road') {
+                var rd = road(s.cfg, e);
+                h = '<div class="qdb-badge' + (rd.out ? ' out' : '') + '">' + esc(rd.badge) + '</div>';
+                rd.list.forEach(function (x) { h += '<div class="qdb-jr"><em>' + esc(x.label) + '</em><span>vs ' + esc(x.op) + '</span><b class="' + x.r.c + '">' + esc(x.r.t) + '</b></div>'; });
+                if (!rd.list.length) h += '<div class="qdb-load">Chưa có trận đấu.</div>';
+            } else if (s.tab === 'gid') {
+                h = '<div class="qdb-gid"><small>Mã ID Game</small><div>' + esc(mem.gid || 'Chưa cập nhật') + '</div>' + (mem.gid ? '<button type="button" data-copy="' + esc(mem.gid) + '">📋 Sao chép ID</button>' : '') + '</div>'
+                    + row('Tên Ingame', mem.ign || '---') + row('Tài khoản', mem.u || '---');
+            } else if (acc === undefined) {
+                h = '<div class="qdb-load">Đang tải thông tin...</div>';
+                if (!s.loading[mem.u] && mem.u && s.ctx.getAccount) {
+                    s.loading[mem.u] = true;
+                    Promise.resolve(s.ctx.getAccount(mem.u)).then(function (a) { s.acc[mem.u] = a || null; }, function () { s.acc[mem.u] = null; }).then(function () { if (dtState === s && !DT.hidden) paintDT(); });
+                } else if (!mem.u) s.acc[mem.u] = null;
+            } else if (s.tab === 'me') {
+                var a1 = acc || {};
+                h = row('Họ và tên', a1.fullName || 'Chưa cập nhật') + row('Tên Ingame', mem.ign || '---') + row('Đội', ex.team || (dbl ? e.name : 'Chưa phân đội'))
+                    + row('Điểm tích lũy giải', String(ex.points || 0) + ' điểm') + row('Vị trí', s.cfg.format === 'double' ? 'Thành viên ' + (s.mi + 1) + '/' + e.members.length : 'Tuyển thủ');
+            } else {
+                var a = acc || {}, ag = fmtAgo(a.lastActive);
+                h = row('Tên tài khoản', mem.u || '---') + row('Vai trò', ROLE[a.role] || 'Thành viên') + row('Ngày tham gia', fmtDate(a.created_at || a.createdAt))
+                    + row('Hoạt động', acc ? ag.t : 'Không tìm thấy tài khoản', ag.on ? 'on' : '') + row('Trạng thái', a.isBlocked ? 'Đang bị khóa' : 'Bình thường');
+            }
+            p.innerHTML = h;
+        }
+        function openDetail(e, cfg, ctx) {
+            ensureDT();
+            dtState = { e: e, cfg: cfg, ctx: ctx || {}, tab: 'me', mi: 0, acc: {}, loading: {} };
+            if (ctx && ctx.me && e.members) e.members.forEach(function (x, i) { if (x.u === ctx.me) dtState.mi = i; });
+            lastFocus = d.activeElement;
+            DT.hidden = false; paintDT();
+            requestAnimationFrame(function () { DT.classList.add('show'); var b = DT.querySelector('.qdb-tabs button.on'); if (b) b.focus({ preventScroll: true }); });
+        }
+        function closeDetail() { if (!DT) return; DT.classList.remove('show'); setTimeout(function () { DT.hidden = true; }, 200); if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) {} }
+
+        var bodyOverflow = '';
+        var QDB = window.QDB = {
+            esc: esc, seedOrder: seedOrder, compute: compute, status: status, STATUS_TXT: STATUS_TXT, treeHTML: treeHTML, metaHTML: metaHTML, cardHTML: cardHTML, WHY: WHY, whyOf: whyOf,
+            bind: bind, findEntry: findEntry, findMatch: findMatch, roundName: roundName, openDetail: openDetail, closeDetail: closeDetail,
+            // Mở toàn màn hình. opt: { admin, me, onEntry(e), onMatch(key) }
+            open: function (cfg, opt) {
+                ensureOV(); ovCfg = cfg; ovOpt = opt || {};
+                var first = OV.hidden;
+                OV.hidden = false;
+                if (first) { bodyOverflow = d.body.style.overflow; d.body.style.overflow = 'hidden'; mode = autoMode(); }
+                paintOV(first);
+            },
+            update: function (cfg) { ovCfg = cfg; if (OV && !OV.hidden) paintOV(false); if (DT && !DT.hidden && dtState) { dtState.cfg = cfg; paintDT(); } },
+            isOpen: function () { return !!(OV && !OV.hidden); },
+            close: function () { if (!OV) return; closeDetail(); OV.hidden = true; d.body.style.overflow = bodyOverflow; }
+        };
+    })();
+    </script>
+    <style id="qdb-user-css">
+        .qdb-open-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 20px; border-radius: 999px; border: 2px solid #facc15; cursor: pointer;
+            font: inherit; font-size: 15px; font-weight: 800; letter-spacing: .3px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #facc15 55%, #e9a91c);
+            box-shadow: 0 8px 22px rgba(250, 204, 21, .35); white-space: nowrap; transition: transform .15s; }
+        .qdb-open-btn:active { transform: scale(.96); }
+        .qdb-open-btn .qdb-ob-ic { font-size: 18px; line-height: 1; }
+        .qdb-open-btn small { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(122, 0, 0, .12); }
+        .qdb-open-btn.live small { background: #16a34a; color: #fff; }
+        #view-tournament .qdb-head { flex-wrap: wrap; gap: 14px; }
+        @media (max-width: 640px) { .qdb-open-btn { width: 100%; } }
+    </style>
+    <script id="qdb-user-js">
+    /* Trang user: nút "Sơ Đồ Giải Đấu" (Ban quản trị bật/tắt), xem sơ đồ theo thời gian thực, bấm tên -> thẻ chi tiết */
+    (function () {
+        'use strict';
+        var btn = document.getElementById('btn-qdb-open');
+        if (!btn || !window.QDB) return;
+        var U = window.QDBUser = { cfg: null };
+        function DB() { try { return typeof db !== 'undefined' ? db : firebase.firestore(); } catch (e) { return null; } }
+        function me() { return (window.State && window.State.currentUser) || ''; }
+        var ctx = {
+            getAccount: function (u) {
+                var d = DB(); if (!d) return Promise.resolve(null);
+                return d.collection('accounts').where('user', '==', u).limit(1).get().then(function (s) {
+                    if (s.empty) return null; var x = s.docs[0].data();
+                    return { fullName: x.fullName, role: x.role, created_at: x.created_at || x.createdAt, lastActive: x.lastActive, isBlocked: x.isBlocked };
+                });
+            },
+            getExtra: function (u) {
+                var list = (window.State && window.State.tournamentData) || [];
+                for (var i = 0; i < list.length; i++) if (list[i].username === u) return { points: list[i].points, team: list[i].team };
+                return {};
+            }
+        };
+        function visible(c) { return !!(c && c.enabled !== false && (c.entries || []).some(Boolean)); }
+        U.open = function () {
+            if (!visible(U.cfg)) { if (window.Utils && window.Utils.toast) window.Utils.toast('Ban Quản Trị chưa công bố sơ đồ giải đấu.', 'info'); return; }
+            ctx.me = me();
+            QDB.open(U.cfg, { me: ctx.me, onEntry: function (e) { ctx.me = me(); QDB.openDetail(e, U.cfg, ctx); } });
+        };
+        btn.addEventListener('click', U.open);
+        function start() {
+            var d = DB(); if (!d) return;
+            d.collection('settings').doc('tournament_bracket').onSnapshot(function (doc) {
+                U.cfg = doc.exists ? doc.data() : null;
+                var show = visible(U.cfg);
+                btn.style.display = show ? '' : 'none';
+                if (show) {
+                    var s = QDB.status(QDB.compute(U.cfg));
+                    btn.classList.toggle('live', s === 'live');
+                    btn.querySelector('small').textContent = s === 'live' ? '● LIVE' : s === 'done' ? 'Đã có vô địch' : (U.cfg.format === 'double' ? 'Giải Đôi' : 'Giải Đơn');
+                }
+                if (QDB.isOpen()) { if (show) QDB.update(U.cfg); else QDB.close(); }
+            }, function () { btn.style.display = 'none'; });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+    })();
+    </script>
+    <!-- ===== ĐĂNG KÝ ID GAME: thẻ trang chủ + menu + nút Giải Đấu, trạng thái mở/đóng/hạn chót, xem đơn đã gửi ===== -->
+    <style id="regid-css">
+        .reg-mini { position: relative; width: 150px; height: 92px; display: flex; align-items: center; justify-content: center; }
+        .reg-card { position: relative; display: block; width: 138px; height: 84px; border-radius: 12px; overflow: hidden; background: linear-gradient(150deg, #ef3340, #a10000); border: 2px solid #ffd700; box-shadow: 0 6px 14px rgba(0, 0, 0, .45); animation: rxBob 2.8s ease-in-out infinite; }
+        .reg-card i { position: absolute; left: 10px; top: 10px; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-style: normal; background: radial-gradient(circle at 35% 30%, #fff6b0, #ffd700 60%, #d99a00); }
+        .reg-card b { position: absolute; left: 54px; right: 12px; height: 7px; border-radius: 4px; background: rgba(255, 246, 200, .85); }
+        .reg-card b:nth-of-type(1) { top: 15px; } .reg-card b:nth-of-type(2) { top: 29px; right: 36px; background: rgba(255, 246, 200, .5); }
+        .reg-card em { position: absolute; left: 10px; right: 10px; bottom: 7px; padding-top: 4px; border-top: 1px dashed rgba(255, 215, 0, .55); font-style: normal; font-family: 'Courier New', monospace; font-weight: 800; font-size: 12px; letter-spacing: 1.5px; color: #ffd700; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .reg-stamp { position: absolute; right: 0; top: -2px; width: 32px; height: 32px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 17px; font-weight: 900; color: #fff; background: #16a34a; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0, 0, 0, .4); transform: rotate(-12deg); }
+        .wheel-tab.reg-tab:hover .reg-card { animation-duration: .9s; }
+        .wheel-tab.reg-tab[data-state="done"] .reg-stamp { display: flex; }
+        .wheel-tab.reg-tab[data-state="done"] .wheel-badge { background: #16a34a; border-color: #bbf7d0; color: #fff; }
+        .wheel-tab.reg-tab[data-state="open"] .wheel-badge { background: rgba(22, 163, 74, .35); border-color: #86efac; color: #f0fdf4; }
+        .wheel-tab.reg-tab[data-state="locked"] .reg-card { filter: grayscale(.85) brightness(.7); animation: none; }
+        .wheel-tab.reg-tab[data-state="locked"] .wheel-badge { background: rgba(0, 0, 0, .55); color: #ffb4b4; border-color: rgba(255, 120, 120, .6); }
+        .wheel-tab.reg-tab[data-state="locked"] .wheel-msg { color: #ffd0d0; }
+        @media (prefers-reduced-motion: reduce) { .reg-card { animation: none !important; } }
+        .reg-status { margin: 0 0 18px; padding: 10px 14px; border-radius: 12px; text-align: left; font-size: 13px; font-weight: 600; line-height: 1.5; color: var(--text-main); background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+        .reg-status i { margin-right: 6px; }
+        .reg-status[data-s="open"] { background: rgba(34, 197, 94, .12); border-color: rgba(34, 197, 94, .55); }
+        .reg-status[data-s="open"] i { color: #22c55e; }
+        .reg-status[data-s="closed"], .reg-status[data-s="expired"] { background: rgba(239, 68, 68, .12); border-color: rgba(239, 68, 68, .55); }
+        .reg-status[data-s="closed"] i, .reg-status[data-s="expired"] i { color: #ef4444; }
+        #modal-registration [hidden] { display: none !important; }
+        #modal-registration input:disabled { opacity: .55; cursor: not-allowed; }
+        .reg-done { text-align: left; }
+        .reg-done-badge { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 10px; padding: 10px 14px; border-radius: 999px; font-size: 14px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 6px 16px rgba(22, 163, 74, .35); }
+        .reg-done-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px dashed var(--border-strong); font-size: 14px; }
+        .reg-done-row span { color: var(--text-muted); font-weight: 600; flex: 0 0 auto; }
+        .reg-done-row b { color: var(--text-main); font-weight: 800; text-align: right; min-width: 0; word-break: break-word; }
+        .reg-done-row b.reg-done-id { font-family: var(--font-family-mono, 'Courier New', monospace); letter-spacing: 2px; color: var(--color-warning); font-size: 16px; }
+        .reg-done-row b.ok { color: var(--color-success); }
+        .reg-done-note { margin: 14px 0; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+        .reg-head-btns { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .reg-open-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 999px; border: 2px solid #facc15; cursor: pointer;
+            font: inherit; font-size: 15px; font-weight: 800; color: var(--text-main); background: rgba(250, 204, 21, .1); white-space: nowrap; transition: transform .15s; }
+        .reg-open-btn:active { transform: scale(.96); }
+        @media (max-width: 640px) { .reg-head-btns { width: 100%; } .reg-open-btn { flex: 1 1 100%; } }
+    </style>
+    <script id="regid-js">
+    /* Đăng ký ID Game (trang user)
+       - Mở từ: thẻ "Đăng Ký ID Game" trang chủ, menu bên, nút trong tab Giải Đấu
+       - Trạng thái theo settings/registration_config do Admin chỉnh (Danh sách Đăng ký > Cấu hình Đóng/Mở): đang mở / hạn chót / đã đóng / hết hạn
+       - Đã gửi đơn (collection "users", submitter = tài khoản) -> hiện đơn đã gửi thay cho biểu mẫu; Admin "Cho phép nộp lại" -> tự hiện lại biểu mẫu */
+    (function () {
+        'use strict';
+        if (window.RegID) return;
+        var R = window.RegID = { cfg: undefined, mine: undefined, user: '', unsub: null };
+        var $ = function (id) { return document.getElementById(id); };
+        function DB() { try { return typeof db !== 'undefined' ? db : firebase.firestore(); } catch (e) { return null; } }
+        function me() { return (window.State && window.State.currentUser) || ''; }
+        function lockInfo() {
+            var c = R.cfg;
+            if (c === undefined) return { s: 'load' };
+            if (!c) return { s: 'open' };
+            if (c.isEnabled === false) return { s: 'closed' };
+            if (c.endDate && c.endTime) {
+                var dl = new Date(c.endDate + 'T' + c.endTime).getTime();
+                if (!isNaN(dl)) return { s: Date.now() >= dl ? 'expired' : 'open', dl: dl };
+            }
+            return { s: 'open' };
+        }
+        function left(ms) {
+            var m = Math.max(1, Math.floor(ms / 60000)), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mi = m % 60;
+            return d ? d + ' ngày ' + h + ' giờ' : h ? h + ' giờ ' + mi + ' phút' : mi + ' phút';
+        }
+        function fmtDL(dl) { var x = new Date(dl); return x.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ngày ' + x.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+        function inTour() { var l = (window.State && window.State.tournamentData) || []; for (var i = 0; i < l.length; i++) if (l[i].username === R.user) return true; return false; }
+
+        R.paint = function () {
+            var L = lockInfo(), m = R.mine, done = !!m, locked = L.s === 'closed' || L.s === 'expired';
+            // thẻ trang chủ
+            var tab = $('reg-tab');
+            if (tab) {
+                tab.setAttribute('data-state', done ? 'done' : locked ? 'locked' : 'open');
+                $('reg-tab-sub').textContent = done ? 'Đã đăng ký ✓' : L.s === 'load' ? 'Đang tải...' : L.s === 'closed' ? 'Đã đóng' : L.s === 'expired' ? 'Hết hạn' : L.dl ? 'Còn ' + left(L.dl - Date.now()) : 'Đang mở';
+                $('reg-tab-go').textContent = done ? 'Xem đơn đã gửi ›' : locked ? 'Đăng ký đang tạm đóng' : 'Chạm để khai báo ID ›';
+                $('reg-tab-id').textContent = done ? 'ID ' + (m.gameId || '') : 'ID ••••••';
+            }
+            var bt = $('btn-reg-open-txt'); if (bt) bt.textContent = done ? 'ID Game Của Tôi' : 'Đăng Ký ID Game';
+            // hộp đăng ký
+            var st = $('reg-status'); if (!st) return;
+            $('reg-done').hidden = !done; $('reg-form').hidden = done;
+            $('reg-title').textContent = done ? 'ID Game Của Bạn' : 'Đăng Ký ID Game';
+            $('reg-sub').textContent = done ? 'Ban Quản Trị đã nhận đơn khai báo của bạn.' : 'Mỗi tài khoản chỉ được phép đăng ký 1 lần duy nhất.';
+            if (done) {
+                st.hidden = true;
+                $('reg-done-name').textContent = m.name || '---';
+                $('reg-done-id').textContent = m.gameId || '---';
+                $('reg-done-time').textContent = m.timestamp ? new Date(m.timestamp).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) : '---';
+                var t = inTour(), tt = $('reg-done-tour');
+                tt.textContent = t ? 'Đã vào danh sách thi đấu' : 'Chờ BQT xếp vào giải'; tt.className = t ? 'ok' : '';
+                return;
+            }
+            st.hidden = false; st.setAttribute('data-s', L.s);
+            st.innerHTML = L.s === 'load' ? '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra trạng thái...'
+                : L.s === 'open' ? '<i class="fa-solid fa-door-open"></i> <b>Đang mở đăng ký</b>' + (L.dl ? ' · hạn chót ' + fmtDL(L.dl) + ' (còn ' + left(L.dl - Date.now()) + ')' : '')
+                : L.s === 'closed' ? '<i class="fa-solid fa-lock"></i> Ban Quản Trị đã <b>đóng</b> đăng ký. Vui lòng quay lại sau.'
+                : '<i class="fa-solid fa-hourglass-end"></i> Đã <b>hết hạn</b> đăng ký (' + fmtDL(L.dl) + ').';
+            ['reg-name', 'reg-id'].forEach(function (id) { var e = $(id); if (e) e.disabled = locked; });
+        };
+        function watch() {
+            var d = DB(), u = me(); if (!d) return;
+            if (u === R.user && (R.unsub || !u)) return;
+            if (R.unsub) { try { R.unsub(); } catch (e) {} R.unsub = null; }
+            R.user = u; R.mine = undefined;
+            if (!u) return R.paint();
+            R.unsub = d.collection('users').where('submitter', '==', u).onSnapshot(function (s) {
+                R.mine = s.empty ? null : s.docs[0].data(); R.paint();
+            }, function () { R.mine = null; R.paint(); });
+        }
+        R.open = function () {
+            watch(); R.paint();
+            if (window.UI && window.UI.openModal) window.UI.openModal('modal-registration');
+            if (!R.mine && lockInfo().s === 'open' && window.innerWidth > 640) setTimeout(function () { var e = $('reg-name'); if (e && !e.disabled) e.focus(); }, 350);
+        };
+        function start() {
+            var d = DB(); if (!d) return R.paint();
+            d.collection('settings').doc('registration_config').onSnapshot(function (doc) { R.cfg = doc.exists ? doc.data() : null; R.paint(); }, function () { R.cfg = null; R.paint(); });
+            var t = setInterval(function () { if (me()) { watch(); clearInterval(t); } }, 1000);   // chờ đăng nhập xong
+            setInterval(function () { watch(); if (!document.hidden) R.paint(); }, 30000);           // đổi tài khoản / đếm ngược hạn chót
+            R.paint();
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+    })();
+    </script>
 </body>
 
 </html>
