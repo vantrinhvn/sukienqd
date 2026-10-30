@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="tet">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#fdebc0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>QD Elite - Ném Còn Xuân Đinh Mùi 2027</title>
+    <script>try{var _tc=localStorage.getItem("qd_tet_color");if(_tc==="dao"||_tc==="chung")document.documentElement.setAttribute("data-tet-color",_tc);}catch(e){}</script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* =====================================================================
+           NÉM CÒN (Tung còn) - trò chơi dân gian ngày Tết
+           Màu theo chủ đề Tết đã chọn ở trang user: Đỏ Lì Xì / Hoa Đào / Bánh Chưng
+           ===================================================================== */
+        :root {
+            --lq1: #d42330; --lq2: #8f0a12; --lq3: #6a0008; --ink: #9b0d19;
+            --gold: #ffd54a; --gold-2: #f2b705; --gold-line: rgba(214, 158, 30, .55);
+            --paper: rgba(255, 249, 232, .92); --paper-solid: #fff6dc;
+            --ok: #16a34a; --bad: #dc2626;
+            --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        html[data-tet-color="dao"] { --lq1: #d93a72; --lq2: #8e1442; --lq3: #650c30; --ink: #9d1748; }
+        html[data-tet-color="chung"] { --lq1: #14965b; --lq2: #06553a; --lq3: #033d29; --ink: #0b6b40; }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; }
+        body {
+            font-family: var(--font); color: #3b1a00; -webkit-font-smoothing: antialiased; overflow: hidden; overscroll-behavior: none;
+            background: #fff0cf url('nen-tet-ngang.jpg') center top / cover no-repeat;
+            -webkit-user-select: none; user-select: none;
+        }
+        @media (orientation: portrait) { body { background-image: url('nen-tet-doc.jpg'); } }
+        button { font: inherit; color: inherit; border: none; background: none; cursor: pointer; }
+        a { color: inherit; text-decoration: none; }
+
+        /* ---------- Sân chơi ---------- */
+        #stage { position: fixed; inset: 0; touch-action: none; cursor: grab; }
+        #stage.dragging { cursor: grabbing; }
+        #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+        /* ---------- Thanh trên ---------- */
+        .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; align-items: center; gap: 10px;
+            padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
+            background: var(--paper); border-bottom: 1.5px solid var(--gold-line); box-shadow: 0 8px 24px -12px rgba(140, 60, 0, .4);
+            -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+        .ic-btn { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px;
+            color: var(--gold); background: linear-gradient(160deg, var(--lq1), var(--lq2)); border: 2px solid var(--gold-2); box-shadow: 0 4px 10px -3px rgba(120, 20, 0, .5); }
+        .ic-btn:active { transform: scale(.92); }
+        .ic-btn.off { opacity: .55; }
+        .tb-title { flex: 1 1 auto; min-width: 0; line-height: 1.15; }
+        .tb-title b { display: block; font-size: 19px; font-weight: 800; color: var(--ink); letter-spacing: -.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tb-title small { font-size: 12px; font-weight: 700; color: #8a4b0a; }
+
+        /* ---------- Chỉ số ---------- */
+        .hud { position: fixed; z-index: 15; left: 0; right: 0; top: calc(max(10px, env(safe-area-inset-top)) + 64px); display: flex; justify-content: center; gap: 8px; padding: 0 12px; flex-wrap: wrap; pointer-events: none; }
+        .chip { pointer-events: auto; display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 999px; font-size: 13.5px; font-weight: 800; white-space: nowrap;
+            color: #fff; background: linear-gradient(160deg, var(--lq1), var(--lq2)); border: 1.5px solid var(--gold-2); box-shadow: 0 6px 14px -8px rgba(120, 10, 0, .8); }
+        .chip b { color: var(--gold); font-size: 16px; }
+        .chip[hidden] { display: none; }
+        .chip.turns { font-size: 14.5px; padding: 7px 15px; }
+        .chip.turns b { font-size: 19px; }
+        .chip.turns.empty { background: linear-gradient(160deg, #6b7280, #374151); border-color: #9ca3af; }
+        .chip.bump { animation: bump .45s cubic-bezier(.3, 1.6, .5, 1); }
+        @keyframes bump { 40% { transform: scale(1.18); } }
+        .wind { position: fixed; z-index: 14; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-radius: 999px;
+            font-size: 12.5px; font-weight: 800; color: #3b5d10; background: rgba(255, 255, 255, .82); border: 1.5px solid rgba(90, 140, 30, .45); white-space: nowrap; pointer-events: none; }
+        .wind svg { width: 38px; height: 14px; overflow: visible; }
+        .wind[hidden] { display: none; }
+
+        /* ---------- Gợi ý / thanh lực ---------- */
+        .hint { position: fixed; z-index: 14; left: 50%; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 8px); transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+            padding: 9px 16px; border-radius: 999px; font-size: 14px; font-weight: 800; color: var(--ink); background: var(--paper); border: 1.5px solid var(--gold-line);
+            box-shadow: 0 8px 20px -10px rgba(140, 60, 0, .5); white-space: nowrap; pointer-events: none; transition: opacity .3s; }
+        .hint .fing { display: inline-block; animation: swipe 1.6s ease-in-out infinite; }
+        @keyframes swipe { 0%, 15% { transform: translateY(6px); opacity: 0; } 30% { opacity: 1; } 80% { transform: translateY(-10px); opacity: 1; } 100% { transform: translateY(-14px); opacity: 0; } }
+        .hint.hide { opacity: 0; }
+        .power { position: fixed; z-index: 14; right: max(14px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 70px); width: 16px; height: 34vh; max-height: 260px;
+            border-radius: 999px; background: rgba(255, 255, 255, .7); border: 2px solid var(--gold-2); overflow: hidden; opacity: 0; transition: opacity .2s; pointer-events: none; }
+        .power.on { opacity: 1; }
+        .power i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(0deg, #22c55e, #facc15 55%, #ef4444); }
+        .power-lbl { position: fixed; z-index: 14; right: max(6px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 44px); width: 32px; text-align: center;
+            font-size: 11px; font-weight: 800; color: var(--ink); opacity: 0; transition: opacity .2s; pointer-events: none; }
+        .power.on + .power-lbl { opacity: 1; }
+
+        /* ---------- Kết quả từng lượt ---------- */
+        .result { position: fixed; z-index: 16; left: 50%; top: 38%; transform: translate(-50%, -50%) scale(.6); opacity: 0; text-align: center; pointer-events: none; transition: none; width: max-content; max-width: 92vw; }
+        .result.show { animation: pop 2.1s cubic-bezier(.2, 1.3, .4, 1) forwards; }
+        @keyframes pop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); } 14% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); } 22% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -62%) scale(1); } }
+        .result b { display: block; font-size: clamp(30px, 9vw, 54px); font-weight: 800; letter-spacing: -1px; line-height: 1.05; color: var(--gold);
+            -webkit-text-stroke: 2px var(--lq2); paint-order: stroke fill; text-shadow: 0 4px 0 var(--lq3), 0 10px 22px rgba(80, 0, 0, .45); }
+        .result.miss b { color: #fff; -webkit-text-stroke-color: #4b5563; text-shadow: 0 4px 0 #374151, 0 10px 22px rgba(0, 0, 0, .3); }
+        .result span { display: inline-block; margin-top: 8px; padding: 6px 14px; border-radius: 999px; font-size: 15px; font-weight: 800; color: var(--ink); background: var(--paper-solid); border: 1.5px solid var(--gold-2); }
+        .result span:empty { display: none; }
+        .result em { display: table; margin: 8px auto 0; padding: 6px 12px; border-radius: 12px; font-style: normal; font-size: 13px; font-weight: 800; line-height: 1.4; color: #fff; background: rgba(60, 20, 0, .78); max-width: 86vw; }
+        .result em:empty { display: none; }
+        .result span { margin-top: 10px; }
+
+        /* ---------- Thẻ thông báo giữa màn hình (hết lượt / đóng cửa / đang tải) ---------- */
+        .gate { position: fixed; z-index: 18; left: 50%; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 62px); transform: translateX(-50%); width: min(420px, calc(100vw - 24px));
+            padding: 16px 16px 14px; border-radius: 22px; text-align: center; color: #fff; background: linear-gradient(160deg, var(--lq1), var(--lq2) 80%); border: 2px solid var(--gold-2);
+            box-shadow: 0 18px 40px -14px rgba(100, 0, 0, .7), inset 0 0 0 4px rgba(255, 213, 74, .12); }
+        .gate[hidden] { display: none; }
+        .gate h3 { font-size: 18px; font-weight: 800; color: var(--gold); margin-bottom: 4px; }
+        .gate p { font-size: 13.5px; font-weight: 600; color: #ffeeb8; line-height: 1.5; }
+        .gate .row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+        .g-btn { flex: 1 1 150px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 14px; border-radius: 999px; font-size: 14px; font-weight: 800;
+            color: var(--lq3); background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); border: 2px solid #fff3; box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .5); }
+        .g-btn.ghost { color: #fff; background: rgba(0, 0, 0, .22); border-color: rgba(255, 213, 74, .6); }
+        .g-btn:disabled { opacity: .6; cursor: default; }
+        .g-btn:active:not(:disabled) { transform: scale(.97); }
+
+        /* ---------- Bảng: BXH / Lịch sử / Luật chơi ---------- */
+        .sheet-bg { position: fixed; inset: 0; z-index: 9995; background: rgba(40, 10, 0, .5); opacity: 0; pointer-events: none; transition: opacity .25s; }
+        .sheet-bg.on { opacity: 1; pointer-events: auto; }
+        .sheet { position: fixed; z-index: 9996; left: 50%; bottom: 0; width: min(560px, 100vw); max-height: 82vh; display: flex; flex-direction: column; transform: translate(-50%, 105%);
+            transition: transform .32s cubic-bezier(.2, .9, .3, 1); border-radius: 26px 26px 0 0; background: var(--paper-solid); border: 2px solid var(--gold-2); border-bottom: none;
+            box-shadow: 0 -18px 40px -10px rgba(100, 30, 0, .45); padding-bottom: env(safe-area-inset-bottom); }
+        .sheet.on { transform: translate(-50%, 0); }
+        .sh-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px; }
+        .sh-head h2 { flex: 1; font-size: 18px; font-weight: 800; color: var(--ink); }
+        .sh-x { width: 36px; height: 36px; border-radius: 50%; font-size: 16px; color: var(--ink); background: rgba(155, 13, 25, .08); }
+        .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 16px 10px; padding: 4px; border-radius: 14px; background: rgba(155, 13, 25, .07); }
+        .tabs button { padding: 8px 4px; border-radius: 10px; font-size: 13px; font-weight: 800; color: #8a4b0a; }
+        .tabs button.on { color: var(--gold); background: linear-gradient(160deg, var(--lq1), var(--lq2)); box-shadow: 0 4px 10px -6px rgba(120, 10, 0, .8); }
+        .sh-body { overflow-y: auto; padding: 0 16px 18px; -webkit-overflow-scrolling: touch; }
+        .lb-row, .hi-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 6px; border-radius: 14px; background: #fff; border: 1px solid rgba(214, 158, 30, .35); }
+        .lb-row.me { border: 2px solid var(--gold-2); background: #fff8dc; }
+        .lb-rk { flex: 0 0 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #8a4b0a; background: rgba(214, 158, 30, .18); }
+        .lb-row:nth-child(1) .lb-rk { background: linear-gradient(135deg, #fde047, #eab308); color: #713f12; }
+        .lb-row:nth-child(2) .lb-rk { background: linear-gradient(135deg, #f1f5f9, #cbd5e1); color: #334155; }
+        .lb-row:nth-child(3) .lb-rk { background: linear-gradient(135deg, #fed7aa, #f59e0b); color: #7c2d12; }
+        .lb-nm { flex: 1 1 auto; min-width: 0; }
+        .lb-nm b { display: block; font-size: 14.5px; font-weight: 800; color: #3b1a00; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lb-nm small { font-size: 12px; font-weight: 600; color: #8a6a4a; }
+        .lb-v { flex: 0 0 auto; text-align: right; font-size: 12px; font-weight: 700; color: #8a6a4a; }
+        .lb-v b { display: block; font-size: 17px; font-weight: 800; color: var(--ink); }
+        .hi-ic { flex: 0 0 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; background: rgba(214, 158, 30, .16); }
+        .hi-row.hit .hi-ic { background: rgba(22, 163, 74, .14); }
+        .hi-pts { font-weight: 800; color: var(--ok); font-size: 15px; }
+        .hi-row:not(.hit) .hi-pts { color: #9ca3af; }
+        .empty { padding: 26px 10px; text-align: center; font-size: 14px; font-weight: 600; color: #8a6a4a; }
+        .rules { font-size: 14px; line-height: 1.6; color: #4a2a0a; }
+        .rules h4 { margin: 12px 0 4px; font-size: 14.5px; color: var(--ink); }
+        .rules ul { padding-left: 18px; }
+        .rules li { margin: 3px 0; }
+        .rules .pts { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 10px 12px; border-radius: 14px; background: #fff; border: 1px solid rgba(214, 158, 30, .35); }
+        .rules .pts b { color: var(--ok); }
+
+        /* ---------- Cửa hàng: đổi điểm lì xì lấy lượt ném (dùng chung danh mục Trạm Quy Đổi) ---------- */
+        .shop-bal { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 16px 12px; padding: 12px 14px; border-radius: 16px;
+            color: #fff; background: linear-gradient(160deg, var(--lq1), var(--lq2)); border: 1.5px solid var(--gold-2); }
+        .shop-bal span { font-size: 13px; font-weight: 700; color: #ffeeb8; }
+        .shop-bal b { font-size: 22px; font-weight: 800; color: var(--gold); }
+        .shop-bal small { display: block; font-size: 12px; font-weight: 700; color: #ffeeb8; text-align: right; }
+        .sp-item { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; grid-template-areas: "ic nm cost" "ic sub sub" "ic buy buy"; gap: 2px 12px; align-items: center;
+            padding: 12px; margin-bottom: 8px; border-radius: 16px; background: #fff; border: 1px solid rgba(214, 158, 30, .4); }
+        .sp-item.off { opacity: .55; }
+        .sp-ic { grid-area: ic; width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: rgba(214, 158, 30, .16); }
+        .sp-nm { grid-area: nm; font-size: 15px; font-weight: 800; color: #3b1a00; min-width: 0; }
+        .sp-sub { grid-area: sub; font-size: 12px; font-weight: 600; color: #8a6a4a; min-width: 0; }
+        .sp-cost { grid-area: cost; font-size: 16px; font-weight: 800; color: var(--ink); text-align: right; white-space: nowrap; }
+        .sp-buy { grid-area: buy; display: flex; align-items: center; gap: 6px; justify-self: end; margin-top: 6px; }
+        .sp-qty { display: inline-flex; align-items: center; border-radius: 999px; border: 1.5px solid rgba(214, 158, 30, .55); overflow: hidden; }
+        .sp-qty button { width: 30px; height: 30px; font-size: 17px; font-weight: 800; color: var(--ink); }
+        .sp-qty button:disabled { opacity: .3; }
+        .sp-qty b { min-width: 22px; text-align: center; font-size: 14px; }
+        .sp-go { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; white-space: nowrap; color: var(--lq3); background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); border: 1.5px solid #e9a91c; }
+        .sp-go.confirm { color: #fff; background: linear-gradient(135deg, #22c55e, #15803d); border-color: #15803d; }
+        .sp-go:disabled { opacity: .5; cursor: default; }
+        .sp-note { margin: 4px 2px 0; font-size: 12px; font-weight: 600; color: #8a6a4a; line-height: 1.5; }
+        @media (max-width: 380px) { .sp-item { grid-template-columns: 40px minmax(0, 1fr) auto; } .sp-ic { width: 40px; height: 40px; } }
+
+        /* ---------- Thông báo nhỏ ---------- */
+        #toast { position: fixed; z-index: 9999; left: 50%; top: calc(max(10px, env(safe-area-inset-top)) + 70px); transform: translate(-50%, -20px); opacity: 0; transition: opacity .25s, transform .25s;
+            padding: 10px 16px; border-radius: 14px; font-size: 14px; font-weight: 700; color: #fff; background: rgba(40, 20, 0, .9); max-width: 92vw; text-align: center; pointer-events: none; }
+        #toast.on { opacity: 1; transform: translate(-50%, 0); }
+        #toast.err { background: rgba(185, 28, 28, .95); }
+        #toast.ok { background: rgba(21, 128, 61, .95); }
+
+        @media (min-width: 900px) {
+            .hint { font-size: 15px; }
+            .result { top: 40%; }
+        }
+        @media (prefers-reduced-motion: reduce) { .hint .fing, .chip.bump { animation: none; } }
+        /* nút nhạc nền nằm góc trái dưới: chừa chỗ cho thẻ thông báo trên màn hình hẹp */
+        @media (max-width: 480px) { .gate { width: calc(100vw - 24px); } }
+    </style>
+
+    <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
+    <style id="qd-smooth-css">
+/* ===== QD SMOOTH (dùng chung) ===== */
+.qd-paused, .qd-paused::before, .qd-paused::after, .qd-paused-px::before, .qd-paused-px::after { animation-play-state: paused !important; }
+html.qd-lite *, html.qd-lite *::before, html.qd-lite *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html.qd-lite .qd-fx { display: none !important; }
+    </style>
+    <script id="qd-smooth-js">
+/* ===== QD SMOOTH: lớp tối ưu mượt mà dùng chung mọi trang =====
+   - Giữ luồng chính (main thread) rảnh: hiệu ứng lặp chạy trên GPU, ghi DOM trùng lặp bị bỏ qua
+   - Hiệu ứng nằm ngoài màn hình / video nền khuất -> tạm dừng, hiện lại -> chạy tiếp
+   - Máy yếu hoặc đo thấy rớt khung hình -> tự bật chế độ nhẹ (html.qd-lite)
+   Ép chế độ: localStorage.setItem('qd_fx', 'full' | 'lite' | 'auto') */
+(function () {
+    'use strict';
+    if (window.QDSmooth) return;
+    var W = window, d = document, html = d.documentElement, nav = navigator;
+    var Q = W.QDSmooth = { lite: false, _cb: [] };
+    function store(k, v) { try { if (v === undefined) return (k === 'ss' ? sessionStorage : localStorage).getItem('qd_fx'); (k === 'ss' ? sessionStorage : localStorage).setItem('qd_fx', v); } catch (e) { return null; } }
+    var pref = store('ls');
+
+    /* ---------- 1. Chế độ nhẹ ---------- */
+    Q.onLite = function (fn) { Q._cb.push(fn); if (Q.lite) { try { fn(true); } catch (e) {} } };
+    Q.setLite = function (on) {
+        on = !!on; if (Q.lite === on) return;
+        Q.lite = on; html.classList.toggle('qd-lite', on); store('ss', on ? 'lite' : 'full');
+        Q._cb.forEach(function (fn) { try { fn(on); } catch (e) {} });
+    };
+    var reduce = W.matchMedia && W.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var conn = nav.connection || {};
+    var weak = (nav.deviceMemory && nav.deviceMemory <= 2) || (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) || conn.saveData === true;
+    if (pref !== 'full' && (pref === 'lite' || store('ss') === 'lite' || weak || reduce)) Q.setLite(true);
+
+    /* Đo khung hình thật: 2 lần đo liên tiếp rớt > 22% khung -> bật chế độ nhẹ cho phiên này */
+    function monitor() {
+        if (pref === 'full' || pref === 'lite' || Q.lite || !W.requestAnimationFrame) return;
+        var strikes = 0, runs = 0;
+        function sample() {
+            if (Q.lite || runs > 40) return;
+            if (d.hidden) return setTimeout(sample, 4000);
+            runs++;
+            var t = [], last = 0, end = performance.now() + 2000;
+            requestAnimationFrame(function step(now) {
+                if (d.hidden) return setTimeout(sample, 4000);
+                if (last) t.push(now - last); last = now;
+                if (now < end) return requestAnimationFrame(step);
+                if (t.length < 20) return setTimeout(sample, 8000);
+                var s = t.slice().sort(function (a, b) { return a - b; });
+                var vsync = Math.max(6.5, s[Math.floor(s.length * 0.1)]);   // ~8.3ms ở màn 120Hz, ~16.7ms ở 60Hz
+                var bad = 0; t.forEach(function (x) { if (x > vsync * 1.8) bad++; });
+                strikes = bad / t.length > 0.22 ? strikes + 1 : 0;
+                if (strikes >= 2) return Q.setLite(true);
+                setTimeout(sample, strikes ? 1500 : 12000);
+            });
+        }
+        setTimeout(sample, 5000);
+    }
+
+    /* ---------- 2. Bỏ qua ghi chữ trùng lặp (đồng hồ, bộ đếm... ghi mỗi giây) ---------- */
+    function guardText(proto, prop, noNewline) {
+        var desc = Object.getOwnPropertyDescriptor(proto, prop);
+        if (!desc || !desc.set || !desc.get || desc.set.__qd) return;
+        var set = function (v) {
+            var c = this.firstChild, s = v == null ? '' : String(v);
+            if (c ? (c === this.lastChild && c.nodeType === 3 && c.data === s && !(noNewline && /[\r\n]/.test(s))) : (s === '' && this.nodeType === 1)) return;
+            desc.set.call(this, v);
+        };
+        set.__qd = true;
+        Object.defineProperty(proto, prop, { configurable: true, enumerable: desc.enumerable, get: desc.get, set: set });
+    }
+    try { guardText(Node.prototype, 'textContent'); guardText(HTMLElement.prototype, 'innerText', true); } catch (e) {}
+
+    /* Ghi innerHTML chỉ khi nội dung thay đổi (dùng cho các vòng cập nhật định kỳ) */
+    Q.html = function (el, s) {
+        if (!el) return;
+        s = s == null ? '' : String(s);
+        if (el.__qdH === s && el.__qdF === el.firstChild && el.__qdL === el.lastChild) return;
+        el.innerHTML = s; el.__qdH = s; el.__qdF = el.firstChild; el.__qdL = el.lastChild;
+    };
+
+    /* ---------- 3. Tạm dừng hiệu ứng lặp khi khuất màn hình ---------- */
+    var MOVE = /^(transform|translate|rotate|scale|left|top|right|bottom|offset|inset|margin)/;
+    var io = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) { e.target.classList.toggle(e.target.__qdM, !e.isIntersecting); });
+    }, { rootMargin: '120px' }) : null;
+    var seen = new WeakSet(), seenPx = new WeakSet();
+    function moves(a) {   // hiệu ứng tự di chuyển phần tử (hoa rơi...) thì không dừng, tránh kẹt ngoài màn hình
+        try { var k = a.effect.getKeyframes(); for (var i = 0; i < k.length; i++) for (var p in k[i]) if (MOVE.test(p)) return true; } catch (e) { return true; }
+        return false;
+    }
+    function scan() {
+        if (!io || !d.getAnimations || d.hidden) return;
+        var as = d.getAnimations();
+        for (var i = 0; i < as.length; i++) {
+            var ef = as[i].effect, el = ef && ef.target;
+            if (!el || !ef.getTiming || ef.getTiming().iterations !== Infinity) continue;
+            var bag = ef.pseudoElement ? seenPx : seen;
+            if (bag.has(el)) continue;
+            bag.add(el);
+            var own = el.getAnimations ? el.getAnimations() : [], mv = false;
+            for (var j = 0; j < own.length; j++) if (moves(own[j])) { mv = true; break; }
+            if (mv && !ef.pseudoElement) continue;          // chỉ có hiệu ứng di chuyển: để nguyên
+            if (el.__qdM === 'qd-paused') continue;
+            el.__qdM = mv ? 'qd-paused-px' : 'qd-paused';   // có di chuyển: chỉ dừng ::before/::after
+            io.observe(el);
+        }
+    }
+
+    /* ---------- 4. Video nền: dừng khi khuất / ẩn tab, chạy lại khi hiện ---------- */
+    var vio = W.IntersectionObserver ? new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+            var v = e.target; v.__qdVis = e.isIntersecting;
+            if (!e.isIntersecting) { if (!v.paused) { v.__qdAuto = true; v.pause(); } }
+            else if (v.__qdAuto) { v.__qdAuto = false; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+        });
+    }, { rootMargin: '80px' }) : null;
+    function watchMedia(root) {
+        var imgs = root.getElementsByTagName ? root.getElementsByTagName('img') : [];
+        for (var i = 0; i < imgs.length; i++) if (!imgs[i].getAttribute('decoding')) imgs[i].decoding = 'async';
+        if (!vio) return;
+        var vs = root.getElementsByTagName ? root.getElementsByTagName('video') : [];
+        for (var j = 0; j < vs.length; j++) {
+            var v = vs[j]; if (v.__qdW || !v.muted && !v.hasAttribute('muted')) continue;
+            v.__qdW = true; vio.observe(v);
+            v.addEventListener('play', function () { var me = this; if (me.__qdVis === false) setTimeout(function () { if (me.__qdVis === false && !me.paused) { me.__qdAuto = true; me.pause(); } }, 0); });
+        }
+    }
+
+    /* ---------- Khởi động ---------- */
+    var scanT = 0;
+    function later() { clearTimeout(scanT); scanT = setTimeout(function () { scan(); }, 400); }
+    function boot() {
+        watchMedia(d);
+        scan(); setInterval(scan, 3000);
+        if (W.MutationObserver) new MutationObserver(function (ms) {
+            for (var i = 0; i < ms.length; i++) for (var j = 0, n = ms[i].addedNodes; j < n.length; j++) {
+                var x = n[j]; if (x.nodeType !== 1) continue;
+                if (x.tagName === 'IMG' || x.tagName === 'VIDEO' || x.firstElementChild) watchMedia(x.tagName === 'IMG' || x.tagName === 'VIDEO' ? x.parentNode || d : x);
+            }
+            later();
+        }).observe(d.body, { childList: true, subtree: true });
+        d.addEventListener('visibilitychange', function () { if (!d.hidden) later(); });
+        monitor();
+    }
+    if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+    </script>
+</head>
+<body>
+    <div id="stage" aria-label="Sân ném còn: vuốt lên để ném"><canvas id="cv"></canvas></div>
+
+    <header class="topbar">
+        <a class="ic-btn" href="user.html" title="Về trang chủ" aria-label="Về trang chủ"><i class="fa-solid fa-house"></i></a>
+        <div class="tb-title"><b>🎯 Ném Còn</b><small>Xuân Đinh Mùi 2027 · <span id="me-name">...</span></small></div>
+        <button type="button" class="ic-btn" id="shop-btn" title="Đổi điểm lấy lượt ném" aria-label="Đổi điểm lấy lượt ném"><i class="fa-solid fa-store"></i></button>
+        <button type="button" class="ic-btn" id="sfx-btn" title="Bật / tắt tiếng ném" aria-label="Bật / tắt tiếng ném"><i class="fa-solid fa-volume-high"></i></button>
+        <button type="button" class="ic-btn" id="menu-btn" title="Bảng xếp hạng, lịch sử, luật chơi" aria-label="Bảng xếp hạng, lịch sử, luật chơi"><i class="fa-solid fa-trophy"></i></button>
+    </header>
+
+    <div class="hud" id="hud">
+        <span class="chip turns" id="chip-turns">🎯 Lượt ném: <b id="v-turns">--</b></span>
+        <span class="chip" id="chip-pts">💰 <b id="v-pts">--</b></span>
+        <span class="chip" id="chip-streak" title="Trúng liên tiếp">🔥 <b id="v-streak">0</b></span>
+        <button type="button" class="chip" id="chip-free" hidden>🎁 Nhận <b id="v-free">3</b> lượt hôm nay</button>
+    </div>
+    <div class="wind" id="wind" hidden aria-live="polite">
+        <span id="wind-l">🍃 Gió</span>
+        <svg viewBox="0 0 38 14" aria-hidden="true"><g id="wind-arrow"><line x1="3" y1="7" x2="33" y2="7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M27 2 L34 7 L27 12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+        <span id="wind-v">0</span>
+    </div>
+
+    <div class="hint" id="hint"><span class="fing" aria-hidden="true">👆</span><span id="hint-t">Vuốt lên để ném còn</span></div>
+    <div class="power" id="power"><i id="power-i"></i></div><div class="power-lbl" id="power-l">0%</div>
+
+    <div class="result" id="result" aria-live="assertive"><b id="res-t"></b><span id="res-p"></span><em id="res-e"></em></div>
+
+    <div class="gate" id="gate" hidden role="dialog" aria-live="polite">
+        <h3 id="gate-t"></h3>
+        <p id="gate-p"></p>
+        <div class="row" id="gate-row"></div>
+    </div>
+
+    <div class="sheet-bg" id="sheet-bg"></div>
+    <section class="sheet" id="sheet" aria-labelledby="sheet-h" aria-hidden="true">
+        <div class="sh-head"><h2 id="sheet-h">🏆 Sân Ném Còn</h2><button type="button" class="sh-x" id="sheet-x" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="tabs" role="tablist">
+            <button type="button" data-tab="lb" class="on" role="tab">Bảng xếp hạng</button>
+            <button type="button" data-tab="hi" role="tab">Lịch sử của tôi</button>
+            <button type="button" data-tab="rule" role="tab">Luật chơi</button>
+        </div>
+        <div class="sh-body" id="sheet-body"></div>
+    </section>
+
+    <section class="sheet" id="shop" aria-labelledby="shop-h" aria-hidden="true">
+        <div class="sh-head"><h2 id="shop-h">🏪 Đổi Điểm Lấy Lượt Ném</h2><button type="button" class="sh-x" id="shop-x" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="shop-bal"><span>Số dư điểm lì xì</span><div><b id="shop-pts">--</b><small>Lượt ném: <span id="shop-turns">--</span></small></div></div>
+        <div class="sh-body" id="shop-body"></div>
+    </section>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script id="nemcon-js">
+    /* ===== NÉM CÒN =====
+       Dữ liệu Firestore:
+         accounts.<doc>.conThrows        : số lượt ném còn (admin tặng, Trạm Quy Đổi, lượt miễn phí mỗi ngày)
+         accounts.<doc>.conFreeDate      : ngày đã nhận lượt miễn phí (yyyy-mm-dd)
+         settings/con_config             : { enabled, difficulty: 'easy'|'normal'|'hard', wind, hitPoints, rimPoints, streakEvery, streakBonus, freePerDay, closedMsg }
+         con_stats/<username>            : { user, throws, hits, rims, points, streak, best, updatedAt }   -> bảng xếp hạng
+         con_history/<user>_<thời gian đảo>: { user, result: 'hit'|'rim'|'miss', points, bonus, streak, wind, ts }
+         point_history                   : ghi nhận điểm thưởng (action 'nemcon')
+       Mỗi lần ném = 1 giao dịch: trừ 1 lượt + cộng điểm + ghi thống kê (không thể ném khi hết lượt). */
+    (function () {
+        'use strict';
+        firebase.initializeApp({ apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", projectId: "web-dangky-123" });
+        var db = firebase.firestore(), FV = firebase.firestore.FieldValue;
+
+        // BẢO TRÌ: Admin bật -> chuyển sang baotri.html (Admin đã mở khóa qua "Admin Gateway" thì được ở lại)
+        db.collection('settings').doc('maintenance').onSnapshot(function (doc) {
+            if (!(doc.exists && doc.data().isEnabled === true)) return;
+            var bypass = false; try { bypass = sessionStorage.getItem('admin_bypass_mt') === 'true'; } catch (e) {}
+            if (bypass) return;
+            location.replace('baotri.html?from=' + encodeURIComponent((location.pathname.split('/').pop() || 'game.html') + location.search));
+        });
+
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var ME = ''; try { ME = localStorage.getItem('qd_current_username') || ''; } catch (e) {}
+        var lite = function () { return !!(window.QDSmooth && QDSmooth.lite); };
+        function dayKey() { var d = new Date(), p = function (x) { return String(x).padStart(2, '0'); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+        function int(v, def, min, max) { v = parseInt(v, 10); if (isNaN(v)) v = def; return Math.min(max, Math.max(min, v)); }
+
+        /* ---------- Cấu hình ---------- */
+        var DEF = { enabled: true, difficulty: 'normal', wind: true, hitPoints: 20, rimPoints: 5, streakEvery: 3, streakBonus: 30, freePerDay: 3, closedMsg: '' };
+        function normCfg(c) {
+            c = c || {};
+            return {
+                enabled: c.enabled !== false, difficulty: ['easy', 'normal', 'hard'].indexOf(c.difficulty) >= 0 ? c.difficulty : 'normal', wind: c.wind !== false,
+                hitPoints: int(c.hitPoints, DEF.hitPoints, 0, 100000), rimPoints: int(c.rimPoints, DEF.rimPoints, 0, 100000),
+                streakEvery: int(c.streakEvery, DEF.streakEvery, 0, 100), streakBonus: int(c.streakBonus, DEF.streakBonus, 0, 100000),
+                freePerDay: int(c.freePerDay, DEF.freePerDay, 0, 100), closedMsg: String(c.closedMsg || '').slice(0, 200), shopEnabled: c.shopEnabled !== false
+            };
+        }
+        // Độ khó: bán kính vòng (m), gió tối đa (m/s²), phần đường bay được vẽ khi ngắm, vòng lắc qua lại
+        var DIFF = {
+            easy:   { name: 'Dễ',  r: 0.95, wind: 0.5, preview: 1,    previewWind: true,  sway: 0 },
+            normal: { name: 'Vừa', r: 0.72, wind: 1.2, preview: 0.2, previewWind: false, sway: 0 },
+            hard:   { name: 'Khó', r: 0.52, wind: 1.8, preview: 0,    previewWind: false, sway: 0.7 }
+        };
+        // Thế giới (mét): cột cách 12 m, vòng cao 9 m, tay ném 1,4 m
+        var W = { D: 12, H: 9, y0: 1.4, z0: 0.5, camY: 2.4, camZ: -3, g: 9.8, vz: 10.45, br: 0.15, rim: 0.13 };
+        var S = { cfg: normCfg(null), cfgLoaded: false, accLoaded: false, docId: null, turns: null, points: null, freeDate: '', streak: 0, best: 0, wind: 0, busy: false, sfx: true, sheetTab: 'lb' };
+        try { S.sfx = localStorage.getItem('qd_con_sfx') !== '0'; } catch (e) {}
+        function diff() { return DIFF[S.cfg.difficulty] || DIFF.normal; }
+        function ringXAt(ms) { var d = diff(); return d.sway ? d.sway * Math.sin(ms / 1000 * 1.4) : 0; }
+
+        /* ---------- Thông báo ---------- */
+        var toastT = 0;
+        function toast(msg, type) { var t = $('toast'); t.textContent = msg; t.className = 'on' + (type ? ' ' + type : ''); clearTimeout(toastT); toastT = setTimeout(function () { t.className = ''; }, 2600); }
+
+        /* ---------- Âm thanh (tổng hợp bằng Web Audio, không cần tệp) ---------- */
+        var AC = null, noiseBuf = null;
+        function audio() {
+            if (!S.sfx) return null;
+            try {
+                if (!AC) { var C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); }
+                if (AC.state !== 'running') AC.resume();
+                if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); var ch = noiseBuf.getChannelData(0); for (var i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
+                return AC;
+            } catch (e) { return null; }
+        }
+        function tone(a, type, f0, f1, t0, dur, vol) {
+            var o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t0); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+            g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+            o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+        }
+        function noise(a, t0, dur, vol, fA, fB, q) {
+            var s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = noiseBuf; f.type = 'bandpass'; f.Q.value = q || 1;
+            f.frequency.setValueAtTime(fA, t0); if (fB) f.frequency.exponentialRampToValueAtTime(fB, t0 + dur);
+            g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + Math.min(0.03, dur / 3)); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+            s.connect(f); f.connect(g); g.connect(a.destination); s.start(t0, Math.random() * 0.5); s.stop(t0 + dur + 0.02);
+        }
+        function sfx(kind) {
+            var a = audio(); if (!a) return; var t = a.currentTime + 0.01;
+            if (kind === 'throw') noise(a, t, 0.38, 0.35, 380, 1900, 1.4);
+            else if (kind === 'hit') {
+                tone(a, 'sine', 988, 0, t, 0.5, 0.25); tone(a, 'sine', 1319, 0, t + 0.09, 0.6, 0.22); tone(a, 'triangle', 1976, 0, t + 0.18, 0.5, 0.12);
+                for (var i = 0; i < 9; i++) noise(a, t + 0.25 + i * 0.07 + Math.random() * 0.04, 0.06, 0.5, 2500 + Math.random() * 2500, 0, 0.8);   // pháo nổ lách tách
+            } else if (kind === 'rim') { tone(a, 'triangle', 330, 180, t, 0.22, 0.3); noise(a, t, 0.05, 0.4, 3000, 0, 2); }
+            else if (kind === 'thud') tone(a, 'sine', 110, 55, t, 0.18, 0.35);
+            else if (kind === 'free') { tone(a, 'sine', 784, 0, t, 0.25, 0.2); tone(a, 'sine', 1175, 0, t + 0.12, 0.35, 0.2); }
+        }
+        function sfxUI() { var b = $('sfx-btn'); b.classList.toggle('off', !S.sfx); b.innerHTML = '<i class="fa-solid ' + (S.sfx ? 'fa-volume-high' : 'fa-volume-xmark') + '"></i>'; }
+        $('sfx-btn').onclick = function () { S.sfx = !S.sfx; try { localStorage.setItem('qd_con_sfx', S.sfx ? '1' : '0'); } catch (e) {} sfxUI(); if (S.sfx) sfx('free'); };
+        sfxUI();
+
+        /* =====================================================================
+           CẢNH 3D GIẢ LẬP: người chơi nhìn về cột còn, quả còn bay xa dần
+           ===================================================================== */
+        var cv = $('cv'), ctx = cv.getContext('2d');
+        var V = { w: 0, h: 0, dpr: 1, f: 600, cx: 0, hy: 0 }, groundCv = document.createElement('canvas');
+        function proj(x, y, z) { var d = z - W.camZ, s = V.f / d; return { x: V.cx + x * s, y: V.hy - (y - W.camY) * s, s: s }; }
+        function groundY(z) { return V.hy + W.camY * V.f / (z - W.camZ); }
+
+        function fit() {
+            V.w = window.innerWidth; V.h = window.innerHeight; V.dpr = Math.min(window.devicePixelRatio || 1, 2); V.cx = V.w / 2;
+            cv.width = Math.round(V.w * V.dpr); cv.height = Math.round(V.h * V.dpr);
+            var hudB = $('hud').getBoundingClientRect().bottom || 110;
+            var Rt = Math.max(hudB + 58 + V.h * 0.05, V.h * 0.26);       // tâm vòng còn: dưới thanh chỉ số + chỗ báo gió
+            var Bt = V.h - Math.max(104, V.h * 0.15);                   // quả còn trên tay: trên dòng gợi ý
+            if (Bt - Rt < 200) { Rt = Math.max(hudB + 30, Bt - 200); }
+            var k1 = (W.camY - W.y0) / (W.z0 - W.camZ), k2 = (W.H - W.camY) / (W.D - W.camZ);
+            V.f = (Bt - Rt) / (k1 + k2); V.hy = Rt + k2 * V.f;
+            var wp = $('wind'); wp.style.top = Math.round(Math.max(hudB + 6, Rt - (diff().r + W.rim) * V.f / (W.D - W.camZ) - 40)) + 'px';
+            buildGround();
+        }
+
+        // Nền sân (vẽ 1 lần mỗi khi đổi kích thước): cỏ, vạch ném, lối đi tới cột, hàng cây, cờ hội
+        function buildGround() {
+            var g = groundCv, c, w = V.w, h = V.h, hy = V.hy;
+            g.width = cv.width; g.height = cv.height; c = g.getContext('2d'); c.setTransform(V.dpr, 0, 0, V.dpr, 0, 0); c.clearRect(0, 0, w, h);
+            // sương mờ chân trời: hòa ảnh nền với sân cỏ
+            var hz = c.createLinearGradient(0, hy - h * 0.1, 0, hy); hz.addColorStop(0, 'rgba(255,244,214,0)'); hz.addColorStop(1, 'rgba(255,244,214,.75)');
+            c.fillStyle = hz; c.fillRect(0, hy - h * 0.1, w, h * 0.1);
+            // hàng cây xa
+            var tb = Math.max(10, V.f * 3.2 / (70 - W.camZ));
+            c.fillStyle = '#5e8f33'; c.beginPath(); c.moveTo(0, hy + 1);
+            for (var x = 0, i = 0; x <= w + 40; x += tb * 1.3, i++) { var bh = tb * (0.55 + 0.45 * Math.abs(Math.sin(i * 1.7))); c.quadraticCurveTo(x + tb * 0.65, hy - bh * 1.6, x + tb * 1.3, hy + 1); }
+            c.lineTo(w, hy + 2); c.lineTo(0, hy + 2); c.closePath(); c.fill();
+            c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(0, hy - 1, w, 2);
+            // cỏ
+            var gr = c.createLinearGradient(0, hy, 0, h); gr.addColorStop(0, '#b9d27a'); gr.addColorStop(0.25, '#93c052'); gr.addColorStop(1, '#5d9a2c');
+            c.fillStyle = gr; c.fillRect(0, hy, w, h - hy);
+            // sọc cỏ theo chiều sâu
+            for (var z = 0, k = 0; z < 90; z += 2.4, k++) {
+                var y1 = groundY(z + 2.4), y2 = groundY(z); if (y2 < hy) continue;
+                c.fillStyle = k % 2 ? 'rgba(255,255,255,.07)' : 'rgba(20,60,0,.06)'; c.fillRect(0, y1, w, Math.min(h, y2) - y1);
+            }
+            // lối đi sáng tới cột còn
+            var a = proj(-1.15, 0, W.z0), b = proj(1.15, 0, W.z0), cc = proj(1.15, 0, W.D + 1.2), d = proj(-1.15, 0, W.D + 1.2);
+            var lg = c.createLinearGradient(0, d.y, 0, a.y); lg.addColorStop(0, 'rgba(255,248,220,.08)'); lg.addColorStop(1, 'rgba(255,248,220,.28)');
+            c.fillStyle = lg; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.lineTo(cc.x, cc.y); c.lineTo(d.x, d.y); c.closePath(); c.fill();
+            // vòng đất quanh chân cột
+            var pb = proj(0, 0, W.D), rr = 1.3 * pb.s; c.fillStyle = 'rgba(150,100,40,.35)'; c.beginPath(); c.ellipse(pb.x, pb.y, rr, rr * 0.22, 0, 0, Math.PI * 2); c.fill();
+            // vạch ném
+            var l1 = proj(-2.6, 0, 1.25), l2 = proj(2.6, 0, 1.25), l3 = proj(2.6, 0, 1.36), l4 = proj(-2.6, 0, 1.36);
+            c.fillStyle = 'rgba(255,255,255,.85)'; c.beginPath(); c.moveTo(l1.x, l1.y); c.lineTo(l2.x, l2.y); c.lineTo(l3.x, l3.y); c.lineTo(l4.x, l4.y); c.closePath(); c.fill();
+            // cờ hội hai bên
+            [[-7, 22], [7, 22], [-12, 34], [12, 34], [-4.5, 46], [4.5, 46]].forEach(function (p, i) {
+                var base = proj(p[0], 0, p[1]), top = proj(p[0], 4.2, p[1]);
+                c.strokeStyle = '#7a4a12'; c.lineWidth = Math.max(1, 0.08 * base.s); c.beginPath(); c.moveTo(base.x, base.y); c.lineTo(top.x, top.y); c.stroke();
+                var fw = 1.3 * base.s, fh = 0.8 * base.s, dir = p[0] < 0 ? 1 : -1;
+                c.fillStyle = i % 2 ? '#facc15' : '#dc2626'; c.beginPath(); c.moveTo(top.x, top.y); c.quadraticCurveTo(top.x + dir * fw * 0.5, top.y + fh * 0.2, top.x + dir * fw, top.y + fh * 0.15);
+                c.lineTo(top.x + dir * fw, top.y + fh * 0.95); c.quadraticCurveTo(top.x + dir * fw * 0.5, top.y + fh, top.x, top.y + fh); c.closePath(); c.fill();
+                c.fillStyle = 'rgba(0,0,0,.12)'; c.beginPath(); c.ellipse(base.x, base.y, 0.25 * base.s, 0.06 * base.s, 0, 0, Math.PI * 2); c.fill();
+            });
+        }
+
+        /* ---------- Trạng thái vòng & quả ---------- */
+        var RING = { flip: 0, torn: 0, tearSeed: [], wobble: 0 };
+        var B = null, P = [];   // quả còn, hạt pháo giấy
+        function idleBall() { return { x: 0, y: W.y0, z: W.z0, vx: 0, vy: 0, vz: 0, ang: -0.3, spin: 0, fly: false, t: 0, trail: [], crossed: false, bounces: 0, appear: 0 }; }
+        B = idleBall(); B.appear = 1;
+
+        function drawShadow() {
+            if (B.y > 14) return;
+            var g = proj(B.x, 0, B.z), r = W.br * g.s * 1.2 * (1 - Math.min(B.y / 14, 0.75)), a = 0.28 * (1 - Math.min(B.y / 10, 0.85));
+            ctx.fillStyle = 'rgba(30,50,0,' + a.toFixed(3) + ')'; ctx.beginPath(); ctx.ellipse(g.x, g.y, r, r * 0.32, 0, 0, Math.PI * 2); ctx.fill();
+        }
+        function drawPole(rx, now) {
+            var base = proj(0, 0, W.D), r = diff().r, s = base.s, top = proj(rx, W.H - r - W.rim * 0.6, W.D), ctl = proj(0, (W.H - r) * 0.62, W.D);
+            var pw = Math.max(2, 0.17 * s);
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#8a6a1a'; ctx.lineWidth = pw + 2; ctx.beginPath(); ctx.moveTo(base.x, base.y); ctx.quadraticCurveTo(ctl.x, ctl.y, top.x, top.y); ctx.stroke();
+            ctx.strokeStyle = '#e2c25a'; ctx.lineWidth = pw; ctx.stroke();
+            ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = Math.max(1, pw * 0.25); ctx.beginPath(); ctx.moveTo(base.x - pw * 0.2, base.y); ctx.quadraticCurveTo(ctl.x - pw * 0.2, ctl.y, top.x - pw * 0.2, top.y); ctx.stroke();
+            // đốt tre
+            ctx.strokeStyle = '#8a6a1a'; ctx.lineWidth = Math.max(1, pw * 0.18);
+            for (var i = 1; i < 10; i++) {
+                var t = i / 10, mt = 1 - t, x = mt * mt * base.x + 2 * mt * t * ctl.x + t * t * top.x, y = mt * mt * base.y + 2 * mt * t * ctl.y + t * t * top.y;
+                ctx.beginPath(); ctx.moveTo(x - pw * 0.6, y); ctx.lineTo(x + pw * 0.6, y); ctx.stroke();
+            }
+            // ngọn cột phía trên vòng: lá tre + dải lụa đỏ bay
+            var t0 = proj(rx, W.H + r + W.rim * 0.6, W.D), t1 = proj(rx * 1.04 + 0.05, W.H + r + 2.1, W.D);
+            ctx.strokeStyle = '#8a6a1a'; ctx.lineWidth = pw * 0.9 + 2; ctx.beginPath(); ctx.moveTo(t0.x, t0.y); ctx.lineTo(t1.x, t1.y); ctx.stroke();
+            ctx.strokeStyle = '#e2c25a'; ctx.lineWidth = pw * 0.9; ctx.stroke();
+            var tm = now / 1000;
+            for (var k = 0; k < 5; k++) {
+                var ang = -Math.PI / 2 + (k - 2) * 0.55 + Math.sin(tm * 1.3 + k) * 0.06, L = (0.9 + (k % 2) * 0.35) * s;
+                ctx.save(); ctx.translate(t1.x, t1.y); ctx.rotate(ang); ctx.fillStyle = k % 2 ? '#4d8a2a' : '#65a838';
+                ctx.beginPath(); ctx.ellipse(L * 0.5, 0, L * 0.5, L * 0.12, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+            }
+            ctx.strokeStyle = '#dc2626'; ctx.lineWidth = Math.max(2, 0.12 * s); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(t1.x, t1.y + 0.2 * s);
+            for (var j = 1; j <= 8; j++) { var sx = t1.x + j * 0.32 * s, sy = t1.y + 0.2 * s + Math.sin(tm * 4 - j * 0.9) * 0.18 * s + j * 0.05 * s; ctx.lineTo(sx, sy); }
+            ctx.stroke();
+        }
+        function drawRing(rx, now, dt) {
+            var c = proj(rx, W.H, W.D), r = diff().r, R = r * c.s, rw = W.rim * c.s;
+            ctx.save(); ctx.translate(c.x, c.y);
+            if (RING.wobble > 0) { ctx.rotate(Math.sin(now / 45) * 0.12 * RING.wobble); RING.wobble = Math.max(0, RING.wobble - dt * 1.4); }
+            if (RING.flip > 0) { var ph = (1 - RING.flip) * Math.PI * 2; ctx.scale(1, Math.cos(ph) || 0.02); RING.flip = Math.max(0, RING.flip - dt / 1.1); }
+            // mặt giấy
+            var pg = ctx.createRadialGradient(-R * 0.3, -R * 0.3, R * 0.1, 0, 0, R); pg.addColorStop(0, '#fffaf0'); pg.addColorStop(1, '#ffe08a');
+            ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+            if (RING.torn > 0) {   // giấy rách: chừa lỗ thủng hình răng cưa
+                var n = RING.tearSeed.length; ctx.moveTo(RING.tearSeed[0] * R, 0);
+                for (var i = n - 1; i >= 0; i--) { var a = i / n * Math.PI * 2; ctx.lineTo(Math.cos(a) * RING.tearSeed[i] * R, Math.sin(a) * RING.tearSeed[i] * R); }
+                ctx.closePath(); ctx.fill('evenodd');
+            } else {
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(200,30,30,.28)'; ctx.lineWidth = Math.max(1, R * 0.03);
+                for (var k = 0; k < 12; k++) { var aa = k / 12 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(Math.cos(aa) * R * 0.32, Math.sin(aa) * R * 0.32); ctx.lineTo(Math.cos(aa) * R * 0.92, Math.sin(aa) * R * 0.92); ctx.stroke(); }
+                ctx.strokeStyle = 'rgba(193,18,31,.6)'; ctx.lineWidth = Math.max(1, R * 0.05); ctx.beginPath(); ctx.arc(0, 0, R * 0.3, 0, Math.PI * 2); ctx.stroke();
+                if (R > 14) { ctx.fillStyle = '#c1121f'; ctx.font = '800 ' + Math.round(R * 0.32) + 'px ' + "'Plus Jakarta Sans', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('LỘC', 0, R * 0.02); }
+            }
+            // vành vòng
+            var rg = ctx.createLinearGradient(0, -R - rw, 0, R + rw); rg.addColorStop(0, '#fff3b0'); rg.addColorStop(0.45, '#f2b705'); rg.addColorStop(1, '#a8620f');
+            ctx.strokeStyle = rg; ctx.lineWidth = rw; ctx.beginPath(); ctx.arc(0, 0, R + rw / 2, 0, Math.PI * 2); ctx.stroke();
+            ctx.strokeStyle = '#c1121f'; ctx.lineWidth = Math.max(1, rw * 0.3); ctx.beginPath(); ctx.arc(0, 0, R + rw / 2, 0, Math.PI * 2); ctx.stroke();
+            // tua đỏ dưới vành
+            ctx.strokeStyle = '#dc2626'; ctx.lineWidth = Math.max(1.5, rw * 0.35); ctx.lineCap = 'round';
+            for (var q = -2; q <= 2; q++) {
+                var qa = Math.PI / 2 + q * 0.32, sx = Math.cos(qa) * (R + rw), sy = Math.sin(qa) * (R + rw), sw = Math.sin(now / 380 + q) * rw * 0.6;
+                ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx + sw, sy + rw * 1.6, sx + sw * 1.6, sy + rw * 3); ctx.stroke();
+            }
+            ctx.restore();
+        }
+        function drawBall(now) {
+            var p = proj(B.x, B.y, B.z), rad = Math.max(2, W.br * p.s), sc = B.appear > 0 ? 1 - B.appear : 1;
+            if (B.appear > 0) B.appear = Math.max(0, B.appear - 0.06);
+            rad *= sc; if (rad < 0.5) return;
+            // đuôi còn: 3 dải vải đỏ - vàng - xanh
+            var tr;
+            if (B.fly || B.trail.length > 3) tr = B.trail;
+            else { tr = []; var tm = now / 1000; for (var i = 0; i < 11; i++) tr.push({ x: p.x + Math.sin(tm * 2.2 + i * 0.45) * i * rad * 0.05, y: p.y + rad + i * rad * 0.42 }); }
+            var cols = ['#e11d2e', '#facc15', '#16a34a'];
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            for (var k = 0; k < 3; k++) {
+                var off = (k - 1) * rad * 0.22, n = Math.min(tr.length, 12);
+                for (var j = 0; j < n - 1; j++) {
+                    var a = tr[tr.length - 1 - j], b = tr[tr.length - 2 - j]; if (!b) break;
+                    if (!(B.fly || B.trail.length > 3)) { a = tr[j]; b = tr[j + 1]; }
+                    ctx.strokeStyle = cols[k]; ctx.lineWidth = Math.max(1, rad * 0.34 * (1 - j / n));
+                    ctx.beginPath(); ctx.moveTo(a.x + off, a.y); ctx.lineTo(b.x + off * (1 + j * 0.15), b.y); ctx.stroke();
+                }
+            }
+            // thân còn: 4 mảnh vải xoay theo vòng quay
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(B.ang);
+            var pc = ['#e11d2e', '#facc15', '#16a34a', '#2563eb'];
+            for (var s = 0; s < 4; s++) { ctx.fillStyle = pc[s]; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, rad, s * Math.PI / 2, (s + 1) * Math.PI / 2); ctx.closePath(); ctx.fill(); }
+            if (rad > 6) {
+                ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = Math.max(1, rad * 0.07); ctx.setLineDash([rad * 0.16, rad * 0.12]);
+                ctx.beginPath(); ctx.moveTo(-rad, 0); ctx.lineTo(rad, 0); ctx.moveTo(0, -rad); ctx.lineTo(0, rad); ctx.stroke(); ctx.setLineDash([]);
+            }
+            ctx.restore();
+            var sh = ctx.createRadialGradient(p.x - rad * 0.35, p.y - rad * 0.4, rad * 0.08, p.x, p.y, rad);
+            sh.addColorStop(0, 'rgba(255,255,255,.6)'); sh.addColorStop(0.45, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(0,0,0,.38)');
+            ctx.fillStyle = sh; ctx.beginPath(); ctx.arc(p.x, p.y, rad, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = 'rgba(70,0,0,.55)'; ctx.lineWidth = Math.max(1, rad * 0.07); ctx.stroke();
+            ctx.fillStyle = '#ffd54a'; ctx.beginPath(); ctx.arc(p.x, p.y + rad * 0.95, Math.max(1, rad * 0.16), 0, Math.PI * 2); ctx.fill();
+        }
+
+        /* ---------- Đường ngắm khi kéo ---------- */
+        var DRAG = null;
+        function launchParams(d) {
+            var up = Math.max(0, d.y0 - d.y1), u = Math.min(1.1, up / V.h);
+            return { u: u, vy: 6 + 13 * u, vx: Math.max(-6, Math.min(6, 9 * (d.x1 - d.x0) / V.h)) };
+        }
+        function drawPreview() {
+            if (!DRAG || !DRAG.active) return;
+            var lp = launchParams(DRAG), df = diff(); if (lp.u < 0.03 || df.preview <= 0) return;
+            var T = (W.D - W.z0) / W.vz * df.preview, ax = df.previewWind ? S.wind : 0, n = 16;
+            for (var i = 1; i <= n; i++) {
+                var t = T * i / n, x = lp.vx * t + 0.5 * ax * t * t, y = W.y0 + lp.vy * t - 0.5 * W.g * t * t, z = W.z0 + W.vz * t, p = proj(x, y, z);
+                ctx.fillStyle = 'rgba(255,255,255,' + (0.95 - i / n * 0.6).toFixed(2) + ')'; ctx.strokeStyle = 'rgba(155,13,25,.55)'; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(1.6, 0.07 * p.s), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            }
+        }
+
+        /* ---------- Pháo giấy ---------- */
+        function burst(x, y, n, big) {
+            var cols = ['#ef4444', '#facc15', '#22c55e', '#3b82f6', '#f97316', '#ec4899', '#fff7b0'];
+            n = lite() ? Math.round(n / 2.5) : n;
+            for (var i = 0; i < n; i++) {
+                var a = Math.random() * Math.PI * 2, sp = (big ? 260 : 150) * (0.35 + Math.random());
+                P.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - (big ? 160 : 60), r: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 12, w: 5 + Math.random() * 5, h: 3 + Math.random() * 4, c: cols[i % cols.length], life: 1.6 + Math.random() * 0.9 });
+            }
+        }
+        function drawParticles(dt) {
+            for (var i = P.length - 1; i >= 0; i--) {
+                var q = P[i]; q.life -= dt; if (q.life <= 0 || q.y > V.h + 20) { P.splice(i, 1); continue; }
+                q.vy += 420 * dt; q.vx *= 1 - 1.2 * dt; q.x += q.vx * dt; q.y += q.vy * dt; q.r += q.vr * dt;
+                ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.r); ctx.globalAlpha = Math.min(1, q.life); ctx.fillStyle = q.c; ctx.fillRect(-q.w / 2, -q.h / 2, q.w, q.h * Math.abs(Math.cos(q.r * 2))); ctx.restore();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        /* ---------- Bay ---------- */
+        function predict(vx, vy, ax, nowMs) {
+            var t = (W.D - W.z0) / W.vz, x = vx * t + 0.5 * ax * t * t, y = W.y0 + vy * t - 0.5 * W.g * t * t, rx = ringXAt(nowMs + t * 1000);
+            var d = Math.hypot(x - rx, y - W.H), r = diff().r;
+            return { t: t, x: x, y: y, rx: rx, d: d, outcome: d <= r - W.br * 0.6 ? 'hit' : d <= r + W.rim + W.br ? 'rim' : 'miss' };
+        }
+        var FLIGHT = null;   // { pred, tx: Promise, res, crossed, shown }
+        function step(dt) {
+            var h = 1 / 240, n = Math.min(40, Math.ceil(dt / h)); h = dt / n;
+            for (var i = 0; i < n; i++) {
+                if (!B.crossed && B.z + B.vz * h >= W.D) { B.crossed = true; onCross(); }
+                B.vy -= W.g * h; if (!B.crossed || FLIGHT.pred.outcome !== 'rim') B.vx += S.wind * h;
+                B.x += B.vx * h; B.y += B.vy * h; B.z += B.vz * h; B.ang += B.spin * h;
+                if (B.y <= W.br) {
+                    B.y = W.br;
+                    if (B.vy < -0.5) { if (!B.bounces) sfx('thud'); B.vy = -B.vy * 0.32; B.vx *= 0.6; B.vz *= 0.5; B.spin *= 0.5; B.bounces++; }
+                    else { B.vy = 0; var fr = 1 - Math.min(1, 3.2 * h); B.vx *= fr; B.vz *= fr; B.spin *= fr; }
+                }
+            }
+            B.t += dt;
+            var p = proj(B.x, B.y, B.z); B.trail.push({ x: p.x, y: p.y }); if (B.trail.length > 14) B.trail.shift();
+            var slow = B.y <= W.br + 0.001 && Math.hypot(B.vx, B.vz) < 0.5;
+            if (B.t > 3.2 || (B.t > 1.3 && slow)) finish();
+        }
+        function onCross() {
+            var pr = FLIGHT.pred;
+            B.x = pr.x; B.y = pr.y;   // khớp đúng điểm đã tính
+            if (pr.outcome === 'hit') {
+                RING.torn = 1; RING.flip = 1; RING.tearSeed = []; for (var i = 0; i < 14; i++) RING.tearSeed.push(0.5 + Math.random() * 0.32);
+                var c = proj(pr.rx, W.H, W.D); burst(c.x, c.y, 90, true); setTimeout(function () { burst(c.x - 60, c.y + 20, 40); burst(c.x + 60, c.y + 10, 40); }, 260);
+                B.vz *= 0.8; sfx('hit');
+            } else if (pr.outcome === 'rim') {
+                RING.wobble = 1; B.vz = -B.vz * 0.22; B.vy = Math.min(B.vy, 0) * 0.4 + 1.2; B.vx += (B.x - pr.rx) * 1.8; B.spin = -B.spin; sfx('rim');
+                var cr = proj(B.x, B.y, W.D); burst(cr.x, cr.y, 12);
+            }
+            FLIGHT.crossed = true; showResult();
+        }
+        function showResult() {
+            if (!FLIGHT || !FLIGHT.crossed || FLIGHT.shown || !FLIGHT.done) return;
+            FLIGHT.shown = true;
+            var o = FLIGHT.pred.outcome, r = FLIGHT.res, err = FLIGHT.err, el = $('result');
+            var title = o === 'hit' ? 'TRÚNG VÒNG!' : o === 'rim' ? 'CHẠM VÀNH!' : 'TRƯỢT RỒI!';
+            var pts = '', extra = '';
+            if (err) { extra = err; }
+            else if (r) {
+                if (r.base > 0) pts = '+' + r.base.toLocaleString('vi-VN') + ' điểm lì xì';
+                if (r.bonus > 0) extra = '🔥 Chuỗi ' + r.streak + ' lần trúng: thưởng thêm +' + r.bonus.toLocaleString('vi-VN') + ' điểm';
+                else if (o === 'hit' && S.cfg.streakEvery > 1 && S.cfg.streakBonus > 0) { var left = S.cfg.streakEvery - (r.streak % S.cfg.streakEvery); extra = '🔥 Trúng thêm ' + left + ' lần liên tiếp để nhận +' + S.cfg.streakBonus + ' điểm'; }
+                else if (o === 'miss') extra = 'Canh lực và hướng gió rồi thử lại nhé!';
+            }
+            $('res-t').textContent = title; $('res-p').textContent = pts; $('res-e').textContent = extra;
+            el.className = 'result' + (o === 'miss' ? ' miss' : ''); void el.offsetWidth; el.className += ' show';
+            if (r && r.total > 0) { var cp = $('chip-pts'); cp.classList.remove('bump'); void cp.offsetWidth; cp.classList.add('bump'); }
+        }
+        function finish() {
+            B = idleBall(); B.appear = 1; S.busy = false; FLIGHT = null;
+            setTimeout(function () { if (!S.busy) RING.torn = 0; }, 600);
+            rollWind(); ui();
+        }
+        function rollWind() {
+            var m = S.cfg.wind ? diff().wind : 0;
+            S.wind = m ? Math.round((Math.random() * 2 - 1) * m * 10) / 10 : 0;
+            if (m && Math.random() < 0.12) S.wind = 0;   // thỉnh thoảng lặng gió
+            var w = $('wind'); w.hidden = !S.cfg.wind;
+            $('wind-v').textContent = S.wind === 0 ? '🍃 Lặng gió' : Math.abs(S.wind).toFixed(1).replace('.', ',');
+            $('wind-l').style.display = S.wind === 0 ? 'none' : '';
+            var ar = $('wind-arrow'); ar.parentNode.style.display = S.wind === 0 ? 'none' : ''; ar.setAttribute('transform', S.wind < 0 ? 'translate(38 0) scale(-1 1)' : '');
+            w.style.color = Math.abs(S.wind) > diff().wind * 0.66 ? '#b45309' : '#3b5d10';
+        }
+
+        /* ---------- Giao dịch: trừ lượt + thưởng ---------- */
+        /* Giao dịch chỉ đụng tới tài khoản (giống Trạm Quy Đổi / Rút Lì Xì): trừ 1 lượt, cộng điểm, lưu chuỗi trúng (conStreak).
+           Bảng xếp hạng / lịch sử / nhật ký điểm ghi riêng phía sau: nếu Firestore chưa cho phép thì lần ném vẫn được tính. */
+        function commitThrow(outcome, wind) {
+            var accRef = db.collection('accounts').doc(S.docId), cfg = S.cfg, ts = Date.now();
+            return db.runTransaction(function (t) {
+                return t.get(accRef).then(function (a) {
+                    if (!a.exists) throw { code: 'NOACC' };
+                    if (!cfg.enabled) throw { code: 'CLOSED' };
+                    var d = a.data(), left = Number(d.conThrows) || 0; if (left <= 0) throw { code: 'NOTURN' };
+                    var hit = outcome === 'hit', streak = hit ? (Number(d.conStreak) || 0) + 1 : 0;
+                    var base = hit ? cfg.hitPoints : outcome === 'rim' ? cfg.rimPoints : 0;
+                    var bonus = hit && cfg.streakEvery > 1 && cfg.streakBonus > 0 && streak % cfg.streakEvery === 0 ? cfg.streakBonus : 0, total = base + bonus;
+                    var upd = { conThrows: FV.increment(-1), conStreak: streak }; if (total > 0) upd.points = FV.increment(total);
+                    t.update(accRef, upd);
+                    return { base: base, bonus: bonus, total: total, streak: streak, left: left - 1 };
+                });
+            }).then(function (r) {
+                var hit = outcome === 'hit', soft = function (what) { return function (e) { console.warn('Ném còn: không ghi được ' + what + ' (kiểm tra quy tắc Firestore)', e && e.code, e); }; };
+                db.collection('con_stats').doc(ME).set({ user: ME, throws: FV.increment(1), hits: FV.increment(hit ? 1 : 0), rims: FV.increment(outcome === 'rim' ? 1 : 0), points: FV.increment(r.total),
+                    streak: r.streak, best: Math.max(S.best || 0, r.streak), updatedAt: ts }, { merge: true }).catch(soft('con_stats'));
+                db.collection('con_history').doc(ME + '_' + (9999999999999 - ts)).set({ user: ME, result: outcome, points: r.total, bonus: r.bonus, streak: r.streak, wind: wind, difficulty: cfg.difficulty, ts: ts }).catch(soft('con_history'));
+                if (r.total > 0) db.collection('point_history').add({ user: ME, action: 'nemcon', detail: 'Ném còn ' + (hit ? 'trúng vòng' : 'chạm vành') + (r.bonus ? ' (thưởng chuỗi ' + r.streak + ')' : ''), pointsChanged: r.total, timestamp: ts }).catch(soft('point_history'));
+                if (r.streak > (S.best || 0)) S.best = r.streak;
+                return r;
+            });
+        }
+        function throwBall(lp) {
+            if (S.busy) return;
+            if (!S.docId) return toast('Đang tải tài khoản, vui lòng đợi...', 'err');
+            if (!S.cfg.enabled) return ui();
+            if (!(S.turns > 0)) { nudgeGate(); return toast('Bạn đã hết lượt ném còn.', 'err'); }
+            var now = performance.now(), pred = predict(lp.vx, lp.vy, S.wind, now);
+            S.busy = true; S.turns -= 1; ui();
+            B = idleBall(); B.fly = true; B.vx = lp.vx; B.vy = lp.vy; B.vz = W.vz; B.spin = 7 + Math.random() * 6; B.trail = [];
+            FLIGHT = { pred: pred, crossed: false, shown: false, done: false };
+            var fl = FLIGHT;
+            sfx('throw');
+            commitThrow(pred.outcome, S.wind).then(function (r) {
+                fl.res = r; fl.done = true; S.streak = r.streak; ui(); if (fl === FLIGHT) showResult();
+            }).catch(function (e) {
+                var c = e && e.code;
+                fl.err = c === 'NOTURN' ? 'Hết lượt ném: lần ném này không được tính.' : c === 'CLOSED' ? 'Sân đã đóng: lần ném này không được tính.'
+                    : c === 'permission-denied' ? 'Máy chủ từ chối ghi (quyền Firestore): lần ném không được tính, lượt giữ nguyên.'
+                    : c === 'unavailable' || navigator.onLine === false ? 'Mất kết nối mạng: lần ném không được tính, lượt giữ nguyên.'
+                    : 'Lỗi máy chủ' + (c ? ' (' + c + ')' : '') + ': lần ném không được tính, lượt giữ nguyên.';
+                fl.done = true; if (c === 'NOTURN') S.turns = 0;
+                if (fl === FLIGHT) showResult(); else toast(fl.err, 'err');
+                console.warn('nemcon commit', e);
+            });
+        }
+
+        /* ---------- Vòng lặp vẽ ---------- */
+        var last = 0;
+        function frame(now) {
+            requestAnimationFrame(frame);
+            if (document.hidden) { last = 0; return; }
+            var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016; last = now;
+            if (B.fly) step(dt);
+            ctx.setTransform(V.dpr, 0, 0, V.dpr, 0, 0); ctx.clearRect(0, 0, V.w, V.h);
+            ctx.drawImage(groundCv, 0, 0, V.w, V.h);
+            var rx = ringXAt(now);
+            drawShadow();
+            var behind = B.z > W.D;
+            if (behind) drawBall(now);
+            drawPole(rx, now); drawRing(rx, now, dt);
+            if (!behind) drawBall(now);
+            drawPreview(); drawParticles(dt);
+        }
+
+        /* ---------- Vuốt để ném ---------- */
+        var stage = $('stage');
+        stage.addEventListener('pointerdown', function (e) {
+            if (e.button > 0 || S.busy) return;
+            audio();
+            if (!S.cfg.enabled || !S.docId) return;
+            if (!(S.turns > 0)) { nudgeGate(); return toast('Bạn đã hết lượt ném còn.', 'err'); }
+            DRAG = { id: e.pointerId, active: true, x0: e.clientX, y0: e.clientY, x1: e.clientX, y1: e.clientY };
+            try { stage.setPointerCapture(e.pointerId); } catch (er) {}
+            stage.classList.add('dragging'); dragUI();
+        });
+        stage.addEventListener('pointermove', function (e) { if (!DRAG || e.pointerId !== DRAG.id) return; DRAG.x1 = e.clientX; DRAG.y1 = e.clientY; dragUI(); });
+        function endDrag(e, cancel) {
+            if (!DRAG || e.pointerId !== DRAG.id) return;
+            var d = DRAG; DRAG = null; stage.classList.remove('dragging'); $('power').classList.remove('on');
+            if (cancel) return ui();
+            var lp = launchParams(d);
+            if (lp.u < 0.05) { ui(); return toast('Vuốt lên dài hơn để ném còn nhé!'); }
+            throwBall(lp);
+        }
+        stage.addEventListener('pointerup', function (e) { endDrag(e, false); });
+        stage.addEventListener('pointercancel', function (e) { endDrag(e, true); });
+        function dragUI() {
+            var lp = launchParams(DRAG), pct = Math.round(lp.u / 1.1 * 100);
+            $('power').classList.add('on'); $('power-i').style.height = pct + '%'; $('power-l').textContent = pct + '%';
+            $('hint').classList.remove('hide'); $('hint-t').textContent = lp.u < 0.05 ? 'Kéo lên để lấy lực...' : 'Thả tay để ném · lực ' + pct + '%';
+        }
+
+        /* ---------- Giao diện ---------- */
+        function nudgeGate() { var g = $('gate'); if (g.hidden) return; g.animate && g.animate([{ transform: 'translateX(-50%) scale(1)' }, { transform: 'translateX(-50%) scale(1.04)' }, { transform: 'translateX(-50%) scale(1)' }], { duration: 300 }); }
+        function freeAvailable() { return S.cfg.enabled && S.cfg.freePerDay > 0 && S.accLoaded && S.freeDate !== dayKey(); }
+        function gate(title, text, btns) {
+            var g = $('gate');
+            if (!title) { g.hidden = true; return; }
+            $('gate-t').textContent = title; $('gate-p').innerHTML = text; $('gate-row').innerHTML = btns || ''; g.hidden = false;
+        }
+        function ui() {
+            $('me-name').textContent = ME || 'Khách';
+            var t = S.turns;
+            $('v-turns').textContent = t == null ? '--' : String(Math.max(0, t));
+            $('chip-turns').classList.toggle('empty', t != null && t <= 0);
+            $('v-pts').textContent = S.points == null ? '--' : Number(S.points).toLocaleString('vi-VN');
+            $('v-streak').textContent = String(S.streak || 0);
+            var fa = freeAvailable(); $('chip-free').hidden = !fa || !(t > 0); $('v-free').textContent = S.cfg.freePerDay;
+            var shopOn = S.cfg.shopEnabled !== false; $('shop-btn').style.display = shopOn ? '' : 'none';
+            var hint = $('hint');
+            if (!ME) gate('🔐 Bạn chưa đăng nhập', 'Vui lòng đăng nhập ở Trang Chủ rồi quay lại sân Ném Còn.', '<a class="g-btn" href="user.html"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>');
+            else if (S.accLoaded && !S.docId) gate('⚠️ Không tìm thấy tài khoản', 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.', '<a class="g-btn" href="user.html">Về Trang Chủ</a>');
+            else if (S.cfgLoaded && !S.cfg.enabled) gate('🔒 Sân Ném Còn đang tạm đóng', esc(S.cfg.closedMsg || 'Ban Quản Trị đang chuẩn bị sân. Bạn quay lại sau nhé!') + (t > 0 ? '<br>Bạn vẫn còn <b>' + t + ' lượt ném</b> được giữ nguyên.' : ''), '<a class="g-btn" href="user.html"><i class="fa-solid fa-house"></i> Về Trang Chủ</a>');
+            else if (!S.busy && S.accLoaded && t <= 0) {
+                var b = (fa ? '<button type="button" class="g-btn" data-act="free"><i class="fa-solid fa-gift"></i> Nhận ' + S.cfg.freePerDay + ' lượt miễn phí hôm nay</button>' : '')
+                    + (shopOn ? '<button type="button" class="g-btn' + (fa ? ' ghost' : '') + '" data-act="shop"><i class="fa-solid fa-store"></i> Đổi điểm lấy lượt</button>' : '<a class="g-btn' + (fa ? ' ghost' : '') + '" href="user.html"><i class="fa-solid fa-house"></i> Về Trang Chủ</a>');
+                gate('🎯 Bạn đã hết lượt ném', (fa ? 'Hôm nay bạn được tặng <b>' + S.cfg.freePerDay + ' lượt</b> miễn phí. ' : 'Lượt miễn phí hôm nay đã nhận. ')
+                    + (shopOn ? 'Đổi <b>điểm lì xì</b> lấy lượt ném ngay tại đây' + (S.points != null ? ' (bạn đang có <b>' + Number(S.points).toLocaleString('vi-VN') + ' điểm</b>)' : '') + ', hoặc chờ Ban Quản Trị tặng lượt.' : 'Chờ Ban Quản Trị tặng lượt, hoặc đổi điểm ở Trạm Quy Đổi (Trang Chủ) nếu đang mở.'), b);
+            } else gate(null);
+            var show = !$('gate').hidden || S.busy || !S.accLoaded;
+            if (!DRAG) { hint.classList.toggle('hide', show); $('hint-t').textContent = 'Vuốt lên để ném còn'; }
+        }
+        $('gate').addEventListener('click', function (e) { var b = e.target.closest('[data-act="free"]'); if (b) claimFree(b); if (e.target.closest('[data-act="shop"]')) Shop.open(); });
+        $('chip-free').addEventListener('click', function () { claimFree($('chip-free')); });
+        function claimFree(btn) {
+            if (!S.docId || btn.disabled) return; btn.disabled = true;
+            var accRef = db.collection('accounts').doc(S.docId), today = dayKey();
+            db.runTransaction(function (t) {
+                return Promise.all([t.get(accRef)]).then(function (g) {
+                    var cfg = S.cfg;
+                    if (!g[0].exists) throw { code: 'NOACC' };
+                    if (!cfg.enabled || cfg.freePerDay <= 0) throw { code: 'OFF' };
+                    if (g[0].data().conFreeDate === today) throw { code: 'TAKEN' };
+                    t.update(accRef, { conThrows: FV.increment(cfg.freePerDay), conFreeDate: today });
+                    return cfg.freePerDay;
+                });
+            }).then(function (n) {
+                S.turns = (S.turns || 0) + n; S.freeDate = today; sfx('free'); toast('🎁 Đã nhận ' + n + ' lượt ném còn miễn phí!', 'ok'); ui();
+                var c = $('chip-turns'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
+            }).catch(function (e) {
+                var c = e && e.code; toast(c === 'TAKEN' ? 'Hôm nay bạn đã nhận lượt miễn phí rồi.' : c === 'OFF' ? 'Lượt miễn phí đang tắt.' : 'Không nhận được lượt' + (c ? ' (' + c + ')' : '') + ', thử lại sau.', 'err');
+                if (c === 'TAKEN') { S.freeDate = today; ui(); }
+            }).then(function () { btn.disabled = false; });
+        }
+
+        /* ---------- Bảng: BXH / Lịch sử / Luật chơi ---------- */
+        function openSheet(on) {
+            $('sheet').classList.toggle('on', on); $('sheet-bg').classList.toggle('on', on); $('sheet').setAttribute('aria-hidden', !on);
+            if (on) renderSheet();
+        }
+        $('menu-btn').onclick = function () { if (window.ConShop) ConShop.close(); openSheet(true); };
+        $('sheet-x').onclick = $('sheet-bg').onclick = function () { openSheet(false); };
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') openSheet(false); });
+        document.querySelector('.tabs').addEventListener('click', function (e) {
+            var b = e.target.closest('button[data-tab]'); if (!b) return; S.sheetTab = b.getAttribute('data-tab');
+            document.querySelectorAll('.tabs button').forEach(function (x) { x.classList.toggle('on', x === b); }); renderSheet();
+        });
+        function pct(h, t) { return t ? Math.round(h / t * 100) + '%' : '0%'; }
+        function renderSheet() {
+            var body = $('sheet-body'), tab = S.sheetTab;
+            if (tab === 'rule') {
+                var c = S.cfg, df = diff();
+                body.innerHTML = '<div class="rules">'
+                    + '<p>Ném còn (tung còn) là trò chơi dân gian ngày Tết: ném quả còn có đuôi vải sặc sỡ lọt qua vòng còn treo trên ngọn cột tre.</p>'
+                    + '<h4>Cách chơi</h4><ul><li>Chạm vào sân rồi <b>vuốt lên</b>: vuốt càng dài ném càng cao, vuốt chéo trái/phải để đổi hướng.</li>'
+                    + '<li>Theo dõi <b>gió</b> ở dưới thanh chỉ số: gió thổi quả còn lệch sang một bên, hãy ném bù lại.</li>'
+                    + (df.preview > 0 ? '<li>Khi kéo sẽ hiện ' + (df.preview >= 1 ? 'đường bay dự kiến' : 'một phần đường bay') + ' để ngắm.</li>' : '<li>Độ khó <b>Khó</b>: không có đường ngắm và vòng còn lắc qua lại.</li>')
+                    + '<li>Mỗi lần ném dùng <b>1 lượt ném còn</b>.</li></ul>'
+                    + '<h4>Thưởng (độ khó: ' + df.name + ')</h4><div class="pts"><span>🎯 Lọt vòng</span><b>+' + c.hitPoints + ' điểm</b><span>🥏 Chạm vành</span><b>+' + c.rimPoints + ' điểm</b>'
+                    + (c.streakEvery > 1 && c.streakBonus > 0 ? '<span>🔥 Mỗi ' + c.streakEvery + ' lần lọt vòng liên tiếp</span><b>+' + c.streakBonus + ' điểm</b>' : '') + '</div>'
+                    + '<h4>Lấy lượt ném ở đâu?</h4><ul>' + (c.freePerDay > 0 ? '<li>Mỗi ngày nhận <b>' + c.freePerDay + ' lượt miễn phí</b> ngay tại sân.</li>' : '')
+                    + '<li>Đổi điểm lì xì lấy lượt ngay tại sân (nút 🏪 hoặc bấm vào ô "Lượt ném").</li><li>Ban Quản Trị tặng lượt trong các sự kiện.</li></ul></div>';
+                return;
+            }
+            body.innerHTML = '<div class="empty"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</div>';
+            if (tab === 'lb') {
+                db.collection('con_stats').orderBy('hits', 'desc').limit(20).get().then(function (snap) {
+                    if (S.sheetTab !== 'lb') return;
+                    var rows = []; snap.forEach(function (d) { var x = d.data(); if ((x.throws || 0) > 0) rows.push(x); });
+                    rows.sort(function (a, b) { return (b.hits || 0) - (a.hits || 0) || (b.best || 0) - (a.best || 0) || (a.throws || 0) - (b.throws || 0); });
+                    body.innerHTML = rows.length ? rows.map(function (x, i) {
+                        return '<div class="lb-row' + (x.user === ME ? ' me' : '') + '"><span class="lb-rk">' + (i + 1) + '</span><span class="lb-nm"><b>' + esc(x.user) + (x.user === ME ? ' (bạn)' : '') + '</b>'
+                            + '<small>' + (x.throws || 0) + ' lần ném · chính xác ' + pct(x.hits || 0, x.throws || 0) + ' · chuỗi cao nhất ' + (x.best || 0) + '</small></span>'
+                            + '<span class="lb-v"><b>' + (x.hits || 0) + '</b>lần trúng</span></div>';
+                    }).join('') : '<div class="empty">Chưa có ai ném trúng. Hãy là người đầu tiên! 🎯</div>';
+                }).catch(function () { body.innerHTML = '<div class="empty">Không tải được bảng xếp hạng.</div>'; });
+            } else {
+                db.collection('con_history').where('user', '==', ME).limit(30).get().then(function (snap) {
+                    if (S.sheetTab !== 'hi') return;
+                    var rows = []; snap.forEach(function (d) { rows.push(d.data()); }); rows.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+                    var IC = { hit: '🎯', rim: '🥏', miss: '💨' }, TX = { hit: 'Lọt vòng', rim: 'Chạm vành', miss: 'Trượt' };
+                    body.innerHTML = rows.length ? rows.map(function (x) {
+                        return '<div class="hi-row' + (x.points > 0 ? ' hit' : '') + '"><span class="hi-ic">' + (IC[x.result] || '•') + '</span><span class="lb-nm"><b>' + (TX[x.result] || '') + (x.bonus ? ' · 🔥 chuỗi ' + x.streak : '') + '</b>'
+                            + '<small>' + new Date(x.ts).toLocaleString('vi-VN') + '</small></span><span class="hi-pts">' + (x.points > 0 ? '+' + x.points : '0') + '</span></div>';
+                    }).join('') : '<div class="empty">Bạn chưa ném lần nào.</div>';
+                }).catch(function () { body.innerHTML = '<div class="empty">Không tải được lịch sử.</div>'; });
+            }
+        }
+
+
+        /* =====================================================================
+           CỬA HÀNG TRONG SÂN: đổi điểm lì xì lấy lượt ném còn
+           Dùng chung dữ liệu Trạm Quy Đổi: settings/point_shop_config (vật phẩm loại 'conThrows'),
+           point_shop_stock/counts (kho), point_shop_daily/<user>_<ngày> (giới hạn mỗi ngày), point_history (nhật ký).
+           Admin chưa thêm vật phẩm "Lượt ném còn" thì dùng 3 gói mặc định bên dưới.
+           ===================================================================== */
+        var Shop = window.ConShop = {
+            DEF: [
+                { id: 'nc_def1', icon: '🎯', name: '1 Lượt ném còn', type: 'conThrows', amount: 1, cost: 25, stock: null, dailyLimit: null, active: true },
+                { id: 'nc_def5', icon: '🎯', name: 'Combo 5 lượt ném còn', type: 'conThrows', amount: 5, cost: 110, stock: null, dailyLimit: null, active: true },
+                { id: 'nc_def10', icon: '🎯', name: 'Combo 10 lượt ném còn', type: 'conThrows', amount: 10, cost: 200, stock: null, dailyLimit: null, active: true }
+            ],
+            cfg: null, counts: {}, daily: {}, qty: {}, confirm: null, busy: false, started: false, dayK: '',
+            items: function (cfg) {
+                cfg = cfg || {};
+                var list = (Array.isArray(cfg.items) ? cfg.items : []).filter(function (x) { return x && x.type === 'conThrows'; }).map(function (x, i) {
+                    var n = function (v) { return v == null || v === '' ? null : Math.max(0, parseInt(v, 10) || 0); };
+                    return { id: x.id || ('c' + i), icon: x.icon || '🎯', name: String(x.name || 'Lượt ném còn'), type: 'conThrows', amount: Math.max(1, parseInt(x.amount, 10) || 1),
+                        cost: Math.max(0, parseInt(x.cost, 10) || 0), stock: n(x.stock), dailyLimit: n(x.dailyLimit), active: x.active !== false };
+                });
+                return list.length ? list : Shop.DEF.slice();
+            },
+            closed: function () { return !!(Shop.cfg && Shop.cfg.isEnabled === false) || S.cfg.shopEnabled === false; },
+            left: function (x) {   // số lần còn đổi được (kho + giới hạn ngày)
+                var a = x.stock == null ? Infinity : Math.max(0, x.stock - (Shop.counts[x.id] || 0));
+                var b = x.dailyLimit == null ? Infinity : Math.max(0, x.dailyLimit - (Shop.daily[x.id] || 0));
+                return Math.min(a, b);
+            },
+            start: function () {
+                if (Shop.started || !ME) return; Shop.started = true; Shop.dayK = dayKey();
+                db.collection('settings').doc('point_shop_config').onSnapshot(function (d) { Shop.cfg = d.exists ? d.data() : {}; Shop.render(); }, function (e) { console.warn('point_shop_config', e); Shop.cfg = {}; Shop.render(); });
+                db.collection('point_shop_stock').doc('counts').onSnapshot(function (d) { Shop.counts = (d.exists && d.data().counts) || {}; Shop.render(); }, function () {});
+                db.collection('point_shop_daily').doc(ME + '_' + Shop.dayK).onSnapshot(function (d) { Shop.daily = (d.exists && d.data().counts) || {}; Shop.render(); }, function () {});
+            },
+            open: function () {
+                Shop.start(); Shop.confirm = null; openSheet(false);
+                $('shop').classList.add('on'); $('sheet-bg').classList.add('on'); $('shop').setAttribute('aria-hidden', 'false'); Shop.render();
+            },
+            close: function () { $('shop').classList.remove('on'); if (!$('sheet').classList.contains('on')) $('sheet-bg').classList.remove('on'); $('shop').setAttribute('aria-hidden', 'true'); Shop.confirm = null; },
+            render: function () {
+                if (!$('shop').classList.contains('on')) return;
+                var pts = S.points == null ? null : Number(S.points);
+                $('shop-pts').textContent = pts == null ? '--' : pts.toLocaleString('vi-VN'); $('shop-turns').textContent = S.turns == null ? '--' : Math.max(0, S.turns);
+                var body = $('shop-body');
+                if (Shop.cfg == null) { body.innerHTML = '<div class="empty"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh mục...</div>'; return; }
+                if (Shop.closed()) { body.innerHTML = '<div class="empty">🔒 Trạm Quy Đổi đang đóng cửa. Bạn quay lại sau nhé!</div>'; return; }
+                var list = Shop.items(Shop.cfg).filter(function (x) { return x.active; });
+                if (!list.length) { body.innerHTML = '<div class="empty">Trạm Quy Đổi chưa bán lượt ném còn.</div>'; return; }
+                body.innerHTML = list.map(function (x) {
+                    var left = Shop.left(x), q = Math.max(1, Math.min(Shop.qty[x.id] || 1, left === Infinity ? 20 : Math.max(1, left), 20)), cost = x.cost * q;
+                    var poor = pts != null && pts < cost, sold = left <= 0, conf = Shop.confirm === x.id, busy = Shop.busy === x.id;
+                    var sub = '+' + x.amount * q + ' lượt ném' + (x.dailyLimit != null ? ' · hôm nay còn ' + Math.max(0, x.dailyLimit - (Shop.daily[x.id] || 0)) : '') + (x.stock != null ? ' · kho còn ' + Math.max(0, x.stock - (Shop.counts[x.id] || 0)) : '');
+                    var btn = busy ? '<i class="fa-solid fa-spinner fa-spin"></i>' : sold ? 'Hết lượt đổi' : poor ? 'Thiếu ' + (cost - pts).toLocaleString('vi-VN') + ' điểm' : conf ? 'Xác nhận −' + cost.toLocaleString('vi-VN') : 'Đổi ngay';
+                    return '<div class="sp-item' + (sold ? ' off' : '') + '"><span class="sp-ic">' + esc(x.icon) + '</span><span class="sp-nm">' + esc(x.name) + '</span>'
+                        + '<span class="sp-cost">💰 ' + x.cost.toLocaleString('vi-VN') + '</span><span class="sp-sub">' + sub + '</span>'
+                        + '<span class="sp-buy"><span class="sp-qty"><button type="button" data-q="-1" data-id="' + esc(x.id) + '"' + (q <= 1 || Shop.busy ? ' disabled' : '') + ' aria-label="Giảm">−</button><b>' + q + '</b>'
+                        + '<button type="button" data-q="1" data-id="' + esc(x.id) + '"' + (q >= Math.min(20, left) || Shop.busy ? ' disabled' : '') + ' aria-label="Tăng">+</button></span>'
+                        + '<button type="button" class="sp-go' + (conf ? ' confirm' : '') + '" data-buy="' + esc(x.id) + '"' + (sold || poor || Shop.busy ? ' disabled' : '') + '>' + btn + '</button></span></div>';
+                }).join('') + '<p class="sp-note">Bấm "Đổi ngay" rồi bấm lần nữa để xác nhận. Lượt ném được cộng ngay vào tài khoản. Cùng danh mục với Trạm Quy Đổi ở Trang Chủ.</p>';
+            },
+            buy: function (id, qty) {
+                if (!S.docId || Shop.busy) return;
+                var accRef = db.collection('accounts').doc(S.docId), cfgRef = db.collection('settings').doc('point_shop_config');
+                var stRef = db.collection('point_shop_stock').doc('counts'), key = dayKey(), dRef = db.collection('point_shop_daily').doc(ME + '_' + key);
+                Shop.busy = id; Shop.confirm = null; Shop.render();
+                db.runTransaction(function (t) {
+                    return Promise.all([t.get(accRef), t.get(cfgRef), t.get(stRef), t.get(dRef)]).then(function (g) {
+                        var cfg = g[1].exists ? g[1].data() : {};
+                        if (cfg.isEnabled === false) throw { code: 'CLOSED' };
+                        var x = Shop.items(cfg).filter(function (i) { return i.id === id; })[0];
+                        if (!x || !x.active) throw { code: 'GONE' };
+                        if (!g[0].exists) throw { code: 'NOACC' };
+                        var cost = x.cost * qty, pts = Number(g[0].data().points) || 0;
+                        if (pts < cost) throw { code: 'POINTS' };
+                        var sold = ((g[2].exists && g[2].data().counts) || {})[id] || 0, used = ((g[3].exists && g[3].data().counts) || {})[id] || 0;
+                        if (x.stock != null && sold + qty > x.stock) throw { code: 'STOCK' };
+                        if (x.dailyLimit != null && used + qty > x.dailyLimit) throw { code: 'DAILY' };
+                        var o = {}; o[id] = FV.increment(qty);
+                        t.update(accRef, { points: FV.increment(-cost), conThrows: FV.increment(x.amount * qty) });
+                        t.set(stRef, { counts: o }, { merge: true });
+                        t.set(dRef, { user: ME, date: key, counts: o }, { merge: true });
+                        t.set(db.collection('point_history').doc(), { user: ME, action: 'exchange', detail: 'Đổi ' + cost + ' điểm lấy ' + (x.amount * qty) + ' Lượt Ném Còn', pointsChanged: -cost, itemId: id, itemType: 'conThrows', qty: qty, timestamp: Date.now() });
+                        return { add: x.amount * qty, cost: cost, pts: pts - cost };
+                    });
+                }).then(function (r) {
+                    S.points = r.pts; if (!S.busy) S.turns = (S.turns || 0) + r.add;
+                    Shop.counts[id] = (Shop.counts[id] || 0) + qty; Shop.daily[id] = (Shop.daily[id] || 0) + qty; Shop.qty[id] = 1;
+                    sfx('free'); toast('🎉 Đã đổi ' + r.cost.toLocaleString('vi-VN') + ' điểm lấy ' + r.add + ' lượt ném!', 'ok');
+                    var c = $('chip-turns'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
+                }).catch(function (e) {
+                    var c = e && e.code, M = { CLOSED: 'Trạm Quy Đổi vừa đóng cửa.', GONE: 'Gói này không còn bán.', POINTS: 'Số dư điểm không đủ.', STOCK: 'Gói này đã hết hàng.', DAILY: 'Bạn đã đạt giới hạn đổi gói này hôm nay.', NOACC: 'Không tìm thấy tài khoản.' };
+                    toast(M[c] || ('Không đổi được' + (c ? ' (' + c + ')' : '') + ', bạn chưa bị trừ điểm.'), 'err'); if (!M[c]) console.warn('ConShop', e);
+                }).then(function () { Shop.busy = false; ui(); Shop.render(); });
+            }
+        };
+        $('shop-btn').onclick = function () { Shop.open(); };
+        $('chip-turns').style.cursor = 'pointer'; $('chip-turns').onclick = function () { if (S.cfg.shopEnabled !== false) Shop.open(); };
+        $('shop-x').onclick = function () { Shop.close(); };
+        $('sheet-bg').addEventListener('click', function () { Shop.close(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') Shop.close(); });
+        $('shop-body').addEventListener('click', function (e) {
+            var q = e.target.closest('[data-q]'), b = e.target.closest('[data-buy]');
+            if (q && !q.disabled) { var id = q.getAttribute('data-id'); Shop.qty[id] = Math.max(1, Math.min(20, (Shop.qty[id] || 1) + (+q.getAttribute('data-q')))); Shop.confirm = null; return Shop.render(); }
+            if (b && !b.disabled) {
+                var bid = b.getAttribute('data-buy');
+                if (Shop.confirm !== bid) { Shop.confirm = bid; Shop.render(); clearTimeout(Shop._ct); Shop._ct = setTimeout(function () { if (Shop.confirm === bid) { Shop.confirm = null; Shop.render(); } }, 4000); return; }
+                Shop.buy(bid, Shop.qty[bid] || 1);
+            }
+        });
+
+        /* ---------- Về Trang Chủ tự đăng nhập lại ----------
+           user.html lưu phiên tạm (sessionStorage 'qd_resume', chỉ tab này, hết hạn 10 phút) khi bấm thẻ Ném Còn.
+           Ở sân: làm mới thời hạn mỗi phút và ngay lúc rời trang -> chơi lâu bao nhiêu, về Trang Chủ vẫn tự vào. */
+        function keepResume() {
+            try { var r = JSON.parse(sessionStorage.getItem('qd_resume') || 'null'); if (r && r.u && r.p && r.u === ME) { r.t = Date.now(); sessionStorage.setItem('qd_resume', JSON.stringify(r)); } } catch (e) {}
+        }
+        keepResume(); setInterval(keepResume, 60000);
+        window.addEventListener('pagehide', keepResume);
+        document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a[href^="user.html"]')) keepResume(); }, true);
+
+        /* ---------- Khởi động ---------- */
+        window.addEventListener('resize', function () { fit(); });
+        if (window.ResizeObserver) { var hudH = 0; new ResizeObserver(function () { var hh = $('hud').offsetHeight; if (hh !== hudH) { hudH = hh; fit(); } }).observe($('hud')); }
+        fit(); rollWind(); ui(); requestAnimationFrame(frame);
+        if (window.QDSmooth) QDSmooth.onLite(function () { buildGround(); });
+        if (ME) {
+            db.collection('settings').doc('con_config').onSnapshot(function (doc) {
+                var oldD = S.cfg.difficulty, oldW = S.cfg.wind;
+                S.cfg = normCfg(doc.exists ? doc.data() : null); S.cfgLoaded = true;
+                if (oldD !== S.cfg.difficulty || oldW !== S.cfg.wind) { fit(); if (!S.busy) rollWind(); }
+                ui(); if ($('sheet').classList.contains('on') && S.sheetTab === 'rule') renderSheet(); if (window.ConShop) ConShop.render();
+            }, function (e) { console.warn('con_config', e); S.cfgLoaded = true; ui(); });
+            db.collection('accounts').where('user', '==', ME).limit(1).onSnapshot(function (snap) {
+                S.accLoaded = true;
+                if (snap.empty) { S.docId = null; return ui(); }
+                var d = snap.docs[0], x = d.data(); S.docId = d.id;
+                if (!S.busy) S.turns = Number(x.conThrows) || 0;
+                S.points = Number(x.points) || 0; S.freeDate = x.conFreeDate || ''; S.streak = Number(x.conStreak) || 0;
+                ui(); Shop.render();
+            }, function (e) { console.warn('accounts', e); S.accLoaded = true; ui(); });
+            db.collection('con_stats').doc(ME).onSnapshot(function (doc) {
+                var x = doc.exists ? doc.data() : {}; S.best = Math.max(S.best || 0, Number(x.best) || 0);
+            }, function () {});
+        }
+    })();
+    </script>
+    <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
+    <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>
+        <div class="qd-net-card">
+            <span class="qd-net-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="qd-off" d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path class="qd-off" d="M19 12.9a10 10 0 0 0-2.3-1.7"/><path class="qd-on" d="M19 12.9a10 10 0 0 0-14 0" style="display:none"/><path d="M2 9.3a15 15 0 0 1 4.2-2.8"/><path class="qd-off" d="M22 9.3A15 15 0 0 0 10.7 5"/><path class="qd-on" d="M22 9.3a15 15 0 0 0-20 0" style="display:none"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+            </span>
+            <span class="qd-net-txt">
+                <b id="qd-net-title">Không có kết nối Internet</b>
+                <small id="qd-net-sub">Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.</small>
+            </span>
+            <button type="button" class="qd-net-btn" id="qd-net-retry">Thử lại</button>
+        </div>
+    </div>
+    <style>
+        .qd-net { position: fixed; left: 0; right: 0; top: 0; z-index: 2147483000; display: flex; justify-content: center; padding: max(10px, env(safe-area-inset-top)) 12px 0; pointer-events: none; }
+        .qd-net[hidden] { display: none !important; }
+        .qd-net-card { pointer-events: auto; display: flex; align-items: center; gap: 12px; width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 16px; box-sizing: border-box;
+            font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; text-align: left; color: #fff;
+            background: linear-gradient(135deg, #b3121b, #7a0000); border: 2px solid #ffd95a; box-shadow: 0 12px 30px rgba(0,0,0,.45); animation: qdNetIn .35s cubic-bezier(.2, 1.4, .4, 1); }
+        .qd-net-card * { text-shadow: none !important; box-sizing: border-box; }
+        .qd-net-ico { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .qd-net-txt b { font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; }
+        .qd-net-txt small { font-size: 12.5px; font-weight: 600; color: #fef08a; line-height: 1.4; }
+        .qd-net-btn { flex: 0 0 auto; padding: 9px 14px; border-radius: 999px; border: none; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-btn:disabled { opacity: .7; cursor: wait; }
+        .qd-net.ok .qd-net-card { background: linear-gradient(135deg, #059669, #065f46); border-color: #a7f3d0; }
+        .qd-net.ok .qd-net-ico { color: #065f46; background: #d1fae5; }
+        .qd-net.ok .qd-net-btn, .qd-net.ok .qd-off { display: none; }
+        .qd-net.ok .qd-on { display: inline !important; }
+        .qd-net:not(.ok) .qd-net-ico { animation: qdNetPulse 1.6s ease-in-out infinite; }
+        @keyframes qdNetIn { from { transform: translateY(-120%); opacity: 0; } }
+        @keyframes qdNetPulse { 50% { transform: scale(.88); } }
+        @media (max-width: 420px) { .qd-net-card { gap: 10px; padding: 10px 12px; } .qd-net-txt b { font-size: 14px; } .qd-net-txt small { font-size: 12px; } .qd-net-btn { padding: 8px 11px; } }
+        @media (prefers-reduced-motion: reduce) { .qd-net-card, .qd-net-ico { animation: none !important; } }
+    </style>
+    <script>
+    /* Phát hiện mất mạng: sự kiện online/offline của trình duyệt + kiểm tra thật định kỳ
+       (navigator.onLine có thể báo "có mạng" khi Wi-Fi đã kết nối nhưng không ra được Internet) */
+    (function () {
+        'use strict';
+        if (window.__qdNetGuard) return; window.__qdNetGuard = true;
+        var box = document.getElementById('qd-net'), title = document.getElementById('qd-net-title'), sub = document.getElementById('qd-net-sub'), btn = document.getElementById('qd-net-retry');
+        var PROBES = ['https://www.gstatic.com/generate_204', 'https://firestore.googleapis.com/', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
+        var offline = false, fails = 0, okTimer = null, checking = false;
+
+        function probe(url) {
+            return new Promise(function (resolve, reject) {
+                var ctrl = window.AbortController ? new AbortController() : null;
+                var t = setTimeout(function () { if (ctrl) ctrl.abort(); reject(new Error('timeout')); }, 6000);
+                fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { mode: 'no-cors', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+                    .then(function () { clearTimeout(t); resolve(true); }, function (e) { clearTimeout(t); reject(e); });
+            });
+        }
+        function anyOk() {   // chỉ cần 1 máy chủ phản hồi là có mạng
+            return new Promise(function (resolve) {
+                var left = PROBES.length;
+                PROBES.forEach(function (u) { probe(u).then(function () { resolve(true); }, function () { if (--left === 0) resolve(false); }); });
+            });
+        }
+        function show() {
+            if (offline) return; offline = true;
+            clearTimeout(okTimer);
+            box.classList.remove('ok');
+            title.textContent = 'Không có kết nối Internet';
+            sub.textContent = 'Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.';
+            box.hidden = false;
+        }
+        function hide() {
+            if (!offline) return; offline = false;
+            box.classList.add('ok');
+            title.textContent = 'Đã kết nối lại Internet';
+            sub.textContent = 'Dữ liệu đang được đồng bộ lại.';
+            clearTimeout(okTimer);
+            okTimer = setTimeout(function () { box.hidden = true; box.classList.remove('ok'); }, 2500);
+        }
+        function check() {
+            if (checking) return; checking = true;
+            if (navigator.onLine === false) { checking = false; fails = 2; show(); return; }
+            anyOk().then(function (ok) {
+                checking = false;
+                if (ok) { fails = 0; hide(); }
+                else if (++fails >= 2 || offline) show();   // lỗi 2 lần liên tiếp mới báo, tránh báo nhầm
+                else setTimeout(check, 3000);
+            });
+        }
+
+        window.addEventListener('offline', function () { fails = 2; show(); });
+        window.addEventListener('online', function () { setTimeout(check, 500); });
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+        btn.addEventListener('click', function () {
+            btn.disabled = true; btn.textContent = 'Đang thử...';
+            sub.textContent = 'Đang kiểm tra kết nối...';
+            fails = 1; checking = false;
+            check();
+            setTimeout(function () {
+                btn.disabled = false; btn.textContent = 'Thử lại';
+                if (offline) sub.textContent = 'Vẫn chưa có mạng. Vui lòng kiểm tra Wi-Fi hoặc 4G.';
+            }, 2500);
+        });
+        // Kiểm tra định kỳ: mất mạng thì 5 giây/lần để báo có mạng lại nhanh; bình thường 20 giây/lần
+        (function loop() { setTimeout(function () { if (!document.hidden || offline) check(); loop(); }, offline ? 5000 : 20000); })();
+        if (navigator.onLine === false) show();
+    })();
+    </script>
+    <!-- ===== QD TẾT MUSIC: nhạc nền Tết dùng chung (mọi trang trừ admin; user.html có trình phát riêng) ===== -->
+    <script id="qd-music-js">
+    /* - Vào trang tự bật nhạc Tết (mặc định Bật). Trình duyệt chặn tự phát -> phát ở lần chạm / bấm phím đầu tiên
+       - 4 bài: mặc định tự chuyển bài lần lượt; chọn lặp 1 bài trong Cài đặt của trang user (qd_music_track: 'auto' | '0'..'3')
+       - Dùng chung cài đặt với trang user: qd_music_on ('0' = tắt), qd_music_vol (0-100, mặc định 50)
+       - Chuyển trang -> nghe tiếp đúng đoạn đang phát; ẩn tab -> tạm dừng, quay lại -> phát tiếp
+       - Nút tròn góc trái dưới: bấm để Bật / Tắt nhạc */
+    (function () {
+        'use strict';
+        if (window.QDMusic || document.getElementById('bg-music')) return;
+        try { if (window.top !== window && /admin\.html/i.test(window.top.location.pathname)) return; } catch (e) {}
+        var d = document, W = window;
+        var TRACKS = [
+            { src: 'nhac-tet.mp3', name: 'Xuân Về Phơi Phới' },
+            { src: 'nhac-tet-2.mp3', name: 'Xuân Rộn Ràng' },
+            { src: 'nhac-tet-3.mp3', name: 'Lân Về Phố' },
+            { src: 'nhac-tet-4.mp3', name: 'Sum Vầy Ngày Xuân' }
+        ];
+        function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+        function readVol() { var v = parseInt(ls('qd_music_vol'), 10); return isNaN(v) ? 50 : Math.min(100, Math.max(0, v)); }
+        function readMode() { var m = ls('qd_music_track'); return m != null && m !== '' && TRACKS[+m] ? String(+m) : 'auto'; }
+        var M = W.QDMusic = { tracks: TRACKS, mode: readMode(), idx: 0, enabled: ls('qd_music_on') !== '0', vol: readVol(), active: false, waiting: false, el: null, btn: null, ctx: null, gain: null, useGain: false };
+
+        var CSS = '#qd-music-btn{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(16px,calc(env(safe-area-inset-bottom) + 10px));z-index:9990;width:46px;height:46px;padding:0;border-radius:50%;border:2px solid #ffd95a;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#ffd95a;background:radial-gradient(circle at 35% 30%,#e3262d,#a10b12 58%,#6a0000);box-shadow:0 6px 18px rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent;transition:transform .2s;font-family:"Be Vietnam Pro","Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}'
+            + '#qd-music-btn:active{transform:scale(.9)}#qd-music-btn:focus-visible{outline:3px solid rgba(255,217,90,.6);outline-offset:3px}'
+            + '#qd-music-btn svg{width:22px;height:22px;display:block}'
+            + '.qd-mu-ring{position:absolute;inset:-6px;border-radius:50%;border:2px dashed rgba(255,217,90,.75);opacity:0;pointer-events:none;transition:opacity .3s}'
+            + '#qd-music-btn.on .qd-mu-ring{opacity:1;animation:qdMuSpin 8s linear infinite}'
+            + '#qd-music-btn.wait .qd-mu-ring{opacity:1;border-style:solid;animation:qdMuPing 1.6s ease-out infinite}'
+            + '.qd-mu-eq{display:none;gap:3px;align-items:flex-end;height:18px}.qd-mu-eq i{display:block;width:4px;height:18px;border-radius:2px;background:#ffd95a;transform-origin:50% 100%;animation:qdMuEq .9s ease-in-out infinite}'
+            + '.qd-mu-eq i:nth-child(2){animation-delay:-.3s}.qd-mu-eq i:nth-child(3){animation-delay:-.6s}'
+            + '#qd-music-btn.on .qd-mu-eq{display:flex}#qd-music-btn.on .qd-mu-note{display:none}.qd-mu-x{display:none}#qd-music-btn.off .qd-mu-x{display:inline}#qd-music-btn.off{opacity:.8}'
+            + '.qd-mu-tip{position:absolute;left:58px;top:50%;transform:translateY(-50%);white-space:nowrap;padding:8px 13px;border-radius:999px;font-size:12.5px;font-weight:800;line-height:1;color:#7a0000;background:linear-gradient(135deg,#fff6c8,#ffd95a 55%,#e9a91c);box-shadow:0 6px 16px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .35s}'
+            + '#qd-music-btn.tip .qd-mu-tip{opacity:1}'
+            + '@keyframes qdMuSpin{to{transform:rotate(360deg)}}@keyframes qdMuEq{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}@keyframes qdMuPing{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.35);opacity:0}}'
+            + '@media (prefers-reduced-motion:reduce){#qd-music-btn *{animation:none!important}}';
+        var ICON = '<span class="qd-mu-ring" aria-hidden="true"></span>'
+            + '<svg class="qd-mu-note" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13" /><circle cx="6" cy="18" r="3" fill="currentColor" /><circle cx="17" cy="16" r="3" fill="currentColor" /><path class="qd-mu-x" d="M3 3l18 18" stroke="#fff6c8" stroke-width="2.6" /></svg>'
+            + '<span class="qd-mu-eq" aria-hidden="true"><i></i><i></i><i></i></span>'
+            + '<span class="qd-mu-tip"></span>';
+
+        function ui() {
+            var b = M.btn; if (!b) return;
+            var on = !!(M.el && !M.el.paused);
+            b.classList.toggle('on', on);
+            b.classList.toggle('wait', !on && M.waiting);
+            b.classList.toggle('off', !on && !M.waiting);
+            b.setAttribute('aria-label', on ? 'Tắt nhạc nền' : 'Bật nhạc nền');
+            b.title = on ? 'Tắt nhạc nền' : 'Bật nhạc nền';
+            if (on && M.waiting === false && shown === M.idx && b.querySelector('.qd-mu-tip').textContent.indexOf('Chạm') >= 0) b.classList.remove('tip');
+        }
+        // Gán bài thứ i (không tự phát)
+        function setTrack(i) {
+            var n = TRACKS.length; i = ((i % n) + n) % n;
+            M.idx = i; M.el.loop = M.mode !== 'auto';
+            var url = new URL(TRACKS[i].src, location.href).href;
+            if (M.el.src !== url) M.el.src = url;
+            ls('qd_music_last', String(i));
+        }
+        M.next = function () { var on = !M.el.paused || M.active; setTrack(M.idx + 1); if (on && M.enabled) M.play(true); };
+        function vol(v) {
+            var x = Math.min(100, Math.max(0, v)) / 100; x = x * x;   // 50% -> 25%: nghe tự nhiên hơn
+            if (M.gain) { try { M.gain.gain.setTargetAtTime(x, M.ctx.currentTime, 0.03); } catch (e) { M.gain.gain.value = x; } M.el.volume = 1; }
+            else if (M.el) M.el.volume = x;
+        }
+        var fadeT = 0;
+        function fadeIn() {
+            var t0 = performance.now(); clearInterval(fadeT); vol(0);
+            fadeT = setInterval(function () { var k = Math.min(1, (performance.now() - t0) / 1200); vol(M.vol * k); if (k >= 1) clearInterval(fadeT); }, 50);
+        }
+        // iPhone/iPad không cho JS chỉnh audio.volume -> đi qua Web Audio (phải tạo trong lúc người dùng chạm)
+        function setupGain() {
+            if (!M.useGain || M.gain) return;
+            try {
+                var AC = W.AudioContext || W.webkitAudioContext; M.ctx = new AC();
+                var src = M.ctx.createMediaElementSource(M.el); M.gain = M.ctx.createGain();
+                src.connect(M.gain); M.gain.connect(M.ctx.destination); vol(M.vol);
+            } catch (e) { M.useGain = false; M.gain = null; }
+        }
+        var GEST = ['touchend', 'click', 'keydown', 'mousedown'], tipT = 0, shown = -1;
+        function tip(text, ms) {
+            var b = M.btn; if (!b) return;
+            b.querySelector('.qd-mu-tip').textContent = text;
+            clearTimeout(tipT); b.classList.add('tip'); tipT = setTimeout(function () { b.classList.remove('tip'); }, ms);
+        }
+        function wait() {
+            if (M.waiting) return; M.waiting = true; ui();
+            tip('🎵 Chạm để bật nhạc Tết', 6000);
+            GEST.forEach(function (ev) { d.addEventListener(ev, go, true); });
+        }
+        function go(e) {
+            if (e && e.target && e.target.closest && e.target.closest('#qd-music-btn')) return;   // bấm nút: để nút tự xử lý
+            GEST.forEach(function (ev) { d.removeEventListener(ev, go, true); });
+            M.waiting = false;
+            if (M.enabled && M.active && M.el.paused) M.play(true); else ui();
+        }
+        M.play = function (gesture) {
+            var el = M.el; M.active = true;
+            if (d.hidden) { M.hid = true; return; }
+            if (M.useGain && !M.gain) { if (!gesture) return wait(); setupGain(); }
+            if (M.ctx && M.ctx.state !== 'running') { try { M.ctx.resume(); } catch (e) {} }
+            if (!el.paused) return ui();
+            fadeIn();
+            var p = el.play();
+            if (p && p.then) p.then(function () {
+                M.waiting = false; GEST.forEach(function (ev) { d.removeEventListener(ev, go, true); }); ui();
+            }, function (err) {
+                if (err && err.name === 'NotAllowedError') { M.waiting = false; return wait(); }
+                M.active = false; ui();
+            });
+        };
+        M.stop = function () { M.active = false; clearInterval(fadeT); if (M.el) M.el.pause(); ui(); };
+        M.toggle = function () {
+            if (M.el.paused) { M.enabled = true; ls('qd_music_on', '1'); M.play(true); }
+            else { M.enabled = false; ls('qd_music_on', '0'); M.stop(); }
+        };
+
+        function boot() {
+            var st = d.createElement('style'); st.id = 'qd-music-css'; st.textContent = CSS; d.head.appendChild(st);
+            var el = M.el = d.createElement('audio');
+            el.id = 'qd-music'; el.preload = 'auto'; el.setAttribute('playsinline', '');
+            // chọn bài: nghe tiếp bài của trang trước; lần đầu ở chế độ tự động -> bài sau bài nghe lần trước
+            var sp = null; try { sp = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'); } catch (e) {}
+            var start = 0;
+            if (M.mode !== 'auto') start = +M.mode;
+            else if (sp && TRACKS[sp.i] && Date.now() - sp.at < 15000) start = sp.i;
+            else { var last = parseInt(ls('qd_music_last'), 10); start = isNaN(last) ? 0 : last + 1; }
+            setTrack(start);
+            el.addEventListener('ended', function () { if (M.mode === 'auto') M.next(); });
+            el.addEventListener('playing', function () { if (shown !== M.idx) { shown = M.idx; tip('🎵 ' + TRACKS[M.idx].name, 3500); } });
+            var b = M.btn = d.createElement('button');
+            b.type = 'button'; b.id = 'qd-music-btn'; b.innerHTML = ICON;
+            b.addEventListener('click', function (e) { e.stopPropagation(); M.toggle(); });
+            d.body.appendChild(el); d.body.appendChild(b);
+            try { var t = new Audio(); t.volume = 0.5; M.useGain = Math.abs(t.volume - 0.5) > 0.01 && !!(W.AudioContext || W.webkitAudioContext); } catch (e) {}
+            vol(M.vol);
+            el.addEventListener('play', ui); el.addEventListener('pause', ui);
+            el.addEventListener('error', function () { M.active = false; M.waiting = false; if (M.btn) M.btn.style.display = 'none'; });
+            // nghe tiếp đoạn nhạc từ trang trước
+            el.addEventListener('loadedmetadata', function () {
+                try {
+                    var s = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'), du = el.duration;
+                    if (s && s.i === M.idx && du && isFinite(du) && Date.now() - s.at < 15000) { el.currentTime = Math.min(s.t + (Date.now() - s.at) / 1000, du - 0.5); shown = M.idx; }
+                } catch (e) {}
+            }, { once: true });
+            W.addEventListener('pagehide', function () {
+                try { if (!el.paused) sessionStorage.setItem('qd_music_pos', JSON.stringify({ i: M.idx, t: el.currentTime, at: Date.now() })); else sessionStorage.removeItem('qd_music_pos'); } catch (e) {}
+            });
+            d.addEventListener('visibilitychange', function () {
+                if (d.hidden) { if (!el.paused) { M.hid = true; el.pause(); } return; }
+                if (M.hid) { M.hid = false; if (M.enabled && M.active) M.play(false); }
+            });
+            // đổi âm lượng / bật tắt ở tab khác (trang user) -> áp dụng ngay
+            W.addEventListener('storage', function (e) {
+                if (e.key === 'qd_music_vol') { M.vol = readVol(); clearInterval(fadeT); vol(M.vol); }
+                else if (e.key === 'qd_music_on') { M.enabled = e.newValue !== '0'; if (!M.enabled) M.stop(); }
+                else if (e.key === 'qd_music_track') {
+                    M.mode = readMode(); el.loop = M.mode !== 'auto';
+                    if (M.mode !== 'auto' && +M.mode !== M.idx) { var on = !el.paused; setTrack(+M.mode); if (on) M.play(true); }
+                }
+            });
+            ui();
+            if (M.enabled) M.play(false);   // mặc định: vào trang là bật nhạc
+        }
+        if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+    })();
+    </script>
+</body>
+</html>

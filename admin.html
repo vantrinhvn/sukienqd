@@ -915,6 +915,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 <select id="spin-type" class="form-control" style="cursor: pointer; appearance: auto;">
                     <option value="points">Điểm Lì Xì (Points)</option>
                     <option value="tickets">Rút Lì Xì May Mắn (Lượt Rút)</option>
+                    <option value="conThrows">Ném Còn (Lượt Ném)</option>
                 </select>
             </div>
 
@@ -1052,6 +1053,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="tranhthuong"> Rút Lì Xì</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="lixi"> Lì Xì</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="rps"> Kéo Búa</label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="nemcon"> Ném Còn</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="invite"> Mã Mời</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="news"> Bản Tin</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="approvals"> Phê Duyệt TK</label>
@@ -1108,7 +1110,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </div>
                 <div class="flex-col flex-1">
                     <h2 class="text-xl m-0">Biến động Dữ liệu: <span id="history-target-name" class="text-info font-bold">User</span></h2>
-                    <div class="text-sm mt-1 text-muted">Số dư máy chủ hiện tại: <b class="text-success" id="history-real-points">0</b> Điểm | <b class="text-warning" id="history-real-spins">0</b> Quay | <b class="text-danger" id="history-real-tickets">0</b> Rút Lì Xì</div>
+                    <div class="text-sm mt-1 text-muted">Số dư máy chủ hiện tại: <b class="text-success" id="history-real-points">0</b> Điểm | <b class="text-warning" id="history-real-spins">0</b> Quay | <b class="text-danger" id="history-real-tickets">0</b> Rút Lì Xì | <b id="history-real-con" style="color: #f97316;">0</b> Ném Còn</div>
                 </div>
                 <div>
                     <button class="btn btn-outline" style="padding: 10px 16px; border-color: var(--color-success); color: var(--color-success);" onclick="AdminActions.exportUserHistoryExcel()">
@@ -1172,6 +1174,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div class="m-menu-grid">
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('pointshop')" style="--tone: var(--color-success);"><div class="m-menu-icon"><i class="fa-solid fa-store"></i></div><span>Cửa hàng</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('rps')" style="--tone: #fb7185;"><div class="m-menu-icon"><i class="fa-regular fa-hand-scissors"></i></div><span>Kéo búa bao</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('nemcon')" style="--tone: #f97316;"><div class="m-menu-icon"><i class="fa-solid fa-bullseye"></i></div><span>Ném còn</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('invite')" style="--tone: var(--brand-primary);"><div class="m-menu-icon"><i class="fa-solid fa-handshake"></i></div><span>Mã mời</span></div>
                 </div>
             </div>
@@ -1257,6 +1260,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <p class="nav-label">Giải trí &amp; thưởng</p>
                     <button type="button" title="Cửa hàng điểm" class="nav-item" onclick="UI.navigate('pointshop', this)" style="--tone: var(--color-success);"><i class="fa-solid fa-store"></i><span>Cửa hàng điểm</span></button>
                     <button type="button" title="Kéo búa bao" class="nav-item" onclick="UI.navigate('rps', this)" style="--tone: #fb7185;"><i class="fa-regular fa-hand-scissors"></i><span>Kéo búa bao</span></button>
+                    <button type="button" title="Ném còn" class="nav-item" onclick="UI.navigate('nemcon', this)" style="--tone: #f97316;"><i class="fa-solid fa-bullseye"></i><span>Ném còn</span></button>
                     <button type="button" title="Mã mời" class="nav-item" onclick="UI.navigate('invite', this)" style="--tone: var(--brand-primary);"><i class="fa-solid fa-handshake"></i><span>Mã mời</span></button>
                 </div>
                 <div class="nav-group">
@@ -1384,6 +1388,10 @@ html.qd-lite .qd-fx { display: none !important; }
                                 <span class="mod-ico"><i class="fa-regular fa-hand-scissors"></i></span>
                                 <div><h4>Kéo búa bao</h4><p>Giờ mở đấu trường, mức cược và nhật ký trận PvP.</p></div>
                             </div>
+                            <div class="card mod-card" onclick="UI.navigate('nemcon')" style="--tone: #f97316;">
+                                <span class="mod-ico"><i class="fa-solid fa-bullseye"></i></span>
+                                <div><h4>Ném còn</h4><p>Mở/đóng sân, độ khó, điểm thưởng và tặng lượt ném còn.</p></div>
+                            </div>
                             <div class="card mod-card" onclick="UI.navigate('invite')" style="--tone: var(--brand-primary);">
                                 <span class="mod-ico"><i class="fa-solid fa-handshake"></i></span>
                                 <div><h4>Mã mời</h4><p>Bật / tắt nhập mã và mức thưởng lượt rút lì xì khi mời.</p></div>
@@ -1479,6 +1487,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="flex items-center gap-2 flex-wrap" style="margin: 16px 0 14px;">
                             <span class="text-sm font-bold text-muted mr-2">Thêm nhanh:</span>
                             <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="ShopAdmin.addRow('tickets')"><i class="fa-solid fa-plus"></i> 🧧 Lượt rút lì xì</button>
+                            <button class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;" onclick="ShopAdmin.addRow('conThrows')"><i class="fa-solid fa-plus"></i> 🎯 Lượt ném còn</button>
                         </div>
                         <div class="table-responsive">
                             <table class="w-full sh-table">
@@ -1769,17 +1778,15 @@ html.qd-lite .qd-fx { display: none !important; }
                             <span class="badge" id="qdb-a-status" style="background: var(--bg-body); border: 1px solid var(--border-strong); color: var(--text-muted);">Chưa tạo</span>
                         </div>
                         <div class="p-4">
+                            <div class="qdb-a-tabs" id="qdb-a-tabs" role="tablist" aria-label="Chọn sơ đồ">
+                                <button type="button" data-f="single" role="tab" aria-selected="true" class="on"><span class="qdb-a-tic" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="qdb-a-ttx"><b>Sơ Đồ Giải Đơn</b><small id="qdb-a-tab-single">Đang tải...</small></span></button>
+                                <button type="button" data-f="double" role="tab" aria-selected="false"><span class="qdb-a-tic" aria-hidden="true"><i class="fa-solid fa-user-group"></i></span><span class="qdb-a-ttx"><b>Sơ Đồ Giải Đôi</b><small id="qdb-a-tab-double">Đang tải...</small></span></button>
+                            </div>
+                            <p class="qdb-a-tabnote"><i class="fa-solid fa-circle-info mr-1"></i> Giải Đơn (1 vs 1) và Giải Đôi (2 vs 2) là <b>2 sơ đồ độc lập</b>: tên giải, quy mô, xếp cặp, kết quả, ẩn/hiện riêng. Tạo lại, xóa kết quả hay xóa sơ đồ bên này không ảnh hưởng bên kia.</p>
                             <div class="qdb-a-grid">
-                                <div>
-                                    <label class="form-label">Tên giải đấu</label>
+                                <div class="qdb-a-full-row">
+                                    <label class="form-label">Tên giải đấu <span id="qdb-a-fmt-lbl" class="qdb-a-fmt">Giải Đơn</span></label>
                                     <input type="text" id="qdb-a-title" class="form-control" maxlength="80" placeholder="VD: Giải Đấu Xuân Đinh Mùi 2027">
-                                </div>
-                                <div>
-                                    <label class="form-label">Thể thức</label>
-                                    <div class="qdb-a-seg" id="qdb-a-format" role="radiogroup">
-                                        <button type="button" data-v="single" class="on" role="radio" aria-checked="true"><i class="fa-solid fa-user"></i> Giải Đơn <small>1 vs 1</small></button>
-                                        <button type="button" data-v="double" role="radio" aria-checked="false"><i class="fa-solid fa-user-group"></i> Giải Đôi <small>2 vs 2</small></button>
-                                    </div>
                                 </div>
                                 <div>
                                     <label class="form-label" id="qdb-a-size-lbl">Quy mô giải (số người)</label>
@@ -1796,7 +1803,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             </div>
                             <div class="qdb-a-opts">
                                 <label><input type="checkbox" id="qdb-a-third" checked> Có trận tranh <b>Hạng 3</b></label>
-                                <label><input type="checkbox" id="qdb-a-enabled" checked> Hiện nút <b>"Sơ Đồ Giải Đấu"</b> cho thành viên</label>
+                                <label><input type="checkbox" id="qdb-a-enabled" checked> Hiện nút <b id="qdb-a-en-lbl">"Sơ Đồ Giải Đơn"</b> cho thành viên</label>
                             </div>
                             <div class="qdb-a-info" id="qdb-a-info">Đang tải danh sách giải đấu...</div>
                             <div class="qdb-a-btns">
@@ -1811,7 +1818,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="qdb-a-slotbox" id="qdb-a-slotbox" hidden></div>
                             <div class="qdb-adv" id="qdb-a-adv" hidden></div>
                             <p class="text-xs text-muted" style="margin: 14px 0 8px;"><i class="fa-solid fa-hand-pointer mr-1"></i> Bấm <b>"Thiết Lập Đi Tiếp"</b> hoặc bấm vào một trận (có dấu ✎) để chọn ai đi tiếp, nhập tỉ số và lý do — người đi tiếp tự vào vòng sau. Trận gặp "Miễn đấu" tự đi tiếp.</p>
-                            <div class="qdb-root qdb-frame" id="qdb-a-tree" style="max-height: 680px;"><div class="qdb-empty">Chưa có sơ đồ. Chọn thể thức, quy mô rồi bấm "Tạo / Xếp Lại Sơ Đồ".</div></div>
+                            <div class="qdb-root qdb-frame" id="qdb-a-tree" style="max-height: 680px;"><div class="qdb-empty">Đang tải sơ đồ...</div></div>
                         </div>
                     </div>
                     <div class="bento-grid" style="grid-template-columns: 1fr;">
@@ -2707,6 +2714,122 @@ html.qd-lite .qd-fx { display: none !important; }
                     </div>
                 </section>
 
+                <section id="view-nemcon" class="view-section">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Sân Ném Còn</h1>
+                            <p class="text-muted">Trò chơi dân gian tung còn (trang game.html): mỗi lần ném dùng 1 lượt ném còn, lọt vòng được cộng điểm lì xì.</p>
+                        </div>
+                        <a class="btn btn-outline" href="game.html" target="_blank" rel="noopener" style="padding: 14px 22px;"><i class="fa-solid fa-up-right-from-square mr-2"></i> Mở Sân Ném Còn</a>
+                    </div>
+
+                    <div class="lx-tiles mb-6 nc-tiles">
+                        <div class="lx-tile"><b id="nc-s-players">0</b><span>Người đã chơi</span></div>
+                        <div class="lx-tile"><b id="nc-s-throws">0</b><span>Tổng lượt đã ném</span></div>
+                        <div class="lx-tile"><b id="nc-s-hits" style="color: var(--color-success);">0</b><span>Lần lọt vòng</span></div>
+                        <div class="lx-tile"><b id="nc-s-points" style="color: var(--color-warning);">0</b><span>Điểm lì xì đã thưởng</span></div>
+                    </div>
+
+                    <div class="nc-grid">
+                        <div class="card mb-0" style="border-left: 4px solid #f97316; padding: 24px;">
+                            <div class="flex justify-between items-center flex-wrap gap-4 mb-4">
+                                <h3 class="text-lg flex items-center gap-2 m-0"><i class="fa-solid fa-sliders" style="color: #f97316;"></i> Cấu Hình Sân</h3>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold" id="nc-status-text">...</span>
+                                    <label class="switch"><input type="checkbox" id="nc-enabled"><span class="slider"></span></label>
+                                </div>
+                            </div>
+                            <div class="nc-form">
+                                <div class="nc-full">
+                                    <label class="form-label">Độ khó</label>
+                                    <div class="nc-seg" id="nc-diff" role="radiogroup">
+                                        <button type="button" data-v="easy"><b>Dễ</b><small>Vòng to · gió nhẹ · hiện đường bay</small></button>
+                                        <button type="button" data-v="normal"><b>Vừa</b><small>Vòng vừa · có gió · hiện 1 phần</small></button>
+                                        <button type="button" data-v="hard"><b>Khó</b><small>Vòng nhỏ · gió mạnh · vòng lắc</small></button>
+                                    </div>
+                                </div>
+                                <label class="nc-check nc-full"><input type="checkbox" id="nc-wind"> Có <b>gió</b> (đổi hướng mỗi lần ném, người chơi phải ném bù)</label>
+                                <div><label class="form-label">Điểm khi lọt vòng</label><input type="number" id="nc-hit" class="form-control" min="0" step="1"></div>
+                                <div><label class="form-label">Điểm khi chạm vành</label><input type="number" id="nc-rim" class="form-control" min="0" step="1"></div>
+                                <div><label class="form-label">Thưởng chuỗi: mỗi … lần lọt liên tiếp</label><input type="number" id="nc-severy" class="form-control" min="0" step="1" placeholder="0 = tắt"></div>
+                                <div><label class="form-label">… được thưởng thêm (điểm)</label><input type="number" id="nc-sbonus" class="form-control" min="0" step="1"></div>
+                                <div class="nc-full"><label class="form-label">Lượt ném miễn phí mỗi ngày (mỗi người)</label><input type="number" id="nc-free" class="form-control" min="0" max="100" step="1" placeholder="0 = không tặng"></div>
+                                <div class="nc-full"><label class="form-label">Lời nhắn khi đóng sân</label><input type="text" id="nc-closed" class="form-control" maxlength="200" placeholder="VD: Sân mở lại lúc 20:00 tối nay!"></div>
+                            </div>
+                            <div class="flex items-center gap-3 mt-4 flex-wrap">
+                                <button class="btn btn-primary" id="nc-save"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Cấu Hình</button>
+                                <span class="text-sm" id="nc-dirty"></span>
+                            </div>
+                        </div>
+
+                        <div class="card mb-0" style="border-left: 4px solid var(--color-success); padding: 24px;">
+                            <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-gift text-success"></i> Tặng Lượt Ném Còn</h3>
+                            <p class="text-muted text-sm mb-4">Lượt ném lưu trong tài khoản (trường <code>conThrows</code>). Nhập số âm để trừ bớt. Thành viên còn nhận lượt từ <b>Trạm Quy Đổi</b> (thêm vật phẩm loại "Lượt ném còn") và lượt miễn phí mỗi ngày.</p>
+                            <label class="form-label">Tặng 1 thành viên</label>
+                            <div class="nc-gift">
+                                <input type="text" id="nc-g-user" class="form-control" list="nc-users" placeholder="Tên đăng nhập..." autocomplete="off" spellcheck="false">
+                                <input type="number" id="nc-g-n" class="form-control" value="5" step="1" aria-label="Số lượt">
+                                <button class="btn btn-success" id="nc-g-one"><i class="fa-solid fa-paper-plane"></i> Tặng</button>
+                            </div>
+                            <datalist id="nc-users"></datalist>
+                            <div class="text-sm mt-2" id="nc-g-info"></div>
+                            <label class="form-label mt-6">Tặng tất cả thành viên (trừ tài khoản đang bị khóa)</label>
+                            <div class="nc-gift">
+                                <input type="number" id="nc-g-alln" class="form-control" value="3" min="1" step="1" aria-label="Số lượt mỗi người">
+                                <button class="btn btn-warning" id="nc-g-all" style="grid-column: span 2;"><i class="fa-solid fa-users mr-2"></i> Tặng Tất Cả</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-0 mt-6" style="border-left: 4px solid #eab308; padding: 24px;">
+                        <div class="flex justify-between items-center flex-wrap gap-4 mb-2">
+                            <h3 class="text-lg flex items-center gap-2 m-0"><i class="fa-solid fa-store" style="color: #eab308;"></i> Gói Đổi Lượt Ném (cửa hàng trong sân)</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold" id="nc-shop-status">...</span>
+                                <label class="switch"><input type="checkbox" id="nc-shop-on"><span class="slider"></span></label>
+                            </div>
+                        </div>
+                        <p class="text-muted text-sm mb-4">Thành viên đổi điểm lì xì lấy lượt ném ngay trong sân (nút 🏪) và ở Trạm Quy Đổi Trang Chủ. Gói lưu chung danh mục <b>Cửa hàng điểm</b> (loại "Lượt ném còn"); kho & giới hạn để trống = không giới hạn. Tắt công tắc: sân ẩn cửa hàng (Trạm Quy Đổi Trang Chủ vẫn bán nếu đang mở).</p>
+                        <div class="table-responsive">
+                            <table class="w-full nc-pk">
+                                <thead><tr><th style="width: 70px;">Biểu tượng</th><th>Tên gói</th><th style="width: 100px;">Số lượt</th><th style="width: 110px;">Giá (điểm)</th><th style="width: 100px;">Kho</th><th class="text-center" style="width: 90px;">Đã đổi</th><th style="width: 100px;">Giới hạn / ngày</th><th class="text-center" style="width: 60px;">Bán</th><th style="width: 50px;"></th></tr></thead>
+                                <tbody id="nc-pk-body"><tr><td colspan="9" class="text-center text-muted py-8">Mở mục này để tải dữ liệu...</td></tr></tbody>
+                            </table>
+                        </div>
+                        <div class="flex items-center gap-3 mt-4 flex-wrap">
+                            <button class="btn btn-outline" id="nc-pk-add" style="padding: 10px 16px;"><i class="fa-solid fa-plus mr-2"></i> Thêm gói</button>
+                            <button class="btn btn-outline" id="nc-pk-def" style="padding: 10px 16px;"><i class="fa-solid fa-rotate-left mr-2"></i> Gói mặc định</button>
+                            <button class="btn btn-primary" id="nc-pk-save" style="padding: 10px 18px;"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Gói</button>
+                            <span class="text-sm" id="nc-pk-dirty"></span>
+                        </div>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden mb-6 mt-6">
+                        <div class="card-header m-0 p-6 flex justify-between items-center flex-wrap gap-3" style="background: var(--bg-elevated); border-bottom: 1px solid var(--border-strong);">
+                            <h3 class="card-title text-lg m-0"><i class="fa-solid fa-ranking-star" style="color: #eab308;"></i> Bảng Xếp Hạng Ném Còn</h3>
+                            <button class="btn btn-outline" id="nc-reset" style="padding: 10px 16px; color: var(--color-danger);"><i class="fa-solid fa-rotate-left mr-2"></i> Làm Mới Bảng Xếp Hạng</button>
+                        </div>
+                        <div class="table-responsive" style="max-height: 460px; overflow-y: auto;">
+                            <table class="w-full">
+                                <thead><tr><th>#</th><th>Thành viên</th><th class="text-center">Lượt ném</th><th class="text-center">Lọt vòng</th><th class="text-center">Chạm vành</th><th class="text-center">Chính xác</th><th class="text-center">Chuỗi cao nhất</th><th class="text-right">Điểm nhận</th></tr></thead>
+                                <tbody id="nc-tb-lb"><tr><td colspan="8" class="text-center text-muted py-8">Mở mục này để tải dữ liệu...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden mb-0">
+                        <div class="card-header m-0 p-6" style="background: var(--bg-elevated); border-bottom: 1px solid var(--border-strong);">
+                            <h3 class="card-title text-lg m-0"><i class="fa-solid fa-clock-rotate-left text-primary"></i> Lượt Ném Gần Đây</h3>
+                        </div>
+                        <div class="table-responsive" style="max-height: 460px; overflow-y: auto;">
+                            <table class="w-full">
+                                <thead><tr><th>Thời gian</th><th>Thành viên</th><th class="text-center">Kết quả</th><th class="text-center">Gió</th><th class="text-right">Điểm</th></tr></thead>
+                                <tbody id="nc-tb-hist"><tr><td colspan="5" class="text-center text-muted py-8">Mở mục này để tải dữ liệu...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="view-accounts" class="view-section">
                     <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
@@ -2758,15 +2881,13 @@ html.qd-lite .qd-fx { display: none !important; }
                                     <tr>
                                         <th>Tên Đăng Nhập</th>
                                         <th>Mật Khẩu</th>
-                                        <th class="text-center">Điểm Lì Xì</th>
-                                        <th class="text-center">Lượt Vòng Quay</th>
-                                        <th class="text-center">Lượt Rút Lì Xì</th>
+                                        <th class="text-center">Ví Giải Trí <span class="text-xs text-muted" style="text-transform: none; font-weight: 600;">(bấm để xem)</span></th>
                                         <th>Trạng thái</th>
                                         <th class="text-right">Quản trị</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tb-acc-list">
-                                    <tr><td colspan="7" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
+                                    <tr><td colspan="5" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -3123,7 +3244,7 @@ html.qd-lite .qd-fx { display: none !important; }
            shop_orders                : { user, itemId, itemName, icon, qty, cost, status: 'pending'|'done'|'rejected', time, ... }
            point_history              : log đổi điểm (action 'exchange') -> thống kê hôm nay */
         const ShopAdmin = (() => {
-            const TYPES = { tickets: '🧧 Lượt rút' };   // chỉ bán lượt rút lì xì (đã bỏ lượt vòng quay & quà trao tay)
+            const TYPES = { tickets: '🧧 Lượt rút', conThrows: '🎯 Lượt ném còn' };   // lượt rút lì xì + lượt ném còn (đã bỏ lượt vòng quay & quà trao tay)
             const DEF = [
                 { id: 'tk1', icon: '🧧', name: '1 Lượt rút lì xì', type: 'tickets', amount: 1, cost: 50, stock: null, dailyLimit: null, active: true },
                 { id: 'tk5', icon: '🧧', name: 'Combo 5 lượt rút lì xì', type: 'tickets', amount: 5, cost: 220, stock: null, dailyLimit: 2, active: true },
@@ -3138,8 +3259,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 cfg = cfg || {};
                 let list = Array.isArray(cfg.items) && cfg.items.length ? cfg.items : null;
                 if (!list) list = DEF.map(x => Object.assign({}, x, x.id === 'tk1' && cfg.ticketCost != null ? { cost: cfg.ticketCost } : {}, x.id === 'sp1' && cfg.spinCost != null ? { cost: cfg.spinCost } : {}));
-                return list.filter(x => (x.type || 'tickets') === 'tickets').map((x, i) => ({
-                    id: x.id || ('i' + i), icon: x.icon || '🧧', name: String(x.name || ''), type: 'tickets',
+                return list.filter(x => TYPES[x.type || 'tickets']).map((x, i) => ({
+                    id: x.id || ('i' + i), icon: x.icon || (x.type === 'conThrows' ? '🎯' : '🧧'), name: String(x.name || ''), type: x.type || 'tickets',
                     amount: Math.max(1, parseInt(x.amount) || 1), cost: Math.max(0, parseInt(x.cost) || 0),
                     stock: x.stock == null || x.stock === '' ? null : Math.max(0, parseInt(x.stock) || 0),
                     dailyLimit: x.dailyLimit == null || x.dailyLimit === '' ? null : Math.max(0, parseInt(x.dailyLimit) || 0),
@@ -3198,7 +3319,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 onEdit: () => { dirty = true; recalc(); },
                 addRow: (type) => {
                     const tb = $('tb-shop-items'); if (!tb) return; if (!rows().length) tb.innerHTML = '';
-                    const preset = { icon: '🧧', name: 'Lượt rút lì xì', cost: 50 }; type = 'tickets';
+                    type = TYPES[type] ? type : 'tickets';
+                    const preset = type === 'conThrows' ? { icon: '🎯', name: '3 Lượt ném còn', cost: 60, amount: 3 } : { icon: '🧧', name: 'Lượt rút lì xì', cost: 50 };
                     tb.insertAdjacentHTML('beforeend', rowHtml(Object.assign({ id: 'i' + Date.now().toString(36), type, amount: 1, stock: null, dailyLimit: null, active: true }, preset)));
                     dirty = true; recalc(); const last = rows().pop(); if (last) last.querySelector('.sh-name').focus();
                 },
@@ -4118,7 +4240,7 @@ const QVis = {
                                 return;
                             }
 
-                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'invite', 'accounts', 'news', 'approvals'];
+                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'accounts', 'news', 'approvals'];
                             
                             // 2. NẾU LÀ MANAGER THÌ ẨN/HIỆN CHỨC NĂNG THEO QUYỀN
                             if (myRole === 'manager') {
@@ -4615,7 +4737,7 @@ const QVis = {
                     State.accountsCache = [];
 
                     if(snap.empty) {
-                        tbodyAcc.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-8">Chưa có tài khoản User nào trên Database.</td></tr>`;
+                        tbodyAcc.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-8">Chưa có tài khoản User nào trên Database.</td></tr>`;
                         return;
                     }
 
@@ -4659,6 +4781,8 @@ const QVis = {
                         const pointCount = d.points || 0;
                         const spinCount = d.spins || 0; 
                         const ticketCount = d.tickets || 0;
+                        const conCount = d.conThrows || 0;
+                        if (window.AccWallet) AccWallet.put(doc.id, d);
                         const isBlocked = d.isBlocked || false;
                         
                         let statusHtml = '';
@@ -4712,9 +4836,9 @@ const QVis = {
                                 </div>
                             </td>
                             <td style="font-family: var(--font-family-mono); letter-spacing: 1px;">${d.pass}</td>
-                            <td class="text-center"><span class="badge badge-success" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success); border-color: var(--color-success); font-size: 13px; padding: 4px 10px;">${pointCount}</span></td>
-                            <td class="text-center"><span class="badge badge-warning" style="font-size: 13px; padding: 4px 10px;">${spinCount}</span></td>
-                            <td class="text-center"><span class="badge badge-danger" style="background: rgba(239, 68, 68, 0.15); color: var(--color-danger); border-color: var(--color-danger); font-size: 13px; padding: 4px 10px;">${ticketCount}</span></td>
+                            <td class="text-center"><button type="button" class="wl-cell" onclick="AccWallet.open('${doc.id}')" title="Xem ví giải trí: điểm và các loại lượt">
+                                <span class="wl-c pts" title="Điểm lì xì">💰 ${pointCount}</span><span class="wl-c spn" title="Lượt vòng quay">🎡 ${spinCount}</span><span class="wl-c tkt" title="Lượt rút lì xì">🧧 ${ticketCount}</span><span class="wl-c con" title="Lượt ném còn">🎯 ${conCount}</span>
+                            </button></td>
                             <td>${statusHtml}</td>
                             <td class="text-right flex justify-end flex-wrap gap-1">
                                 <button class="btn-icon" style="color: var(--color-info); border-color: rgba(14, 165, 233, 0.3);" onclick="AdminActions.viewUserHistory('${d.user}')" title="Xem Lịch sử Biến động Dữ liệu"><i class="fa-solid fa-clock-rotate-left"></i></button>
@@ -5744,28 +5868,25 @@ saveRegistrationConfig: () => {
                 }).catch(err => Utils.toast("Lỗi giao dịch CSDL.", "error"));
             },
 
-            viewUserHistory: async (username) => {
-                UI.openModal('modal-user-history');
-                document.getElementById('history-target-name').innerText = username;
-                const tbody = document.getElementById('tb-user-history-list');
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang thu thập dữ liệu từ các phân hệ...</td></tr>`;
-                
-                try {
+            /* Thu thập toàn bộ biến động điểm / lượt của 1 tài khoản (dùng chung: Lịch sử biến động + Ví giải trí) */
+            collectUserLogs: async (username) => {
+                const bal = { points: 0, spins: 0, tickets: 0, conThrows: 0 };
                     let logs = [];
                     
                     const accSnap = await db.collection("accounts").where("user", "==", username).get();
                     if(!accSnap.empty) {
                         const data = accSnap.docs[0].data();
-                        document.getElementById('history-real-points').innerText = data.points || 0;
-                        document.getElementById('history-real-spins').innerText = data.spins || 0;
-                        document.getElementById('history-real-tickets').innerText = data.tickets || 0;
+                        bal.points = data.points || 0; bal.spins = data.spins || 0; bal.tickets = data.tickets || 0; bal.conThrows = data.conThrows || 0;
                     }
 
                     const pointSnap = await db.collection("point_history").where("user", "==", username).get();
                     pointSnap.forEach(doc => {
                         const d = doc.data();
                         logs.push({ time: d.timestamp, type: 'points', action: 'add', amount: d.pointsChanged, reason: d.detail || 'Giao dịch điểm' });
-                        if (d.action === "exchange" && d.detail) {
+                        if (d.action === "exchange" && (d.itemType === 'conThrows' || /Lượt Ném Còn/.test(d.detail || ''))) {
+                            const m = /lấy (\d+) Lượt Ném Còn/.exec(d.detail || '');
+                            logs.push({ time: d.timestamp + 1, type: 'conThrows', action: 'add', amount: m ? parseInt(m[1]) : (d.qty || 1), reason: 'Đổi điểm lấy lượt ném còn' });
+                        } else if (d.action === "exchange" && d.detail) {
                             if (d.detail.includes("Vòng Quay")) {
                                 logs.push({ time: d.timestamp + 1, type: 'spins', action: 'add', amount: 1, reason: 'Quy đổi từ Cửa Hàng' });
                             } else if ((d.detail.includes("Xé Thẻ") || d.detail.includes("Lì Xì"))) {
@@ -5778,6 +5899,16 @@ saveRegistrationConfig: () => {
                     spinSnap.forEach(doc => {
                         logs.push({ time: doc.data().timestamp, type: 'spins', action: 'add', amount: -1, reason: `Sử dụng Vòng Quay (Trúng: ${doc.data().result})` });
                     });
+
+                    try {
+                        const conSnap = await db.collection("con_history").where("user", "==", username).get();
+                        const RES = { hit: 'Lọt vòng', rim: 'Chạm vành', miss: 'Trượt' };
+                        conSnap.forEach(doc => {
+                            const c = doc.data();
+                            if (c.result === 'free') logs.push({ time: c.ts, type: 'conThrows', action: 'add', amount: c.amount || 0, reason: '🎁 Nhận lượt ném còn miễn phí trong ngày' });
+                            else logs.push({ time: c.ts, type: 'conThrows', action: 'add', amount: -1, reason: `🎯 Ném còn: ${RES[c.result] || c.result}${c.points > 0 ? ` (+${c.points} điểm)` : ''}` });
+                        });
+                    } catch (e) { console.warn('con_history', e); }
 
                     const ttSnap = await db.collection("tranhthuong_history").where("userId", "==", username).get();
                     ttSnap.forEach(doc => {
@@ -5846,9 +5977,7 @@ saveRegistrationConfig: () => {
 
                     logs.sort((a, b) => b.time - a.time);
 
-                    let runPoints = parseInt(document.getElementById('history-real-points').innerText) || 0;
-                    let runSpins = parseInt(document.getElementById('history-real-spins').innerText) || 0; 
-                    let runTickets = parseInt(document.getElementById('history-real-tickets').innerText) || 0;
+                    let runPoints = bal.points, runSpins = bal.spins, runTickets = bal.tickets, runCon = bal.conThrows;
 
                     logs.forEach(log => {
                         if (log.type === 'points') {
@@ -5860,8 +5989,27 @@ saveRegistrationConfig: () => {
                         } else if (log.type === 'tickets') {
                             log.balanceAfter = runTickets;
                             if (log.action === 'add') runTickets -= log.amount;
+                        } else if (log.type === 'conThrows') {
+                            log.balanceAfter = runCon;
+                            if (log.action === 'add') runCon -= log.amount;
                         }
                     });
+
+                return { logs, bal };
+            },
+
+            viewUserHistory: async (username) => {
+                UI.openModal('modal-user-history');
+                document.getElementById('history-target-name').innerText = username;
+                const tbody = document.getElementById('tb-user-history-list');
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang thu thập dữ liệu từ các phân hệ...</td></tr>`;
+                
+                try {
+                    const R = await AdminActions.collectUserLogs(username), logs = R.logs;
+                    document.getElementById('history-real-points').innerText = R.bal.points;
+                    document.getElementById('history-real-spins').innerText = R.bal.spins;
+                    document.getElementById('history-real-tickets').innerText = R.bal.tickets;
+                    document.getElementById('history-real-con').innerText = R.bal.conThrows;
 
                     State.currentUserHistoryCache = logs;
                     State.historyTargetUser = username;
@@ -5877,6 +6025,7 @@ saveRegistrationConfig: () => {
                         const typeBadge = log.type === 'spins' 
                             ? `<span class="badge badge-warning"><i class="fa-solid fa-dharmachakra mr-1"></i> Lượt Quay</span>` 
                             : log.type === 'tickets' ? `<span class="badge badge-danger"><i class="fa-solid fa-envelope mr-1"></i> Lượt Rút</span>`
+                            : log.type === 'conThrows' ? `<span class="badge" style="background: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.5);">🎯 Lượt Ném</span>`
                             : `<span class="badge badge-online" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success); border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-coins mr-1"></i> Điểm Lì Xì</span>`;
                         
                         let amountHtml = '';
@@ -5888,7 +6037,7 @@ saveRegistrationConfig: () => {
                             amountHtml = `<span class="text-info font-bold">=${log.amount}</span>`;
                         }
 
-                        let balanceClass = log.type === 'spins' ? 'text-warning' : (log.type === 'tickets' ? 'text-danger' : 'text-success');
+                        let balanceClass = log.type === 'spins' ? 'text-warning' : (log.type === 'tickets' ? 'text-danger' : (log.type === 'conThrows' ? 'text-warning' : 'text-success'));
 
                         tbody.insertAdjacentHTML('beforeend', `
                             <tr>
@@ -5916,7 +6065,7 @@ saveRegistrationConfig: () => {
                 let htmlTableStr = `<table border="1"><thead><tr><th bgcolor="#0ea5e9"><font color="#ffffff">STT</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Thời Gian</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Loại Tài Sản</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Giao Dịch</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Số Dư</font></th><th bgcolor="#0ea5e9"><font color="#ffffff">Nội Dung Biến Động</font></th></tr></thead><tbody>`;
                 State.currentUserHistoryCache.forEach((log, index) => { 
                     const timeStr = new Date(log.time).toLocaleString('vi-VN');
-                    let typeStr = log.type === 'spins' ? 'Lượt Quay' : (log.type === 'tickets' ? 'Lượt Rút Lì Xì' : 'Điểm');
+                    let typeStr = log.type === 'spins' ? 'Lượt Quay' : (log.type === 'tickets' ? 'Lượt Rút Lì Xì' : (log.type === 'conThrows' ? 'Lượt Ném Còn' : 'Điểm'));
                     let amountStr = log.amount > 0 ? `+${log.amount}` : log.amount;
                     htmlTableStr += `<tr><td align="center">${index + 1}</td><td align="center">${timeStr}</td><td align="center">${typeStr}</td><td align="center">${amountStr}</td><td align="center">${log.balanceAfter}</td><td>${log.reason}</td></tr>`; 
                 });
@@ -6025,6 +6174,7 @@ exportAttendanceExcel: () => {
             luckynumber: ['Sự kiện Tết', 'Quay số may mắn'],
             pointshop: ['Giải trí & thưởng', 'Cửa hàng điểm'],
             rps: ['Giải trí & thưởng', 'Kéo búa bao'],
+            nemcon: ['Giải trí & thưởng', 'Ném còn'],
             invite: ['Giải trí & thưởng', 'Mã mời'],
             tournament: ['Thi đấu & tin tức', 'Giải đấu'],
             news: ['Thi đấu & tin tức', 'Bản tin']
@@ -6942,6 +7092,20 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
     <style id="qdb-admin-css">
         #modal-qdb-match, #modal-qdb-confirm { z-index: 2147482200 !important; }
         body:has(.qdb-ov:not([hidden])) #toast-container { z-index: 2147482600; }
+        .qdb-a-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 5px; border-radius: var(--radius-lg); background: var(--bg-body); border: 1px solid var(--border-strong); }
+        .qdb-a-tabs button { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid transparent; background: transparent; color: var(--text-muted); font: inherit; text-align: left; cursor: pointer; transition: background .15s, border-color .15s; }
+        .qdb-a-tabs button:hover { background: var(--bg-elevated); }
+        .qdb-a-tabs button.on { background: var(--bg-elevated); border-color: #eab308; color: var(--text-main); box-shadow: 0 4px 14px rgba(234, 179, 8, .18); }
+        .qdb-a-tic { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+        .qdb-a-tabs button.on .qdb-a-tic { background: linear-gradient(135deg, #fde047, #eab308); color: #713f12; border-color: #eab308; }
+        .qdb-a-ttx { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+        .qdb-a-ttx b { font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qdb-a-ttx small { font-size: 12px; font-weight: 600; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qdb-a-ttx small.live { color: var(--color-success); } .qdb-a-ttx small.done { color: #eab308; }
+        .qdb-a-tabnote { margin: 8px 2px 14px; font-size: 12.5px; color: var(--text-muted); line-height: 1.5; }
+        .qdb-a-full-row { grid-column: 1 / -1; }
+        .qdb-a-fmt { margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 11px; color: #713f12; background: linear-gradient(135deg, #fef9c3, #facc15); text-transform: none; letter-spacing: 0; }
+        @media (max-width: 520px) { .qdb-a-tabs button { flex-direction: column; text-align: center; gap: 6px; padding: 10px 6px; } .qdb-a-ttx { align-items: center; } .qdb-a-ttx small { white-space: normal; } }
         .qdb-a-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
         @media (max-width: 720px) { .qdb-a-grid { grid-template-columns: 1fr; } }
         .qdb-a-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; border-radius: var(--radius-lg); background: var(--bg-body); border: 1px solid var(--border-strong); }
@@ -7018,15 +7182,18 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
     <script id="qdb-admin-js">
     /* Thiết lập sơ đồ giải đấu (admin): thể thức Đơn/Đôi, quy mô 4-64, cách xếp cặp, tranh hạng 3, hiện nút cho thành viên
        - Nguồn tuyển thủ: danh sách giải đấu (collection "tournament"); Giải Đôi lấy các đội đã "Gộp Đội", người lẻ tự ghép đôi
-       - Lưu tại settings/tournament_bracket, trang user tự cập nhật theo thời gian thực */
+       - 2 sơ đồ độc lập: Giải Đơn = settings/tournament_bracket, Giải Đôi = settings/tournament_bracket_double
+         (sơ đồ đôi cũ nằm ở tournament_bracket tự chuyển sang tournament_bracket_double). Trang user tự cập nhật theo thời gian thực */
     (function () {
         'use strict';
         var root = document.getElementById('qdb-admin');
         if (!root || !window.QDB || typeof db === 'undefined') return;
-        var REF = db.collection('settings').doc('tournament_bracket');
+        var REFS = { single: db.collection('settings').doc('tournament_bracket'), double: db.collection('settings').doc('tournament_bracket_double') };
+        var FN = { single: 'Giải Đơn', double: 'Giải Đôi' };
         var $ = function (id) { return document.getElementById(id); };
         var esc = QDB.esc, toast = function (m, t) { if (typeof Utils !== 'undefined' && Utils.toast) Utils.toast(m, t || 'success'); };
-        var A = window.QDBAdmin = { cfg: null, loaded: false, parts: [], fmt: 'single', dirty: false, draft: null };
+        var A = window.QDBAdmin = { cfg: null, cfgs: { single: null, double: null }, got: {}, loaded: {}, parts: [], fmt: 'single', dirty: false, draft: null };
+        function ref() { return REFS[A.fmt]; }
         var SIZES = [4, 8, 16, 32, 64];
         var NO_TEAM = /^\s*(chưa phân đội|---|)\s*$/i;
 
@@ -7082,10 +7249,36 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             sel.innerHTML = SIZES.map(function (n) { return '<option value="' + n + '">' + (dbl ? n + ' đội (' + n * 2 + ' người)' : n + ' người') + '</option>'; }).join('');
             sel.value = String(SIZES.indexOf(cur) >= 0 ? cur : 8);
         }
-        function setFmt(f) {
-            A.fmt = f === 'double' ? 'double' : 'single';
-            root.querySelectorAll('#qdb-a-format button').forEach(function (b) { var on = b.getAttribute('data-v') === A.fmt; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
-            fillSizes(); info();
+        // Chuyển giữa 2 sơ đồ độc lập (Đơn / Đôi)
+        function tabUI() {
+            root.querySelectorAll('#qdb-a-tabs button').forEach(function (b) { var on = b.getAttribute('data-f') === A.fmt; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+            $('qdb-a-fmt-lbl').textContent = FN[A.fmt] + (A.fmt === 'double' ? ' · 2 vs 2' : ' · 1 vs 1');
+            $('qdb-a-en-lbl').textContent = '"Sơ Đồ ' + FN[A.fmt] + '"';
+            $('qdb-a-title').placeholder = A.fmt === 'double' ? 'VD: Giải Đôi Xuân Đinh Mùi 2027' : 'VD: Giải Đơn Xuân Đinh Mùi 2027';
+        }
+        function tabBadges() {
+            ['single', 'double'].forEach(function (f) {
+                var el = $('qdb-a-tab-' + f), c = A.cfgs[f]; if (!el) return;
+                el.className = '';
+                if (!A.got[f]) { el.textContent = 'Đang tải...'; return; }
+                if (!c) { el.textContent = 'Chưa tạo'; return; }
+                if (!(c.entries || []).some(Boolean)) { el.textContent = 'Chưa xếp cặp'; return; }
+                var C = QDB.compute(c), st = QDB.status(C);
+                el.textContent = C.N + ' suất · ' + QDB.STATUS_TXT[st] + (c.enabled === false ? ' · đang ẩn' : '');
+                if (st === 'live' || st === 'done') el.className = st;
+            });
+        }
+        function setFmt(f, force) {
+            f = f === 'double' ? 'double' : 'single';
+            if (f === A.fmt && !force) return;
+            var go = function () {
+                A.fmt = f; A.cfg = A.cfgs[f]; A.dirty = false; A.picked = true;
+                try { localStorage.setItem('qdb_admin_tab', f); } catch (e) {}
+                $('qdb-a-slotbox').hidden = true;
+                tabUI(); fillForm(); paint(); info(); advPanel();
+            };
+            if (A.dirty && !force) ask('Cài đặt sơ đồ <b>' + FN[A.fmt] + '</b> chưa lưu. Chuyển sang <b>' + FN[f] + '</b> và bỏ các thay đổi này?', go);
+            else go();
         }
         function fillForm() {
             var c = A.cfg || {};
@@ -7093,13 +7286,12 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             $('qdb-a-seed').value = c.seedMode || 'random';
             $('qdb-a-third').checked = c.third !== false;
             $('qdb-a-enabled').checked = c.enabled !== false;
-            $('qdb-a-size').value = String(c.size || 8);
-            setFmt(c.format || 'single');
-            $('qdb-a-size').value = String(c.size || 8);
+            fillSizes();
+            $('qdb-a-size').value = String(SIZES.indexOf(+c.size) >= 0 ? c.size : 8);
             A.dirty = false;
         }
         function form() {
-            return { title: $('qdb-a-title').value.trim() || 'Giải Đấu Xuân', format: A.fmt, size: +$('qdb-a-size').value || 8, seedMode: $('qdb-a-seed').value,
+            return { title: $('qdb-a-title').value.trim() || (A.fmt === 'double' ? 'Giải Đôi Xuân' : 'Giải Đơn Xuân'), format: A.fmt, size: +$('qdb-a-size').value || 8, seedMode: $('qdb-a-seed').value,
                 third: $('qdb-a-third').checked, enabled: $('qdb-a-enabled').checked };
         }
         function info() {
@@ -7118,19 +7310,21 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         /* ---------- Sơ đồ xem trước ---------- */
         function paint() {
             var c = A.cfg, st = $('qdb-a-status'), tree = $('qdb-a-tree');
+            tabBadges();
             if (!c || !(c.entries || []).some(Boolean)) {
-                st.textContent = c ? 'Đã lưu cài đặt · chưa xếp cặp' : 'Chưa tạo';
-                tree.innerHTML = '<div class="qdb-empty">Chưa có sơ đồ. Chọn thể thức, quy mô rồi bấm "Tạo / Xếp Lại Sơ Đồ".</div>';
+                st.textContent = FN[A.fmt] + ' · ' + (!A.got[A.fmt] ? 'đang tải...' : c ? 'đã lưu cài đặt · chưa xếp cặp' : 'chưa tạo');
+                st.style.color = 'var(--text-muted)';
+                tree.innerHTML = '<div class="qdb-empty">' + (!A.got[A.fmt] ? 'Đang tải sơ đồ...' : 'Chưa có sơ đồ ' + FN[A.fmt] + '. Chọn quy mô, cách xếp cặp rồi bấm "Tạo / Xếp Lại Sơ Đồ".') + '</div>';
                 return;
             }
             var C = QDB.compute(c), s = QDB.status(C);
-            st.textContent = (c.format === 'double' ? 'Giải Đôi' : 'Giải Đơn') + ' · ' + C.N + ' suất · ' + QDB.STATUS_TXT[s] + (c.enabled === false ? ' · đang ẩn với thành viên' : '');
+            st.textContent = FN[A.fmt] + ' · ' + C.N + ' suất · ' + QDB.STATUS_TXT[s] + (c.enabled === false ? ' · đang ẩn với thành viên' : '');
             st.style.color = s === 'done' ? '#eab308' : s === 'live' ? 'var(--color-success)' : 'var(--text-muted)';
             var sl = tree.scrollLeft, stp = tree.scrollTop, first = !tree.querySelector('.qdb-tree');
             tree.innerHTML = QDB.treeHTML(c, { admin: true });
             if (first) { tree.scrollLeft = Math.max(0, (tree.scrollWidth - tree.clientWidth) / 2); tree.scrollTop = 0; }   // mở giữa sơ đồ (chung kết)
             else { tree.scrollLeft = sl; tree.scrollTop = stp; }
-            if (QDB.isOpen() && A.full) QDB.update(c);
+            if (QDB.isOpen() && A.full === A.fmt) QDB.update(c);
         }
         var ctx = {
             getAccount: function (u) {
@@ -7237,7 +7431,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         }
         function save(patch, msg) {
             patch.updatedAt = Date.now();
-            return REF.update(patch).then(function () { if (msg) toast(msg, 'success'); }).catch(function (e) { console.error(e); toast('Lỗi lưu sơ đồ giải đấu.', 'error'); });
+            return ref().update(patch).then(function () { if (msg) toast(msg, 'success'); }).catch(function (e) { console.error(e); toast('Lỗi lưu sơ đồ giải đấu.', 'error'); });
         }
 
         /* ---------- Chỉnh tay vị trí ---------- */
@@ -7288,7 +7482,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             if (bp.pool.length < 2) return toast('Cần ít nhất 2 ' + unit + ' trong danh sách giải đấu (bấm "Thêm Người Chơi").', 'warning');
             var go = function () {
                 var doc = Object.assign(f, { entries: seedEntries(bp.pool.slice(0, f.size), f.size), results: {}, updatedAt: Date.now(), createdAt: (A.cfg && A.cfg.createdAt) || Date.now() });
-                REF.set(doc).then(function () {
+                ref().set(doc).then(function () {
                     A.dirty = false; $('qdb-a-slotbox').hidden = true;
                     toast('Đã tạo sơ đồ ' + (f.format === 'double' ? 'Giải Đôi' : 'Giải Đơn') + ' ' + f.size + ' ' + unit + (bp.pool.length > f.size ? ' (' + (bp.pool.length - f.size) + ' ' + unit + ' không có suất)' : '') + '.', 'success');
                 }).catch(function (e) { console.error(e); toast('Lỗi tạo sơ đồ giải đấu.', 'error'); });
@@ -7300,16 +7494,16 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         function saveSettings() {
             var f = form();
             if (!A.cfg) {
-                return REF.set(Object.assign(f, { entries: [], results: {}, updatedAt: Date.now() })).then(function () { A.dirty = false; toast('Đã lưu cài đặt. Bấm "Tạo / Xếp Lại Sơ Đồ" để xếp cặp.', 'success'); });
+                return ref().set(Object.assign(f, { entries: [], results: {}, updatedAt: Date.now() })).then(function () { A.dirty = false; toast('Đã lưu cài đặt. Bấm "Tạo / Xếp Lại Sơ Đồ" để xếp cặp.', 'success'); });
             }
             var changed = (A.cfg.format || 'single') !== f.format || +A.cfg.size !== f.size;
-            save({ title: f.title, seedMode: f.seedMode, third: f.third, enabled: f.enabled }, changed ? null : 'Đã lưu cài đặt sơ đồ.').then(function () {
+            save({ title: f.title, seedMode: f.seedMode, third: f.third, enabled: f.enabled }, changed ? null : 'Đã lưu cài đặt sơ đồ ' + FN[A.fmt] + '.').then(function () {
                 A.dirty = false;
                 if (changed) toast('Đã lưu tên/tùy chọn. Đổi thể thức hoặc quy mô cần bấm "Tạo / Xếp Lại Sơ Đồ".', 'warning');
             });
         }
 
-        root.querySelector('#qdb-a-format').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { setFmt(b.getAttribute('data-v')); A.dirty = true; } });
+        root.querySelector('#qdb-a-tabs').addEventListener('click', function (e) { var b = e.target.closest('button[data-f]'); if (b) setFmt(b.getAttribute('data-f')); });
         ['qdb-a-title', 'qdb-a-size', 'qdb-a-seed', 'qdb-a-third', 'qdb-a-enabled'].forEach(function (id) {
             $(id).addEventListener('input', function () { A.dirty = true; if (id === 'qdb-a-size') info(); });
             $(id).addEventListener('change', function () { A.dirty = true; info(); });
@@ -7332,32 +7526,435 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         $('qdb-a-slots').onclick = function () { var b = $('qdb-a-slotbox'); if (!b.hidden) { b.hidden = true; return; } slotEditor(); };
         $('qdb-a-full').onclick = function () {
             if (!A.cfg || !(A.cfg.entries || []).some(Boolean)) return toast('Chưa có sơ đồ để xem.', 'warning');
-            A.full = true; QDB.open(A.cfg, { admin: true, onEntry: detail, onMatch: openMatch });
+            A.full = A.fmt; QDB.open(A.cfg, { admin: true, onEntry: detail, onMatch: openMatch });
         };
         $('qdb-a-reset').onclick = function () {
             if (!A.cfg || !Object.keys(A.cfg.results || {}).length) return toast('Chưa có kết quả nào để xóa.', 'info');
-            ask('Xóa <b>toàn bộ kết quả</b> của sơ đồ? Các cặp đấu vòng đầu được giữ nguyên.', function () { save({ results: {} }, 'Đã xóa toàn bộ kết quả.'); });
+            ask('Xóa <b>toàn bộ kết quả</b> của sơ đồ <b>' + FN[A.fmt] + '</b>? Các cặp đấu vòng đầu được giữ nguyên. Sơ đồ ' + FN[A.fmt === 'double' ? 'single' : 'double'] + ' không bị ảnh hưởng.', function () { save({ results: {} }, 'Đã xóa toàn bộ kết quả ' + FN[A.fmt] + '.'); });
         };
         $('qdb-a-del').onclick = function () {
             if (!A.cfg) return toast('Chưa có sơ đồ.', 'info');
-            ask('Xóa hẳn <b>sơ đồ giải đấu</b>? Thành viên sẽ không còn thấy nút "Sơ Đồ Giải Đấu".', function () {
-                REF.delete().then(function () { toast('Đã xóa sơ đồ giải đấu.', 'success'); }).catch(function () { toast('Không thể xóa sơ đồ.', 'error'); });
+            var f = A.fmt;
+            ask('Xóa hẳn <b>sơ đồ ' + FN[f] + '</b>? Thành viên sẽ không còn thấy nút "Sơ Đồ ' + FN[f] + '". Sơ đồ ' + FN[f === 'double' ? 'single' : 'double'] + ' giữ nguyên.', function () {
+                REFS[f].delete().then(function () { toast('Đã xóa sơ đồ ' + FN[f] + '.', 'success'); }).catch(function () { toast('Không thể xóa sơ đồ.', 'error'); });
             });
         };
         QDB.bind($('qdb-a-tree'), function () { return A.cfg; }, { admin: true, onEntry: detail, onMatch: openMatch });
 
-        fillSizes();
-        REF.onSnapshot(function (doc) {
-            A.cfg = doc.exists ? doc.data() : null;
-            if (!A.loaded || !A.dirty) fillForm();
-            A.loaded = true;
-            paint(); info(); advPanel();
-            if (QDB.isOpen() && A.full) { if (A.cfg && (A.cfg.entries || []).some(Boolean)) QDB.update(A.cfg); else QDB.close(); }
-        }, function (e) { console.error(e); $('qdb-a-info').textContent = 'Không đọc được dữ liệu sơ đồ (kiểm tra quyền Firestore).'; });
+        // Mở lại đúng tab lần trước; lần đầu: tab nào đã có sơ đồ thì mở tab đó
+        try { var lt = localStorage.getItem('qdb_admin_tab'); if (lt === 'double' || lt === 'single') { A.fmt = lt; A.picked = true; } } catch (e) {}
+        tabUI(); fillSizes();
+        // Sơ đồ Giải Đôi tạo từ bản cũ (chung 1 chỗ) -> chuyển sang chỗ riêng của Giải Đôi
+        function migrate() {
+            if (A.migrated || !A.got.single || !A.got.double) return;
+            A.migrated = true;
+            var old = A.cfgs.single;
+            if (old && old.format === 'double' && !A.cfgs.double) {
+                REFS.double.set(old).then(function () { return REFS.single.delete(); })
+                    .then(function () { toast('Đã chuyển sơ đồ Giải Đôi cũ sang mục "Sơ Đồ Giải Đôi" riêng.', 'info'); })
+                    .catch(function (e) { console.error(e); A.migrated = false; });
+            }
+            var noSingle = !A.cfgs.single || A.cfgs.single.format === 'double';
+            if (!A.picked && noSingle && (A.cfgs.double || (old && old.format === 'double'))) setFmt('double', true);
+        }
+        ['single', 'double'].forEach(function (f) {
+            REFS[f].onSnapshot(function (doc) {
+                A.cfgs[f] = doc.exists ? doc.data() : null;
+                A.got[f] = true;
+                migrate();
+                if (f !== A.fmt) { tabBadges(); return; }
+                A.cfg = A.cfgs[f];
+                if (!A.loaded[f] || !A.dirty) fillForm();
+                A.loaded[f] = true;
+                paint(); info(); advPanel();
+                if (QDB.isOpen() && A.full === f) { if (A.cfg && (A.cfg.entries || []).some(Boolean)) QDB.update(A.cfg); else QDB.close(); }
+            }, function (e) { console.error(e); A.got[f] = true; tabBadges(); if (f === A.fmt) $('qdb-a-info').textContent = 'Không đọc được dữ liệu sơ đồ ' + FN[f] + ' (kiểm tra quyền Firestore).'; });
+        });
         db.collection('tournament').onSnapshot(function (snap) {
             A.parts = []; snap.forEach(function (d) { var x = d.data(); x._id = d.id; A.parts.push(x); });
             info();
         });
+    })();
+    </script>
+    <!-- ===== NÉM CÒN (admin): cấu hình sân, tặng lượt ném, bảng xếp hạng, lượt ném gần đây ===== -->
+    <style id="nemcon-admin-css">
+        .nc-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        @media (max-width: 720px) { .nc-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .nc-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+        @media (max-width: 1100px) { .nc-grid { grid-template-columns: 1fr; } }
+        .nc-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+        .nc-form .form-control { padding: 12px 14px; }
+        .nc-full { grid-column: 1 / -1; }
+        @media (max-width: 560px) { .nc-form { grid-template-columns: 1fr; } }
+        .nc-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 4px; border-radius: var(--radius-lg); background: var(--bg-body); border: 1px solid var(--border-strong); }
+        .nc-seg button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 9px 6px; border: 1px solid transparent; border-radius: var(--radius-md); background: transparent; color: var(--text-muted); font: inherit; cursor: pointer; text-align: center; }
+        .nc-seg button b { font-size: 14px; } .nc-seg button small { font-size: 11px; font-weight: 600; line-height: 1.3; }
+        .nc-seg button.on { background: var(--bg-elevated); color: var(--text-main); border-color: #f97316; box-shadow: 0 4px 12px rgba(249, 115, 22, .18); }
+        .nc-check { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
+        .nc-check input { width: 18px; height: 18px; accent-color: #f97316; }
+        .nc-gift { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto; gap: 8px; }
+        .nc-gift .form-control { padding: 12px 14px; }
+        .nc-gift .btn { padding: 12px 16px; }
+        .nc-pk td { padding: 8px 6px; vertical-align: middle; }
+        .nc-pk .form-control { padding: 9px 10px; font-size: 14px; }
+        .nc-pk .pk-icon { text-align: center; font-size: 18px; }
+        .nc-pk tr.off td { opacity: .5; }
+        .nc-pk input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: #eab308; }
+        .nc-res { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+        .nc-res.hit { background: var(--color-success-bg); color: var(--color-success); }
+        .nc-res.rim { background: var(--color-warning-bg); color: var(--color-warning); }
+        .nc-res.miss { background: var(--bg-elevated); color: var(--text-muted); }
+    </style>
+    <script id="nemcon-admin-js">
+    /* settings/con_config, con_stats, con_history, accounts.conThrows (xem chú thích trong game.html) */
+    (function () {
+        'use strict';
+        if (!document.getElementById('view-nemcon') || typeof db === 'undefined') return;
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var toast = function (m, t) { if (typeof Utils !== 'undefined' && Utils.toast) Utils.toast(m, t || 'success'); };
+        var FV = firebase.firestore.FieldValue, CFG = db.collection('settings').doc('con_config');
+        var DEF = { enabled: true, difficulty: 'normal', wind: true, hitPoints: 20, rimPoints: 5, streakEvery: 3, streakBonus: 30, freePerDay: 3, closedMsg: '' };
+        function int(v, def, min, max) { v = parseInt(v, 10); if (isNaN(v)) v = def; return Math.min(max, Math.max(min, v)); }
+        function norm(c) {
+            c = c || {};
+            return { enabled: c.enabled !== false, difficulty: ['easy', 'normal', 'hard'].indexOf(c.difficulty) >= 0 ? c.difficulty : 'normal', wind: c.wind !== false,
+                hitPoints: int(c.hitPoints, DEF.hitPoints, 0, 100000), rimPoints: int(c.rimPoints, DEF.rimPoints, 0, 100000), streakEvery: int(c.streakEvery, DEF.streakEvery, 0, 100),
+                streakBonus: int(c.streakBonus, DEF.streakBonus, 0, 100000), freePerDay: int(c.freePerDay, DEF.freePerDay, 0, 100), closedMsg: String(c.closedMsg || '').slice(0, 200), shopEnabled: c.shopEnabled !== false };
+        }
+        var NC = window.NemConAdmin = { cfg: null, diff: 'normal', dirty: false, started: false, stats: [], users: [] };
+        function me() { try { return (typeof State !== 'undefined' && State.currentUser) || 'admin'; } catch (e) { return 'admin'; } }
+
+        /* ---------- Cấu hình ---------- */
+        function setDiff(v) { NC.diff = v; document.querySelectorAll('#nc-diff button').forEach(function (b) { var on = b.getAttribute('data-v') === v; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); }); }
+        function statusText(on) { var s = $('nc-status-text'); s.textContent = on ? 'ĐANG MỞ SÂN' : 'ĐANG ĐÓNG'; s.style.color = on ? 'var(--color-success)' : 'var(--color-danger)'; }
+        function fill() {
+            var c = norm(NC.cfg);
+            $('nc-enabled').checked = c.enabled; statusText(c.enabled); setDiff(c.difficulty); $('nc-wind').checked = c.wind;
+            $('nc-hit').value = c.hitPoints; $('nc-rim').value = c.rimPoints; $('nc-severy').value = c.streakEvery; $('nc-sbonus').value = c.streakBonus;
+            $('nc-free').value = c.freePerDay; $('nc-closed').value = c.closedMsg; dirty(false);
+            $('nc-shop-on').checked = c.shopEnabled; shopStatus(c.shopEnabled);
+        }
+        function dirty(on) { NC.dirty = on; $('nc-dirty').innerHTML = on ? '<span class="text-warning font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Có thay đổi chưa lưu</span>' : ''; }
+        function read() {
+            return norm({ enabled: $('nc-enabled').checked, difficulty: NC.diff, wind: $('nc-wind').checked, hitPoints: $('nc-hit').value, rimPoints: $('nc-rim').value,
+                streakEvery: $('nc-severy').value, streakBonus: $('nc-sbonus').value, freePerDay: $('nc-free').value, closedMsg: $('nc-closed').value.trim(), shopEnabled: $('nc-shop-on').checked });
+        }
+        $('nc-diff').addEventListener('click', function (e) { var b = e.target.closest('button[data-v]'); if (b) { setDiff(b.getAttribute('data-v')); dirty(true); } });
+        ['nc-wind', 'nc-hit', 'nc-rim', 'nc-severy', 'nc-sbonus', 'nc-free', 'nc-closed'].forEach(function (id) { $(id).addEventListener('input', function () { dirty(true); }); $(id).addEventListener('change', function () { dirty(true); }); });
+        // Bật / tắt sân: lưu ngay
+        $('nc-enabled').addEventListener('change', function () {
+            var on = this.checked; statusText(on);
+            CFG.set({ enabled: on, updatedAt: Date.now() }, { merge: true }).then(function () { toast(on ? 'Đã mở sân Ném Còn.' : 'Đã đóng sân Ném Còn.', on ? 'success' : 'warning'); })
+                .catch(function () { toast('Lỗi lưu trạng thái sân.', 'error'); });
+        });
+        $('nc-save').onclick = function () {
+            var c = read(); c.updatedAt = Date.now();
+            CFG.set(c, { merge: true }).then(function () { dirty(false); toast('Đã lưu cấu hình Ném Còn!', 'success'); }).catch(function () { toast('Lỗi lưu cấu hình.', 'error'); });
+        };
+
+        /* ---------- Tặng lượt ---------- */
+        $('nc-g-user').addEventListener('input', function () {
+            var u = this.value.trim(), x = NC.users.filter(function (a) { return a.user === u; })[0];
+            $('nc-g-info').innerHTML = x ? '<span class="text-muted">Đang có <b class="text-main">' + (x.conThrows || 0) + '</b> lượt ném · ' + (x.points || 0).toLocaleString('vi-VN') + ' điểm</span>' : '';
+        });
+        $('nc-g-one').onclick = function () {
+            var u = $('nc-g-user').value.trim(), n = parseInt($('nc-g-n').value, 10), btn = this;
+            if (!u) return toast('Nhập tên đăng nhập của thành viên.', 'warning');
+            if (isNaN(n) || n === 0) return toast('Số lượt không hợp lệ.', 'warning');
+            btn.disabled = true;
+            db.collection('accounts').where('user', '==', u).limit(1).get().then(function (s) {
+                if (s.empty) throw { code: 'NOUSER' };
+                var ref = s.docs[0].ref;
+                return db.runTransaction(function (t) {
+                    return t.get(ref).then(function (d) {
+                        var cur = Number(d.data().conThrows) || 0, nv = Math.max(0, cur + n);
+                        t.update(ref, { conThrows: nv });
+                        t.set(db.collection('admin_logs').doc(), { user: u, type: 'conThrows', action: 'add', amount: n, by: me(), timestamp: Date.now() });
+                        return nv;
+                    });
+                });
+            }).then(function (nv) {
+                toast((n > 0 ? 'Đã tặng ' + n : 'Đã trừ ' + (-n)) + ' lượt ném còn cho ' + u + ' (còn ' + nv + ' lượt).', 'success');
+                var x = NC.users.filter(function (a) { return a.user === u; })[0]; if (x) x.conThrows = nv; $('nc-g-user').dispatchEvent(new Event('input'));
+            }).catch(function (e) { toast(e && e.code === 'NOUSER' ? 'Không tìm thấy tài khoản "' + u + '".' : 'Lỗi tặng lượt.', 'error'); })
+              .then(function () { btn.disabled = false; });
+        };
+        $('nc-g-all').onclick = function () {
+            var n = parseInt($('nc-g-alln').value, 10), btn = this;
+            if (isNaN(n) || n < 1) return toast('Số lượt phải từ 1 trở lên.', 'warning');
+            if (!confirm('Tặng ' + n + ' lượt ném còn cho TẤT CẢ thành viên (trừ tài khoản đang bị khóa)?')) return;
+            btn.disabled = true;
+            db.collection('accounts').get().then(function (snap) {
+                var refs = []; snap.forEach(function (d) { if (d.data().isBlocked !== true) refs.push(d.ref); });
+                var chunks = []; for (var i = 0; i < refs.length; i += 450) chunks.push(refs.slice(i, i + 450));
+                return chunks.reduce(function (p, ch) { return p.then(function () { var b = db.batch(); ch.forEach(function (r) { b.update(r, { conThrows: FV.increment(n) }); }); return b.commit(); }); }, Promise.resolve())
+                    .then(function () { return db.collection('admin_logs').add({ user: '(tất cả)', type: 'conThrows', action: 'add', amount: n, count: refs.length, by: me(), timestamp: Date.now() }); })
+                    .then(function () { return refs.length; });
+            }).then(function (k) { toast('Đã tặng ' + n + ' lượt ném còn cho ' + k + ' thành viên!', 'success'); loadUsers(); })
+              .catch(function (e) { console.error(e); toast('Lỗi tặng lượt hàng loạt (có thể đã tặng một phần).', 'error'); })
+              .then(function () { btn.disabled = false; });
+        };
+        function loadUsers() {
+            db.collection('accounts').get().then(function (snap) {
+                NC.users = []; snap.forEach(function (d) { var x = d.data(); if (x.user) NC.users.push({ user: x.user, conThrows: Number(x.conThrows) || 0, points: Number(x.points) || 0 }); });
+                NC.users.sort(function (a, b) { return a.user.localeCompare(b.user); });
+                $('nc-users').innerHTML = NC.users.map(function (a) { return '<option value="' + esc(a.user) + '">'; }).join('');
+            }).catch(function () {});
+        }
+
+        /* ---------- Thống kê, bảng xếp hạng, lịch sử ---------- */
+        function renderStats() {
+            var rows = NC.stats.filter(function (x) { return (x.throws || 0) > 0; }), T = 0, Hh = 0, Pp = 0;
+            rows.forEach(function (x) { T += x.throws || 0; Hh += x.hits || 0; Pp += x.points || 0; });
+            $('nc-s-players').textContent = rows.length; $('nc-s-throws').textContent = T.toLocaleString('vi-VN');
+            $('nc-s-hits').textContent = Hh.toLocaleString('vi-VN') + (T ? ' (' + Math.round(Hh / T * 100) + '%)' : ''); $('nc-s-points').textContent = Pp.toLocaleString('vi-VN');
+            rows.sort(function (a, b) { return (b.hits || 0) - (a.hits || 0) || (b.best || 0) - (a.best || 0) || (a.throws || 0) - (b.throws || 0); });
+            $('nc-tb-lb').innerHTML = rows.length ? rows.map(function (x, i) {
+                return '<tr><td class="font-bold">' + (i + 1) + '</td><td><b>' + esc(x.user) + '</b></td><td class="text-center">' + (x.throws || 0) + '</td><td class="text-center font-bold text-success">' + (x.hits || 0) + '</td>'
+                    + '<td class="text-center">' + (x.rims || 0) + '</td><td class="text-center">' + (x.throws ? Math.round((x.hits || 0) / x.throws * 100) : 0) + '%</td><td class="text-center">' + (x.best || 0) + '</td>'
+                    + '<td class="text-right font-bold" style="font-family: var(--font-family-mono);">' + (x.points || 0).toLocaleString('vi-VN') + '</td></tr>';
+            }).join('') : '<tr><td colspan="8" class="text-center text-muted py-8">Chưa có ai ném còn.</td></tr>';
+        }
+        $('nc-reset').onclick = function () {
+            if (!confirm('Làm mới bảng xếp hạng Ném Còn? Thống kê lượt ném / lọt vòng / chuỗi của mọi người về 0 (điểm đã thưởng và lượt ném trong tài khoản giữ nguyên).')) return;
+            db.collection('con_stats').get().then(function (snap) {
+                var refs = []; snap.forEach(function (d) { refs.push(d.ref); });
+                var chunks = []; for (var i = 0; i < refs.length; i += 450) chunks.push(refs.slice(i, i + 450));
+                return chunks.reduce(function (p, ch) { return p.then(function () { var b = db.batch(); ch.forEach(function (r) { b.delete(r); }); return b.commit(); }); }, Promise.resolve());
+            }).then(function () { toast('Đã làm mới bảng xếp hạng Ném Còn.', 'success'); }).catch(function () { toast('Lỗi làm mới bảng xếp hạng.', 'error'); });
+        };
+        var RES = { hit: '🎯 Lọt vòng', rim: '🥏 Chạm vành', miss: '💨 Trượt', free: '🎁 Nhận lượt miễn phí' };
+        function renderHist(list) {
+            $('nc-tb-hist').innerHTML = list.length ? list.map(function (x) {
+                return '<tr><td class="text-muted text-sm">' + esc(new Date(x.ts).toLocaleString('vi-VN')) + '</td><td><b>' + esc(x.user) + '</b></td>'
+                    + '<td class="text-center"><span class="nc-res ' + esc(x.result === 'free' ? 'hit' : x.result) + '">' + (RES[x.result] || esc(x.result)) + (x.result === 'free' ? ' +' + (x.amount || 0) + ' lượt' : '') + (x.bonus ? ' · 🔥 chuỗi ' + x.streak : '') + '</span></td>'
+                    + '<td class="text-center text-muted">' + (x.wind ? (x.wind > 0 ? '→ ' : '← ') + Math.abs(x.wind).toFixed(1) : '—') + '</td>'
+                    + '<td class="text-right font-bold ' + (x.points > 0 ? 'text-success' : 'text-muted') + '">' + (x.result === 'free' ? '—' : x.points > 0 ? '+' + x.points : '0') + '</td></tr>';
+            }).join('') : '<tr><td colspan="5" class="text-center text-muted py-8">Chưa có lượt ném nào.</td></tr>';
+        }
+
+
+        /* ---------- Gói đổi lượt ném: sửa các vật phẩm loại 'conThrows' trong settings/point_shop_config.items ---------- */
+        var SHOP = db.collection('settings').doc('point_shop_config');
+        var PK_DEF = [
+            { id: 'nc_def1', icon: '🎯', name: '1 Lượt ném còn', type: 'conThrows', amount: 1, cost: 25, stock: null, dailyLimit: null, active: true },
+            { id: 'nc_def5', icon: '🎯', name: 'Combo 5 lượt ném còn', type: 'conThrows', amount: 5, cost: 110, stock: null, dailyLimit: null, active: true },
+            { id: 'nc_def10', icon: '🎯', name: 'Combo 10 lượt ném còn', type: 'conThrows', amount: 10, cost: 200, stock: null, dailyLimit: null, active: true }
+        ];
+        NC.pk = { cfg: null, counts: {}, dirty: false, isDef: false };
+        function pkFromCfg(cfg) {
+            var l = ((cfg && Array.isArray(cfg.items)) ? cfg.items : []).filter(function (x) { return x && x.type === 'conThrows'; });
+            NC.pk.isDef = !l.length;
+            return (l.length ? l : PK_DEF).map(function (x) { return JSON.parse(JSON.stringify(x)); });
+        }
+        function pkRow(x) {
+            var v = function (n) { return n == null ? '' : n; };
+            return '<tr data-id="' + esc(x.id) + '" class="' + (x.active === false ? 'off' : '') + '">'
+                + '<td><input class="form-control pk-icon" maxlength="4" value="' + esc(x.icon || '🎯') + '"></td>'
+                + '<td><input class="form-control pk-name" maxlength="50" value="' + esc(x.name || '') + '" placeholder="Tên gói"></td>'
+                + '<td><input type="number" class="form-control pk-amount" min="1" step="1" value="' + esc(x.amount || 1) + '"></td>'
+                + '<td><input type="number" class="form-control pk-cost" min="0" step="1" value="' + esc(x.cost == null ? 0 : x.cost) + '" style="font-weight: 700; color: var(--color-success);"></td>'
+                + '<td><input type="number" class="form-control pk-stock" min="0" step="1" value="' + esc(v(x.stock)) + '" placeholder="∞"></td>'
+                + '<td class="text-center pk-sold">' + (NC.pk.counts[x.id] || 0) + '</td>'
+                + '<td><input type="number" class="form-control pk-daily" min="0" step="1" value="' + esc(v(x.dailyLimit)) + '" placeholder="∞"></td>'
+                + '<td class="text-center"><input type="checkbox" class="pk-active"' + (x.active !== false ? ' checked' : '') + '></td>'
+                + '<td class="text-center"><button class="btn-icon" style="width: 34px; height: 34px; color: var(--color-danger); border-color: rgba(239,68,68,.3);" title="Xóa gói" data-del><i class="fa-solid fa-trash-can"></i></button></td></tr>';
+        }
+        function pkRender(list) {
+            $('nc-pk-body').innerHTML = list.length ? list.map(pkRow).join('') : '<tr><td colspan="9" class="text-center text-muted py-6">Chưa có gói nào: sân sẽ không bán lượt ném. Bấm "Thêm gói" hoặc "Gói mặc định".</td></tr>';
+            pkDirty(NC.pk.dirty);
+        }
+        function pkDirty(on) {
+            NC.pk.dirty = on;
+            $('nc-pk-dirty').innerHTML = on ? '<span class="text-warning font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Có thay đổi chưa lưu</span>'
+                : NC.pk.isDef ? '<span class="text-muted">Đang dùng 3 gói mặc định (chưa lưu vào danh mục). Sửa rồi bấm "Lưu Gói" để dùng giá riêng.</span>' : '';
+        }
+        function pkNum(v) { v = String(v == null ? '' : v).trim(); if (v === '') return null; var n = parseInt(v, 10); return isNaN(n) || n < 0 ? NaN : n; }
+        function pkRead() {
+            var out = [], err = null;
+            document.querySelectorAll('#nc-pk-body tr[data-id]').forEach(function (tr, i) {
+                if (err) return;
+                var g = function (c) { return tr.querySelector(c).value; };
+                var x = { id: tr.getAttribute('data-id'), icon: (g('.pk-icon').trim() || '🎯').slice(0, 4), name: g('.pk-name').trim(), type: 'conThrows', amount: parseInt(g('.pk-amount'), 10),
+                    cost: parseInt(g('.pk-cost'), 10), stock: pkNum(g('.pk-stock')), dailyLimit: pkNum(g('.pk-daily')), active: tr.querySelector('.pk-active').checked };
+                if (!x.name) err = 'Tên gói dòng ' + (i + 1) + ' đang trống.';
+                else if (isNaN(x.amount) || x.amount < 1) err = 'Số lượt dòng ' + (i + 1) + ' phải từ 1 trở lên.';
+                else if (isNaN(x.cost) || x.cost < 0) err = 'Giá dòng ' + (i + 1) + ' không hợp lệ.';
+                else if (Number.isNaN(x.stock) || Number.isNaN(x.dailyLimit)) err = 'Kho / giới hạn dòng ' + (i + 1) + ' không hợp lệ (để trống = không giới hạn).';
+                out.push(x);
+            });
+            return err ? { err: err } : { list: out };
+        }
+        $('nc-pk-body').addEventListener('input', function () { pkDirty(true); });
+        $('nc-pk-body').addEventListener('change', function (e) { if (e.target.classList.contains('pk-active')) e.target.closest('tr').classList.toggle('off', !e.target.checked); pkDirty(true); });
+        $('nc-pk-body').addEventListener('click', function (e) {
+            var b = e.target.closest('[data-del]'); if (!b) return;
+            b.closest('tr').remove(); if (!document.querySelector('#nc-pk-body tr[data-id]')) pkRender([]); pkDirty(true);
+        });
+        $('nc-pk-add').onclick = function () {
+            var body = $('nc-pk-body'); if (!body.querySelector('tr[data-id]')) body.innerHTML = '';
+            body.insertAdjacentHTML('beforeend', pkRow({ id: 'nc' + Date.now().toString(36), icon: '🎯', name: '', type: 'conThrows', amount: 3, cost: 60, stock: null, dailyLimit: null, active: true }));
+            pkDirty(true); var last = body.querySelector('tr[data-id]:last-child .pk-name'); if (last) last.focus();
+        };
+        $('nc-pk-def').onclick = function () { if (!confirm('Đưa các gói về 3 gói mặc định? Bấm "Lưu Gói" để áp dụng.')) return; pkRender(PK_DEF.map(function (x) { return Object.assign({}, x); })); pkDirty(true); };
+        $('nc-pk-save').onclick = function () {
+            var r = pkRead(); if (r.err) return toast(r.err, 'warning');
+            var btn = this; btn.disabled = true;
+            db.runTransaction(function (t) {
+                return t.get(SHOP).then(function (d) {
+                    var items = ((d.exists && Array.isArray(d.data().items)) ? d.data().items : []).filter(function (x) { return x && x.type !== 'conThrows'; });
+                    t.set(SHOP, { items: items.concat(r.list) }, { merge: true });
+                });
+            }).then(function () { NC.pk.isDef = false; pkDirty(false); toast('Đã lưu ' + r.list.length + ' gói đổi lượt ném!', 'success'); })
+              .catch(function (e) { console.error(e); toast('Lỗi lưu gói đổi lượt ném.', 'error'); })
+              .then(function () { btn.disabled = false; });
+        };
+        function shopStatus(on) { var s = $('nc-shop-status'); s.textContent = on ? 'SÂN ĐANG BÁN' : 'SÂN ĐANG ẨN CỬA HÀNG'; s.style.color = on ? 'var(--color-success)' : 'var(--color-danger)'; }
+        $('nc-shop-on').addEventListener('change', function () {
+            var on = this.checked; shopStatus(on);
+            CFG.set({ shopEnabled: on, updatedAt: Date.now() }, { merge: true }).then(function () { toast(on ? 'Sân Ném Còn đã mở cửa hàng đổi lượt.' : 'Đã ẩn cửa hàng trong sân Ném Còn.', on ? 'success' : 'warning'); })
+                .catch(function () { toast('Lỗi lưu trạng thái cửa hàng.', 'error'); });
+        });
+        NC.startShop = function () {
+            SHOP.onSnapshot(function (d) { NC.pk.cfg = d.exists ? d.data() : {}; if (!NC.pk.dirty) pkRender(pkFromCfg(NC.pk.cfg)); }, function (e) { console.warn('point_shop_config', e); });
+            db.collection('point_shop_stock').doc('counts').onSnapshot(function (d) {
+                NC.pk.counts = (d.exists && d.data().counts) || {};
+                document.querySelectorAll('#nc-pk-body tr[data-id]').forEach(function (tr) { tr.querySelector('.pk-sold').textContent = NC.pk.counts[tr.getAttribute('data-id')] || 0; });
+            }, function () {});
+        };
+
+        /* ---------- Khởi động khi mở mục ---------- */
+        NC.start = function () {
+            if (NC.started) return; NC.started = true;
+            NC.startShop();
+            CFG.onSnapshot(function (d) { NC.cfg = d.exists ? d.data() : null; if (!NC.dirty) fill(); else { $('nc-enabled').checked = norm(NC.cfg).enabled; statusText(norm(NC.cfg).enabled); $('nc-shop-on').checked = norm(NC.cfg).shopEnabled; shopStatus(norm(NC.cfg).shopEnabled); } },
+                function (e) { console.warn('con_config', e); fill(); });
+            db.collection('con_stats').onSnapshot(function (snap) { NC.stats = []; snap.forEach(function (d) { NC.stats.push(d.data()); }); renderStats(); }, function (e) { console.warn('con_stats', e); });
+            db.collection('con_history').orderBy('ts', 'desc').limit(60).onSnapshot(function (snap) { var l = []; snap.forEach(function (d) { l.push(d.data()); }); renderHist(l); },
+                function (e) { console.warn('con_history', e); $('nc-tb-hist').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-8">Không tải được lịch sử.</td></tr>'; });
+            loadUsers();
+        };
+        function hook() {
+            if (typeof UI === 'undefined' || !UI.navigate || UI.navigate.__nc) return;
+            var base = UI.navigate;
+            UI.navigate = function (v) { var r = base.apply(this, arguments); if (v === 'nemcon' && document.getElementById('view-nemcon').classList.contains('active')) NC.start(); return r; };
+            UI.navigate.__nc = true;
+        }
+        hook(); document.addEventListener('DOMContentLoaded', hook); setInterval(hook, 3000);   // các lớp khác có thể bọc lại UI.navigate sau khi đăng nhập
+        if (document.getElementById('view-nemcon').classList.contains('active')) NC.start();
+    })();
+    </script>
+    <!-- ===== VÍ GIẢI TRÍ: điểm lì xì + lượt vòng quay / rút lì xì / ném còn của 1 tài khoản (Quản trị tài khoản) ===== -->
+    <div class="modal-overlay" id="modal-wallet" style="z-index: 1060;">
+        <div class="modal-content" style="max-width: 760px;">
+            <button class="modal-close-btn" onclick="UI.closeModal('modal-wallet')"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-4 mb-4 pb-4" style="border-bottom: 1px solid var(--border-strong);">
+                <div class="flex-center rounded-md" style="width: 44px; height: 44px; color: #fff; background: linear-gradient(135deg, #f59e0b, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 20px;">👛</div>
+                <div class="flex-col flex-1" style="min-width: 0;">
+                    <h2 class="text-xl m-0">Ví Giải Trí: <span id="wl-user" class="font-bold" style="color: #f59e0b;">...</span></h2>
+                    <div class="text-sm mt-1 text-muted" id="wl-sub">Số dư cập nhật theo thời gian thực</div>
+                </div>
+            </div>
+            <div class="wl-tabs" id="wl-tabs" role="tablist"></div>
+            <div class="wl-panel">
+                <div class="wl-bal">
+                    <div><div class="wl-bal-lbl" id="wl-bal-lbl">Điểm lì xì</div><div class="wl-bal-num" id="wl-bal-num">0</div><div class="text-xs text-muted" id="wl-bal-note"></div></div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="btn btn-warning" id="wl-adjust" style="padding: 10px 16px;"><i class="fa-solid fa-sliders mr-2"></i> Cấp / Trừ</button>
+                        <button class="btn btn-outline" id="wl-reload" style="padding: 10px 14px;" title="Tải lại lịch sử"><i class="fa-solid fa-rotate-right"></i></button>
+                    </div>
+                </div>
+                <div class="wl-stats" id="wl-stats"></div>
+                <div class="table-responsive" style="max-height: 360px; overflow-y: auto;">
+                    <table class="w-full">
+                        <thead style="position: sticky; top: 0; background: var(--bg-surface); z-index: 2;"><tr><th>Thời gian</th><th class="text-center">Biến động</th><th class="text-center">Dư</th><th>Nguồn / lý do</th></tr></thead>
+                        <tbody id="wl-hist"><tr><td colspan="4" class="text-center text-muted py-8">...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style id="wallet-css">
+        .wl-cell { display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap; padding: 5px 6px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--bg-elevated); cursor: pointer; font: inherit; transition: border-color .15s, transform .15s; }
+        .wl-cell:hover { border-color: #f59e0b; transform: translateY(-1px); }
+        .wl-c { display: inline-flex; align-items: center; gap: 3px; padding: 3px 9px; border-radius: 999px; font-size: 12.5px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .wl-c.pts { background: rgba(16, 185, 129, .14); color: var(--color-success); }
+        .wl-c.spn { background: rgba(245, 158, 11, .14); color: var(--color-warning); }
+        .wl-c.tkt { background: rgba(239, 68, 68, .12); color: var(--color-danger); }
+        .wl-c.con { background: rgba(249, 115, 22, .14); color: #f97316; }
+        .wl-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 4px; border-radius: var(--radius-lg); background: var(--bg-body); border: 1px solid var(--border-strong); margin-bottom: 14px; }
+        .wl-tabs button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 9px 4px; border-radius: var(--radius-md); border: 1px solid transparent; background: transparent; color: var(--text-muted); font: inherit; cursor: pointer; }
+        .wl-tabs button b { font-size: 18px; color: var(--text-main); font-variant-numeric: tabular-nums; }
+        .wl-tabs button span { font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .wl-tabs button.on { background: var(--bg-elevated); border-color: var(--tone); box-shadow: 0 4px 12px color-mix(in srgb, var(--tone) 22%, transparent); }
+        .wl-tabs button.on b { color: var(--tone); }
+        .wl-bal { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border-radius: var(--radius-lg); background: var(--bg-body); border: 1px solid var(--border-strong); margin-bottom: 10px; }
+        .wl-bal-lbl { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); }
+        .wl-bal-num { font-size: 34px; font-weight: 800; line-height: 1.1; color: var(--tone); font-variant-numeric: tabular-nums; }
+        .wl-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; font-size: 13px; }
+        .wl-stats span { padding: 5px 10px; border-radius: 999px; background: var(--bg-elevated); border: 1px solid var(--border-strong); color: var(--text-muted); font-weight: 700; }
+        .wl-stats b { color: var(--text-main); }
+        #modal-spins { z-index: 1070 !important; }
+        @media (max-width: 560px) { .wl-tabs button span { font-size: 10.5px; } .wl-tabs button b { font-size: 16px; } }
+    </style>
+    <script id="wallet-js">
+    (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var TYPES = [
+            { k: 'points', name: 'Điểm lì xì', short: 'Điểm', icon: '💰', tone: 'var(--color-success)', adj: true, note: 'Dùng để đổi lượt ở Trạm Quy Đổi / cửa hàng Ném Còn.' },
+            { k: 'spins', name: 'Lượt vòng quay', short: 'Vòng quay', icon: '🎡', tone: 'var(--color-warning)', adj: false, note: 'Lượt vòng quay nhận khi trả lời đúng câu hỏi (quản lý ở mục Vòng quay).' },
+            { k: 'tickets', name: 'Lượt rút lì xì', short: 'Rút lì xì', icon: '🧧', tone: 'var(--color-danger)', adj: true, note: 'Nhận từ Trạm Quy Đổi, điểm danh, mã mời hoặc admin cấp.' },
+            { k: 'conThrows', name: 'Lượt ném còn', short: 'Ném còn', icon: '🎯', tone: '#f97316', adj: true, note: 'Nhận từ lượt miễn phí mỗi ngày, đổi điểm hoặc admin tặng.' }
+        ];
+        var W = window.AccWallet = { acc: {}, id: null, tab: 'points', logs: null, loading: false };
+        W.put = function (id, d) { W.acc[id] = d; if (W.id === id && $('modal-wallet').classList.contains('active')) W.renderTop(); };
+        W.open = function (id) {
+            var d = W.acc[id]; if (!d) return;
+            W.id = id; W.logs = null; $('wl-user').textContent = d.user;
+            UI.openModal('modal-wallet'); W.renderTop(); W.load();
+        };
+        W.load = function () {
+            var d = W.acc[W.id]; if (!d || typeof AdminActions === 'undefined' || !AdminActions.collectUserLogs) return;
+            W.loading = true; W.renderHist(); var id = W.id;
+            AdminActions.collectUserLogs(d.user).then(function (r) { if (id !== W.id) return; W.logs = r.logs; })
+                .catch(function (e) { console.error(e); if (id === W.id) W.logs = 'err'; })
+                .then(function () { if (id !== W.id) return; W.loading = false; W.renderHist(); });
+        };
+        W.renderTop = function () {
+            var d = W.acc[W.id] || {}, t = TYPES.filter(function (x) { return x.k === W.tab; })[0];
+            $('wl-tabs').innerHTML = TYPES.map(function (x) {
+                return '<button type="button" role="tab" data-k="' + x.k + '" class="' + (x.k === W.tab ? 'on' : '') + '" style="--tone: ' + x.tone + ';"><b>' + (Number(d[x.k]) || 0).toLocaleString('vi-VN') + '</b><span>' + x.icon + ' ' + x.short + '</span></button>';
+            }).join('');
+            var panel = document.querySelector('#modal-wallet .wl-panel'); panel.style.setProperty('--tone', t.tone);
+            $('wl-bal-lbl').textContent = t.icon + ' ' + t.name; $('wl-bal-num').textContent = (Number(d[t.k]) || 0).toLocaleString('vi-VN'); $('wl-bal-note').textContent = t.note;
+            $('wl-adjust').style.display = t.adj ? '' : 'none';
+        };
+        W.renderHist = function () {
+            var tb = $('wl-hist');
+            if (W.loading || W.logs == null) { tb.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang thu thập dữ liệu...</td></tr>'; $('wl-stats').innerHTML = ''; return; }
+            if (W.logs === 'err') { tb.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-8">Không tải được lịch sử.</td></tr>'; return; }
+            var list = W.logs.filter(function (l) { return l.type === W.tab; }), plus = 0, minus = 0;
+            list.forEach(function (l) { if (l.action === 'add') { if (l.amount > 0) plus += l.amount; else minus += l.amount; } });
+            $('wl-stats').innerHTML = '<span>Số giao dịch: <b>' + list.length + '</b></span><span>Tổng nhận: <b class="text-success">+' + plus.toLocaleString('vi-VN') + '</b></span><span>Tổng dùng / trừ: <b class="text-danger">' + minus.toLocaleString('vi-VN') + '</b></span>';
+            if (!list.length) { tb.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-8">Chưa có biến động nào.</td></tr>'; return; }
+            tb.innerHTML = list.slice(0, 300).map(function (l) {
+                var amt = l.action === 'set' ? '<span class="text-info font-bold">=' + l.amount + '</span>' : l.amount > 0 ? '<span class="text-success font-bold">+' + l.amount + '</span>' : l.amount < 0 ? '<span class="text-danger font-bold">' + l.amount + '</span>' : '<span class="text-muted font-bold">0</span>';
+                return '<tr><td class="text-muted text-sm" style="white-space: nowrap;">' + new Date(l.time).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) + '</td>'
+                    + '<td class="text-center" style="font-size: 15px;">' + amt + '</td><td class="text-center font-bold">' + (l.balanceAfter == null ? '' : l.balanceAfter) + '</td><td>' + l.reason + '</td></tr>';
+            }).join('');
+        };
+        $('wl-tabs').addEventListener('click', function (e) { var b = e.target.closest('button[data-k]'); if (!b) return; W.tab = b.getAttribute('data-k'); W.renderTop(); W.renderHist(); });
+        $('wl-reload').onclick = function () { W.load(); };
+        $('wl-adjust').onclick = function () {
+            var d = W.acc[W.id]; if (!d) return;
+            AdminActions.openSpinModal(W.id, d.user); $('spin-type').value = W.tab;
+        };
+        // cấp / trừ xong (hộp Cấp điểm / lượt) -> tải lại lịch sử ví nếu đang mở
+        var obs = new MutationObserver(function () { var m = $('modal-spins'); if (m && !m.classList.contains('active') && $('modal-wallet').classList.contains('active') && W._spinOpen) { W._spinOpen = false; setTimeout(W.load, 400); } if (m && m.classList.contains('active')) W._spinOpen = true; });
+        if ($('modal-spins')) obs.observe($('modal-spins'), { attributes: true, attributeFilter: ['class'] });
     })();
     </script>
 </body>

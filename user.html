@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#fdebc0">
     <script>try{var _tc=localStorage.getItem("qd_tet_color");if(_tc==="dao"||_tc==="chung")document.documentElement.setAttribute("data-tet-color",_tc);}catch(e){}</script>
     <title>QD Elite - Premium Dashboard v2.6</title>
 
@@ -9378,7 +9378,7 @@ html.qd-lite .qd-fx { display: none !important; }
             <div class="ps2-head">
                 <div class="ps2-title">
                     <span class="ps2-logo" aria-hidden="true">🏪</span>
-                    <div><h2 id="ps2-title">Trạm Quy Đổi Vật Phẩm</h2><small>Dùng điểm lì xì đổi lượt rút lì xì</small></div>
+                    <div><h2 id="ps2-title">Trạm Quy Đổi Vật Phẩm</h2><small>Dùng điểm lì xì đổi lượt rút lì xì, lượt ném còn</small></div>
                 </div>
                 <button class="ps2-x" onclick="window.UI.closeModal('modal-point-shop')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -9391,7 +9391,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div class="ps2-grid" id="ps2-grid"><div class="ps2-empty">Đang tải danh mục...</div></div>
                 <div class="ps2-orders" id="ps2-orders" style="display:none;"></div>
             </div>
-            <div class="ps2-foot">Lượt rút lì xì được cộng ngay vào túi đồ. Lượt vòng quay chỉ nhận được khi trả lời đúng câu hỏi.</div>
+            <div class="ps2-foot">Lượt rút lì xì, lượt ném còn được cộng ngay vào tài khoản. Lượt vòng quay chỉ nhận được khi trả lời đúng câu hỏi.</div>
             <!-- Bảng xác nhận / thông báo kết quả mua -->
             <div class="ps2-pop" id="ps2-pop" aria-live="assertive"><div class="ps2-pop-card" id="ps2-pop-card" role="alertdialog"></div></div>
         </div>
@@ -9876,6 +9876,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div class="nav-item" onclick="window.UI.navigate('tournament', this)"><i class="fa-solid fa-fire"></i> <span>Giải Đấu Máy Chủ</span></div>
                 <div class="nav-item" onclick="window.RegID.open()"><i class="fa-solid fa-id-card"></i> <span>Đăng Ký ID Game</span></div>
                 <div class="nav-item" onclick="window.UI.navigate('rps', this)"><i class="fa-regular fa-hand-scissors"></i> <span>Kéo Búa Bao</span></div>
+                <div class="nav-item" data-resume onclick="location.href='game.html'"><i class="fa-solid fa-bullseye"></i> <span>Ném Còn</span></div>
             </nav>
             
             <div class="sidebar-profile" onclick="window.UI.openModal('modal-profile')">
@@ -9891,7 +9892,7 @@ html.qd-lite .qd-fx { display: none !important; }
             
             <header class="top-navbar">
                 <div class="mobile-header-brand hidden-desktop"><i class="fa-solid fa-atom"></i> QĐ TLH</div>
-                <div class="hidden-mobile font-bold text-muted text-sm tracking-wide uppercase"><i class="fa-solid fa-shield-check text-success mr-2"></i> </div> 
+                <div class="hidden-mobile ts-greet"><span aria-hidden="true">🏮</span> Chúc Mừng Năm Mới <span>· Xuân Đinh Mùi 2027</span></div> 
                 <div class="flex items-center gap-3">
                     <button class="btn-icon hidden-desktop" style="color: var(--brand-primary); border-color: var(--brand-primary-soft); background: var(--brand-primary-soft);" onclick="window.UI.openModal('modal-profile')"><i class="fa-solid fa-user"></i></button>
                     <button class="btn-icon" onclick="window.UI.openModal('modal-settings')"><i class="fa-solid fa-gear"></i></button>
@@ -10016,6 +10017,15 @@ html.qd-lite .qd-fx { display: none !important; }
                             <p class="wheel-msg" id="rps-tab-go">Chạm để vào đấu trường ›</p>
                         </button>
 
+                        <a class="wheel-tab con-tab" id="con-tab" href="game.html" data-resume data-state="open" aria-label="Mở sân Ném Còn">
+                            <div class="wheel-head">
+                                <h3 class="wheel-title"><span aria-hidden="true">🎯</span> Ném Còn</h3>
+                                <span class="wheel-badge" id="con-tab-sub">Lượt ném: --</span>
+                            </div>
+                            <div class="wheel-tab-stage"><div class="con-mini" aria-hidden="true"><i class="con-pole"></i><i class="con-ring"></i><i class="con-ball"></i></div></div>
+                            <p class="wheel-msg" id="con-tab-go">Chạm để ra sân ném ›</p>
+                        </a>
+
                     </div>
                 </section>
 
@@ -10115,7 +10125,8 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                         <div class="reg-head-btns">
                         <button type="button" class="reg-open-btn" id="btn-reg-open" onclick="window.RegID.open()"><span aria-hidden="true">🪪</span> <span id="btn-reg-open-txt">Đăng Ký ID Game</span></button>
-                        <button type="button" class="qdb-open-btn" id="btn-qdb-open" style="display: none;"><span class="qdb-ob-ic">🏆</span> Xem Sơ Đồ Giải Đấu <small>Giải Đơn</small></button>
+                        <button type="button" class="qdb-open-btn" id="btn-qdb-open" data-f="single" style="display: none;"><span class="qdb-ob-ic">🏆</span> Sơ Đồ Giải Đơn <small>1 vs 1</small></button>
+                        <button type="button" class="qdb-open-btn" id="btn-qdb-open-2" data-f="double" style="display: none;"><span class="qdb-ob-ic">👥</span> Sơ Đồ Giải Đôi <small>2 vs 2</small></button>
                         </div>
                     </div>
                     
@@ -11537,7 +11548,7 @@ html.qd-lite .qd-fx { display: none !important; }
         window.PointShop = {
             userPoints: 0, spinCost: 100, ticketCost: 50,
             cfg: {}, items: [], counts: {}, daily: {}, orders: [], tab: 'items', qty: {}, confirmId: null, busy: false, owner: null, unsubs: [],
-            TYPE_NAME: { tickets: 'Lượt rút lì xì', spins: 'Lượt vòng quay', gift: 'Quà tặng' },
+            TYPE_NAME: { tickets: 'Lượt rút lì xì', spins: 'Lượt vòng quay', gift: 'Quà tặng', conThrows: 'Lượt ném còn' },
             DEF: [
                 { id: 'tk1', icon: '🧧', name: '1 Lượt rút lì xì', type: 'tickets', amount: 1, cost: 50, stock: null, dailyLimit: null, active: true },
                 { id: 'tk5', icon: '🧧', name: 'Combo 5 lượt rút lì xì', type: 'tickets', amount: 5, cost: 220, stock: null, dailyLimit: 2, active: true },
@@ -11550,8 +11561,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 cfg = cfg || {};
                 let list = Array.isArray(cfg.items) && cfg.items.length ? cfg.items : null;
                 if (!list) list = this.DEF.map(x => Object.assign({}, x, x.id === 'tk1' && cfg.ticketCost != null ? { cost: cfg.ticketCost } : {}, x.id === 'sp1' && cfg.spinCost != null ? { cost: cfg.spinCost } : {}));
-                return list.filter(x => (x.type || 'tickets') === 'tickets').map((x, i) => ({   // chỉ bán lượt rút lì xì
-                    id: x.id || ('i' + i), icon: x.icon || '🧧', name: String(x.name || ''), type: 'tickets',
+                return list.filter(x => ['tickets', 'conThrows'].indexOf(x.type || 'tickets') >= 0).map((x, i) => ({   // bán lượt rút lì xì + lượt ném còn
+                    id: x.id || ('i' + i), icon: x.icon || (x.type === 'conThrows' ? '🎯' : '🧧'), name: String(x.name || ''), type: x.type || 'tickets',
                     amount: Math.max(1, parseInt(x.amount) || 1), cost: Math.max(0, parseInt(x.cost) || 0),
                     stock: x.stock == null || x.stock === '' ? null : Math.max(0, parseInt(x.stock) || 0),
                     dailyLimit: x.dailyLimit == null || x.dailyLimit === '' ? null : Math.max(0, parseInt(x.dailyLimit) || 0),
@@ -11714,7 +11725,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         t.update(accRef, upd);
                         t.set(stRef, { counts: { [id]: FV.increment(qty) } }, { merge: true });
                         t.set(dRef, { user: me, date: key, counts: { [id]: FV.increment(qty) } }, { merge: true });
-                        const what = x.type === 'gift' ? `${x.name}${qty > 1 ? ' ×' + qty : ''}` : `${x.amount * qty} ${x.type === 'spins' ? 'Lượt Vòng Quay' : 'Lượt Rút Lì Xì'}`;
+                        const what = x.type === 'gift' ? `${x.name}${qty > 1 ? ' ×' + qty : ''}` : `${x.amount * qty} ${x.type === 'spins' ? 'Lượt Vòng Quay' : x.type === 'conThrows' ? 'Lượt Ném Còn' : 'Lượt Rút Lì Xì'}`;
                         t.set(db.collection("point_history").doc(), { user: me, action: "exchange", detail: `Đổi ${cost} điểm lấy ${what}`, pointsChanged: -cost, itemId: id, itemType: x.type, qty: qty, timestamp: Date.now() });
                         if (x.type === 'gift') t.set(db.collection("shop_orders").doc(), { user: me, itemId: id, itemName: x.name, icon: x.icon, qty: qty, cost: cost, status: 'pending', time: Date.now() });
                         got = { x, cost, what, qty, newPoints: pts - cost };
@@ -12343,7 +12354,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     if(desc) {
                         if(featureId === 'wheel') desc.innerText = "Thử vận may với vòng quay 8 ô nhận ngay thẻ cào.";
                         else if(featureId === 'tranhthuong') desc.innerText = "Xé thẻ lật quà để rinh phần thưởng bí mật mỗi ngày.";
-                        else if(featureId === 'pointshop') desc.innerText = "Dùng điểm lì xì đổi lượt rút lì xì.";
+                        else if(featureId === 'pointshop') desc.innerText = "Dùng điểm lì xì đổi lượt rút lì xì, lượt ném còn.";
                     }
                 }
             },
@@ -16355,9 +16366,9 @@ document.addEventListener("DOMContentLoaded", () => {
     (function () {
         window.TetColor = {
             list: {
-                'do':    { label: 'Đỏ Lì Xì',   meta: '#c1121f' },
-                'dao':   { label: 'Hoa Đào',    meta: '#c9255f' },
-                'chung': { label: 'Bánh Chưng', meta: '#0c7a47' }
+                'do':    { label: 'Đỏ Lì Xì',   meta: '#fdebc0' },
+                'dao':   { label: 'Hoa Đào',    meta: '#fde4e4' },
+                'chung': { label: 'Bánh Chưng', meta: '#fdebc0' }
             },
             current: 'do',
             apply: function (key, notify) {
@@ -18708,6 +18719,49 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         };
     })();
     </script>
+    <!-- ===== THẺ "NÉM CÒN" TRANG CHỦ: số lượt ném (accounts.conThrows) + sân đóng/mở (settings/con_config), bấm mở game.html ===== -->
+    <style id="contab-css">
+        .con-mini { position: relative; width: 104px; height: 92px; }
+        .con-mini .con-pole { position: absolute; left: 50%; bottom: 0; width: 6px; height: 64px; margin-left: -3px; border-radius: 3px; background: repeating-linear-gradient(0deg, #e2c25a 0 13px, #8a6a1a 13px 15px); }
+        .con-mini .con-ring { position: absolute; left: 50%; top: 2px; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; border: 5px solid #f2b705; background: radial-gradient(circle, #fffaf0, #ffe08a); box-shadow: 0 0 0 2px #c1121f inset, 0 4px 10px rgba(0,0,0,.35); }
+        .con-mini .con-ball { position: absolute; left: 8px; bottom: 6px; width: 22px; height: 22px; border-radius: 50%; background: conic-gradient(#e11d2e 0 25%, #facc15 0 50%, #16a34a 0 75%, #2563eb 0); box-shadow: 0 3px 6px rgba(0,0,0,.4); animation: conToss 2.6s cubic-bezier(.45, 0, .55, 1) infinite; }
+        .con-mini .con-ball::after { content: ''; position: absolute; left: 9px; top: 20px; width: 4px; height: 16px; border-radius: 2px; background: linear-gradient(#e11d2e, #facc15, #16a34a); }
+        @keyframes conToss { 0%, 12% { transform: translate(0, 0) scale(1); } 50% { transform: translate(33px, -66px) scale(.62) rotate(200deg); } 58% { transform: translate(37px, -62px) scale(.58) rotate(240deg); opacity: 1; } 75% { opacity: 0; transform: translate(42px, -40px) scale(.5); } 76%, 100% { opacity: 0; transform: translate(0, 0); } 90% { opacity: 0; } }
+        .wheel-tab.con-tab:hover .con-ball { animation-duration: 1.4s; }
+        .wheel-tab.con-tab[data-state="locked"] .con-mini { filter: grayscale(.85) brightness(.7); }
+        .wheel-tab.con-tab[data-state="locked"] .con-ball { animation: none; }
+        @media (prefers-reduced-motion: reduce) { .con-mini .con-ball { animation: none !important; } }
+    </style>
+    <script id="contab-js">
+    (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); };
+        var T = window.ConTab = { n: null, cfg: null, doc: null, unsub: null, unsubCfg: null, free: '' };
+        function today() { var d = new Date(), p = function (x) { return String(x).padStart(2, '0'); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+        T.render = function () {
+            var tab = $('con-tab'); if (!tab) return;
+            var c = T.cfg || {}, lock = c.enabled === false, n = T.n, freeN = c.freePerDay == null ? 3 : Number(c.freePerDay) || 0, canFree = !lock && freeN > 0 && T.free !== today();
+            tab.dataset.state = lock ? 'locked' : 'open';
+            $('con-tab-sub').textContent = n == null ? 'Lượt ném: --' : 'Lượt ném: ' + n;
+            $('con-tab-go').textContent = lock ? '🔒 Sân đang đóng' : (n > 0 ? 'Chạm để ra sân ném ›' : (canFree ? '🎁 Nhận ' + freeN + ' lượt miễn phí ›' : 'Hết lượt · chạm để xem ›'));
+        };
+        // tự bắt đầu khi đã đăng nhập (State.currentDocId), tự dừng khi đăng xuất
+        function tick() {
+            var id = window.State && window.State.currentDocId;
+            if (id === T.doc) return;
+            if (T.unsub) { try { T.unsub(); } catch (e) {} T.unsub = null; }
+            if (T.unsubCfg) { try { T.unsubCfg(); } catch (e) {} T.unsubCfg = null; }
+            T.doc = id || null; T.n = null; T.render();
+            if (!id || typeof db === 'undefined') return;
+            try {
+                T.unsub = db.collection('accounts').doc(id).onSnapshot(function (s) { var d = s && s.exists ? s.data() : {}; T.n = Number(d.conThrows) || 0; T.free = d.conFreeDate || ''; T.render(); }, function (e) { console.warn('ConTab acc', e); });
+                T.unsubCfg = db.collection('settings').doc('con_config').onSnapshot(function (s) { T.cfg = s && s.exists ? s.data() : {}; T.render(); }, function (e) { console.warn('ConTab cfg', e); T.cfg = {}; T.render(); });
+            } catch (e) { console.warn('ConTab', e); }
+        }
+        setInterval(tick, 1000);
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
+    })();
+    </script>
     <style id="qdb-user-css">
         .qdb-open-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 20px; border-radius: 999px; border: 2px solid #facc15; cursor: pointer;
             font: inherit; font-size: 15px; font-weight: 800; letter-spacing: .3px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #facc15 55%, #e9a91c);
@@ -18720,12 +18774,16 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         @media (max-width: 640px) { .qdb-open-btn { width: 100%; } }
     </style>
     <script id="qdb-user-js">
-    /* Trang user: nút "Sơ Đồ Giải Đấu" (Ban quản trị bật/tắt), xem sơ đồ theo thời gian thực, bấm tên -> thẻ chi tiết */
+    /* Trang user: 2 nút "Sơ Đồ Giải Đơn" / "Sơ Đồ Giải Đôi" (Ban quản trị bật/tắt riêng từng sơ đồ),
+       xem sơ đồ theo thời gian thực, bấm tên -> thẻ chi tiết.
+       Dữ liệu: Giải Đơn = settings/tournament_bracket, Giải Đôi = settings/tournament_bracket_double
+       (bản cũ: sơ đồ đôi nằm ở tournament_bracket -> vẫn hiện đúng nút Giải Đôi cho tới khi admin chuyển) */
     (function () {
         'use strict';
-        var btn = document.getElementById('btn-qdb-open');
-        if (!btn || !window.QDB) return;
-        var U = window.QDBUser = { cfg: null };
+        var BTN = { single: document.getElementById('btn-qdb-open'), double: document.getElementById('btn-qdb-open-2') };
+        if (!BTN.single || !window.QDB) return;
+        var DOCS = { single: 'tournament_bracket', double: 'tournament_bracket_double' };
+        var U = window.QDBUser = { cfg: null, raw: { single: null, double: null }, cfgs: { single: null, double: null }, openF: null };
         function DB() { try { return typeof db !== 'undefined' ? db : firebase.firestore(); } catch (e) { return null; } }
         function me() { return (window.State && window.State.currentUser) || ''; }
         var ctx = {
@@ -18743,25 +18801,39 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             }
         };
         function visible(c) { return !!(c && c.enabled !== false && (c.entries || []).some(Boolean)); }
-        U.open = function () {
-            if (!visible(U.cfg)) { if (window.Utils && window.Utils.toast) window.Utils.toast('Ban Quản Trị chưa công bố sơ đồ giải đấu.', 'info'); return; }
-            ctx.me = me();
-            QDB.open(U.cfg, { me: ctx.me, onEntry: function (e) { ctx.me = me(); QDB.openDetail(e, U.cfg, ctx); } });
+        U.open = function (f) {
+            if (f !== 'double' && f !== 'single') f = visible(U.cfgs.single) ? 'single' : 'double';
+            var c = U.cfgs[f];
+            if (!visible(c)) { if (window.Utils && window.Utils.toast) window.Utils.toast('Ban Quản Trị chưa công bố sơ đồ ' + (f === 'double' ? 'Giải Đôi' : 'Giải Đơn') + '.', 'info'); return; }
+            U.openF = f; U.cfg = c; ctx.me = me();
+            QDB.open(c, { me: ctx.me, onEntry: function (e) { ctx.me = me(); QDB.openDetail(e, U.cfgs[U.openF] || c, ctx); } });
         };
-        btn.addEventListener('click', U.open);
-        function start() {
-            var d = DB(); if (!d) return;
-            d.collection('settings').doc('tournament_bracket').onSnapshot(function (doc) {
-                U.cfg = doc.exists ? doc.data() : null;
-                var show = visible(U.cfg);
+        ['single', 'double'].forEach(function (f) { if (BTN[f]) BTN[f].addEventListener('click', function () { U.open(f); }); });
+        // Gán dữ liệu cho từng nút (xử lý bản cũ: sơ đồ đôi lưu ở chỗ của Giải Đơn)
+        function resolve() {
+            var a = U.raw.single, b = U.raw.double;
+            U.cfgs.double = b || (a && a.format === 'double' ? a : null);
+            U.cfgs.single = a && a.format !== 'double' ? a : null;
+            ['single', 'double'].forEach(function (f) {
+                var btn = BTN[f], c = U.cfgs[f], show = visible(c);
+                if (!btn) return;
                 btn.style.display = show ? '' : 'none';
                 if (show) {
-                    var s = QDB.status(QDB.compute(U.cfg));
+                    var s = QDB.status(QDB.compute(c));
                     btn.classList.toggle('live', s === 'live');
-                    btn.querySelector('small').textContent = s === 'live' ? '● LIVE' : s === 'done' ? 'Đã có vô địch' : (U.cfg.format === 'double' ? 'Giải Đôi' : 'Giải Đơn');
+                    btn.querySelector('small').textContent = s === 'live' ? '● LIVE' : s === 'done' ? 'Đã có vô địch' : (f === 'double' ? '2 vs 2' : '1 vs 1');
+                    btn.title = c.title || '';
                 }
-                if (QDB.isOpen()) { if (show) QDB.update(U.cfg); else QDB.close(); }
-            }, function () { btn.style.display = 'none'; });
+            });
+            if (QDB.isOpen() && U.openF) { var c = U.cfgs[U.openF]; if (visible(c)) { U.cfg = c; QDB.update(c); } else QDB.close(); }
+        }
+        function start() {
+            var d = DB(); if (!d) return;
+            ['single', 'double'].forEach(function (f) {
+                d.collection('settings').doc(DOCS[f]).onSnapshot(function (doc) {
+                    U.raw[f] = doc.exists ? doc.data() : null; resolve();
+                }, function () { U.raw[f] = null; resolve(); });
+            });
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
     })();
@@ -18892,6 +18964,191 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
     })();
     </script>
+    <!-- ===== QD TẾT SÁNG: giao diện user nền Tết vàng sáng (nen-tet-ngang.jpg / nen-tet-doc.jpg) =====
+         Khung (thanh trên, menu bên, thanh dưới) = giấy kem; khối nội dung = sơn mài đỏ viền vàng.
+         Đặt cuối trang để thắng mọi lớp CSS cũ. Theo màu chủ đề: Đỏ Lì Xì / Hoa Đào / Bánh Chưng. -->
+    <style id="qd-tet-sang">
+html[data-theme="tet"] {
+    --ts-lq1: #d42330; --ts-lq2: #8f0a12; --ts-lq3: #6a0008;   /* sơn mài: sáng -> đậm */
+    --ts-ink: #9b0d19;                                          /* chữ đậm trên nền kem */
+    --ts-ink-soft: #8a4b0a;
+    --ts-gold: #ffd54a; --ts-gold-2: #f2b705; --ts-gold-line: rgba(214, 158, 30, .55);
+    --ts-paper: rgba(255, 249, 232, .9); --ts-paper-solid: #fff6dc;
+}
+html[data-theme="tet"][data-tet-color="dao"] { --ts-lq1: #d93a72; --ts-lq2: #8e1442; --ts-lq3: #650c30; --ts-ink: #9d1748; }
+html[data-theme="tet"][data-tet-color="chung"] { --ts-lq1: #14965b; --ts-lq2: #06553a; --ts-lq3: #033d29; --ts-ink: #0b6b40; }
+
+/* ---------- 1. Nền trang: ảnh Tết, cố định, vẽ 1 lần trên lớp GPU ---------- */
+html[data-theme="tet"] body { background: #fff0cf !important; }
+html[data-theme="tet"] body::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: #fff0cf url('nen-tet-ngang.jpg') center / cover no-repeat;
+    transform: translateZ(0);
+}
+@media (orientation: portrait) { html[data-theme="tet"] body::before { background-image: url('nen-tet-doc.jpg'); } }
+html[data-theme="tet"] #app-shell,
+html[data-theme="tet"] .main-content-wrapper,
+html[data-theme="tet"] .workspace-area { background: transparent !important; }
+html[data-theme="tet"] .main-content-wrapper { border: none !important; box-shadow: none !important; }
+html[data-theme="tet"] #particle-canvas { opacity: .22; }
+html[data-theme="tet"] .tet-lantern { display: none !important; }          /* ảnh nền đã có lồng đèn */
+html[data-theme="tet"] .hoa-mai { color: #f4b400; text-shadow: 0 0 1px #a85a00, 0 0 6px rgba(255, 200, 40, .6); }
+html[data-theme="tet"][data-tet-color="dao"] .hoa-mai { color: #ff8fb1; text-shadow: 0 0 1px #b0305a; }
+
+/* ---------- 2. Thanh trên: giấy kem, chữ đỏ ---------- */
+html[data-theme="tet"] .top-navbar {
+    background: var(--ts-paper) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+    border: 1.5px solid var(--ts-gold-line) !important;
+    box-shadow: 0 8px 24px -10px rgba(140, 60, 0, .35) !important;
+    border-radius: 22px; margin: 0 0 6px; padding: 14px 24px;
+}
+html[data-theme="tet"] .top-navbar .mobile-header-brand,
+html[data-theme="tet"] .top-navbar .ts-greet { color: var(--ts-ink) !important; text-shadow: none !important; letter-spacing: -.3px; }
+html[data-theme="tet"] .top-navbar .mobile-header-brand i { color: var(--ts-lq1) !important; }
+html[data-theme="tet"] .top-navbar .ts-greet { font-size: 15px; font-weight: 800; text-transform: none; display: flex; align-items: center; gap: 8px; }
+html[data-theme="tet"] .top-navbar .ts-greet span { color: var(--ts-ink-soft) !important; font-weight: 700 !important; text-shadow: none !important; }
+html[data-theme="tet"] .top-navbar .btn-icon {
+    background: linear-gradient(160deg, var(--ts-lq1), var(--ts-lq2)) !important;
+    color: var(--ts-gold) !important; border: 2px solid var(--ts-gold-2) !important;
+    box-shadow: 0 4px 10px -2px rgba(120, 20, 0, .45) !important;
+}
+html[data-theme="tet"] .top-navbar .btn-icon:hover { transform: translateY(-2px); filter: brightness(1.1); }
+html[data-theme="tet"] .top-navbar .btn-icon[onclick*="modal-logout"] { background: #fff !important; color: #c1121f !important; border-color: #f0a3a3 !important; }
+
+/* ---------- 3. Menu bên (máy tính): giấy kem, mục đang chọn = thẻ đỏ chữ vàng ---------- */
+html[data-theme="tet"] .floating-sidebar {
+    background: var(--ts-paper) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2);
+    border: 1.5px solid var(--ts-gold-line) !important;
+    box-shadow: 0 18px 40px -16px rgba(140, 60, 0, .4) !important;
+    padding: 26px 16px;
+}
+html[data-theme="tet"] .floating-sidebar .brand-logo { color: var(--ts-ink) !important; margin-bottom: 26px; }
+html[data-theme="tet"] .floating-sidebar .brand-logo i { color: var(--ts-lq1) !important; filter: none; }
+html[data-theme="tet"] .floating-sidebar .nav-menu { gap: 6px; }
+html[data-theme="tet"] .floating-sidebar .nav-item {
+    color: #5c2a04 !important; background: transparent !important; border: 1.5px solid transparent !important;
+    border-radius: 14px; padding: 13px 16px; font-size: 15px; gap: 14px;
+}
+html[data-theme="tet"] .floating-sidebar .nav-item span { color: inherit !important; text-shadow: none !important; }
+html[data-theme="tet"] .floating-sidebar .nav-item i { color: var(--ts-lq1) !important; font-size: 19px; filter: none !important; }
+html[data-theme="tet"] .floating-sidebar .nav-item::before { display: none; }
+html[data-theme="tet"] .floating-sidebar .nav-item:hover { background: rgba(255, 213, 74, .28) !important; color: var(--ts-ink) !important; border-color: var(--ts-gold-line) !important; }
+html[data-theme="tet"] .floating-sidebar .nav-item.active {
+    color: var(--ts-gold) !important; background: linear-gradient(135deg, var(--ts-lq1), var(--ts-lq2)) !important;
+    border: 1.5px solid var(--ts-gold-2) !important; box-shadow: 0 8px 18px -8px rgba(140, 10, 10, .7) !important;
+    text-shadow: none !important;
+}
+html[data-theme="tet"] .floating-sidebar .nav-item.active i { color: var(--ts-gold) !important; }
+html[data-theme="tet"] .sidebar-profile {
+    background: linear-gradient(135deg, var(--ts-lq1), var(--ts-lq2)) !important;
+    border: 1.5px solid var(--ts-gold-2) !important; border-radius: 16px;
+}
+html[data-theme="tet"] .sidebar-profile #sidebar-name { color: #fff !important; }
+html[data-theme="tet"] .sidebar-profile .text-success { color: #a7f3d0 !important; }
+
+/* ---------- 4. Thanh dưới (điện thoại): giấy kem, mục đang chọn = viên đỏ ---------- */
+html[data-theme="tet"] .mobile-nav {
+    background: var(--ts-paper) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+    border-top: 1.5px solid var(--ts-gold-line) !important;
+    box-shadow: 0 -8px 24px -10px rgba(140, 60, 0, .35) !important;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); gap: 4px;
+}
+html[data-theme="tet"] .m-nav-item { color: #6b3306 !important; font-size: 10.5px; border-radius: 14px; padding: 6px 2px 5px; }
+html[data-theme="tet"] .m-nav-item span { color: inherit !important; text-shadow: none !important; font-weight: 800 !important; white-space: nowrap; }
+html[data-theme="tet"] .m-nav-item i { color: var(--ts-lq1); }
+html[data-theme="tet"] .m-nav-item.active { color: var(--ts-gold) !important; background: linear-gradient(160deg, var(--ts-lq1), var(--ts-lq2)) !important; box-shadow: 0 6px 14px -6px rgba(140, 10, 10, .7); }
+html[data-theme="tet"] .m-nav-item.active i { color: var(--ts-gold); transform: none; }
+
+/* ---------- 5. Thẻ chào mừng: sơn mài đỏ, viền vàng kép ---------- */
+html[data-theme="tet"] .bento-hero {
+    background:
+        radial-gradient(90% 120% at 100% 0%, rgba(255, 213, 74, .28), transparent 55%),
+        radial-gradient(70% 90% at 0% 100%, rgba(255, 140, 40, .22), transparent 60%),
+        linear-gradient(150deg, var(--ts-lq1) 0%, var(--ts-lq2) 70%, var(--ts-lq3) 100%) !important;
+    border: 2px solid var(--ts-gold-2) !important;
+    box-shadow: 0 18px 40px -16px rgba(120, 10, 0, .65), inset 0 0 0 5px rgba(255, 213, 74, .14) !important;
+    position: relative;
+}
+html[data-theme="tet"] .bento-hero::before, html[data-theme="tet"] .bento-hero::after { display: none !important; }
+html[data-theme="tet"] .bento-hero h1 { color: var(--ts-gold) !important; text-shadow: 0 2px 0 rgba(80, 0, 0, .45) !important; }
+html[data-theme="tet"] .bento-hero h1 #dash-name { color: #fff !important; text-shadow: 0 2px 0 rgba(80, 0, 0, .45) !important; }
+html[data-theme="tet"] .bento-hero p { color: #ffeeb8 !important; text-shadow: none !important; }
+html[data-theme="tet"] .bento-hero .hero-point-pill,
+html[data-theme="tet"] .bento-hero .hero-clock {
+    background: rgba(60, 0, 0, .38) !important; border: 1.5px solid rgba(255, 213, 74, .75) !important;
+    box-shadow: none !important; color: #fff !important; opacity: 1 !important;
+}
+html[data-theme="tet"] .bento-hero .hero-point-pill span, html[data-theme="tet"] .bento-hero .hero-clock span { color: #fff !important; text-shadow: none !important; }
+html[data-theme="tet"] .bento-hero .hero-point-pill #user-points-display { color: var(--ts-gold) !important; font-weight: 900 !important; }
+html[data-theme="tet"] .bento-hero .hero-point-pill i, html[data-theme="tet"] .bento-hero .hero-clock i { color: var(--ts-gold) !important; }
+html[data-theme="tet"] .bento-hero .hero-point-pill:hover { background: rgba(255, 213, 74, .2) !important; }
+
+/* ---------- 6. Thẻ chức năng trang chủ: lưới gọn như ứng dụng ---------- */
+html[data-theme="tet"] .lixi-card,
+html[data-theme="tet"] .wheel-tab {
+    background:
+        radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, .1), transparent 60%),
+        linear-gradient(165deg, var(--ts-lq1) 0%, var(--ts-lq2) 75%, var(--ts-lq3) 100%);
+    border-color: var(--ts-gold-2);
+    box-shadow: 0 12px 26px -14px rgba(120, 10, 0, .7), inset 0 0 0 4px rgba(255, 213, 74, .1);
+}
+html[data-theme="tet"] .wheel-tab:hover { box-shadow: 0 16px 30px -14px rgba(120, 10, 0, .8), 0 0 0 3px rgba(255, 213, 74, .35); }
+html[data-theme="tet"] .wheel-mini .wm-a { fill: #a10f1a; } html[data-theme="tet"] .wheel-mini .wm-b { fill: #e3313d; }
+html[data-theme="tet"][data-tet-color="dao"] .wheel-mini .wm-a { fill: #8e1442; } html[data-theme="tet"][data-tet-color="dao"] .wheel-mini .wm-b { fill: #e04f85; }
+html[data-theme="tet"][data-tet-color="chung"] .wheel-mini .wm-a { fill: #06553a; } html[data-theme="tet"][data-tet-color="chung"] .wheel-mini .wm-b { fill: #19a866; }
+
+/* Điện thoại: 2 cột (thẻ lì xì + thẻ chào chiếm cả hàng) */
+@media (max-width: 767px) {
+    html[data-theme="tet"] #view-dashboard .bento-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 12px 2px 16px; }
+    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { grid-column: auto; padding: 11px 10px 12px; border-radius: 20px; }
+    html[data-theme="tet"] #view-dashboard .wheel-tab .wheel-head { flex-direction: column; align-items: center; gap: 5px; }
+    html[data-theme="tet"] #view-dashboard .wheel-tab .wheel-title { white-space: normal; font-size: 12.5px; line-height: 1.25; text-align: center; }
+    html[data-theme="tet"] #view-dashboard .wheel-tab .wheel-badge { font-size: 10.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    html[data-theme="tet"] #view-dashboard .wheel-tab-stage { transform: scale(.82); margin: 0 -10px; }
+    html[data-theme="tet"] #view-dashboard .wheel-tab .wheel-msg { font-size: 11.5px; margin-top: 2px; }
+    html[data-theme="tet"] .top-navbar { border-radius: 0 0 20px 20px; border-top: none !important; padding: 10px 14px calc(10px); padding-top: max(10px, env(safe-area-inset-top)); margin: 0; }
+}
+/* Máy tính bảng / máy tính: 3 cột */
+@media (min-width: 768px) {
+    html[data-theme="tet"] #view-dashboard .bento-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding: 16px 0 24px; }
+    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { grid-column: auto; min-height: 196px; }
+}
+@media (min-width: 1024px) {
+    html[data-theme="tet"] .top-navbar .mobile-header-brand { display: none !important; }
+    html[data-theme="tet"] .workspace-area { padding: 16px 28px 40px; }
+    html[data-theme="tet"] #app-shell { gap: 20px; }
+}
+
+/* ---------- 7. Đầu trang các mục (Bản tin, Giải đấu, Kéo búa bao): băng rôn đỏ ---------- */
+html[data-theme="tet"] #view-news > .flex:first-child,
+html[data-theme="tet"] #view-tournament > .qdb-head,
+html[data-theme="tet"] .rps2-top {
+    background: linear-gradient(150deg, var(--ts-lq1) 0%, var(--ts-lq2) 80%);
+    border: 2px solid var(--ts-gold-2); border-radius: 22px; padding: 16px 20px;
+    box-shadow: 0 12px 26px -14px rgba(120, 10, 0, .7), inset 0 0 0 4px rgba(255, 213, 74, .1);
+}
+html[data-theme="tet"] #view-news > .flex:first-child h1,
+html[data-theme="tet"] #view-tournament > .qdb-head h1 { font-size: clamp(20px, 5vw, 28px); color: var(--ts-gold) !important; text-shadow: 0 2px 0 rgba(80, 0, 0, .4) !important; }
+html[data-theme="tet"] #view-news > .flex:first-child p,
+html[data-theme="tet"] #view-tournament > .qdb-head p { color: #ffeeb8 !important; font-size: 14px; margin: 0; text-shadow: none !important; }
+@media (max-width: 1023px) {
+    html[data-theme="tet"] .rps2 { padding-top: 10px; }
+    html[data-theme="tet"] #view-news, html[data-theme="tet"] #view-tournament, html[data-theme="tet"] #view-attendance { padding-top: max(4px, env(safe-area-inset-top)); }
+}
+
+/* ---------- 8. Thẻ chung & bong bóng: đặc hơn để chữ luôn rõ trên nền sáng ---------- */
+html[data-theme="tet"] .card {
+    background: linear-gradient(165deg, var(--ts-lq1) -20%, var(--ts-lq2) 60%, var(--ts-lq3) 100%) !important;
+    border: 2px solid var(--ts-gold-2) !important;
+    box-shadow: 0 14px 30px -16px rgba(120, 10, 0, .7) !important;
+}
+html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10, 0, .7) !important; border-color: var(--ts-gold-2) !important; }
+
+@media (prefers-reduced-motion: reduce) { html[data-theme="tet"] .wheel-tab:hover { transform: none; } }
+    </style>
 </body>
 
 </html>
