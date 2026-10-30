@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0e0506">
+    <meta name="theme-color" content="#fff6e6">
     <meta name="description" content="Cổng sự kiện Tết Đinh Mùi 2027 của Team T&quot;L&quot;Headshot: lì xì may mắn, vòng quay, quay số trực tiếp và nhiều quà đầu năm.">
     <script>try{var _tc=localStorage.getItem("qd_tet_color");if(_tc==="dao"||_tc==="chung")document.documentElement.setAttribute("data-tet-color",_tc);}catch(e){}</script>
     <title>Team T"L"Headshot - Sự Kiện Tết Đinh Mùi 2027</title>
@@ -13,45 +13,50 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Lobster&display=swap" rel="stylesheet">
 
     <style>
         /* ================================================================
-           TEAM T"L"HEADSHOT · TẾT 2027
-           Ý tưởng: tranh sơn mài ngày Tết (nền đen bóng, son đỏ, vàng lá)
-           ghép với huy hiệu đội (khiên vát góc) -> mọi khối đều vát 2 góc.
+           TEAM T"L"HEADSHOT · TẾT 2027 — GIAO DIỆN SÁNG
+           Ý tưởng: giấy điều ngày Tết (nền kem ấm, nắng xuân), đỏ son + vàng kim,
+           cành mai vàng / đào hồng, đèn lồng, bao lì xì; video huy hiệu đặt trong khung tranh.
            ================================================================ */
         :root {
-            --ink: #0e0506;          /* đen sơn mài */
-            --lacquer: #1b0a0c;      /* nền khối */
-            --lacquer-2: #26100f;
-            --cinnabar: #d3182f;     /* son đỏ (màu huy hiệu) */
-            --cinnabar-deep: #7d0c19;
-            --ember: #ff6a2b;        /* lửa vòng huy hiệu */
-            --gold: #f2c14e;         /* vàng lá */
-            --gold-hi: #ffe7a3;
-            --gold-lo: #a8772a;
-            --bone: #f6ede1;         /* trắng ngà (đầu lâu) */
-            --muted: #c9b29c;
-            --line: rgba(242, 193, 78, .24);
-            --line-strong: rgba(242, 193, 78, .55);
-            --font-display: 'Chakra Petch', 'Be Vietnam Pro', system-ui, sans-serif;
+            --paper: #fff8ec;        /* nền giấy kem */
+            --paper-2: #fff0d4;
+            --card: #ffffff;
+            --red: #d71f2b;          /* đỏ son */
+            --red-hi: #f0414b;
+            --red-deep: #a3101c;
+            --red-ink: #6e0b14;
+            --gold: #f4b324;         /* vàng kim */
+            --gold-hi: #ffdc6e;
+            --gold-deep: #c98a0b;
+            --ink: #3b1610;          /* chữ tiêu đề */
+            --text: #5b3026;         /* chữ thường */
+            --muted: #8b6052;
+            --line: rgba(201, 138, 11, .22);
+            --line-red: rgba(215, 31, 43, .18);
+            --shadow: 0 18px 40px -22px rgba(122, 20, 10, .35), 0 2px 6px rgba(122, 20, 10, .06);
+            --font-script: 'Lobster', 'Be Vietnam Pro', cursive;
             --font-body: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            --c: 14px;               /* độ vát góc */
-            --header-h: 64px;
+            --radius: 22px;
+            --header-h: 66px;
             --gutter: clamp(16px, 4vw, 40px);
         }
-        html[data-tet-color="dao"] { --cinnabar: #e0457b; --cinnabar-deep: #7a1640; --ember: #ff8fb4; }
-        html[data-tet-color="chung"] { --cinnabar: #14a060; --cinnabar-deep: #0a4f30; --ember: #7fe0a8; }
+        html[data-tet-color="dao"] { --red: #d6336c; --red-hi: #ee5a8c; --red-deep: #9d1c4c; --red-ink: #5e0f2d; --line-red: rgba(214, 51, 108, .18); }
+        html[data-tet-color="chung"] { --red: #168a48; --red-hi: #22a85c; --red-deep: #0d5c30; --red-ink: #083b1f; --line-red: rgba(22, 138, 72, .18); }
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
         body {
-            font-family: var(--font-body); font-size: 16px; line-height: 1.6; color: var(--bone);
-            background-color: var(--ink);
+            font-family: var(--font-body); font-size: 16px; line-height: 1.6; color: var(--text);
+            background-color: var(--paper);
             background-image:
-                radial-gradient(70% 55% at 72% 18%, color-mix(in srgb, var(--cinnabar-deep) 70%, transparent), transparent 70%),
-                radial-gradient(50% 40% at 8% 92%, rgba(168, 119, 42, .16), transparent 70%);
+                radial-gradient(70% 50% at 50% -8%, rgba(255, 214, 92, .55), transparent 70%),
+                radial-gradient(45% 40% at 100% 35%, rgba(255, 143, 191, .16), transparent 70%),
+                radial-gradient(45% 40% at 0% 70%, rgba(255, 196, 60, .18), transparent 70%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='none' stroke='%23d99a12' stroke-opacity='.16' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M14 46h44c7 0 10-9 3-12-2-7-12-8-15-2-3-9-17-9-19 1-8-1-13 7-6 13'/%3E%3Cpath d='M84 116h40c6 0 9-8 3-11-2-6-11-7-14-2-3-8-15-8-17 1-7-1-12 6-6 12'/%3E%3C/g%3E%3Cg fill='%23e0a21a' fill-opacity='.18'%3E%3Cpath d='M110 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z'/%3E%3Cpath d='M36 96l2 5 5 2-5 2-2 5-2-5-5-2 5-2z'/%3E%3C/g%3E%3C/svg%3E");
             background-attachment: fixed;
             min-height: 100vh; overflow-x: hidden;
             -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
@@ -59,14 +64,9 @@
         img, video { display: block; max-width: 100%; }
         a { color: inherit; text-decoration: none; }
         button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-        :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-        ::selection { background: var(--cinnabar); color: #fff; }
-
-        /* ---------- hình vát góc dùng chung ---------- */
-        .cham { clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c)); }
-        .framed { position: relative; isolation: isolate; background: var(--edge, var(--line)); }
-        .framed::before { content: ''; position: absolute; inset: 1px; z-index: -1; background: var(--fill, var(--lacquer));
-            clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c)); }
+        :focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+        ::selection { background: var(--red); color: #fff; }
+        .sr-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
         /* ---------- hiệu ứng nền (nằm sau nội dung) ---------- */
         #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
@@ -75,229 +75,280 @@
             animation: petalFall var(--dur, 10s) linear var(--delay, 0s) infinite; opacity: 0; }
         @keyframes petalFall {
             0% { transform: translate3d(0, -40px, 0) rotate(0deg); opacity: 0; }
-            8% { opacity: .9; }
+            8% { opacity: .95; }
             50% { transform: translate3d(var(--sway, 40px), 55vh, 0) rotate(calc(var(--spin, 300deg) / 2)); }
-            100% { transform: translate3d(calc(var(--sway, 40px) * -.6), 112vh, 0) rotate(var(--spin, 300deg)); opacity: .1; }
+            100% { transform: translate3d(calc(var(--sway, 40px) * -.6), 112vh, 0) rotate(var(--spin, 300deg)); opacity: .2; }
         }
 
         /* ---------- thanh trên cùng ---------- */
         .topbar { position: sticky; top: 0; z-index: 50; height: calc(var(--header-h) + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top);
-            background: rgba(14, 5, 6, .78); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
-        html.qd-lite .topbar { background: rgba(14, 5, 6, .96); }
+            background: rgba(255, 248, 236, .82); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+            box-shadow: 0 1px 0 var(--line), 0 6px 18px -12px rgba(122, 20, 10, .25); }
+        .topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px;
+            background: linear-gradient(90deg, var(--red) 0 30%, var(--gold) 30% 70%, var(--red) 70%); opacity: .9; }
+        html.qd-lite .topbar { background: rgba(255, 248, 236, .97); }
         .topbar-in { height: var(--header-h); max-width: 1200px; margin: 0 auto; padding: 0 var(--gutter); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-        .brand-logo { width: 40px; height: 40px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; object-position: 50% 42%;
-            border: 2px solid var(--gold); box-shadow: 0 0 0 3px rgba(211, 24, 47, .35); background: #000; }
+        .brand-logo { width: 42px; height: 42px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; object-position: 50% 42%;
+            border: 2px solid var(--gold); box-shadow: 0 0 0 3px #fff, 0 4px 12px rgba(163, 16, 28, .3); background: #1a0606; }
         .brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
-        .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: .02em; white-space: nowrap; }
-        .brand-sub { font-size: 12px; color: var(--muted); white-space: nowrap; }
+        .brand-name { font-weight: 800; font-size: 17px; letter-spacing: .01em; white-space: nowrap; color: var(--red-ink); }
+        .brand-sub { font-size: 12.5px; font-weight: 600; color: var(--red); white-space: nowrap; }
         .topbar-actions { display: flex; align-items: center; gap: 8px; }
 
         /* ---------- nút ---------- */
-        .btn { --c: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 26px;
-            font-family: var(--font-display); font-weight: 700; font-size: 16px; letter-spacing: .03em; white-space: nowrap;
-            transition: transform .2s ease, filter .2s ease; -webkit-user-select: none; user-select: none; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 26px; border-radius: 999px;
+            font-weight: 700; font-size: 16px; letter-spacing: .01em; white-space: nowrap; border: 2px solid transparent;
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease, background-color .2s ease; -webkit-user-select: none; user-select: none; }
+        .btn:hover { transform: translateY(-2px); }
         .btn:active { transform: translateY(1px) scale(.985); }
         .btn i { font-size: .95em; }
-        .btn-gold { color: #2a0a05; background: linear-gradient(180deg, var(--gold-hi) 0%, var(--gold) 45%, #d9a033 100%); box-shadow: inset 0 -2px 0 rgba(0,0,0,.18); }
-        .btn-gold:hover { filter: brightness(1.08); }
-        .btn-line { --edge: var(--line-strong); --fill: rgba(27, 10, 12, .85); color: var(--gold-hi); }
-        .btn-line:hover { --edge: var(--gold); --fill: rgba(60, 18, 16, .9); }
-        .btn-sm { min-height: 40px; padding: 0 16px; font-size: 14px; --c: 8px; }
+        .btn-red { color: #fff; background: linear-gradient(180deg, var(--red-hi) 0%, var(--red) 55%, var(--red-deep) 100%); border-color: rgba(255, 220, 110, .65);
+            box-shadow: 0 10px 22px -8px color-mix(in srgb, var(--red) 70%, transparent), inset 0 1px 0 rgba(255, 255, 255, .25); }
+        .btn-red:hover { filter: brightness(1.06); }
+        .btn-red i { color: var(--gold-hi); }
+        .btn-outline { color: var(--red); background: #fff; border-color: var(--red); box-shadow: 0 6px 16px -10px rgba(122, 20, 10, .4); }
+        .btn-outline:hover { background: #fff3f0; }
+        .btn-gold { color: var(--red-ink); background: linear-gradient(180deg, #fff1b8 0%, var(--gold-hi) 35%, var(--gold) 100%); border-color: #fff3c4;
+            box-shadow: 0 10px 22px -8px rgba(122, 60, 0, .5), inset 0 -2px 0 rgba(0, 0, 0, .08); }
+        .btn-gold:hover { filter: brightness(1.05); }
+        .btn-white { color: #fff; border-color: rgba(255, 255, 255, .85); background: rgba(255, 255, 255, .08); }
+        .btn-white:hover { background: rgba(255, 255, 255, .18); }
+        .btn-sm { min-height: 40px; padding: 0 18px; font-size: 14px; }
         .btn[disabled], .btn.is-busy { opacity: .7; pointer-events: none; }
 
         /* ---------- bố cục ---------- */
-        .page { position: relative; }
+        .page { position: relative; overflow-x: clip; }   /* cành hoa tràn mép không tạo thanh cuộn ngang */
         .wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--gutter); }
         section { scroll-margin-top: calc(var(--header-h) + 16px); }
 
         /* ---------- HERO ---------- */
-        .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: center; gap: clamp(24px, 4vw, 56px); padding: clamp(28px, 5vw, 64px) 0 clamp(28px, 4vw, 48px); }
+        .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: center; gap: clamp(28px, 5vw, 64px);
+            padding: clamp(56px, 7vw, 92px) 0 clamp(36px, 5vw, 60px); }
         .hero-copy { max-width: 560px; }
-        .live { display: inline-flex; align-items: center; gap: 10px; padding: 6px 14px 6px 10px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--gold-hi);
-            background: rgba(211, 24, 47, .16); border: 1px solid rgba(211, 24, 47, .45); }
-        .live-dot { width: 9px; height: 9px; border-radius: 50%; background: #3ee07a; box-shadow: 0 0 0 0 rgba(62, 224, 122, .6); animation: livePulse 2s ease-out infinite; }
-        @keyframes livePulse { 70% { box-shadow: 0 0 0 9px rgba(62, 224, 122, 0); } 100% { box-shadow: 0 0 0 0 rgba(62, 224, 122, 0); } }
-        .title { margin-top: 18px; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; line-height: .98; letter-spacing: .005em;
-            font-size: clamp(44px, 5.9vw, 80px); }
-        .title span { display: block; color: transparent; -webkit-text-fill-color: transparent; -webkit-background-clip: text; background-clip: text;
-            background-image: linear-gradient(100deg, var(--gold) 0%, var(--gold-hi) 18%, var(--gold) 34%, var(--gold-lo) 52%, var(--gold) 70%, var(--gold-hi) 86%, var(--gold) 100%);
-            background-size: 240% 100%; background-position: 100% 0; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .55)); }
-        .year { display: flex; align-items: center; gap: 14px; margin-top: 16px; font-family: var(--font-display); font-weight: 600; font-size: clamp(20px, 2.4vw, 26px); color: var(--bone); letter-spacing: .04em; }
-        .seal { --c: 6px; display: inline-grid; place-items: center; width: 44px; height: 44px; flex: 0 0 auto; background: var(--cinnabar); color: var(--gold-hi);
-            font-size: 15px; font-weight: 700; line-height: 1; box-shadow: inset 0 0 0 2px rgba(255, 231, 163, .35); }
-        .lead { margin-top: 18px; max-width: 46ch; font-size: clamp(15px, 1.5vw, 17px); color: var(--muted); }
-        .lead b { color: var(--bone); font-weight: 600; }
+        .live { display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px 7px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; color: var(--red-deep);
+            background: #fff; border: 1px solid var(--line-red); box-shadow: 0 6px 16px -10px rgba(163, 16, 28, .45); }
+        .live-dot { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 0 rgba(34, 197, 94, .6); animation: livePulse 2s ease-out infinite; }
+        @keyframes livePulse { 70% { box-shadow: 0 0 0 9px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        .title { margin-top: 16px; font-family: var(--font-script); font-weight: 400; line-height: 1.04; letter-spacing: .005em; color: var(--red);
+            font-size: clamp(50px, 6.4vw, 90px); text-shadow: 0 2px 0 #fff, 0 5px 0 var(--gold), 0 14px 28px rgba(215, 31, 43, .22); }
+        .title span { display: block; }
+        .title span:nth-child(2) { color: var(--red-deep); padding-left: .6em; }
+        .year { display: flex; align-items: center; gap: 14px; margin-top: 20px; font-weight: 800; font-size: clamp(19px, 2.2vw, 24px); color: var(--ink); letter-spacing: .02em; }
+        .seal { display: inline-grid; place-items: center; width: 48px; height: 48px; flex: 0 0 auto; border-radius: 12px; transform: rotate(-6deg);
+            background: var(--red); color: var(--gold-hi); font-family: var(--font-script); font-size: 19px; line-height: 1;
+            box-shadow: inset 0 0 0 2px var(--red), inset 0 0 0 4px var(--gold-hi), 0 8px 16px -8px rgba(163, 16, 28, .7); }
+        .lead { margin-top: 16px; max-width: 46ch; font-size: clamp(15.5px, 1.5vw, 17px); color: var(--text); }
+        .lead b { color: var(--red-deep); font-weight: 700; }
         .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 
-        .stage { position: relative; width: 100%; aspect-ratio: 16 / 9; mix-blend-mode: screen; }
-        .stage::before { content: ''; position: absolute; left: 50%; top: 52%; width: 62%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
-            background: radial-gradient(closest-side, rgba(255, 106, 43, .38), rgba(211, 24, 47, .18) 55%, transparent 76%); }
-        .hero-video { position: relative; width: 100%; height: 100%; object-fit: cover; pointer-events: none; filter: saturate(1.1) contrast(1.05);
-            -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent), linear-gradient(180deg, transparent, #000 4%, #000 92%, transparent);
-            -webkit-mask-composite: source-in;
-            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent), linear-gradient(180deg, transparent, #000 4%, #000 92%, transparent);
-            mask-composite: intersect; }
+        /* khung tranh chứa video huy hiệu */
+        .hero-media { position: relative; }
+        .stage { position: relative; padding: 9px; border-radius: 28px;
+            background: linear-gradient(135deg, #fff1b8 0%, var(--gold) 28%, var(--gold-deep) 50%, var(--gold) 72%, #fff1b8 100%);
+            box-shadow: 0 30px 60px -26px rgba(163, 16, 28, .55), 0 0 0 1px rgba(201, 138, 11, .45); }
+        .stage-in { position: relative; overflow: hidden; aspect-ratio: 16 / 9; border-radius: 20px; background: radial-gradient(circle at 50% 50%, #8a0f19, #2a0407 75%);
+            box-shadow: inset 0 0 0 3px var(--red), inset 0 0 0 5px rgba(255, 220, 110, .6); }
+        .hero-video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
         .hero-video::-webkit-media-controls, .hero-video::-webkit-media-controls-panel, .hero-video::-webkit-media-controls-start-playback-button,
         .hero-video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; opacity: 0; }
-        .stage-logo { display: none; position: absolute; left: 50%; top: 50%; width: 58%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; object-fit: cover;
-            border: 3px solid var(--gold); box-shadow: 0 0 60px rgba(255, 106, 43, .45); }
-        .stage.no-video { mix-blend-mode: normal; }
+        .stage-logo { display: none; position: absolute; left: 50%; top: 50%; width: 52%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; object-fit: cover;
+            border: 3px solid var(--gold); box-shadow: 0 0 60px rgba(255, 180, 60, .55); }
         .stage.no-video .hero-video { display: none; }
         .stage.no-video .stage-logo { display: block; }
+        .stage-tag { position: absolute; left: 50%; bottom: -18px; transform: translateX(-50%); z-index: 3; white-space: nowrap;
+            padding: 7px 20px; border-radius: 999px; font-family: var(--font-script); font-size: 18px; line-height: 1.2; color: var(--gold-hi);
+            background: linear-gradient(180deg, var(--red-hi), var(--red-deep)); border: 2px solid var(--gold-hi); box-shadow: 0 8px 18px -8px rgba(122, 10, 20, .8); }
 
-        /* vào trang: 1 chuỗi duy nhất (huy hiệu bừng sáng -> tiêu đề -> nút) */
-        @keyframes ignite { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+        /* cành mai, cành đào, đèn lồng quanh khung */
+        .branch { position: absolute; z-index: 2; pointer-events: none; height: auto; overflow: visible; filter: drop-shadow(0 6px 8px rgba(110, 40, 10, .18)); }
+        .branch-mai { left: -9%; top: -15%; width: 44%; }
+        .branch-dao { right: -7%; bottom: -13%; width: 40%; transform: rotate(180deg); }
+        .lantern { position: absolute; z-index: 3; top: -46px; width: 50px; height: auto; transform-origin: 50% 0; pointer-events: none;
+            animation: swing 3.2s ease-in-out infinite alternate; filter: drop-shadow(0 8px 10px rgba(163, 16, 28, .3)); }
+        .lantern.l1 { right: 15%; }
+        .lantern.l2 { right: 4%; top: -30px; width: 40px; animation-duration: 3.8s; animation-delay: -1.2s; }
+        @keyframes swing { from { transform: rotate(5deg); } to { transform: rotate(-5deg); } }
+
+        /* vào trang: khung bừng sáng -> tiêu đề -> nút */
+        @keyframes ignite { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
         @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-        @keyframes leaf { from { background-position: 100% 0; } to { background-position: 0 0; } }
-        .stage { animation: ignite 1s cubic-bezier(.2, .8, .2, 1) both; }
+        .hero-media { animation: ignite 1s cubic-bezier(.2, .8, .2, 1) both; }
         .live { animation: rise .7s .2s cubic-bezier(.2, .8, .2, 1) both; }
-        .title span:nth-child(1) { animation: rise .8s .3s cubic-bezier(.2, .8, .2, 1) both, leaf 1.8s .6s ease-out both; }
-        .title span:nth-child(2) { animation: rise .8s .42s cubic-bezier(.2, .8, .2, 1) both, leaf 1.8s .75s ease-out both; }
+        .title span:nth-child(1) { animation: rise .8s .3s cubic-bezier(.2, .8, .2, 1) both; }
+        .title span:nth-child(2) { animation: rise .8s .42s cubic-bezier(.2, .8, .2, 1) both; }
         .year, .lead { animation: rise .8s .55s cubic-bezier(.2, .8, .2, 1) both; }
         .cta { animation: rise .8s .7s cubic-bezier(.2, .8, .2, 1) both; }
 
-        /* ---------- BẢNG ĐẾM NGƯỢC (kiểu bảng tỉ số trận đấu) ---------- */
-        .board { --c: 18px; --edge: var(--line-strong); --fill: linear-gradient(180deg, rgba(38, 16, 15, .94), rgba(20, 7, 9, .94));
-            display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px; padding: 26px 30px; }
-        .board h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.2vw, 26px); line-height: 1.2; color: var(--bone); }
-        .board-date { margin-top: 6px; font-size: 14.5px; color: var(--muted); }
-        .board-date b { color: var(--gold); font-weight: 600; }
-        .clock { display: flex; align-items: flex-start; gap: 10px; }
+        /* ---------- DẢI LỜI CHÚC ---------- */
+        .wishes { position: relative; overflow: hidden; margin: 8px 0 0; color: var(--gold-hi);
+            background: linear-gradient(180deg, var(--red-hi), var(--red) 45%, var(--red-deep));
+            border-block: 3px solid var(--gold); box-shadow: 0 10px 24px -14px rgba(122, 10, 20, .6); }
+        .wishes-track { display: flex; width: max-content; animation: marquee 46s linear infinite; }
+        .wishes-track span { display: inline-flex; align-items: center; gap: 22px; padding: 10px 11px; white-space: nowrap; font-family: var(--font-script); font-size: clamp(18px, 2vw, 22px); line-height: 1.3; }
+        .wishes-track span::after { content: '✿'; font-family: var(--font-body); font-size: .8em; color: #fff3c4; }
+        @keyframes marquee { to { transform: translateX(-50%); } }
+
+        /* ---------- BẢNG ĐẾM NGƯỢC (bao lì xì) ---------- */
+        .countdown { padding-top: clamp(40px, 6vw, 64px); }
+        .board { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px; padding: 30px 32px;
+            border-radius: 26px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); }
+        .board::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: linear-gradient(90deg, var(--red), var(--gold) 50%, var(--red)); }
+        .board::after { content: ''; position: absolute; right: -60px; top: -60px; width: 220px; height: 220px; border-radius: 50%; pointer-events: none;
+            background: radial-gradient(closest-side, rgba(255, 214, 92, .35), transparent); }
+        .board-kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--red); }
+        .board h2 { margin-top: 4px; font-weight: 800; font-size: clamp(22px, 2.4vw, 28px); line-height: 1.2; color: var(--ink); }
+        .board-date { margin-top: 6px; font-size: 15px; color: var(--muted); }
+        .board-date b { color: var(--red-deep); font-weight: 700; }
+        .clock { position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 10px; }
         .unit { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .plate { --c: 9px; position: relative; overflow: hidden; display: grid; place-items: center; min-width: 92px; height: 84px; padding: 0 12px;
-            background: linear-gradient(180deg, #2c0f10 0%, #170708 100%); box-shadow: inset 0 -3px 0 var(--cinnabar), inset 0 0 0 1px rgba(242, 193, 78, .28); }
-        .plate::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0, 0, 0, .45); }
-        .num { font-family: var(--font-display); font-weight: 700; font-size: 46px; line-height: 1; color: var(--gold-hi); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+        .plate { position: relative; overflow: hidden; display: grid; place-items: center; min-width: 92px; height: 96px; padding: 14px 12px 0; border-radius: 14px;
+            background: linear-gradient(180deg, var(--red-hi) 0%, var(--red) 45%, var(--red-deep) 100%);
+            box-shadow: inset 0 0 0 2px rgba(255, 220, 110, .55), 0 12px 22px -12px rgba(122, 10, 20, .75); }
+        .plate::before { content: ''; position: absolute; left: -2px; right: -2px; top: 0; height: 34px; border-radius: 0 0 50% 50% / 0 0 100% 100%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .04)); border-bottom: 1.5px solid rgba(255, 220, 110, .7); }
+        .plate::after { content: ''; position: absolute; left: 50%; top: 26px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff4c4, var(--gold) 60%, var(--gold-deep)); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
+        .num { position: relative; font-weight: 800; font-size: 40px; line-height: 1; color: var(--gold-hi); font-variant-numeric: tabular-nums; letter-spacing: .01em;
+            text-shadow: 0 2px 0 rgba(110, 11, 20, .5); }
         .plate.tick .num { animation: tick .42s cubic-bezier(.2, .9, .3, 1); }
         @keyframes tick { from { transform: translateY(-38%); opacity: .2; } to { transform: none; opacity: 1; } }
-        .unit-lbl { font-size: 13px; font-weight: 600; color: var(--muted); }
-        .colon { padding-top: 18px; font-family: var(--font-display); font-weight: 700; font-size: 34px; color: var(--cinnabar); line-height: 1; }
-        .newyear { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3.4vw, 40px); color: var(--gold-hi); text-transform: uppercase; }
+        .unit-lbl { font-size: 13.5px; font-weight: 700; color: var(--muted); }
+        .colon { padding-top: 30px; font-weight: 800; font-size: 32px; color: var(--gold-deep); line-height: 1; }
+        .newyear { font-family: var(--font-script); font-size: clamp(32px, 4vw, 48px); color: var(--red); text-shadow: 0 3px 0 var(--gold-hi); }
 
         /* ---------- QUÀ TẾT ---------- */
-        .block { padding: clamp(48px, 7vw, 88px) 0 0; }
-        .block-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 32px; margin-bottom: 26px; }
-        .block-head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3.4vw, 40px); line-height: 1.1; color: var(--bone); }
+        .block { padding: clamp(52px, 7vw, 92px) 0 0; }
+        .block-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 32px; margin-bottom: 28px; }
+        .eyebrow { display: block; font-family: var(--font-script); font-size: clamp(20px, 2vw, 24px); color: var(--red); line-height: 1.2; }
+        .block-head h2 { margin-top: 2px; font-weight: 800; font-size: clamp(26px, 3.2vw, 38px); line-height: 1.15; color: var(--ink); }
         .block-head p { max-width: 44ch; color: var(--muted); font-size: 15.5px; }
-        .gifts { --c: 18px; --edge: var(--line); --fill: rgba(22, 8, 10, .9); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        .gift { display: flex; gap: 16px; padding: 26px 26px 28px; border-color: var(--line); border-style: solid; border-width: 0 1px 1px 0; }
-        .gift:nth-child(3n) { border-right-width: 0; }
-        .gift:nth-last-child(-n+3) { border-bottom-width: 0; }
-        .gift-ico { --c: 8px; flex: 0 0 auto; display: grid; place-items: center; width: 50px; height: 50px; font-size: 21px; color: var(--gold-hi);
-            background: linear-gradient(160deg, var(--cinnabar), var(--cinnabar-deep)); box-shadow: inset 0 0 0 1px rgba(255, 231, 163, .3); }
-        .gift h3 { font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.25; color: var(--gold-hi); }
+        .gifts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+        .gift { position: relative; display: flex; gap: 16px; padding: 24px 22px 26px; border-radius: var(--radius); background: var(--card);
+            border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+        .gift:hover { transform: translateY(-4px); border-color: var(--line-red); box-shadow: 0 26px 46px -24px rgba(163, 16, 28, .45); }
+        .gift-ico { flex: 0 0 auto; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 16px; font-size: 22px; color: var(--gold-hi);
+            background: linear-gradient(160deg, var(--red-hi), var(--red-deep)); box-shadow: inset 0 0 0 2px rgba(255, 220, 110, .55), 0 10px 18px -10px rgba(163, 16, 28, .8); }
+        .gift:nth-child(even) .gift-ico { color: var(--red-deep); background: linear-gradient(160deg, #fff1b8, var(--gold)); box-shadow: inset 0 0 0 2px #fff6d6, 0 10px 18px -10px rgba(150, 90, 0, .8); }
+        .gift h3 { font-weight: 800; font-size: 18px; line-height: 1.3; color: var(--ink); }
         .gift p { margin-top: 6px; font-size: 14.5px; line-height: 1.6; color: var(--muted); }
 
         /* ---------- 3 BƯỚC THAM GIA ---------- */
-        .steps { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; counter-reset: step; position: relative; }
-        .steps::before { content: ''; position: absolute; top: 27px; left: 28px; right: 28px; height: 2px;
-            background: repeating-linear-gradient(90deg, var(--gold-lo) 0 10px, transparent 10px 18px); opacity: .7; }
-        .step { position: relative; padding-right: 28px; counter-increment: step; }
-        .step-no { --c: 9px; position: relative; display: grid; place-items: center; width: 56px; height: 56px; font-family: var(--font-display); font-weight: 700; font-size: 24px;
-            color: #2a0a05; background: linear-gradient(180deg, var(--gold-hi), var(--gold) 50%, #d9a033); }
+        .steps { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; counter-reset: step; position: relative; }
+        .step { position: relative; padding: 24px 22px 26px; border-radius: var(--radius); background: rgba(255, 255, 255, .7); border: 1.5px dashed rgba(215, 31, 43, .3); counter-increment: step; }
+        .step-no { position: relative; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; font-weight: 800; font-size: 24px;
+            color: var(--red-deep); background: radial-gradient(circle at 35% 30%, #fff6cf, var(--gold-hi) 45%, var(--gold) 100%);
+            box-shadow: 0 0 0 4px #fff, 0 0 0 6px var(--gold), 0 10px 18px -8px rgba(150, 90, 0, .7); }
         .step-no::before { content: counter(step); }
-        .step h3 { margin-top: 18px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--bone); }
+        .step h3 { margin-top: 18px; font-weight: 800; font-size: 19px; color: var(--ink); }
         .step p { margin-top: 6px; max-width: 34ch; font-size: 15px; color: var(--muted); }
-        .join { --c: 18px; --edge: rgba(211, 24, 47, .6); --fill: linear-gradient(120deg, rgba(125, 12, 25, .55), rgba(27, 10, 12, .92) 60%);
-            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px 32px; margin-top: 40px; padding: 26px 30px; }
-        .join p { font-family: var(--font-display); font-weight: 700; font-size: clamp(19px, 2vw, 23px); line-height: 1.3; color: var(--bone); max-width: 30ch; }
-        .join .cta { margin-top: 0; animation: none; }
+        .join { position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px 32px; margin-top: 30px; padding: 30px 34px;
+            border-radius: 26px; color: #fff; background: linear-gradient(120deg, var(--red-hi), var(--red) 40%, var(--red-deep));
+            box-shadow: 0 26px 50px -24px rgba(163, 16, 28, .7), inset 0 0 0 2px rgba(255, 220, 110, .45); }
+        .join::before { content: ''; position: absolute; inset: 0; opacity: .5; pointer-events: none;
+            background: radial-gradient(circle at 92% 20%, rgba(255, 220, 110, .45), transparent 35%), radial-gradient(circle at 8% 110%, rgba(255, 220, 110, .35), transparent 40%); }
+        .join-txt { position: relative; }
+        .join-txt b { display: block; font-family: var(--font-script); font-weight: 400; font-size: clamp(26px, 3vw, 34px); line-height: 1.15; color: var(--gold-hi); }
+        .join-txt span { display: block; margin-top: 4px; font-size: 16px; font-weight: 600; color: #ffe9e4; }
+        .join .cta { position: relative; margin-top: 0; animation: none; }
 
         /* ---------- CHÂN TRANG ---------- */
-        .foot { margin-top: clamp(56px, 8vw, 96px); border-top: 1px solid var(--line); padding: 26px 0 calc(26px + env(safe-area-inset-bottom)); }
+        .foot { margin-top: clamp(56px, 8vw, 96px); padding: 26px 0 calc(26px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .6); border-top: 3px solid var(--gold); }
         .foot-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; }
-        .foot .brand-logo { width: 34px; height: 34px; }
-        .foot small { font-size: 13px; color: var(--muted); }
-        .foot nav { display: flex; gap: 18px; font-size: 14px; font-weight: 600; color: var(--gold); }
-        .foot nav a:hover, .foot nav button:hover { color: var(--gold-hi); text-decoration: underline; text-underline-offset: 4px; }
+        .foot .brand-logo { width: 36px; height: 36px; }
+        .foot small { font-size: 13px; color: var(--muted); font-weight: 600; }
+        .foot nav { display: flex; gap: 18px; font-size: 14.5px; font-weight: 700; color: var(--red); }
+        .foot nav a:hover, .foot nav button:hover { color: var(--red-deep); text-decoration: underline; text-underline-offset: 4px; }
 
         /* ---------- MODAL ĐĂNG KÝ ---------- */
         .modal-overlay { position: fixed; inset: 0; z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px;
-            background: rgba(8, 2, 3, .82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; transition: opacity .25s ease; }
+            background: rgba(70, 12, 8, .45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; transition: opacity .25s ease; }
+        html.qd-lite .modal-overlay { background: rgba(70, 12, 8, .6); }
         .modal-overlay.active { opacity: 1; }
-        .modal-box { --c: 18px; --edge: var(--line-strong); --fill: linear-gradient(180deg, #2a0f10, #150607 70%); width: 100%; max-width: 440px; max-height: calc(100dvh - 40px); overflow-y: auto;
-            padding: 30px 28px 26px; transform: translateY(16px) scale(.98); transition: transform .3s cubic-bezier(.2, .8, .2, 1); overscroll-behavior: contain; }
+        .modal-box { position: relative; width: 100%; max-width: 440px; max-height: calc(100dvh - 40px); overflow-y: auto; padding: 30px 28px 26px; border-radius: 26px;
+            background: linear-gradient(180deg, #fff6e2 0, #fff 120px); border: 1px solid var(--line); box-shadow: 0 40px 80px -30px rgba(70, 10, 5, .6);
+            transform: translateY(16px) scale(.98); transition: transform .3s cubic-bezier(.2, .8, .2, 1); overscroll-behavior: contain; }
+        .modal-box::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: linear-gradient(90deg, var(--red), var(--gold) 50%, var(--red)); }
         .modal-overlay.active .modal-box { transform: none; }
         .modal-head { display: flex; align-items: center; gap: 14px; }
-        .modal-head .gift-ico { width: 46px; height: 46px; font-size: 19px; }
-        .modal-title { font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1.2; color: var(--gold-hi); }
-        .modal-note { margin: 14px 0 20px; font-size: 14.5px; color: var(--muted); }
+        .modal-head .gift-ico { width: 48px; height: 48px; font-size: 19px; }
+        .modal-title { font-weight: 800; font-size: 23px; line-height: 1.2; color: var(--ink); }
+        .modal-note { margin: 14px 0 20px; padding: 10px 14px; border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--red-deep); background: #fff1ee; border: 1px solid var(--line-red); }
         .field { display: block; margin-bottom: 16px; }
-        .field-lbl { display: block; margin-bottom: 7px; font-size: 14px; font-weight: 600; color: var(--bone); }
-        .field-hint { font-weight: 400; color: var(--muted); }
-        .field-box { position: relative; }
-        .form-control { width: 100%; min-height: 50px; padding: 12px 16px; border-radius: 10px; font: inherit; font-size: 16px; font-weight: 500; color: #fff;
-            background: rgba(0, 0, 0, .38); border: 1px solid rgba(242, 193, 78, .28); transition: border-color .2s, box-shadow .2s, background .2s; -webkit-appearance: none; appearance: none; }
-        .form-control::placeholder { color: rgba(246, 237, 225, .38); font-weight: 400; }
-        .form-control:focus { outline: none; border-color: var(--gold); background: rgba(0, 0, 0, .55); box-shadow: 0 0 0 3px rgba(242, 193, 78, .22); }
+        .field-lbl { display: block; margin-bottom: 7px; font-size: 14px; font-weight: 700; color: var(--ink); }
+        .field-hint { font-weight: 500; color: var(--muted); }
+        .field-box { position: relative; display: block; }
+        .form-control { width: 100%; min-height: 50px; padding: 12px 16px; border-radius: 14px; font: inherit; font-size: 16px; font-weight: 500; color: var(--ink);
+            background: #fffaf1; border: 1.5px solid #f0d9b0; transition: border-color .2s, box-shadow .2s, background .2s; -webkit-appearance: none; appearance: none; }
+        .form-control::placeholder { color: #b9968a; font-weight: 400; }
+        .form-control:focus { outline: none; border-color: var(--red); background: #fff; box-shadow: 0 0 0 4px color-mix(in srgb, var(--red) 16%, transparent); }
         .field-box .form-control { padding-right: 52px; }
-        .eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; display: grid; place-items: center; color: var(--muted); border-radius: 8px; }
-        .eye:hover { color: var(--gold-hi); }
+        .eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; display: grid; place-items: center; color: var(--muted); border-radius: 10px; }
+        .eye:hover { color: var(--red); }
         .modal-btn-group { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; margin-top: 22px; }
         .modal-btn-group .btn { width: 100%; padding: 0 14px; }
+        .modal-btn-group .btn:hover { transform: none; }
 
         /* ---------- TOAST ---------- */
-        #toast-container { position: fixed; top: calc(var(--header-h) + 12px + env(safe-area-inset-top)); right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; max-width: calc(100vw - 32px); }
-        .toast { width: 360px; max-width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 600; line-height: 1.45; color: #fff;
-            background: rgba(30, 10, 11, .97); border: 1px solid var(--line-strong); border-left: 4px solid var(--gold); box-shadow: 0 16px 36px rgba(0, 0, 0, .55);
+        #toast-container { position: fixed; top: calc(var(--header-h) + 14px + env(safe-area-inset-top)); right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; max-width: calc(100vw - 32px); }
+        .toast { width: 360px; max-width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 16px; font-size: 15px; font-weight: 600; line-height: 1.45; color: var(--ink);
+            background: #fff; border: 1px solid var(--line); border-left: 5px solid #16a34a; box-shadow: 0 18px 40px -16px rgba(70, 10, 5, .45);
             transform: translateX(calc(100% + 30px)); transition: transform .4s cubic-bezier(.2, 1.2, .3, 1); pointer-events: auto; }
         .toast.show { transform: none; }
-        .toast i { font-size: 22px; color: var(--gold); flex: 0 0 auto; }
-        .toast.error { border-left-color: #ff4d4d; } .toast.error i { color: #ff6b6b; }
-        .toast.warning { border-left-color: #f59e0b; } .toast.warning i { color: #fbbf24; }
+        .toast i { font-size: 22px; color: #16a34a; flex: 0 0 auto; }
+        .toast.error { border-left-color: #dc2626; } .toast.error i { color: #dc2626; }
+        .toast.warning { border-left-color: #f59e0b; } .toast.warning i { color: #d97706; }
 
         /* ---------- MÀN HÌNH VỪA (máy tính bảng) ---------- */
         @media (max-width: 1020px) {
             .gifts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .gift:nth-child(3n) { border-right-width: 1px; }
-            .gift:nth-child(2n) { border-right-width: 0; }
-            .gift:nth-last-child(-n+3) { border-bottom-width: 1px; }
-            .gift:nth-last-child(-n+2) { border-bottom-width: 0; }
             .board { grid-template-columns: 1fr; justify-items: center; text-align: center; }
         }
         /* ---------- ĐIỆN THOẠI ---------- */
         @media (max-width: 860px) {
-            .hero { grid-template-columns: 1fr; gap: 6px; padding-top: 14px; text-align: center; }
-            .hero-media { order: -1; margin: 0 calc(var(--gutter) * -1); }
+            .hero { grid-template-columns: 1fr; gap: 34px; padding-top: 58px; text-align: center; }
+            .hero-media { order: -1; max-width: 620px; width: 100%; margin: 0 auto; }
             .hero-copy { max-width: 600px; margin: 0 auto; }
-            .title { margin-top: 14px; }
+            .title span:nth-child(2) { padding-left: 0; }
             .year { justify-content: center; }
             .lead { margin-left: auto; margin-right: auto; }
             .cta { justify-content: center; }
-            .steps { grid-template-columns: 1fr; gap: 26px; }
-            .steps::before { top: 28px; bottom: 28px; left: 27px; right: auto; width: 2px; height: auto;
-                background: repeating-linear-gradient(180deg, var(--gold-lo) 0 10px, transparent 10px 18px); }
-            .step { display: grid; grid-template-columns: 56px 1fr; column-gap: 18px; padding: 0; }
+            .steps { grid-template-columns: 1fr; gap: 14px; }
+            .step { display: grid; grid-template-columns: 56px 1fr; column-gap: 18px; align-items: start; padding: 20px 18px; }
             .step-no { grid-row: span 2; }
             .step h3 { margin-top: 2px; }
             .step p { margin-top: 2px; }
         }
         @media (max-width: 600px) {
-            :root { --header-h: 58px; --c: 12px; }
-            .brand-logo { width: 36px; height: 36px; }
+            :root { --header-h: 60px; --radius: 18px; }
+            .brand-logo { width: 38px; height: 38px; }
             .brand-name { font-size: 16px; }
             .topbar .hide-sm { display: none; }
+            .hero { padding-top: 50px; }
+            .stage { padding: 6px; border-radius: 22px; }
+            .stage-in { border-radius: 16px; }
+            .stage-tag { font-size: 16px; padding: 6px 16px; bottom: -16px; }
+            .lantern.l1 { width: 40px; top: -38px; }
+            .lantern.l2 { width: 32px; top: -26px; }
             .cta { flex-direction: column; align-items: stretch; max-width: 420px; margin-left: auto; margin-right: auto; }
             .cta .btn { width: 100%; }
-            .board { padding: 22px 14px 20px; gap: 18px; --c: 14px; }
-            .clock { width: 100%; justify-content: center; gap: 6px; }
+            .board { padding: 26px 14px 22px; gap: 18px; border-radius: 22px; }
+            .clock { width: 100%; justify-content: center; gap: 8px; }
             .unit { flex: 1 1 0; min-width: 0; }
-            .plate { width: 100%; min-width: 0; height: 68px; padding: 0 4px; }
-            .num { font-size: clamp(28px, 8.4vw, 36px); }
+            .plate { width: 100%; min-width: 0; height: 80px; padding: 12px 4px 0; border-radius: 12px; }
+            .plate::before { height: 28px; }
+            .plate::after { top: 21px; width: 11px; height: 11px; margin-left: -5.5px; }
+            .num { font-size: clamp(26px, 8vw, 34px); }
             .colon { display: none; }
-            .gifts { grid-template-columns: 1fr; }
-            .gift, .gift:nth-child(n) { border-right-width: 0; border-bottom-width: 1px; padding: 20px 18px; }
-            .gift:last-child { border-bottom-width: 0; }
-            .join { padding: 22px 18px; text-align: center; justify-content: center; }
-            .join p { margin: 0 auto; }
+            .gifts { grid-template-columns: 1fr; gap: 12px; }
+            .gift { padding: 18px 16px; }
+            .gift-ico { width: 48px; height: 48px; font-size: 20px; border-radius: 14px; }
+            .join { padding: 26px 18px; text-align: center; justify-content: center; }
             .join .cta { width: 100%; }
             .foot-in { flex-direction: column; text-align: center; }
             /* modal thành tấm trượt từ dưới lên */
             .modal-overlay { align-items: flex-end; padding: 0; }
-            .modal-box { max-width: none; max-height: 92dvh; clip-path: none; --edge: transparent; border-radius: 20px 20px 0 0; border-top: 1px solid var(--line-strong);
-                padding: 24px 20px calc(20px + env(safe-area-inset-bottom)); transform: translateY(100%); }
-            .modal-box::before { clip-path: none; inset: 0; border-radius: inherit; }
+            .modal-box { max-width: none; max-height: 92dvh; border-radius: 24px 24px 0 0; padding: 26px 20px calc(20px + env(safe-area-inset-bottom)); transform: translateY(100%); }
             #toast-container { left: 16px; right: 16px; align-items: stretch; }
             .toast { width: 100%; transform: translateY(-140%); }
             .toast.show { transform: none; }
@@ -309,9 +360,9 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }
             #petals, #fx { display: none !important; }
-            .title span { background-position: 0 0; }
         }
     </style>
+
     <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
     <style id="qd-smooth-css">
 /* ===== QD SMOOTH (dùng chung) ===== */
@@ -464,6 +515,43 @@ html.qd-lite .qd-fx { display: none !important; }
 <body>
     <div id="toast-container" aria-live="polite"></div>
 
+    <!-- Hình vẽ dùng chung: đèn lồng, hoa mai, hoa đào -->
+    <svg class="sr-defs" aria-hidden="true" focusable="false">
+        <defs>
+            <radialGradient id="g-lantern" cx="40%" cy="35%" r="70%">
+                <stop offset="0" stop-color="#ff6b6f"/><stop offset=".55" stop-color="#d71f2b"/><stop offset="1" stop-color="#8f0d18"/>
+            </radialGradient>
+            <symbol id="sym-lantern" viewBox="0 0 60 120">
+                <line x1="30" y1="0" x2="30" y2="16" stroke="#c98a0b" stroke-width="2"/>
+                <rect x="18" y="13" width="24" height="8" rx="2.5" fill="#f4b324"/>
+                <ellipse cx="30" cy="46" rx="27" ry="26" fill="url(#g-lantern)"/>
+                <g fill="none" stroke="#8f0d18" stroke-opacity=".45" stroke-width="1.5"><ellipse cx="30" cy="46" rx="16" ry="26"/><ellipse cx="30" cy="46" rx="5" ry="26"/></g>
+                <ellipse cx="21" cy="36" rx="5" ry="9" fill="#fff" fill-opacity=".18"/>
+                <text x="30" y="53" text-anchor="middle" font-size="19" font-weight="700" fill="#ffdc6e" font-family="serif">福</text>
+                <rect x="18" y="71" width="24" height="8" rx="2.5" fill="#f4b324"/>
+                <line x1="30" y1="79" x2="30" y2="84" stroke="#f4b324" stroke-width="2"/>
+                <circle cx="30" cy="87" r="4" fill="#d71f2b" stroke="#f4b324" stroke-width="1.5"/>
+                <g stroke="#e0a21a" stroke-width="1.8" stroke-linecap="round"><line x1="30" y1="91" x2="30" y2="116"/><line x1="27" y1="91" x2="24" y2="113"/><line x1="33" y1="91" x2="36" y2="113"/></g>
+            </symbol>
+            <symbol id="sym-mai" viewBox="0 0 100 100">
+                <g fill="#ffd02a" stroke="#e8a200" stroke-width="2.5">
+                    <ellipse cx="50" cy="27" rx="16" ry="23"/><ellipse cx="50" cy="27" rx="16" ry="23" transform="rotate(72 50 50)"/><ellipse cx="50" cy="27" rx="16" ry="23" transform="rotate(144 50 50)"/>
+                    <ellipse cx="50" cy="27" rx="16" ry="23" transform="rotate(216 50 50)"/><ellipse cx="50" cy="27" rx="16" ry="23" transform="rotate(288 50 50)"/>
+                </g>
+                <circle cx="50" cy="50" r="11" fill="#f08a00"/>
+                <g fill="#9a4a05"><circle cx="50" cy="36" r="2.6"/><circle cx="63" cy="46" r="2.6"/><circle cx="58" cy="61" r="2.6"/><circle cx="42" cy="61" r="2.6"/><circle cx="37" cy="46" r="2.6"/></g>
+            </symbol>
+            <symbol id="sym-dao" viewBox="0 0 100 100">
+                <g fill="#ffb8d2" stroke="#ec6fa0" stroke-width="2.5">
+                    <ellipse cx="50" cy="27" rx="17" ry="23"/><ellipse cx="50" cy="27" rx="17" ry="23" transform="rotate(72 50 50)"/><ellipse cx="50" cy="27" rx="17" ry="23" transform="rotate(144 50 50)"/>
+                    <ellipse cx="50" cy="27" rx="17" ry="23" transform="rotate(216 50 50)"/><ellipse cx="50" cy="27" rx="17" ry="23" transform="rotate(288 50 50)"/>
+                </g>
+                <circle cx="50" cy="50" r="10" fill="#e0457b"/>
+                <g fill="#9d174d"><circle cx="50" cy="37" r="2.4"/><circle cx="62" cy="46" r="2.4"/><circle cx="57" cy="60" r="2.4"/><circle cx="43" cy="60" r="2.4"/><circle cx="38" cy="46" r="2.4"/></g>
+            </symbol>
+        </defs>
+    </svg>
+
     <!-- Hiệu ứng nền: hoa mai/đào rơi + pháo hoa (chạm để bắn) -->
     <div id="petals" class="qd-fx" aria-hidden="true"></div>
     <canvas id="fx" class="qd-fx" aria-hidden="true"></canvas>
@@ -471,15 +559,15 @@ html.qd-lite .qd-fx { display: none !important; }
     <header class="topbar">
         <div class="topbar-in">
             <a class="brand" href="#top" aria-label="Team T&quot;L&quot;Headshot - về đầu trang">
-                <img class="brand-logo" src="logo.jpg" alt="" width="40" height="40" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='anh1.jpg'}else{this.style.visibility='hidden'}">
+                <img class="brand-logo" src="logo.jpg" alt="" width="42" height="42" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='anh1.jpg'}else{this.style.visibility='hidden'}">
                 <span class="brand-text">
                     <span class="brand-name">T"L"Headshot</span>
-                    <span class="brand-sub">Tết Đinh Mùi 2027</span>
+                    <span class="brand-sub">Xuân Đinh Mùi 2027</span>
                 </span>
             </a>
             <div class="topbar-actions">
-                <button type="button" class="btn btn-line btn-sm framed cham hide-sm" onclick="openRegisterModal(this)">Đăng ký</button>
-                <a href="user.html" class="btn btn-gold btn-sm cham"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
+                <button type="button" class="btn btn-outline btn-sm hide-sm" onclick="openRegisterModal(this)">Đăng ký</button>
+                <a href="user.html" class="btn btn-red btn-sm"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
             </div>
         </div>
     </header>
@@ -490,70 +578,93 @@ html.qd-lite .qd-fx { display: none !important; }
             <section class="hero" aria-labelledby="hero-title">
                 <div class="hero-copy">
                     <span class="live"><span class="live-dot" aria-hidden="true"></span> Cổng sự kiện Tết đã mở</span>
-                    <h1 class="title" id="hero-title"><span>Chúc mừng</span><span>năm mới</span></h1>
-                    <p class="year"><span class="seal cham" aria-hidden="true">Tết</span> Xuân Đinh Mùi 2027</p>
+                    <h1 class="title" id="hero-title"><span>Chúc Mừng</span><span>Năm Mới</span></h1>
+                    <p class="year"><span class="seal" aria-hidden="true">Tết</span> Xuân Đinh Mùi 2027</p>
                     <p class="lead">Đăng nhập mỗi ngày để <b>mở lì xì may mắn</b>, thử vận ở <b>vòng quay nhân phẩm</b> và cùng cả team xem <b>quay số trực tiếp</b> đón năm mới.</p>
                     <div class="cta">
-                        <a href="user.html" class="btn btn-gold cham"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
-                        <button type="button" class="btn btn-line framed cham" onclick="openRegisterModal(this)"><i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản</button>
+                        <a href="user.html" class="btn btn-red"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
+                        <button type="button" class="btn btn-outline" onclick="openRegisterModal(this)"><i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản</button>
                     </div>
                 </div>
                 <div class="hero-media">
+                    <svg class="lantern l1" viewBox="0 0 60 120" aria-hidden="true"><use href="#sym-lantern"/></svg>
+                    <svg class="lantern l2" viewBox="0 0 60 120" aria-hidden="true"><use href="#sym-lantern"/></svg>
+                    <svg class="branch branch-mai" viewBox="-10 -20 280 200" aria-hidden="true"><g fill="none" stroke="#6b3a1f" stroke-linecap="round"><path d="M-6 14 C 40 18, 78 40, 112 64 S 190 118, 250 168" stroke-width="7"/><path d="M74 40 C 88 20, 108 10, 138 6" stroke-width="4"/><path d="M150 92 C 170 74, 196 66, 226 70" stroke-width="3.5"/><path d="M112 64 C 108 90, 116 110, 132 126" stroke-width="3"/></g><g fill="#4caf50"><ellipse cx="140" cy="6" rx="9" ry="3.6" transform="rotate(-20 140 6)"/><ellipse cx="230" cy="70" rx="9" ry="3.6" transform="rotate(10 230 70)"/><ellipse cx="134" cy="128" rx="9" ry="3.6" transform="rotate(40 134 128)"/><ellipse cx="60" cy="28" rx="9" ry="3.6" transform="rotate(-30 60 28)"/></g><g fill="#f4a300"><circle cx="40" cy="10" r="4.5"/><circle cx="150" cy="4" r="4.5"/><circle cx="118" cy="92" r="4.5"/><circle cx="236" cy="66" r="4.5"/><circle cx="196" cy="150" r="4.5"/></g><use href="#sym-mai" x="-7.0" y="-21.0" width="30" height="30"/><use href="#sym-mai" x="29.0" y="-3.0" width="34" height="34"/><use href="#sym-mai" x="78.0" y="-24.0" width="28" height="28"/><use href="#sym-mai" x="112.0" y="-26.0" width="24" height="24"/><use href="#sym-mai" x="69.0" y="17.0" width="38" height="38"/><use href="#sym-mai" x="114.0" y="46.0" width="32" height="32"/><use href="#sym-mai" x="152.0" y="34.0" width="28" height="28"/><use href="#sym-mai" x="185.0" y="31.0" width="30" height="30"/><use href="#sym-mai" x="154.0" y="80.0" width="36" height="36"/><use href="#sym-mai" x="127.0" y="91.0" width="26" height="26"/><use href="#sym-mai" x="195.0" y="115.0" width="34" height="34"/><use href="#sym-mai" x="222.0" y="144.0" width="24" height="24"/></svg>
+                    <svg class="branch branch-dao" viewBox="-10 -20 280 200" aria-hidden="true"><g fill="none" stroke="#6b3a1f" stroke-linecap="round"><path d="M-6 14 C 40 18, 78 40, 112 64 S 190 118, 250 168" stroke-width="7"/><path d="M74 40 C 88 20, 108 10, 138 6" stroke-width="4"/><path d="M150 92 C 170 74, 196 66, 226 70" stroke-width="3.5"/><path d="M112 64 C 108 90, 116 110, 132 126" stroke-width="3"/></g><g fill="#4caf50"><ellipse cx="140" cy="6" rx="9" ry="3.6" transform="rotate(-20 140 6)"/><ellipse cx="230" cy="70" rx="9" ry="3.6" transform="rotate(10 230 70)"/><ellipse cx="134" cy="128" rx="9" ry="3.6" transform="rotate(40 134 128)"/><ellipse cx="60" cy="28" rx="9" ry="3.6" transform="rotate(-30 60 28)"/></g><g fill="#ec6fa0"><circle cx="40" cy="10" r="4.5"/><circle cx="150" cy="4" r="4.5"/><circle cx="118" cy="92" r="4.5"/><circle cx="236" cy="66" r="4.5"/><circle cx="196" cy="150" r="4.5"/></g><use href="#sym-dao" x="-7.0" y="-21.0" width="30" height="30"/><use href="#sym-dao" x="29.0" y="-3.0" width="34" height="34"/><use href="#sym-dao" x="78.0" y="-24.0" width="28" height="28"/><use href="#sym-dao" x="112.0" y="-26.0" width="24" height="24"/><use href="#sym-dao" x="69.0" y="17.0" width="38" height="38"/><use href="#sym-dao" x="114.0" y="46.0" width="32" height="32"/><use href="#sym-dao" x="152.0" y="34.0" width="28" height="28"/><use href="#sym-dao" x="185.0" y="31.0" width="30" height="30"/><use href="#sym-dao" x="154.0" y="80.0" width="36" height="36"/><use href="#sym-dao" x="127.0" y="91.0" width="26" height="26"/><use href="#sym-dao" x="195.0" y="115.0" width="34" height="34"/><use href="#sym-dao" x="222.0" y="144.0" width="24" height="24"/></svg>
                     <div class="stage" id="hero-stage">
-                        <video id="hero-video" class="hero-video" muted loop autoplay playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback noplaybackrate" tabindex="-1" aria-hidden="true">
-                            <source src="hihi.mp4" type="video/mp4">
-                        </video>
-                        <img class="stage-logo" src="logo.jpg" alt="Huy hiệu Team T&quot;L&quot;Headshot" onerror="this.src='anh1.jpg'">
+                        <div class="stage-in">
+                            <video id="hero-video" class="hero-video" muted loop autoplay playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback noplaybackrate" tabindex="-1" aria-hidden="true">
+                                <source src="hihi.mp4" type="video/mp4">
+                            </video>
+                            <img class="stage-logo" src="logo.jpg" alt="Huy hiệu Team T&quot;L&quot;Headshot" onerror="this.src='anh1.jpg'">
+                        </div>
+                        <span class="stage-tag" aria-hidden="true">Vạn Sự Như Ý</span>
                     </div>
                 </div>
             </section>
+        </div>
 
+        <!-- DẢI LỜI CHÚC -->
+        <div class="wishes" aria-hidden="true">
+            <div class="wishes-track">
+                <span>An Khang Thịnh Vượng</span><span>Vạn Sự Như Ý</span><span>Tấn Tài Tấn Lộc</span><span>Sức Khỏe Dồi Dào</span><span>Headshot Liên Tục</span><span>Năm Mới Bình An</span><span>Tiền Vào Như Nước</span>
+                <span>An Khang Thịnh Vượng</span><span>Vạn Sự Như Ý</span><span>Tấn Tài Tấn Lộc</span><span>Sức Khỏe Dồi Dào</span><span>Headshot Liên Tục</span><span>Năm Mới Bình An</span><span>Tiền Vào Như Nước</span>
+            </div>
+        </div>
+
+        <div class="wrap">
             <!-- ĐẾM NGƯỢC -->
-            <section class="board framed cham" aria-labelledby="board-title">
-                <div>
-                    <h2 id="board-title">Còn lại đến Giao thừa</h2>
-                    <p class="board-date">Mùng 1 Tết rơi vào <b>thứ Bảy, 06/02/2027</b></p>
-                </div>
-                <div class="clock" id="tet-timer" role="timer" aria-live="off">
-                    <div class="unit"><div class="plate cham"><span class="num" id="t-day">00</span></div><span class="unit-lbl">ngày</span></div>
-                    <span class="colon" aria-hidden="true">:</span>
-                    <div class="unit"><div class="plate cham"><span class="num" id="t-hr">00</span></div><span class="unit-lbl">giờ</span></div>
-                    <span class="colon" aria-hidden="true">:</span>
-                    <div class="unit"><div class="plate cham"><span class="num" id="t-min">00</span></div><span class="unit-lbl">phút</span></div>
-                    <span class="colon" aria-hidden="true">:</span>
-                    <div class="unit"><div class="plate cham"><span class="num" id="t-sec">00</span></div><span class="unit-lbl">giây</span></div>
+            <section class="countdown" aria-labelledby="board-title">
+                <div class="board">
+                    <div>
+                        <span class="board-kicker"><i class="fa-solid fa-hourglass-half"></i> Đếm ngược</span>
+                        <h2 id="board-title">Còn lại đến Giao thừa</h2>
+                        <p class="board-date">Mùng 1 Tết rơi vào <b>thứ Bảy, 06/02/2027</b></p>
+                    </div>
+                    <div class="clock" id="tet-timer" role="timer" aria-live="off">
+                        <div class="unit"><div class="plate"><span class="num" id="t-day">00</span></div><span class="unit-lbl">ngày</span></div>
+                        <span class="colon" aria-hidden="true">:</span>
+                        <div class="unit"><div class="plate"><span class="num" id="t-hr">00</span></div><span class="unit-lbl">giờ</span></div>
+                        <span class="colon" aria-hidden="true">:</span>
+                        <div class="unit"><div class="plate"><span class="num" id="t-min">00</span></div><span class="unit-lbl">phút</span></div>
+                        <span class="colon" aria-hidden="true">:</span>
+                        <div class="unit"><div class="plate"><span class="num" id="t-sec">00</span></div><span class="unit-lbl">giây</span></div>
+                    </div>
                 </div>
             </section>
 
             <!-- QUÀ TẾT -->
             <section class="block" aria-labelledby="gift-title">
                 <div class="block-head">
-                    <h2 id="gift-title">Quà Tết trong cổng sự kiện</h2>
+                    <div>
+                        <span class="eyebrow">Lộc đầu năm</span>
+                        <h2 id="gift-title">Quà Tết trong cổng sự kiện</h2>
+                    </div>
                     <p>Mọi trò chơi đều mở ngay sau khi bạn đăng nhập, phần thưởng cộng thẳng vào tài khoản.</p>
                 </div>
-                <div class="gifts framed cham">
+                <div class="gifts">
                     <article class="gift">
-                        <span class="gift-ico cham" aria-hidden="true"><i class="fa-solid fa-envelope-open-text"></i></span>
+                        <span class="gift-ico" aria-hidden="true"><i class="fa-solid fa-envelope-open-text"></i></span>
                         <div><h3>Lì xì may mắn</h3><p>Mở bao lì xì mỗi ngày để nhận tiền mặt, điểm thưởng hoặc lời chúc đầu năm.</p></div>
                     </article>
                     <article class="gift">
-                        <span class="gift-ico cham" aria-hidden="true"><i class="fa-solid fa-dharmachakra"></i></span>
+                        <span class="gift-ico" aria-hidden="true"><i class="fa-solid fa-dharmachakra"></i></span>
                         <div><h3>Vòng quay nhân phẩm</h3><p>Trả lời đúng câu đố Tết để có lượt quay và thử vận với các giải tiền mặt.</p></div>
                     </article>
                     <article class="gift">
-                        <span class="gift-ico cham" aria-hidden="true"><i class="fa-solid fa-gem"></i></span>
+                        <span class="gift-ico" aria-hidden="true"><i class="fa-solid fa-gem"></i></span>
                         <div><h3>Quay số trực tiếp</h3><p>Chọn con số may mắn của bạn rồi cùng cả team xem quay số theo giờ.</p></div>
                     </article>
                     <article class="gift">
-                        <span class="gift-ico cham" aria-hidden="true"><i class="fa-solid fa-calendar-check"></i></span>
+                        <span class="gift-ico" aria-hidden="true"><i class="fa-solid fa-calendar-check"></i></span>
                         <div><h3>Điểm danh tích điểm</h3><p>Điểm danh mỗi ngày để nhận điểm, đổi điểm lấy thêm lượt rút lì xì ở cửa hàng.</p></div>
                     </article>
                     <article class="gift">
-                        <span class="gift-ico cham" aria-hidden="true"><i class="fa-regular fa-hand-scissors"></i></span>
+                        <span class="gift-ico" aria-hidden="true"><i class="fa-regular fa-hand-scissors"></i></span>
                         <div><h3>Kéo búa bao</h3><p>Thách đấu đồng đội theo thời gian thực, thắng trận là được cộng điểm.</p></div>
                     </article>
                     <article class="gift">
-                        <span class="gift-ico cham" aria-hidden="true"><i class="fa-solid fa-handshake"></i></span>
+                        <span class="gift-ico" aria-hidden="true"><i class="fa-solid fa-handshake"></i></span>
                         <div><h3>Mời bạn nhận quà</h3><p>Gửi mã mời cho bạn bè, cả hai cùng được thêm lượt rút lì xì.</p></div>
                     </article>
                 </div>
@@ -562,18 +673,21 @@ html.qd-lite .qd-fx { display: none !important; }
             <!-- 3 BƯỚC -->
             <section class="block" aria-labelledby="step-title">
                 <div class="block-head">
-                    <h2 id="step-title">Tham gia trong 3 bước</h2>
+                    <div>
+                        <span class="eyebrow">Dễ như ăn bánh chưng</span>
+                        <h2 id="step-title">Tham gia trong 3 bước</h2>
+                    </div>
                 </div>
                 <ol class="steps">
-                    <li class="step"><span class="step-no cham" aria-hidden="true"></span><h3>Đăng ký tài khoản</h3><p>Chọn tên đăng nhập viết liền không dấu, mật khẩu và tên hiển thị.</p></li>
-                    <li class="step"><span class="step-no cham" aria-hidden="true"></span><h3>Chờ Admin duyệt</h3><p>Ban quản trị kiểm tra và kích hoạt tài khoản cho bạn.</p></li>
-                    <li class="step"><span class="step-no cham" aria-hidden="true"></span><h3>Đăng nhập nhận quà</h3><p>Vào cổng sự kiện, điểm danh và bắt đầu mở lì xì đầu năm.</p></li>
+                    <li class="step"><span class="step-no" aria-hidden="true"></span><h3>Đăng ký tài khoản</h3><p>Chọn tên đăng nhập viết liền không dấu, mật khẩu và tên hiển thị.</p></li>
+                    <li class="step"><span class="step-no" aria-hidden="true"></span><h3>Chờ Admin duyệt</h3><p>Ban quản trị kiểm tra và kích hoạt tài khoản cho bạn.</p></li>
+                    <li class="step"><span class="step-no" aria-hidden="true"></span><h3>Đăng nhập nhận quà</h3><p>Vào cổng sự kiện, điểm danh và bắt đầu mở lì xì đầu năm.</p></li>
                 </ol>
-                <div class="join framed cham">
-                    <p>Đã có tài khoản? Vào nhận lì xì hôm nay.</p>
+                <div class="join">
+                    <p class="join-txt"><b>Lì xì đang chờ bạn!</b><span>Đã có tài khoản? Vào nhận lộc hôm nay.</span></p>
                     <div class="cta">
-                        <a href="user.html" class="btn btn-gold cham"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
-                        <button type="button" class="btn btn-line framed cham" onclick="openRegisterModal(this)"><i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản</button>
+                        <a href="user.html" class="btn btn-gold"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
+                        <button type="button" class="btn btn-white" onclick="openRegisterModal(this)"><i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản</button>
                     </div>
                 </div>
             </section>
@@ -582,7 +696,7 @@ html.qd-lite .qd-fx { display: none !important; }
         <footer class="foot">
             <div class="wrap foot-in">
                 <div class="brand">
-                    <img class="brand-logo" src="logo.jpg" alt="" width="34" height="34" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='anh1.jpg'}else{this.style.visibility='hidden'}">
+                    <img class="brand-logo" src="logo.jpg" alt="" width="36" height="36" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='anh1.jpg'}else{this.style.visibility='hidden'}">
                     <span class="brand-text"><span class="brand-name">Team T"L"Headshot</span><small>Mừng xuân Đinh Mùi 2027</small></span>
                 </div>
                 <nav aria-label="Tài khoản">
@@ -595,12 +709,12 @@ html.qd-lite .qd-fx { display: none !important; }
 
     <!-- Modal Đăng Ký -->
     <div id="register-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="reg-title">
-        <div class="modal-box framed cham">
+        <div class="modal-box">
             <div class="modal-head">
-                <span class="gift-ico cham" aria-hidden="true"><i class="fa-solid fa-user-plus"></i></span>
+                <span class="gift-ico" aria-hidden="true"><i class="fa-solid fa-user-plus"></i></span>
                 <h2 class="modal-title" id="reg-title">Đăng ký tài khoản</h2>
             </div>
-            <p class="modal-note">Tài khoản mới cần Admin duyệt trước khi đăng nhập được.</p>
+            <p class="modal-note"><i class="fa-solid fa-circle-info"></i> Tài khoản mới cần Admin duyệt trước khi đăng nhập được.</p>
             <form id="reg-form" onsubmit="handleRegister(event)" novalidate>
                 <label class="field" for="reg-user">
                     <span class="field-lbl">Tên đăng nhập <span class="field-hint">(viết liền, không dấu, từ 4 ký tự)</span></span>
@@ -618,8 +732,8 @@ html.qd-lite .qd-fx { display: none !important; }
                     <input type="text" id="reg-fullname" class="form-control" placeholder="Tên mọi người sẽ thấy" required autocomplete="name">
                 </label>
                 <div class="modal-btn-group">
-                    <button type="button" class="btn btn-line framed cham btn-cancel" onclick="closeRegisterModal()">Hủy</button>
-                    <button type="submit" class="btn btn-gold cham btn-submit">Gửi đăng ký</button>
+                    <button type="button" class="btn btn-outline btn-cancel" onclick="closeRegisterModal()">Hủy</button>
+                    <button type="submit" class="btn btn-red btn-submit">Gửi đăng ký</button>
                 </div>
             </form>
         </div>
@@ -629,7 +743,7 @@ html.qd-lite .qd-fx { display: none !important; }
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script>
-        // ===== HIỆU ỨNG: hoa mai/đào rơi + pháo hoa + video huy hiệu =====
+        // ===== HIỆU ỨNG: hoa mai/đào rơi + pháo hoa (màu đậm cho nền sáng) + video huy hiệu =====
         (function () {
             var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
             var small = Math.min(innerWidth, innerHeight) < 600;
@@ -637,13 +751,13 @@ html.qd-lite .qd-fx { display: none !important; }
             var isLite = function () { return !!(Q && Q.lite); };
 
             // --- hoa mai (vàng) & hoa đào (hồng) vẽ bằng SVG
-            function flower(petal, core) {
+            function flower(petal, core, edge) {
                 var p = '';
-                for (var i = 0; i < 5; i++) p += '<ellipse cx="50" cy="26" rx="15" ry="24" fill="' + petal + '" transform="rotate(' + (i * 72) + ' 50 50)"/>';
+                for (var i = 0; i < 5; i++) p += '<ellipse cx="50" cy="26" rx="15" ry="24" fill="' + petal + '" stroke="' + edge + '" stroke-width="3" transform="rotate(' + (i * 72) + ' 50 50)"/>';
                 var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' + p + '<circle cx="50" cy="50" r="9" fill="' + core + '"/></svg>';
                 return 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")';
             }
-            var KINDS = [flower('#ffd21f', '#ff8a00'), flower('#ffe14d', '#e67700'), flower('#ff9ec4', '#d81b60'), flower('#ffc2da', '#e0457b')];
+            var KINDS = [flower('#ffd02a', '#f08a00', '#e8a200'), flower('#ffdf55', '#e67700', '#e0a000'), flower('#ffa8c9', '#d81b60', '#ec6fa0'), flower('#ffc4dc', '#e0457b', '#f08ab4')];
             function addPetals() {
                 var box = document.getElementById('petals'); if (!box || reduce || box.childNodes.length) return;
                 var n = small ? 10 : 18, frag = document.createDocumentFragment();
@@ -660,14 +774,14 @@ html.qd-lite .qd-fx { display: none !important; }
 
             // --- pháo hoa trên canvas (tự bắn ở nửa trên + chạm đâu nổ đó)
             var cv = document.getElementById('fx'), cx = cv && cv.getContext('2d'), W = 0, H = 0, DPR = 1, parts = [], running = false, nextAuto = 0;
-            var COLORS = ['#ffd700', '#ffe7a3', '#ff6a2b', '#ff3b4e', '#ff7aa8', '#ffffff', '#f2c14e'];
+            var COLORS = ['#e11d2e', '#f59e0b', '#ec4899', '#f97316', '#d4a017', '#dc2626', '#16a34a'];
             function resize() { if (!cv) return; DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; cx.setTransform(DPR, 0, 0, DPR, 0, 0); }
             function burst(x, y, count, power) {
                 if (isLite() || reduce || !cx) return;
                 var c1 = COLORS[(Math.random() * COLORS.length) | 0], c2 = COLORS[(Math.random() * COLORS.length) | 0];
                 for (var i = 0; i < count; i++) {
                     var a = Math.PI * 2 * i / count + Math.random() * .2, v = (power || 4.2) * (.45 + Math.random() * .7);
-                    parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, decay: .010 + Math.random() * .012, r: 1.2 + Math.random() * 1.4, c: i % 3 ? c1 : c2 });
+                    parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, decay: .010 + Math.random() * .012, r: 1.6 + Math.random() * 1.8, c: i % 3 ? c1 : c2 });
                 }
                 run();
             }
@@ -677,7 +791,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 if (isLite()) { parts.length = 0; cx.clearRect(0, 0, W, H); running = false; return; }
                 var k = last ? Math.min((t - last) / 16.67, 3) : 1; last = t;   // cùng tốc độ ở 60/90/120Hz
                 cx.globalCompositeOperation = 'destination-out'; cx.fillStyle = 'rgba(0,0,0,' + Math.min(.2 * k, .6) + ')'; cx.fillRect(0, 0, W, H);
-                cx.globalCompositeOperation = 'lighter';
+                cx.globalCompositeOperation = 'source-over';
                 var drag = Math.pow(.985, k);
                 for (var i = parts.length - 1; i >= 0; i--) {
                     var p = parts[i];
@@ -688,7 +802,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 cx.globalAlpha = 1;
                 if (t > nextAuto && !document.hidden) {
                     burst(W * (.1 + Math.random() * .8), H * (.08 + Math.random() * .38), small ? 34 : 54, 4 + Math.random() * 1.6);
-                    nextAuto = t + 2200 + Math.random() * 2800;
+                    nextAuto = t + 3000 + Math.random() * 3500;
                 }
                 requestAnimationFrame(frame);
             }
