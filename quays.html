@@ -2,6 +2,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#7a0000">
@@ -487,6 +489,166 @@ html.qd-lite .qd-fx { display: none !important; }
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script id="qd-fast-js">
+    /* ===== QD FAST: thao tác dữ liệu nhanh (dùng chung mọi trang) =====
+       1. Đọc tức thì: trang đang nghe trực tiếp (onSnapshot) cả 1 bộ sưu tập hoặc 1 tài liệu và đã đồng bộ với máy chủ
+          -> các lệnh .get() trên chính dữ liệu đó lấy ngay trong bộ nhớ (~0 ms) thay vì hỏi lại máy chủ (~200-400 ms).
+          Bộ nhớ chỉ giữ dữ liệu của các kênh đang nghe nên luôn là bản mới nhất. Không có trong bộ nhớ -> hỏi máy chủ như cũ.
+       2. Đo thời gian mọi thao tác ghi (giao dịch / batch / set / update / add / delete), chậm hơn 1 giây -> cảnh báo trong Console.
+          Xem thống kê: QDFast.stats()      Nhật ký từng thao tác: localStorage.setItem('qd_fast_log', '1')
+       3. QDFast.ip(): lấy sẵn địa chỉ IP (điểm danh), nhớ 10 phút
+       4. QDFast.pick(): chọn phần thưởng theo tỉ lệ (dùng chung Vòng Quay / Rút Lì Xì) */
+    (function () {
+        'use strict';
+        if (window.QDFast || !window.firebase || !firebase.firestore) return;
+        var F = firebase.firestore, W = window;
+        var QF = W.QDFast = { live: Object.create(null), hits: 0, ops: [] };
+        var verbose = false; try { verbose = localStorage.getItem('qd_fast_log') === '1'; } catch (e) {}
+        var now = function () { return W.performance && performance.now ? performance.now() : Date.now(); };
+
+        /* ---------- 1. Theo dõi kênh nghe trực tiếp ---------- */
+        function reg(key) { var st = { key: key, ok: false }; (QF.live[key] = QF.live[key] || []).push(st); return st; }
+        function unreg(st) {
+            st.ok = false; var a = QF.live[st.key]; if (!a) return;
+            var i = a.indexOf(st); if (i >= 0) a.splice(i, 1); if (!a.length) delete QF.live[st.key];
+        }
+        function isLive(key) { var a = QF.live[key]; if (a) for (var i = 0; i < a.length; i++) if (a[i].ok) return true; return false; }
+        QF.isLive = isLive;
+        function isObs(o) { return !!o && typeof o === 'object' && (typeof o.next === 'function' || typeof o.error === 'function' || typeof o.complete === 'function'); }
+        function uncaught(err) { console.error('Uncaught Error in snapshot listener:', err); }
+        function track(orig, keyOf) {
+            return function () {
+                var key = null; try { key = keyOf(this); } catch (e) {}
+                if (!key) return orig.apply(this, arguments);
+                var args = Array.prototype.slice.call(arguments);
+                var i = (args[0] && typeof args[0] === 'object' && !isObs(args[0])) ? 1 : 0, a = args[i];
+                var st = reg(key);
+                var seen = function (s) { try { st.ok = !(s && s.metadata && s.metadata.fromCache); } catch (e) {} };
+                if (typeof a === 'function') {
+                    args[i] = function (s) { seen(s); return a.apply(this, arguments); };
+                    var e = args[i + 1];
+                    args[i + 1] = function (err) { unreg(st); if (typeof e === 'function') return e.apply(this, arguments); uncaught(err); };
+                } else if (isObs(a)) {
+                    var o = a;
+                    args[i] = {
+                        next: function (s) { seen(s); if (o.next) return o.next(s); },
+                        error: function (err) { unreg(st); if (o.error) return o.error(err); uncaught(err); },
+                        complete: function () { if (o.complete) return o.complete(); }
+                    };
+                } else { unreg(st); return orig.apply(this, arguments); }
+                var un;
+                try { un = orig.apply(this, args); } catch (ex) { unreg(st); throw ex; }
+                return function () { unreg(st); return un.apply(this, arguments); };
+            };
+        }
+        var CR = F.CollectionReference, QP = F.Query && F.Query.prototype, DP = F.DocumentReference && F.DocumentReference.prototype;
+        function colPath(q) { return (CR && q instanceof CR) ? q.path : q.__qdP; }
+        try {
+            if (QP && CR && DP) {
+                // Truy vấn tạo từ 1 bộ sưu tập (where / orderBy / limit ...) nhớ đường dẫn bộ sưu tập gốc
+                ['where', 'orderBy', 'limit', 'limitToLast', 'startAt', 'startAfter', 'endAt', 'endBefore'].forEach(function (m) {
+                    [QP, CR.prototype].forEach(function (P) {
+                        if (!Object.prototype.hasOwnProperty.call(P, m) || typeof P[m] !== 'function') return;
+                        var o = P[m];
+                        P[m] = function () {
+                            var r = o.apply(this, arguments);
+                            try { var p = colPath(this); if (p && r && typeof r === 'object') r.__qdP = p; } catch (e) {}
+                            return r;
+                        };
+                    });
+                });
+                // Chỉ kênh nghe CẢ bộ sưu tập (không lọc) mới chứa đủ dữ liệu để trả lời mọi truy vấn trên bộ sưu tập đó
+                [QP, CR.prototype].forEach(function (P) {
+                    var own = function (m) { return Object.prototype.hasOwnProperty.call(P, m) && typeof P[m] === 'function'; };
+                    if (own('onSnapshot')) P.onSnapshot = track(P.onSnapshot, function (q) { return (q instanceof CR) ? 'c:' + q.path : null; });
+                    if (own('get')) {
+                        var qGet = P.get;
+                        P.get = function (opt) {
+                            if (opt && opt.source) return qGet.apply(this, arguments);
+                            var self = this, p = null; try { p = colPath(this); } catch (e) {}
+                            if (p && isLive('c:' + p)) {
+                                return qGet.call(this, { source: 'cache' }).then(function (s) { QF.hits++; return s; }, function () { return qGet.call(self, opt); });
+                            }
+                            return qGet.apply(this, arguments);
+                        };
+                    }
+                });
+                DP.onSnapshot = track(DP.onSnapshot, function (d) { return 'd:' + d.path; });
+                var dGet = DP.get;
+                DP.get = function (opt) {
+                    if (opt && opt.source) return dGet.apply(this, arguments);
+                    var self = this, path = this.path, par = path.slice(0, path.lastIndexOf('/'));
+                    if (isLive('d:' + path) || isLive('c:' + par)) {
+                        return dGet.call(this, { source: 'cache' }).then(function (s) { QF.hits++; return s; }, function () { return dGet.call(self, opt); });
+                    }
+                    return dGet.apply(this, arguments);
+                };
+            }
+        } catch (e) { console.warn('QDFast cache', e); }
+
+        /* ---------- 2. Đo thời gian thao tác ghi ---------- */
+        function note(label, t0, ok, err) {
+            var ms = Math.round(now() - t0);
+            QF.ops.push({ op: label, ms: ms, ok: ok, at: Date.now() }); if (QF.ops.length > 300) QF.ops.shift();
+            if (!ok) console.warn('[QD Fast] ' + label + ' lỗi sau ' + ms + ' ms', err);
+            else if (ms > 1000) console.warn('[QD Fast] ' + label + ' chậm: ' + ms + ' ms');
+            else if (verbose) console.log('[QD Fast] ' + label + ': ' + ms + ' ms');
+        }
+        function timed(P, m, label) {
+            if (!P || typeof P[m] !== 'function') return;
+            var o = P[m];
+            P[m] = function () {
+                var t0 = now(), r = o.apply(this, arguments), lb = label(this, arguments);
+                if (r && typeof r.then === 'function') r.then(function () { note(lb, t0, true); }, function (e) { note(lb, t0, false, e); });
+                return r;
+            };
+            P[m].__qdOrig = o;   // bản gốc không đo giờ (dùng cho giao dịch mở sẵn chờ người dùng bấm)
+        }
+        try {
+            var path = function (x) { try { return x.path; } catch (e) { return '?'; } };
+            timed(F.Firestore && F.Firestore.prototype, 'runTransaction', function () { return 'giao dịch'; });
+            timed(F.WriteBatch && F.WriteBatch.prototype, 'commit', function () { return 'batch'; });
+            ['set', 'update', 'delete'].forEach(function (m) { timed(DP, m, function (d) { return m + ' ' + path(d); }); });
+            timed(CR && CR.prototype, 'add', function (c) { return 'add ' + path(c); });
+        } catch (e) { console.warn('QDFast timing', e); }
+        QF.stats = function () {
+            var g = {};
+            QF.ops.forEach(function (o) { var k = o.op.split(' ')[0] === 'giao' ? 'giao dịch' : o.op.split(' ')[0]; (g[k] = g[k] || []).push(o.ms); });
+            var rows = Object.keys(g).map(function (k) {
+                var a = g[k].slice().sort(function (x, y) { return x - y; }), sum = a.reduce(function (s, x) { return s + x; }, 0);
+                return { 'thao tác': k, 'số lần': a.length, 'trung bình (ms)': Math.round(sum / a.length), 'chậm nhất (ms)': a[a.length - 1], 'quá 1 giây': a.filter(function (x) { return x > 1000; }).length };
+            });
+            if (console.table) console.table(rows);
+            return { reads_from_memory: QF.hits, ops: rows };
+        };
+
+        /* ---------- 3. IP lấy sẵn (điểm danh) ---------- */
+        var ipVal = null, ipAt = 0, ipP = null;
+        QF.ip = function (fresh) {
+            if (!fresh && ipVal && Date.now() - ipAt < 600000) return Promise.resolve(ipVal);
+            if (ipP) return ipP;
+            var ctrl = W.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ctrl) ctrl.abort(); }, 5000);
+            ipP = fetch('https://api.ipify.org?format=json', { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+                .then(function (r) { return r.json(); })
+                .then(function (j) { ipVal = j.ip; ipAt = Date.now(); return ipVal; })
+                .finally(function () { clearTimeout(to); ipP = null; });
+            return ipP;
+        };
+
+        /* ---------- 4. Chọn phần thưởng theo tỉ lệ (chỉ trong các ô còn số lượng) ---------- */
+        QF.pick = function (prizes, counts) {
+            counts = counts || {};
+            var avail = []; (prizes || []).forEach(function (p, i) { if (p.chance > 0 && (p.qty == null || (counts[p.id] || 0) < p.qty)) avail.push(i); });
+            if (!avail.length) return -1;
+            var total = 0; avail.forEach(function (i) { total += prizes[i].chance; });
+            var r = Math.random() * total, sum = 0;
+            for (var k = 0; k < avail.length; k++) { sum += prizes[avail[k]].chance; if (r <= sum) return avail[k]; }
+            return avail[avail.length - 1];
+        };
+        // Ô có số lượng mà còn ít (<= dư) -> cần đọc số đã trúng chính xác trên máy chủ để không phát vượt
+        QF.nearOut = function (p, counts, extra) { return !!p && p.qty != null && p.qty - ((counts || {})[p.id] || 0) <= (extra == null ? 3 : extra); };
+    })();
+    </script>
 
     <script>
     /* ===== Trang trí động: đèn quanh đồng tiền, hoa rơi, pháo hoa ===== */
@@ -1339,6 +1501,152 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
             if (M.enabled) M.play(false);   // mặc định: vào trang là bật nhạc
         }
         if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+    })();
+    </script>
+    <script id="qd-modal-ease">
+    /* ===== QD MODAL EASE: đóng hộp thoại (hồ sơ, cài đặt, túi đồ, kết quả...) không bắt buộc bấm nút X =====
+       - Chạm ra vùng tối bên ngoài hộp            -> đóng
+       - Vuốt hộp xuống (điện thoại)               -> đóng
+       - Nút Quay lại của điện thoại / trình duyệt -> đóng hộp đang mở (không rời trang)
+       - Phím Esc (máy tính)                       -> đóng
+       Đóng bằng chính nút đóng của hộp (X / Đóng / Hủy) nên mọi xử lý cũ vẫn chạy như bấm tay. */
+    (function () {
+        'use strict';
+        if (window.QDModalEase) return;
+        var d = document, W = window;
+        var M = W.QDModalEase = { stack: [], skipPop: 0 };
+
+        function isOpen(ov) { return ov.classList.contains('active'); }
+        function openList() { return Array.prototype.slice.call(d.querySelectorAll('.modal-overlay.active')); }
+        function z(el) { var v = parseInt(getComputedStyle(el).zIndex, 10); return isNaN(v) ? 0 : v; }
+        // Hộp đang nằm trên cùng màn hình: z-index cao nhất, bằng nhau thì hộp đứng sau trong trang (trình duyệt vẽ đè lên)
+        function top() { var l = openList(), t = null; l.forEach(function (o) { if (!t || z(o) >= z(t)) t = o; }); return t; }
+        function innerPop(ov) { var p = ov.querySelector('.ps2-pop.show'); return p || null; }   // bảng xác nhận nằm trong Trạm Quy Đổi
+
+        // Tìm nút đóng của chính hộp đó và bấm hộ
+        function closeOv(ov) {
+            if (!ov) return false;
+            if (innerPop(ov)) { if (W.PointShop && W.PointShop.closePop) W.PointShop.closePop(); return true; }
+            var id = ov.id, sels = [
+                '[onclick*="closeModal(\'' + id + '\')"]', '.modal-close', '[onclick*="closeResultModal"]', '[onclick*="closeModal()"]',
+                '[onclick*="LnTab.close"]', '[onclick*="leaveRoom"]', '.btn-close', '[aria-label="Đóng"]'
+            ];
+            for (var i = 0; i < sels.length; i++) {
+                var b = null; try { b = ov.querySelector(sels[i]); } catch (e) {}
+                if (b) { if (!b.disabled) b.click(); return true; }
+            }
+            if (W.UI && W.UI.closeModal && id) { W.UI.closeModal(id); return true; }
+            ov.classList.remove('active'); setTimeout(function () { if (!isOpen(ov)) ov.style.display = 'none'; }, 300);
+            return true;
+        }
+        M.closeTop = function () { return closeOv(top()); };
+
+        /* ---------- 1. Chạm ra ngoài hộp ---------- */
+        function isBackdrop(ov, t) {
+            if (t === ov) return true;
+            var c = ov.firstElementChild;   // hộp phủ kín màn hình (vd. xem ảnh) -> nền của nó cũng là vùng ngoài
+            if (t === c) { var r = c.getBoundingClientRect(); return r.width >= innerWidth * 0.95 && r.height >= innerHeight * 0.95; }
+            return false;
+        }
+        var downOn = null;
+        d.addEventListener('pointerdown', function (e) { downOn = e.target; }, true);
+        d.addEventListener('click', function (e) {
+            var t = e.target, started = downOn; downOn = null;
+            if (started && started !== t) return;   // kéo bôi chữ từ trong hộp ra ngoài: không đóng
+            if (t.classList && t.classList.contains('ps2-pop') && t.classList.contains('show')) { if (W.PointShop) W.PointShop.closePop(); return; }
+            var ov = t.closest ? t.closest('.modal-overlay.active') : null;
+            if (ov && isBackdrop(ov, t)) closeOv(ov);   // chạm trúng nền của hộp nào thì đóng đúng hộp đó
+        });
+
+        /* ---------- 2. Phím Esc ---------- */
+        // Chờ các xử lý Esc sẵn có của trang chạy trước; hộp trên cùng vẫn mở (chưa ai đóng) thì mới đóng -> không đóng 2 hộp 1 lúc
+        W.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            var t = top(); if (!t || innerPop(t)) return;   // bảng xác nhận trong Trạm Quy Đổi đã có xử lý Esc riêng
+            var before = openList().length;
+            setTimeout(function () { if (!e.defaultPrevented && isOpen(t) && t === top() && openList().length === before) closeOv(t); }, 0);
+        }, true);
+
+        /* ---------- 3. Nút Quay lại (điện thoại / trình duyệt) ---------- */
+        function sync() {
+            var open = openList();
+            open.forEach(function (o) {
+                if (M.stack.indexOf(o) >= 0) return;
+                M.stack.push(o);
+                try { history.pushState({ qdModal: o.id || 1 }, ''); } catch (e) {}
+            });
+            // hộp vừa đóng bằng nút -> bỏ bước lịch sử đã thêm cho nó
+            for (var i = M.stack.length - 1; i >= 0; i--) {
+                var o = M.stack[i]; if (isOpen(o)) continue;
+                M.stack.splice(i, 1);
+                if (history.state && history.state.qdModal) { M.skipPop++; try { history.back(); } catch (e) { M.skipPop--; } }
+            }
+        }
+        var syncT = 0;
+        new MutationObserver(function (ms) {
+            for (var i = 0; i < ms.length; i++) if (ms[i].target.classList && ms[i].target.classList.contains('modal-overlay')) { clearTimeout(syncT); syncT = setTimeout(sync, 0); return; }
+        }).observe(d.documentElement, { subtree: true, attributes: true, attributeFilter: ['class'] });
+        W.addEventListener('popstate', function () {
+            if (M.skipPop > 0) { M.skipPop--; return; }
+            M.stack = M.stack.filter(isOpen);
+            var o = top(); if (!o) return;
+            M.stack.splice(M.stack.indexOf(o), 1);
+            if (innerPop(o)) {   // còn bảng xác nhận bên trong: đóng bảng đó, giữ hộp + bước lịch sử
+                M.stack.push(o); try { history.pushState({ qdModal: o.id || 1 }, ''); } catch (e) {}
+                if (W.PointShop) W.PointShop.closePop(); return;
+            }
+            closeOv(o);
+            if (isOpen(o)) { M.stack.push(o); try { history.pushState({ qdModal: o.id || 1 }, ''); } catch (e) {} }   // hộp không cho đóng lúc này (đang xử lý)
+        });
+
+        /* ---------- 4. Vuốt xuống để đóng (màn hình cảm ứng) ---------- */
+        var drag = null;
+        function scrolledInside(el, box) {   // có khung cuộn nào (từ chỗ chạm tới hộp) chưa ở đầu trang?
+            for (var n = el; n && n !== box.parentNode; n = n.parentNode) {
+                if (n.nodeType !== 1) continue;
+                if (n.scrollTop > 0) return true;
+            }
+            return false;
+        }
+        d.addEventListener('touchstart', function (e) {
+            drag = null;
+            if (e.touches.length !== 1) return;
+            var t = e.target, ov = t.closest ? t.closest('.modal-overlay.active') : null;
+            if (!ov || ov !== top() || t === ov) return;
+            if (t.closest('input, textarea, select, [contenteditable="true"], canvas, .ps2-pop.show')) return;
+            var box = ov.firstElementChild; if (!box || scrolledInside(t, box)) return;
+            drag = { ov: ov, box: box, x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now(), dy: 0, on: false };
+        }, { passive: true });
+        d.addEventListener('touchmove', function (e) {
+            if (!drag) return;
+            if (e.touches.length > 1) { if (drag.on) { drag.dy = 0; endDrag(); } drag = null; return; }   // 2 ngón (phóng to ảnh): bỏ kéo
+            var dx = e.touches[0].clientX - drag.x, dy = e.touches[0].clientY - drag.y;
+            if (!drag.on) {
+                if (Math.abs(dy) < 8 && Math.abs(dx) < 8) return;
+                if (dy <= 0 || Math.abs(dx) > dy) { drag = null; return; }   // vuốt lên / ngang: để cuộn bình thường
+                drag.on = true; drag.box.style.transition = 'none';
+            }
+            drag.dy = Math.max(0, dy);
+            drag.box.style.transform = 'translateY(' + drag.dy + 'px)';
+            drag.box.style.opacity = String(Math.max(0.4, 1 - drag.dy / 600));
+            if (e.cancelable) e.preventDefault();   // không kéo-để-tải-lại trang
+        }, { passive: false });
+        function endDrag() {
+            if (!drag) return; var g = drag; drag = null; if (!g.on) return;
+            var fast = g.dy / Math.max(1, Date.now() - g.t) > 0.6, far = g.dy > Math.min(140, g.box.offsetHeight * 0.25);
+            g.box.style.transition = 'transform .22s ease, opacity .22s ease';
+            if (far || (fast && g.dy > 40)) {
+                g.box.style.transform = 'translateY(' + (g.dy + 120) + 'px)'; g.box.style.opacity = '0';
+                closeOv(g.ov);
+                setTimeout(function () { g.box.style.transition = ''; g.box.style.transform = ''; g.box.style.opacity = ''; if (isOpen(g.ov)) g.box.style.transform = ''; }, 320);
+            } else {
+                g.box.style.transform = ''; g.box.style.opacity = '';
+                setTimeout(function () { g.box.style.transition = ''; }, 240);
+            }
+        }
+        d.addEventListener('touchend', endDrag, { passive: true });
+        d.addEventListener('touchcancel', endDrag, { passive: true });
+
     })();
     </script>
 </body>

@@ -2,6 +2,8 @@
 <html lang="vi" data-theme="tet">
 <head>
     <meta charset="UTF-8">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#fdebc0">
@@ -10289,6 +10291,166 @@ html.qd-lite .qd-fx { display: none !important; }
         });
 </script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script id="qd-fast-js">
+    /* ===== QD FAST: thao tác dữ liệu nhanh (dùng chung mọi trang) =====
+       1. Đọc tức thì: trang đang nghe trực tiếp (onSnapshot) cả 1 bộ sưu tập hoặc 1 tài liệu và đã đồng bộ với máy chủ
+          -> các lệnh .get() trên chính dữ liệu đó lấy ngay trong bộ nhớ (~0 ms) thay vì hỏi lại máy chủ (~200-400 ms).
+          Bộ nhớ chỉ giữ dữ liệu của các kênh đang nghe nên luôn là bản mới nhất. Không có trong bộ nhớ -> hỏi máy chủ như cũ.
+       2. Đo thời gian mọi thao tác ghi (giao dịch / batch / set / update / add / delete), chậm hơn 1 giây -> cảnh báo trong Console.
+          Xem thống kê: QDFast.stats()      Nhật ký từng thao tác: localStorage.setItem('qd_fast_log', '1')
+       3. QDFast.ip(): lấy sẵn địa chỉ IP (điểm danh), nhớ 10 phút
+       4. QDFast.pick(): chọn phần thưởng theo tỉ lệ (dùng chung Vòng Quay / Rút Lì Xì) */
+    (function () {
+        'use strict';
+        if (window.QDFast || !window.firebase || !firebase.firestore) return;
+        var F = firebase.firestore, W = window;
+        var QF = W.QDFast = { live: Object.create(null), hits: 0, ops: [] };
+        var verbose = false; try { verbose = localStorage.getItem('qd_fast_log') === '1'; } catch (e) {}
+        var now = function () { return W.performance && performance.now ? performance.now() : Date.now(); };
+
+        /* ---------- 1. Theo dõi kênh nghe trực tiếp ---------- */
+        function reg(key) { var st = { key: key, ok: false }; (QF.live[key] = QF.live[key] || []).push(st); return st; }
+        function unreg(st) {
+            st.ok = false; var a = QF.live[st.key]; if (!a) return;
+            var i = a.indexOf(st); if (i >= 0) a.splice(i, 1); if (!a.length) delete QF.live[st.key];
+        }
+        function isLive(key) { var a = QF.live[key]; if (a) for (var i = 0; i < a.length; i++) if (a[i].ok) return true; return false; }
+        QF.isLive = isLive;
+        function isObs(o) { return !!o && typeof o === 'object' && (typeof o.next === 'function' || typeof o.error === 'function' || typeof o.complete === 'function'); }
+        function uncaught(err) { console.error('Uncaught Error in snapshot listener:', err); }
+        function track(orig, keyOf) {
+            return function () {
+                var key = null; try { key = keyOf(this); } catch (e) {}
+                if (!key) return orig.apply(this, arguments);
+                var args = Array.prototype.slice.call(arguments);
+                var i = (args[0] && typeof args[0] === 'object' && !isObs(args[0])) ? 1 : 0, a = args[i];
+                var st = reg(key);
+                var seen = function (s) { try { st.ok = !(s && s.metadata && s.metadata.fromCache); } catch (e) {} };
+                if (typeof a === 'function') {
+                    args[i] = function (s) { seen(s); return a.apply(this, arguments); };
+                    var e = args[i + 1];
+                    args[i + 1] = function (err) { unreg(st); if (typeof e === 'function') return e.apply(this, arguments); uncaught(err); };
+                } else if (isObs(a)) {
+                    var o = a;
+                    args[i] = {
+                        next: function (s) { seen(s); if (o.next) return o.next(s); },
+                        error: function (err) { unreg(st); if (o.error) return o.error(err); uncaught(err); },
+                        complete: function () { if (o.complete) return o.complete(); }
+                    };
+                } else { unreg(st); return orig.apply(this, arguments); }
+                var un;
+                try { un = orig.apply(this, args); } catch (ex) { unreg(st); throw ex; }
+                return function () { unreg(st); return un.apply(this, arguments); };
+            };
+        }
+        var CR = F.CollectionReference, QP = F.Query && F.Query.prototype, DP = F.DocumentReference && F.DocumentReference.prototype;
+        function colPath(q) { return (CR && q instanceof CR) ? q.path : q.__qdP; }
+        try {
+            if (QP && CR && DP) {
+                // Truy vấn tạo từ 1 bộ sưu tập (where / orderBy / limit ...) nhớ đường dẫn bộ sưu tập gốc
+                ['where', 'orderBy', 'limit', 'limitToLast', 'startAt', 'startAfter', 'endAt', 'endBefore'].forEach(function (m) {
+                    [QP, CR.prototype].forEach(function (P) {
+                        if (!Object.prototype.hasOwnProperty.call(P, m) || typeof P[m] !== 'function') return;
+                        var o = P[m];
+                        P[m] = function () {
+                            var r = o.apply(this, arguments);
+                            try { var p = colPath(this); if (p && r && typeof r === 'object') r.__qdP = p; } catch (e) {}
+                            return r;
+                        };
+                    });
+                });
+                // Chỉ kênh nghe CẢ bộ sưu tập (không lọc) mới chứa đủ dữ liệu để trả lời mọi truy vấn trên bộ sưu tập đó
+                [QP, CR.prototype].forEach(function (P) {
+                    var own = function (m) { return Object.prototype.hasOwnProperty.call(P, m) && typeof P[m] === 'function'; };
+                    if (own('onSnapshot')) P.onSnapshot = track(P.onSnapshot, function (q) { return (q instanceof CR) ? 'c:' + q.path : null; });
+                    if (own('get')) {
+                        var qGet = P.get;
+                        P.get = function (opt) {
+                            if (opt && opt.source) return qGet.apply(this, arguments);
+                            var self = this, p = null; try { p = colPath(this); } catch (e) {}
+                            if (p && isLive('c:' + p)) {
+                                return qGet.call(this, { source: 'cache' }).then(function (s) { QF.hits++; return s; }, function () { return qGet.call(self, opt); });
+                            }
+                            return qGet.apply(this, arguments);
+                        };
+                    }
+                });
+                DP.onSnapshot = track(DP.onSnapshot, function (d) { return 'd:' + d.path; });
+                var dGet = DP.get;
+                DP.get = function (opt) {
+                    if (opt && opt.source) return dGet.apply(this, arguments);
+                    var self = this, path = this.path, par = path.slice(0, path.lastIndexOf('/'));
+                    if (isLive('d:' + path) || isLive('c:' + par)) {
+                        return dGet.call(this, { source: 'cache' }).then(function (s) { QF.hits++; return s; }, function () { return dGet.call(self, opt); });
+                    }
+                    return dGet.apply(this, arguments);
+                };
+            }
+        } catch (e) { console.warn('QDFast cache', e); }
+
+        /* ---------- 2. Đo thời gian thao tác ghi ---------- */
+        function note(label, t0, ok, err) {
+            var ms = Math.round(now() - t0);
+            QF.ops.push({ op: label, ms: ms, ok: ok, at: Date.now() }); if (QF.ops.length > 300) QF.ops.shift();
+            if (!ok) console.warn('[QD Fast] ' + label + ' lỗi sau ' + ms + ' ms', err);
+            else if (ms > 1000) console.warn('[QD Fast] ' + label + ' chậm: ' + ms + ' ms');
+            else if (verbose) console.log('[QD Fast] ' + label + ': ' + ms + ' ms');
+        }
+        function timed(P, m, label) {
+            if (!P || typeof P[m] !== 'function') return;
+            var o = P[m];
+            P[m] = function () {
+                var t0 = now(), r = o.apply(this, arguments), lb = label(this, arguments);
+                if (r && typeof r.then === 'function') r.then(function () { note(lb, t0, true); }, function (e) { note(lb, t0, false, e); });
+                return r;
+            };
+            P[m].__qdOrig = o;   // bản gốc không đo giờ (dùng cho giao dịch mở sẵn chờ người dùng bấm)
+        }
+        try {
+            var path = function (x) { try { return x.path; } catch (e) { return '?'; } };
+            timed(F.Firestore && F.Firestore.prototype, 'runTransaction', function () { return 'giao dịch'; });
+            timed(F.WriteBatch && F.WriteBatch.prototype, 'commit', function () { return 'batch'; });
+            ['set', 'update', 'delete'].forEach(function (m) { timed(DP, m, function (d) { return m + ' ' + path(d); }); });
+            timed(CR && CR.prototype, 'add', function (c) { return 'add ' + path(c); });
+        } catch (e) { console.warn('QDFast timing', e); }
+        QF.stats = function () {
+            var g = {};
+            QF.ops.forEach(function (o) { var k = o.op.split(' ')[0] === 'giao' ? 'giao dịch' : o.op.split(' ')[0]; (g[k] = g[k] || []).push(o.ms); });
+            var rows = Object.keys(g).map(function (k) {
+                var a = g[k].slice().sort(function (x, y) { return x - y; }), sum = a.reduce(function (s, x) { return s + x; }, 0);
+                return { 'thao tác': k, 'số lần': a.length, 'trung bình (ms)': Math.round(sum / a.length), 'chậm nhất (ms)': a[a.length - 1], 'quá 1 giây': a.filter(function (x) { return x > 1000; }).length };
+            });
+            if (console.table) console.table(rows);
+            return { reads_from_memory: QF.hits, ops: rows };
+        };
+
+        /* ---------- 3. IP lấy sẵn (điểm danh) ---------- */
+        var ipVal = null, ipAt = 0, ipP = null;
+        QF.ip = function (fresh) {
+            if (!fresh && ipVal && Date.now() - ipAt < 600000) return Promise.resolve(ipVal);
+            if (ipP) return ipP;
+            var ctrl = W.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ctrl) ctrl.abort(); }, 5000);
+            ipP = fetch('https://api.ipify.org?format=json', { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+                .then(function (r) { return r.json(); })
+                .then(function (j) { ipVal = j.ip; ipAt = Date.now(); return ipVal; })
+                .finally(function () { clearTimeout(to); ipP = null; });
+            return ipP;
+        };
+
+        /* ---------- 4. Chọn phần thưởng theo tỉ lệ (chỉ trong các ô còn số lượng) ---------- */
+        QF.pick = function (prizes, counts) {
+            counts = counts || {};
+            var avail = []; (prizes || []).forEach(function (p, i) { if (p.chance > 0 && (p.qty == null || (counts[p.id] || 0) < p.qty)) avail.push(i); });
+            if (!avail.length) return -1;
+            var total = 0; avail.forEach(function (i) { total += prizes[i].chance; });
+            var r = Math.random() * total, sum = 0;
+            for (var k = 0; k < avail.length; k++) { sum += prizes[avail[k]].chance; if (r <= sum) return avail[k]; }
+            return avail[avail.length - 1];
+        };
+        // Ô có số lượng mà còn ít (<= dư) -> cần đọc số đã trúng chính xác trên máy chủ để không phát vượt
+        QF.nearOut = function (p, counts, extra) { return !!p && p.qty != null && p.qty - ((counts || {})[p.id] || 0) <= (extra == null ? 3 : extra); };
+    })();
+    </script>
 
     <script>
     window.LuckySchedule = (function () {
@@ -10586,6 +10748,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 b.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> đang kết nối`; b.disabled = true;
 
                 try {
+                    // NHANH: đọc cấu hình nhiệm vụ song song với kiểm tra đăng nhập (trước đây đợi đăng nhập xong mới đọc)
+                    const taskP = db.collection("settings").doc("task_config").get(); taskP.catch(() => {});
                     const snap = await db.collection("accounts").where("user", "==", u).where("pass", "==", p).get();
                     if(snap.empty) { 
                         Utils.toast("Dữ liệu thông tin đăng nhập không chính xác.", "error"); 
@@ -10642,7 +10806,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         const todayStr = Utils.getTodayString();
                         if(docData.lastLoginRewardDate !== todayStr) {
                             try {
-                                const taskDoc = await db.collection("settings").doc("task_config").get();
+                                const taskDoc = await taskP;
                                 let loginPoints = 10; // Mặc định
                                 if (taskDoc.exists && taskDoc.data().loginReward !== undefined) {
                                     loginPoints = parseInt(taskDoc.data().loginReward);
@@ -10728,6 +10892,9 @@ html.qd-lite .qd-fx { display: none !important; }
                 timerDisplay.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
 
                 try {
+                    // NHANH: đọc cấu hình và tài khoản cùng lúc
+                    const userRef = db.collection("accounts").doc(window.Auth.pendingLockedId);
+                    const userP = userRef.get(); userP.catch(() => {});
                     const configDoc = await db.collection("settings").doc("account_config").get();
                     let autoUnlockMinutes = 0;
                     if(configDoc.exists && configDoc.data().autoUnlockMinutes !== undefined) {
@@ -10740,8 +10907,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     }
 
                     // Lưu mốc thời gian bắt đầu bấm nút yêu cầu
-                    const userRef = db.collection("accounts").doc(window.Auth.pendingLockedId);
-                    const userDoc = await userRef.get();
+                    const userDoc = await userP;
                     const userData = userDoc.data();
 
                     let requestedAt = userData.unlockRequestedAt;
@@ -11707,16 +11873,22 @@ html.qd-lite .qd-fx { display: none !important; }
                 const accRef = db.collection("accounts").doc(S.currentDocId), cfgRef = db.collection("settings").doc("point_shop_config");
                 const stRef = db.collection("point_shop_stock").doc("counts"), dRef = db.collection("point_shop_daily").doc(me + '_' + key);
                 let got = null;
-                try {
-                    await db.runTransaction(async (t) => {
-                        const acc = await t.get(accRef), c = await t.get(cfgRef), st = await t.get(stRef), dd = await t.get(dRef);
+                // NHANH: đọc mọi thứ CÙNG LÚC (1 lượt hỏi máy chủ thay vì 4 lượt nối nhau).
+                // Kho chung (point_shop_stock) nhiều người cùng ghi -> chỉ đọc khi gói có giới hạn số lượng và sắp hết,
+                // còn lại cộng thẳng (increment) -> không tranh chấp, không phải chờ thử lại.
+                const tx = (exact) => db.runTransaction(async (t) => {
+                        got = null;
+                        const loc = this.items.find(i => i.id === id);
+                        const needSt = exact || !loc || (loc.stock != null && loc.stock - ((this.counts || {})[id] || 0) <= qty + 3);
+                        const [acc, c, st, dd] = await Promise.all([t.get(accRef), t.get(cfgRef), needSt ? t.get(stRef) : null, t.get(dRef)]);
                         const cfg = c.exists ? c.data() : {};
                         if (cfg.isEnabled === false) throw 'CLOSED';
                         const x = this.norm(cfg).find(i => i.id === id);
                         if (!x || !x.active) throw 'GONE';
                         const cost = x.cost * qty, pts = (acc.exists && acc.data().points) || 0;
                         if (pts < cost) throw 'POINTS';
-                        const sold = ((st.exists && st.data().counts) || {})[id] || 0;
+                        if (x.stock != null && !st) throw 'EXACT';
+                        const sold = st ? (((st.exists && st.data().counts) || {})[id] || 0) : 0;
                         if (x.stock != null && sold + qty > x.stock) throw 'STOCK';
                         const used = ((dd.exists && dd.data().counts) || {})[id] || 0;
                         if (x.dailyLimit != null && used + qty > x.dailyLimit) throw 'DAILY';
@@ -11730,6 +11902,8 @@ html.qd-lite .qd-fx { display: none !important; }
                         if (x.type === 'gift') t.set(db.collection("shop_orders").doc(), { user: me, itemId: id, itemName: x.name, icon: x.icon, qty: qty, cost: cost, status: 'pending', time: Date.now() });
                         got = { x, cost, what, qty, newPoints: pts - cost };
                     });
+                try {
+                    await tx(false).catch(e => { if (e === 'EXACT') return tx(true); throw e; });
                     this.busy = false;
                     this.applyLocal(got);   // trừ điểm ngay trên màn hình
                     this.qty[id] = 1;
@@ -12042,10 +12216,12 @@ html.qd-lite .qd-fx { display: none !important; }
                     }
                     if (joined) { this.roomId = joined; this.isPlayer1 = false; }
                     else {
-                        const ref = await db.collection("rps_rooms").add({
+                        // Mở phòng chờ ngay (không đợi máy chủ xác nhận): phòng hiện tức thì, ghi lên máy chủ chạy song song
+                        const ref = db.collection("rps_rooms").doc();
+                        ref.set({
                             player1: me, player2: null, p1Choice: null, p2Choice: null, p1Score: 0, p2Score: 0, round: 1, turn: 1,
                             status: "waiting", roundWinner: null, deadline: null, createdAt: Date.now(), ping: Date.now()
-                        });
+                        }).catch(e => { console.error('RPS create', e); window.Utils.toast("Lỗi kết nối máy chủ, không mở được phòng.", "error"); });
                         this.roomId = ref.id; this.isPlayer1 = true;
                     }
                     this.searching = false;
@@ -12512,6 +12688,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 setInterval(window.AppCore.evalAtt, 1000); 
 
                 db.collection("attendance").where("date", "==", dateVN).onSnapshot(snap => {
+                    // NHANH: giữ danh sách điểm danh hôm nay (đang nghe trực tiếp) để kiểm tra trùng IP / trùng người ngay trên máy
+                    window.AppCore.attToday = { date: dateVN, synced: !snap.metadata.fromCache, rows: snap.docs.map(d => d.data()) };
                     const l = document.getElementById('att-history-list'); if(!l) return; l.innerHTML = ""; if(snap.empty) { l.innerHTML = `<div class="p-10 text-center text-muted"><i class="fa-solid fa-list-ul text-4xl mb-4 opacity-30 block"></i>Chưa có ai điểm danh trong ngày hôm nay.</div>`; return; }
                     let rs = []; snap.forEach(doc => rs.push(doc.data())); rs.sort((a,b) => b.timestamp - a.timestamp);
                     rs.forEach(d => { l.insertAdjacentHTML('beforeend', `<div class="flex justify-between items-center p-5 border-b border-strong" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-4"><div class="avatar-circle" style="width:46px;height:46px;font-size:18px;background:var(--color-success);">${d.userName.charAt(0).toUpperCase()}</div><div class="flex-col"><span class="font-bold text-main text-lg">${d.userName}</span><span class="text-sm text-muted font-mono tracking-wide">ID: ${d.userId.substring(0,8)}...</span></div></div><span class="badge badge-offline px-4 py-2 text-sm"><i class="fa-regular fa-clock mr-1"></i> ${d.time}</span></div>`); });
@@ -12802,42 +12980,48 @@ html.qd-lite .qd-fx { display: none !important; }
                 btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG KIỂM TRA BẢO MẬT...`;
 
                 try {
-                    const ipResponse = await fetch('https://api.ipify.org?format=json');
-                    const ipData = await ipResponse.json();
-                    const currentIP = ipData.ip;
                     const todayStr = Utils.getTodayString();
-
-                    if (window.AppCore.attConfig.antiProxyEnabled) {
+                    const anti = window.AppCore.attConfig.antiProxyEnabled;
+                    if (anti) {
                         const lastDeviceAttDate = localStorage.getItem('qd_device_att_date');
                         const lastDeviceAttUser = localStorage.getItem('qd_device_att_user');
                         if (lastDeviceAttDate === todayStr && lastDeviceAttUser !== State.currentUser) {
                             throw new Error(`Hệ thống phát hiện thiết bị này đã điểm danh cho [${lastDeviceAttUser}] hôm nay.`);
                         }
+                    }
 
-                        const ipCheckSnap = await db.collection("attendance").where("date", "==", todayStr).where("ipAddress", "==", currentIP).get();
-                        let ipUsedByOther = false; let otherUser = "";
-                        ipCheckSnap.forEach(doc => {
-                            if(doc.data().userName !== State.currentUser) { ipUsedByOther = true; otherUser = doc.data().userName; }
-                        });
+                    // NHANH: mọi bước kiểm tra chạy CÙNG LÚC thay vì lần lượt.
+                    // IP đã lấy sẵn khi vào trang; danh sách điểm danh hôm nay đang nghe trực tiếp -> kiểm tra ngay trên máy (0 lượt hỏi máy chủ).
+                    const att = window.AppCore.attToday, local = att && att.synced && att.date === todayStr ? att.rows : null;
+                    const ipP = window.QDFast ? window.QDFast.ip() : fetch('https://api.ipify.org?format=json').then(r => r.json()).then(j => j.ip);
+                    const ipCheckP = anti && !local ? ipP.then(ip => db.collection("attendance").where("date", "==", todayStr).where("ipAddress", "==", ip).get()) : null;
+                    const userP = local ? null : db.collection("attendance").where("date", "==", todayStr).where("userName", "==", State.currentUser).get();
+                    const rewardP = db.collection("settings").doc("attendance_reward_items").get();
+                    const taskP = db.collection("settings").doc("task_config").get();
+                    [ipCheckP, userP, rewardP, taskP].forEach(p => p && p.catch(() => {}));
+                    const currentIP = await ipP;
 
-                        if (ipUsedByOther) {
-                            throw new Error(`Địa chỉ mạng này (IP: ${currentIP}) đã được dùng để điểm danh cho [${otherUser}]. Nghi vấn điểm danh hộ!`);
+                    if (anti) {
+                        const rows = local ? local.filter(r => r.ipAddress === currentIP) : (await ipCheckP).docs.map(d => d.data());
+                        const other = rows.find(r => r.userName !== State.currentUser);
+                        if (other) {
+                            throw new Error(`Địa chỉ mạng này (IP: ${currentIP}) đã được dùng để điểm danh cho [${other.userName}]. Nghi vấn điểm danh hộ!`);
                         }
                     }
 
-                    const userCheckSnap = await db.collection("attendance").where("date", "==", todayStr).where("userName", "==", State.currentUser).get();
-                    if (!userCheckSnap.empty) { window.AppCore.hasAttendedToday = true; throw new Error("Bạn đã điểm danh thành công trước đó rồi!"); }
+                    const already = local ? local.some(r => r.userName === State.currentUser) : !(await userP).empty;
+                    if (already) { window.AppCore.hasAttendedToday = true; throw new Error("Bạn đã điểm danh thành công trước đó rồi!"); }
 
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TRUYỀN TẢI...`;
                     const batch = db.batch();
                     const newAttRef = db.collection("attendance").doc();
-                    
-                    batch.set(newAttRef, { 
+
+                    batch.set(newAttRef, {
                         userId: State.currentDocId, userName: State.currentUser, time: now.toLocaleTimeString('vi-VN'), date: todayStr, timestamp: Date.now(), ipAddress: currentIP
                     });
 
                     let rewardSpins = 0; let rewardTickets = 0;
-                    const rewardDoc = await db.collection("settings").doc("attendance_reward_items").get();
+                    const [rewardDoc, taskDoc] = await Promise.all([rewardP, taskP]);
                     if (rewardDoc.exists && rewardDoc.data().isEnabled === true) {
                         rewardSpins = 0;   // đã bỏ thưởng lượt quay (lượt quay chỉ có từ câu hỏi)
                         rewardTickets = rewardDoc.data().tickets || 0;
@@ -12850,8 +13034,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         }
                     }
 
-                    const taskDoc = await db.collection("settings").doc("task_config").get();
-                    let attRewardPoints = 20; 
+                    let attRewardPoints = 20;
                     if (taskDoc.exists && taskDoc.data().attendanceReward !== undefined) {
                         attRewardPoints = parseInt(taskDoc.data().attendanceReward);
                     }
@@ -12900,10 +13083,14 @@ html.qd-lite .qd-fx { display: none !important; }
                 if(!n || !id) return Utils.toast("Cảnh báo: Bạn bỏ trống trường dữ liệu bắt buộc!", "warning"); 
                 if(!/^\d+$/.test(id)) { idEl.value=""; return Utils.toast("Vi phạm bảo mật: ID Định danh chỉ được phép là SỐ.", "error"); }
                 
+                if (window.AppCore._regBusy) return;
+                // NHANH: trạng thái đóng/mở + đơn đã gửi đều đang nghe trực tiếp (RegID) -> kiểm tra ngay trên máy, không hỏi lại máy chủ
+                const R = window.RegID, cfgP = R && R.cfg !== undefined ? Promise.resolve(R.cfg) : db.collection("settings").doc("registration_config").get().then(d => d.exists ? d.data() : null);
+                const mineP = R && R.user === State.currentUser && R.mine !== undefined ? Promise.resolve(!!R.mine) : db.collection("users").where("submitter", "==", State.currentUser).get().then(s => !s.empty);
+                window.AppCore._regBusy = true;
                 try {
-                    const cfgDoc = await db.collection("settings").doc("registration_config").get();
-                    if(cfgDoc.exists) {
-                        const data = cfgDoc.data();
+                    const [data, mine] = await Promise.all([cfgP.catch(e => { console.error(e); return null; }), mineP]);
+                    if (data) {
                         let isLocked = data.isEnabled === false;
                         if (!isLocked && data.endDate && data.endTime) {
                             const deadline = new Date(`${data.endDate}T${data.endTime}`).getTime();
@@ -12911,17 +13098,16 @@ html.qd-lite .qd-fx { display: none !important; }
                         }
                         if (isLocked) return Utils.toast("Đăng ký đã bị đóng hoặc quá hạn!", "error");
                     }
-                } catch(e) {
-                    console.error(e);
-                }
-                
-                db.collection("users").where("submitter", "==", State.currentUser).get().then(snap => {
-                    if(!snap.empty) return Utils.toast("Bạn đã nộp đơn định danh rồi!", "error");
-                    db.collection("users").add({ name: n, gameId: id, submitter: State.currentUser, timestamp: Date.now() }).then(() => { 
-                        Utils.toast("Mã hóa thành công! Đơn yêu cầu đã đến Server BQT.", "success"); 
-                        nEl.value=""; idEl.value=""; window.UI.closeModal('modal-registration'); 
-                    }).catch(err => Utils.toast("Lỗi mạng. Đơn bị từ chối.", "error"));
-                }).catch(err => { Utils.toast("Lỗi hệ thống khi kiểm tra thông tin định danh.", "error"); });
+                    if (mine) return Utils.toast("Bạn đã nộp đơn định danh rồi!", "error");
+                    // Ghi đơn: màn hình đổi sang "Đã đăng ký ✓" ngay lập tức (bản ghi hiện tức thì trên máy), máy chủ xác nhận song song
+                    const ref = db.collection("users").doc();
+                    const saved = ref.set({ name: n, gameId: id, submitter: State.currentUser, timestamp: Date.now() });
+                    nEl.value = ""; idEl.value = ""; window.UI.closeModal('modal-registration');
+                    Utils.toast("Mã hóa thành công! Đơn yêu cầu đã đến Server BQT.", "success");
+                    saved.catch(err => { console.error(err); nEl.value = n; idEl.value = id; Utils.toast("Lỗi mạng. Đơn bị từ chối, vui lòng gửi lại.", "error"); });
+                } catch (err) {
+                    Utils.toast("Lỗi hệ thống khi kiểm tra thông tin định danh.", "error");
+                } finally { window.AppCore._regBusy = false; }
             },
 
             copyInviteCode: () => {
@@ -12940,27 +13126,20 @@ html.qd-lite .qd-fx { display: none !important; }
                 btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
 
                 try {
-                    const configDoc = await db.collection("settings").doc("invite_config").get();
-                    const config = configDoc.exists ? configDoc.data() : { isEnabled: false, rewardTickets: 1 };
-                    
-                    if(!config.isEnabled) {
-                        btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i>`;
-                        return Utils.toast("Chức năng Mã Mời hiện đang bị khóa.", "warning");
-                    }
-
-                    const inviterSnap = await db.collection("accounts").where("inviteCode", "==", codeInput).get();
-                    if(inviterSnap.empty) {
-                        btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i>`;
-                        return Utils.toast("Mã mời không tồn tại.", "error");
-                    }
-
-                    const inviterDoc = inviterSnap.docs[0]; const inviterId = inviterDoc.id; const inviterData = inviterDoc.data();
+                    // NHANH: đọc cấu hình, tìm người mời và đọc tài khoản của mình CÙNG LÚC (trước đây 3 bước nối nhau)
+                    const configP = db.collection("settings").doc("invite_config").get();
+                    const inviterP = db.collection("accounts").where("inviteCode", "==", codeInput).get();
+                    configP.catch(() => {}); inviterP.catch(() => {});
+                    let config = { rewardTickets: 1 };
 
                     await db.runTransaction(async (transaction) => {
                         const myRef = db.collection("accounts").doc(State.currentDocId);
+                        const [myDoc, configDoc, inviterSnap] = await Promise.all([transaction.get(myRef), configP, inviterP]);
+                        config = configDoc.exists ? configDoc.data() : { isEnabled: false, rewardTickets: 1 };
+                        if(!config.isEnabled) throw "DISABLED";
+                        if(inviterSnap.empty) throw "NOT_FOUND";
+                        const inviterDoc = inviterSnap.docs[0]; const inviterId = inviterDoc.id; const inviterData = inviterDoc.data();
                         const inviterRef = db.collection("accounts").doc(inviterId);
-                        
-                        const myDoc = await transaction.get(myRef);
                         if(myDoc.data().hasUsedInvite) throw "ALREADY_USED";
 
                         const reward = config.rewardTickets || 1;
@@ -12980,7 +13159,9 @@ html.qd-lite .qd-fx { display: none !important; }
                     State.hasUsedInvite = true;
                 } catch(err) {
                     btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i>`;
-                    if(err === "ALREADY_USED") Utils.toast("Bạn đã sử dụng tính năng này rồi.", "error");
+                    if(err === "DISABLED") Utils.toast("Chức năng Mã Mời hiện đang bị khóa.", "warning");
+                    else if(err === "NOT_FOUND") Utils.toast("Mã mời không tồn tại.", "error");
+                    else if(err === "ALREADY_USED") Utils.toast("Bạn đã sử dụng tính năng này rồi.", "error");
                     else Utils.toast("Lỗi hệ thống khi xử lý mã mời.", "error");
                 }
             }
@@ -13009,21 +13190,16 @@ html.qd-lite .qd-fx { display: none !important; }
                 btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang Xử Lý...`;
 
                 try {
-                    const targetSnap = await db.collection("accounts").where("user", "==", targetUser).get();
-                    if (targetSnap.empty) {
-                        btn.disabled = false;
-                        btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> Xác Nhận Chuyển`;
-                        return Utils.toast("Tài khoản người nhận không tồn tại!", "error");
-                    }
-
-                    const targetDoc = targetSnap.docs[0];
-                    const targetId = targetDoc.id;
+                    // NHANH: tìm người nhận (thường lấy ngay trong bộ nhớ vì danh bạ đang nghe trực tiếp) song song với đọc số dư
+                    const targetP = db.collection("accounts").where("user", "==", targetUser).get();
+                    targetP.catch(() => {});
 
                     await db.runTransaction(async (transaction) => {
                         const myRef = db.collection("accounts").doc(State.currentDocId);
-                        const targetRef = db.collection("accounts").doc(targetId);
+                        const [myDoc, targetSnap] = await Promise.all([transaction.get(myRef), targetP]);
+                        if (targetSnap.empty) throw new Error("NO_TARGET");
+                        const targetRef = db.collection("accounts").doc(targetSnap.docs[0].id);
 
-                        const myDoc = await transaction.get(myRef);
                         const myData = myDoc.data();
                         const myCurrentBal = myData[type] || 0;
                         if (myCurrentBal < amount) {
@@ -13054,7 +13230,9 @@ html.qd-lite .qd-fx { display: none !important; }
                     window.UI.closeModal('modal-transfer');
 
                 } catch (error) {
-                    if (error.message === "INSUFFICIENT_FUNDS") {
+                    if (error.message === "NO_TARGET") {
+                        Utils.toast("Tài khoản người nhận không tồn tại!", "error");
+                    } else if (error.message === "INSUFFICIENT_FUNDS") {
                         Utils.toast("Số dư của bạn không đủ để thực hiện!", "error");
                     } else {
                         Utils.toast("Lỗi hệ thống khi thực hiện chuyển quà.", "error");
@@ -17050,8 +17228,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 var cfgRef = db.collection('settings').doc('lixi_config');
                 var dayRef = db.collection('lixi_daily').doc(key);
                 var big = false;
-                var tx = db.runTransaction(async function (t) {
-                    var accD = await t.get(ref), cfgD = await t.get(cfgRef), dayD = await t.get(dayRef);
+                // NHANH: đọc tài khoản + cấu hình (+ ngân sách ngày) CÙNG LÚC. Bộ đếm ngân sách ngày là tài liệu chung nhiều người cùng ghi:
+                // chỉ đọc trong giao dịch khi ngân sách sắp cạn (dễ vượt), còn lại cộng thẳng -> không tranh chấp, không phải chờ thử lại.
+                var localSpent = function () { return (self.daily && self.daily.points) || 0; };
+                var tight = function (c) { if (!c || !(c.dailyBudget > 0)) return false; var mx = 0; c.prizes.forEach(function (p) { if (p.points > mx) mx = p.points; }); return c.dailyBudget - localSpent() <= mx * 5; };
+                var run = function (exact) { return db.runTransaction(async function (t) {
+                    var needDay = exact || !self.cfg || tight(self.cfg);
+                    var got = await Promise.all([t.get(ref), t.get(cfgRef), needDay ? t.get(dayRef) : null]);
+                    var accD = got[0], cfgD = got[1], dayD = got[2];
                     var data = (accD && accD.data && accD.data()) || {};
                     var cfg = normCfg(cfgD && cfgD.exists ? cfgD.data() : null);
                     var same = data.lixiDate === today;
@@ -17059,7 +17243,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     var sum = same ? (data.lixiTotal != null ? data.lixiTotal : (data.lixiAmount || 0)) : 0;
                     if (used >= drawLimit(cfg)) throw { code: 'LIXI_CLAIMED', count: used, total: sum, last: data.lixiAmount || 0, cfg: cfg };
                     if (!cfgOpen(cfg)) throw { code: 'LIXI_CLOSED', cfg: cfg };  // gồm cả 'chưa tới giờ mở'
-                    var spent = (dayD && dayD.exists && dayD.data().points) || 0;
+                    if (!dayD && tight(cfg)) throw { code: 'EXACT' };
+                    var spent = dayD ? ((dayD.exists && dayD.data().points) || 0) : localSpent();
                     var list = cfg.prizes.filter(function (p) { return p.chance > 0; });
                     if (cfg.dailyBudget > 0) {
                         list = list.filter(function (p) { return p.points <= cfg.dailyBudget - spent; });
@@ -17072,7 +17257,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     t.set(db.collection('lixi_history').doc(), { user: window.State.currentUser, amount: prize, date: today, dateKey: key, seq: used + 1, timestamp: Date.now(), status: 'ok' });
                     t.set(db.collection('point_history').doc(), { user: window.State.currentUser, action: 'add', detail: 'Rút lì xì: +' + prize + ' điểm', pointsChanged: prize, timestamp: Date.now() });
                     return { prize: prize, count: used + 1, total: sum + prize };
-                });
+                }); };
+                var tx = run(false).catch(function (e) { if (e && e.code === 'EXACT') return run(true); throw e; });
 
                 var prize = 0;
                 Promise.all([tx, sleep(650)]).then(function (res) {
@@ -17144,7 +17330,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // count: số câu hiện cùng lúc, áp dụng cho CẢ 2 chế độ; 0 = hiện tất cả (mặc định: lần lượt = tất cả, ngẫu nhiên = 3)
                 return { mode, count: isNaN(n) ? (mode === 'random' ? 3 : 0) : Math.min(50, Math.max(0, n)), rotateMin: Math.max(0, parseInt(q.rotateMin) || 0), start: q.start || '', end: q.end || '' };
             },
-            KEEP_MS: 60000,   // chế độ lần lượt: câu vừa có người trả lời đúng vẫn hiện thêm 60 giây rồi nhường chỗ cho câu kế tiếp
+            KEEP_MS: 5000,    // câu vừa có NGƯỜI KHÁC trả lời đúng còn hiện 5 giây (thấy kết quả "đã có người xác thực") rồi nhường chỗ cho câu mới
             mins(hhmm) { const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; },
             // Khung giờ hiện câu hỏi hằng ngày -> { open, next: thời điểm đóng/mở kế tiếp (ms) }
             win(c, now) {
@@ -17159,12 +17345,12 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             // Phiên đổi câu: mỗi rotateMin phút (hoặc mỗi ngày nếu = 0) -> mọi người cùng thấy 1 bộ câu hỏi
             slot(c, now) {
-                if (c.rotateMin > 0) { const ms = c.rotateMin * 60000, k = Math.floor(now / ms); return { key: 'r' + k, start: k * ms, end: (k + 1) * ms }; }
+                if (c.rotateMin > 0) { const ms = c.rotateMin * 60000, k = Math.floor(now / ms); return { key: 'r' + k, idx: k, start: k * ms, end: (k + 1) * ms }; }
                 const d = new Date(now); d.setHours(0, 0, 0, 0); const st = d.getTime(), e = new Date(st); e.setDate(e.getDate() + 1);
-                return { key: 'd' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(), start: st, end: e.getTime() };
+                return { key: 'd' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(), idx: Math.round(st / 86400000), start: st, end: e.getTime() };
             },
             inTime(q, now) { return q.active !== false && (!q.showAt || now >= q.showAt) && (!q.hideAt || now < q.hideAt); },
-            h(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; },
+            h(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return h >>> 0; },
             compute(all, quizCfg, now, me) {
                 const c = this.cfg(quizCfg), w = this.win(c, now), sl = this.slot(c, now);
                 let up = Infinity;
@@ -17172,16 +17358,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 let list = [];
                 if (w.open) {
                     const pool = all.filter(q => this.inTime(q, now));
+                    let sorted;
                     if (c.mode === 'random') {
-                        // Bỏ câu đã có người xác thực ở phiên trước; câu vừa xác thực trong phiên này vẫn giữ nguyên chỗ
-                        list = pool.filter(q => !q.claimedBy || (q.claimedAt || 0) >= sl.start)
-                                   .sort((a, b) => this.h(a.id + '|' + sl.key) - this.h(b.id + '|' + sl.key));
-                        if (c.count > 0) list = list.slice(0, c.count);
-                    } else {
-                        list = pool.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-                        // Lần lượt: chỉ N câu đầu chưa có người trả lời (câu vừa được trả lời giữ thêm 60 giây để mọi người thấy kết quả)
-                        if (c.count > 0) list = list.filter(q => !q.claimedBy || now - (q.claimedAt || 0) < this.KEEP_MS).slice(0, c.count);
-                    }
+                        // VÒNG XOAY: mọi câu xếp theo 1 thứ tự trộn cố định (cả câu đã có người trả lời, để vòng không bị xô lệch),
+                        // mỗi phiên dịch sang nhóm câu KẾ TIẾP -> câu không ai trả lời được sẽ được thay bằng câu khác, đi hết 1 vòng mới lặp lại.
+                        // Ô nào trong nhóm đã có người trả lời -> lấy bù câu ở GIỮA vòng (xa các phiên sắp tới nhất, tránh lặp lại ngay phiên sau).
+                        // (trước đây cách trộn theo phiên quá yếu nên đổi phiên hay ra lại đúng câu cũ)
+                        const ring = pool.slice().sort((a, b) => this.h(a.id) - this.h(b.id) || (a.id < b.id ? -1 : 1));
+                        const N = ring.length, step = c.count > 0 ? Math.min(c.count, N) : N, off = N ? (sl.idx * step) % N : 0;
+                        const win = [], rest = [];
+                        for (let k = 0; k < N; k++) (k < step ? win : rest).push(ring[(off + k) % N]);
+                        const mid = Math.floor(rest.length / 2);
+                        sorted = win.concat(rest.slice(mid), rest.slice(0, mid));
+                    } else sorted = pool.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));   // lần lượt: theo thứ tự tạo
+                    // Chỗ hiện câu hỏi LUÔN dành cho câu CHƯA ai trả lời: câu đã có người xác thực (kể cả chính mình) không chiếm chỗ
+                    // -> trả lời xong / bị người khác trả lời trước là có ngay câu kế tiếp hiện lên thay
+                    let open = sorted.filter(q => !q.claimedBy);
+                    if (c.count > 0) open = open.slice(0, c.count);
+                    const keep = new Set(open);
+                    sorted.forEach(q => { if (q.claimedBy && q.claimedBy !== me && now - (q.claimedAt || 0) < this.KEEP_MS) keep.add(q); });
+                    list = sorted.filter(q => keep.has(q));
                 }
                 if (me) all.forEach(q => { if (q.claimedBy === me && q.ticketUsed !== true && !list.includes(q)) list.push(q); });   // vé chưa dùng của mình luôn hiện
                 return { list, cfg: c, open: w.open, next: w.next, slotEnd: c.mode === 'random' ? sl.end : null, upcoming: isFinite(up) ? up : null };
@@ -19149,6 +19345,170 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
 
 @media (prefers-reduced-motion: reduce) { html[data-theme="tet"] .wheel-tab:hover { transform: none; } }
     </style>
+    <script id="qd-fast-warm">
+    /* QD FAST (trang user): nghe sẵn các cấu hình nhỏ -> mọi lệnh đọc chúng (đăng nhập, điểm danh, mã mời, mở khóa) trả về tức thì;
+       lấy sẵn IP khi chưa điểm danh hôm nay -> bấm Điểm Danh không phải chờ dịch vụ IP */
+    (function () {
+        'use strict';
+        if (typeof db === 'undefined' || !db) return;
+        ['task_config', 'attendance_reward_items', 'invite_config', 'account_config'].forEach(function (id) {
+            try { db.collection('settings').doc(id).onSnapshot(function () {}, function () {}); } catch (e) {}
+        });
+        function warmIP() {
+            if (!window.QDFast || !(window.State && window.State.currentUser) || (window.AppCore && window.AppCore.hasAttendedToday)) return;
+            window.QDFast.ip().catch(function () {});
+        }
+        var t = setInterval(function () { if (window.State && window.State.currentUser) { clearInterval(t); setTimeout(warmIP, 1500); } }, 1000);
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) warmIP(); });
+        setInterval(warmIP, 9 * 60 * 1000);
+    })();
+    </script>
+    <script id="qd-modal-ease">
+    /* ===== QD MODAL EASE: đóng hộp thoại (hồ sơ, cài đặt, túi đồ, kết quả...) không bắt buộc bấm nút X =====
+       - Chạm ra vùng tối bên ngoài hộp            -> đóng
+       - Vuốt hộp xuống (điện thoại)               -> đóng
+       - Nút Quay lại của điện thoại / trình duyệt -> đóng hộp đang mở (không rời trang)
+       - Phím Esc (máy tính)                       -> đóng
+       Đóng bằng chính nút đóng của hộp (X / Đóng / Hủy) nên mọi xử lý cũ vẫn chạy như bấm tay. */
+    (function () {
+        'use strict';
+        if (window.QDModalEase) return;
+        var d = document, W = window;
+        var M = W.QDModalEase = { stack: [], skipPop: 0 };
+
+        function isOpen(ov) { return ov.classList.contains('active'); }
+        function openList() { return Array.prototype.slice.call(d.querySelectorAll('.modal-overlay.active')); }
+        function z(el) { var v = parseInt(getComputedStyle(el).zIndex, 10); return isNaN(v) ? 0 : v; }
+        // Hộp đang nằm trên cùng màn hình: z-index cao nhất, bằng nhau thì hộp đứng sau trong trang (trình duyệt vẽ đè lên)
+        function top() { var l = openList(), t = null; l.forEach(function (o) { if (!t || z(o) >= z(t)) t = o; }); return t; }
+        function innerPop(ov) { var p = ov.querySelector('.ps2-pop.show'); return p || null; }   // bảng xác nhận nằm trong Trạm Quy Đổi
+
+        // Tìm nút đóng của chính hộp đó và bấm hộ
+        function closeOv(ov) {
+            if (!ov) return false;
+            if (innerPop(ov)) { if (W.PointShop && W.PointShop.closePop) W.PointShop.closePop(); return true; }
+            var id = ov.id, sels = [
+                '[onclick*="closeModal(\'' + id + '\')"]', '.modal-close', '[onclick*="closeResultModal"]', '[onclick*="closeModal()"]',
+                '[onclick*="LnTab.close"]', '[onclick*="leaveRoom"]', '.btn-close', '[aria-label="Đóng"]'
+            ];
+            for (var i = 0; i < sels.length; i++) {
+                var b = null; try { b = ov.querySelector(sels[i]); } catch (e) {}
+                if (b) { if (!b.disabled) b.click(); return true; }
+            }
+            if (W.UI && W.UI.closeModal && id) { W.UI.closeModal(id); return true; }
+            ov.classList.remove('active'); setTimeout(function () { if (!isOpen(ov)) ov.style.display = 'none'; }, 300);
+            return true;
+        }
+        M.closeTop = function () { return closeOv(top()); };
+
+        /* ---------- 1. Chạm ra ngoài hộp ---------- */
+        function isBackdrop(ov, t) {
+            if (t === ov) return true;
+            var c = ov.firstElementChild;   // hộp phủ kín màn hình (vd. xem ảnh) -> nền của nó cũng là vùng ngoài
+            if (t === c) { var r = c.getBoundingClientRect(); return r.width >= innerWidth * 0.95 && r.height >= innerHeight * 0.95; }
+            return false;
+        }
+        var downOn = null;
+        d.addEventListener('pointerdown', function (e) { downOn = e.target; }, true);
+        d.addEventListener('click', function (e) {
+            var t = e.target, started = downOn; downOn = null;
+            if (started && started !== t) return;   // kéo bôi chữ từ trong hộp ra ngoài: không đóng
+            if (t.classList && t.classList.contains('ps2-pop') && t.classList.contains('show')) { if (W.PointShop) W.PointShop.closePop(); return; }
+            var ov = t.closest ? t.closest('.modal-overlay.active') : null;
+            if (ov && isBackdrop(ov, t)) closeOv(ov);   // chạm trúng nền của hộp nào thì đóng đúng hộp đó
+        });
+
+        /* ---------- 2. Phím Esc ---------- */
+        // Chờ các xử lý Esc sẵn có của trang chạy trước; hộp trên cùng vẫn mở (chưa ai đóng) thì mới đóng -> không đóng 2 hộp 1 lúc
+        W.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            var t = top(); if (!t || innerPop(t)) return;   // bảng xác nhận trong Trạm Quy Đổi đã có xử lý Esc riêng
+            var before = openList().length;
+            setTimeout(function () { if (!e.defaultPrevented && isOpen(t) && t === top() && openList().length === before) closeOv(t); }, 0);
+        }, true);
+
+        /* ---------- 3. Nút Quay lại (điện thoại / trình duyệt) ---------- */
+        function sync() {
+            var open = openList();
+            open.forEach(function (o) {
+                if (M.stack.indexOf(o) >= 0) return;
+                M.stack.push(o);
+                try { history.pushState({ qdModal: o.id || 1 }, ''); } catch (e) {}
+            });
+            // hộp vừa đóng bằng nút -> bỏ bước lịch sử đã thêm cho nó
+            for (var i = M.stack.length - 1; i >= 0; i--) {
+                var o = M.stack[i]; if (isOpen(o)) continue;
+                M.stack.splice(i, 1);
+                if (history.state && history.state.qdModal) { M.skipPop++; try { history.back(); } catch (e) { M.skipPop--; } }
+            }
+        }
+        var syncT = 0;
+        new MutationObserver(function (ms) {
+            for (var i = 0; i < ms.length; i++) if (ms[i].target.classList && ms[i].target.classList.contains('modal-overlay')) { clearTimeout(syncT); syncT = setTimeout(sync, 0); return; }
+        }).observe(d.documentElement, { subtree: true, attributes: true, attributeFilter: ['class'] });
+        W.addEventListener('popstate', function () {
+            if (M.skipPop > 0) { M.skipPop--; return; }
+            M.stack = M.stack.filter(isOpen);
+            var o = top(); if (!o) return;
+            M.stack.splice(M.stack.indexOf(o), 1);
+            if (innerPop(o)) {   // còn bảng xác nhận bên trong: đóng bảng đó, giữ hộp + bước lịch sử
+                M.stack.push(o); try { history.pushState({ qdModal: o.id || 1 }, ''); } catch (e) {}
+                if (W.PointShop) W.PointShop.closePop(); return;
+            }
+            closeOv(o);
+            if (isOpen(o)) { M.stack.push(o); try { history.pushState({ qdModal: o.id || 1 }, ''); } catch (e) {} }   // hộp không cho đóng lúc này (đang xử lý)
+        });
+
+        /* ---------- 4. Vuốt xuống để đóng (màn hình cảm ứng) ---------- */
+        var drag = null;
+        function scrolledInside(el, box) {   // có khung cuộn nào (từ chỗ chạm tới hộp) chưa ở đầu trang?
+            for (var n = el; n && n !== box.parentNode; n = n.parentNode) {
+                if (n.nodeType !== 1) continue;
+                if (n.scrollTop > 0) return true;
+            }
+            return false;
+        }
+        d.addEventListener('touchstart', function (e) {
+            drag = null;
+            if (e.touches.length !== 1) return;
+            var t = e.target, ov = t.closest ? t.closest('.modal-overlay.active') : null;
+            if (!ov || ov !== top() || t === ov) return;
+            if (t.closest('input, textarea, select, [contenteditable="true"], canvas, .ps2-pop.show')) return;
+            var box = ov.firstElementChild; if (!box || scrolledInside(t, box)) return;
+            drag = { ov: ov, box: box, x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now(), dy: 0, on: false };
+        }, { passive: true });
+        d.addEventListener('touchmove', function (e) {
+            if (!drag) return;
+            if (e.touches.length > 1) { if (drag.on) { drag.dy = 0; endDrag(); } drag = null; return; }   // 2 ngón (phóng to ảnh): bỏ kéo
+            var dx = e.touches[0].clientX - drag.x, dy = e.touches[0].clientY - drag.y;
+            if (!drag.on) {
+                if (Math.abs(dy) < 8 && Math.abs(dx) < 8) return;
+                if (dy <= 0 || Math.abs(dx) > dy) { drag = null; return; }   // vuốt lên / ngang: để cuộn bình thường
+                drag.on = true; drag.box.style.transition = 'none';
+            }
+            drag.dy = Math.max(0, dy);
+            drag.box.style.transform = 'translateY(' + drag.dy + 'px)';
+            drag.box.style.opacity = String(Math.max(0.4, 1 - drag.dy / 600));
+            if (e.cancelable) e.preventDefault();   // không kéo-để-tải-lại trang
+        }, { passive: false });
+        function endDrag() {
+            if (!drag) return; var g = drag; drag = null; if (!g.on) return;
+            var fast = g.dy / Math.max(1, Date.now() - g.t) > 0.6, far = g.dy > Math.min(140, g.box.offsetHeight * 0.25);
+            g.box.style.transition = 'transform .22s ease, opacity .22s ease';
+            if (far || (fast && g.dy > 40)) {
+                g.box.style.transform = 'translateY(' + (g.dy + 120) + 'px)'; g.box.style.opacity = '0';
+                closeOv(g.ov);
+                setTimeout(function () { g.box.style.transition = ''; g.box.style.transform = ''; g.box.style.opacity = ''; if (isOpen(g.ov)) g.box.style.transform = ''; }, 320);
+            } else {
+                g.box.style.transform = ''; g.box.style.opacity = '';
+                setTimeout(function () { g.box.style.transition = ''; }, 240);
+            }
+        }
+        d.addEventListener('touchend', endDrag, { passive: true });
+        d.addEventListener('touchcancel', endDrag, { passive: true });
+
+    })();
+    </script>
 </body>
 
 </html>

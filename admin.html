@@ -2,6 +2,8 @@
 <html lang="vi" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#121217">
@@ -2934,6 +2936,166 @@ html.qd-lite .qd-fx { display: none !important; }
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script id="qd-fast-js">
+    /* ===== QD FAST: thao tác dữ liệu nhanh (dùng chung mọi trang) =====
+       1. Đọc tức thì: trang đang nghe trực tiếp (onSnapshot) cả 1 bộ sưu tập hoặc 1 tài liệu và đã đồng bộ với máy chủ
+          -> các lệnh .get() trên chính dữ liệu đó lấy ngay trong bộ nhớ (~0 ms) thay vì hỏi lại máy chủ (~200-400 ms).
+          Bộ nhớ chỉ giữ dữ liệu của các kênh đang nghe nên luôn là bản mới nhất. Không có trong bộ nhớ -> hỏi máy chủ như cũ.
+       2. Đo thời gian mọi thao tác ghi (giao dịch / batch / set / update / add / delete), chậm hơn 1 giây -> cảnh báo trong Console.
+          Xem thống kê: QDFast.stats()      Nhật ký từng thao tác: localStorage.setItem('qd_fast_log', '1')
+       3. QDFast.ip(): lấy sẵn địa chỉ IP (điểm danh), nhớ 10 phút
+       4. QDFast.pick(): chọn phần thưởng theo tỉ lệ (dùng chung Vòng Quay / Rút Lì Xì) */
+    (function () {
+        'use strict';
+        if (window.QDFast || !window.firebase || !firebase.firestore) return;
+        var F = firebase.firestore, W = window;
+        var QF = W.QDFast = { live: Object.create(null), hits: 0, ops: [] };
+        var verbose = false; try { verbose = localStorage.getItem('qd_fast_log') === '1'; } catch (e) {}
+        var now = function () { return W.performance && performance.now ? performance.now() : Date.now(); };
+
+        /* ---------- 1. Theo dõi kênh nghe trực tiếp ---------- */
+        function reg(key) { var st = { key: key, ok: false }; (QF.live[key] = QF.live[key] || []).push(st); return st; }
+        function unreg(st) {
+            st.ok = false; var a = QF.live[st.key]; if (!a) return;
+            var i = a.indexOf(st); if (i >= 0) a.splice(i, 1); if (!a.length) delete QF.live[st.key];
+        }
+        function isLive(key) { var a = QF.live[key]; if (a) for (var i = 0; i < a.length; i++) if (a[i].ok) return true; return false; }
+        QF.isLive = isLive;
+        function isObs(o) { return !!o && typeof o === 'object' && (typeof o.next === 'function' || typeof o.error === 'function' || typeof o.complete === 'function'); }
+        function uncaught(err) { console.error('Uncaught Error in snapshot listener:', err); }
+        function track(orig, keyOf) {
+            return function () {
+                var key = null; try { key = keyOf(this); } catch (e) {}
+                if (!key) return orig.apply(this, arguments);
+                var args = Array.prototype.slice.call(arguments);
+                var i = (args[0] && typeof args[0] === 'object' && !isObs(args[0])) ? 1 : 0, a = args[i];
+                var st = reg(key);
+                var seen = function (s) { try { st.ok = !(s && s.metadata && s.metadata.fromCache); } catch (e) {} };
+                if (typeof a === 'function') {
+                    args[i] = function (s) { seen(s); return a.apply(this, arguments); };
+                    var e = args[i + 1];
+                    args[i + 1] = function (err) { unreg(st); if (typeof e === 'function') return e.apply(this, arguments); uncaught(err); };
+                } else if (isObs(a)) {
+                    var o = a;
+                    args[i] = {
+                        next: function (s) { seen(s); if (o.next) return o.next(s); },
+                        error: function (err) { unreg(st); if (o.error) return o.error(err); uncaught(err); },
+                        complete: function () { if (o.complete) return o.complete(); }
+                    };
+                } else { unreg(st); return orig.apply(this, arguments); }
+                var un;
+                try { un = orig.apply(this, args); } catch (ex) { unreg(st); throw ex; }
+                return function () { unreg(st); return un.apply(this, arguments); };
+            };
+        }
+        var CR = F.CollectionReference, QP = F.Query && F.Query.prototype, DP = F.DocumentReference && F.DocumentReference.prototype;
+        function colPath(q) { return (CR && q instanceof CR) ? q.path : q.__qdP; }
+        try {
+            if (QP && CR && DP) {
+                // Truy vấn tạo từ 1 bộ sưu tập (where / orderBy / limit ...) nhớ đường dẫn bộ sưu tập gốc
+                ['where', 'orderBy', 'limit', 'limitToLast', 'startAt', 'startAfter', 'endAt', 'endBefore'].forEach(function (m) {
+                    [QP, CR.prototype].forEach(function (P) {
+                        if (!Object.prototype.hasOwnProperty.call(P, m) || typeof P[m] !== 'function') return;
+                        var o = P[m];
+                        P[m] = function () {
+                            var r = o.apply(this, arguments);
+                            try { var p = colPath(this); if (p && r && typeof r === 'object') r.__qdP = p; } catch (e) {}
+                            return r;
+                        };
+                    });
+                });
+                // Chỉ kênh nghe CẢ bộ sưu tập (không lọc) mới chứa đủ dữ liệu để trả lời mọi truy vấn trên bộ sưu tập đó
+                [QP, CR.prototype].forEach(function (P) {
+                    var own = function (m) { return Object.prototype.hasOwnProperty.call(P, m) && typeof P[m] === 'function'; };
+                    if (own('onSnapshot')) P.onSnapshot = track(P.onSnapshot, function (q) { return (q instanceof CR) ? 'c:' + q.path : null; });
+                    if (own('get')) {
+                        var qGet = P.get;
+                        P.get = function (opt) {
+                            if (opt && opt.source) return qGet.apply(this, arguments);
+                            var self = this, p = null; try { p = colPath(this); } catch (e) {}
+                            if (p && isLive('c:' + p)) {
+                                return qGet.call(this, { source: 'cache' }).then(function (s) { QF.hits++; return s; }, function () { return qGet.call(self, opt); });
+                            }
+                            return qGet.apply(this, arguments);
+                        };
+                    }
+                });
+                DP.onSnapshot = track(DP.onSnapshot, function (d) { return 'd:' + d.path; });
+                var dGet = DP.get;
+                DP.get = function (opt) {
+                    if (opt && opt.source) return dGet.apply(this, arguments);
+                    var self = this, path = this.path, par = path.slice(0, path.lastIndexOf('/'));
+                    if (isLive('d:' + path) || isLive('c:' + par)) {
+                        return dGet.call(this, { source: 'cache' }).then(function (s) { QF.hits++; return s; }, function () { return dGet.call(self, opt); });
+                    }
+                    return dGet.apply(this, arguments);
+                };
+            }
+        } catch (e) { console.warn('QDFast cache', e); }
+
+        /* ---------- 2. Đo thời gian thao tác ghi ---------- */
+        function note(label, t0, ok, err) {
+            var ms = Math.round(now() - t0);
+            QF.ops.push({ op: label, ms: ms, ok: ok, at: Date.now() }); if (QF.ops.length > 300) QF.ops.shift();
+            if (!ok) console.warn('[QD Fast] ' + label + ' lỗi sau ' + ms + ' ms', err);
+            else if (ms > 1000) console.warn('[QD Fast] ' + label + ' chậm: ' + ms + ' ms');
+            else if (verbose) console.log('[QD Fast] ' + label + ': ' + ms + ' ms');
+        }
+        function timed(P, m, label) {
+            if (!P || typeof P[m] !== 'function') return;
+            var o = P[m];
+            P[m] = function () {
+                var t0 = now(), r = o.apply(this, arguments), lb = label(this, arguments);
+                if (r && typeof r.then === 'function') r.then(function () { note(lb, t0, true); }, function (e) { note(lb, t0, false, e); });
+                return r;
+            };
+            P[m].__qdOrig = o;   // bản gốc không đo giờ (dùng cho giao dịch mở sẵn chờ người dùng bấm)
+        }
+        try {
+            var path = function (x) { try { return x.path; } catch (e) { return '?'; } };
+            timed(F.Firestore && F.Firestore.prototype, 'runTransaction', function () { return 'giao dịch'; });
+            timed(F.WriteBatch && F.WriteBatch.prototype, 'commit', function () { return 'batch'; });
+            ['set', 'update', 'delete'].forEach(function (m) { timed(DP, m, function (d) { return m + ' ' + path(d); }); });
+            timed(CR && CR.prototype, 'add', function (c) { return 'add ' + path(c); });
+        } catch (e) { console.warn('QDFast timing', e); }
+        QF.stats = function () {
+            var g = {};
+            QF.ops.forEach(function (o) { var k = o.op.split(' ')[0] === 'giao' ? 'giao dịch' : o.op.split(' ')[0]; (g[k] = g[k] || []).push(o.ms); });
+            var rows = Object.keys(g).map(function (k) {
+                var a = g[k].slice().sort(function (x, y) { return x - y; }), sum = a.reduce(function (s, x) { return s + x; }, 0);
+                return { 'thao tác': k, 'số lần': a.length, 'trung bình (ms)': Math.round(sum / a.length), 'chậm nhất (ms)': a[a.length - 1], 'quá 1 giây': a.filter(function (x) { return x > 1000; }).length };
+            });
+            if (console.table) console.table(rows);
+            return { reads_from_memory: QF.hits, ops: rows };
+        };
+
+        /* ---------- 3. IP lấy sẵn (điểm danh) ---------- */
+        var ipVal = null, ipAt = 0, ipP = null;
+        QF.ip = function (fresh) {
+            if (!fresh && ipVal && Date.now() - ipAt < 600000) return Promise.resolve(ipVal);
+            if (ipP) return ipP;
+            var ctrl = W.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ctrl) ctrl.abort(); }, 5000);
+            ipP = fetch('https://api.ipify.org?format=json', { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+                .then(function (r) { return r.json(); })
+                .then(function (j) { ipVal = j.ip; ipAt = Date.now(); return ipVal; })
+                .finally(function () { clearTimeout(to); ipP = null; });
+            return ipP;
+        };
+
+        /* ---------- 4. Chọn phần thưởng theo tỉ lệ (chỉ trong các ô còn số lượng) ---------- */
+        QF.pick = function (prizes, counts) {
+            counts = counts || {};
+            var avail = []; (prizes || []).forEach(function (p, i) { if (p.chance > 0 && (p.qty == null || (counts[p.id] || 0) < p.qty)) avail.push(i); });
+            if (!avail.length) return -1;
+            var total = 0; avail.forEach(function (i) { total += prizes[i].chance; });
+            var r = Math.random() * total, sum = 0;
+            for (var k = 0; k < avail.length; k++) { sum += prizes[avail[k]].chance; if (r <= sum) return avail[k]; }
+            return avail[avail.length - 1];
+        };
+        // Ô có số lượng mà còn ít (<= dư) -> cần đọc số đã trúng chính xác trên máy chủ để không phát vượt
+        QF.nearOut = function (p, counts, extra) { return !!p && p.qty != null && p.qty - ((counts || {})[p.id] || 0) <= (extra == null ? 3 : extra); };
+    })();
+    </script>
 
     <script>
     window.LuckySchedule = (function () {
@@ -3372,11 +3534,13 @@ html.qd-lite .qd-fx { display: none !important; }
                     const o = orders.find(x => x.id === id); if (!o) return;
                     if (!confirm(`Từ chối đơn "${o.itemName}${o.qty > 1 ? ' ×' + o.qty : ''}" của ${o.user} và hoàn lại ${o.cost} điểm?`)) return;
                     try {
-                        const acc = await db.collection('accounts').where('user', '==', o.user).limit(1).get();
-                        if (acc.empty) return Utils.toast('Không tìm thấy tài khoản ' + o.user, 'error');
-                        const oRef = db.collection('shop_orders').doc(id), aRef = acc.docs[0].ref, FV = firebase.firestore.FieldValue;
+                        // NHANH: tìm tài khoản song song với đọc đơn trong giao dịch
+                        const accP = db.collection('accounts').where('user', '==', o.user).limit(1).get(); accP.catch(() => {});
+                        const oRef = db.collection('shop_orders').doc(id), FV = firebase.firestore.FieldValue;
                         await db.runTransaction(async t => {
-                            const od = await t.get(oRef);
+                            const [od, acc] = await Promise.all([t.get(oRef), accP]);
+                            if (acc.empty) throw 'NOACC';
+                            const aRef = acc.docs[0].ref;
                             if (!od.exists || od.data().status !== 'pending') throw 'DONE';
                             t.update(oRef, { status: 'rejected', rejectedAt: Date.now() });
                             t.update(aRef, { points: FV.increment(o.cost || 0) });
@@ -3384,7 +3548,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             t.set(db.collection('point_history').doc(), { user: o.user, action: 'refund', detail: `Hoàn điểm: đơn "${o.itemName}" bị từ chối`, pointsChanged: o.cost || 0, timestamp: Date.now() });
                         });
                         Utils.toast(`Đã từ chối và hoàn ${o.cost} điểm cho ${o.user}.`, 'success');
-                    } catch (e) { if (e === 'DONE') Utils.toast('Đơn này đã được xử lý rồi.', 'warning'); else { console.error(e); Utils.toast('Không xử lý được đơn.', 'error'); } }
+                    } catch (e) { if (e === 'NOACC') Utils.toast('Không tìm thấy tài khoản ' + o.user, 'error'); else if (e === 'DONE') Utils.toast('Đơn này đã được xử lý rồi.', 'warning'); else { console.error(e); Utils.toast('Không xử lý được đơn.', 'error'); } }
                 }
             };
             return api;
@@ -3752,7 +3916,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 const hRef = db.collection('lixi_history').doc(id), aRef = db.collection('accounts').doc(acc.docId);
                 let deducted = 0;
                 await db.runTransaction(async t => {
-                    const hd = await t.get(hRef), ad = await t.get(aRef);
+                    const [hd, ad] = await Promise.all([t.get(hRef), t.get(aRef)]);   // NHANH: đọc cùng lúc
                     if (!hd.exists) throw 'Bản ghi không còn tồn tại.';
                     if (hd.data().status === 'revoked') throw 'Lượt này đã được thu hồi trước đó.';
                     if (!ad.exists) throw 'Tài khoản không tồn tại.';
@@ -3933,7 +4097,7 @@ const QVis = {
         // count: số câu hiện cùng lúc, áp dụng cho CẢ 2 chế độ; 0 = hiện tất cả (mặc định: lần lượt = tất cả, ngẫu nhiên = 3)
         return { mode, count: isNaN(n) ? (mode === 'random' ? 3 : 0) : Math.min(50, Math.max(0, n)), rotateMin: Math.max(0, parseInt(q.rotateMin) || 0), start: q.start || '', end: q.end || '' };
     },
-    KEEP_MS: 60000,   // chế độ lần lượt: câu vừa có người trả lời đúng vẫn hiện thêm 60 giây rồi nhường chỗ cho câu kế tiếp
+    KEEP_MS: 5000,    // câu vừa có NGƯỜI KHÁC trả lời đúng còn hiện 5 giây (thấy kết quả "đã có người xác thực") rồi nhường chỗ cho câu mới
     mins(hhmm) { const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; },
     // Khung giờ hiện câu hỏi hằng ngày -> { open, next: thời điểm đóng/mở kế tiếp (ms) }
     win(c, now) {
@@ -3948,12 +4112,12 @@ const QVis = {
     },
     // Phiên đổi câu: mỗi rotateMin phút (hoặc mỗi ngày nếu = 0) -> mọi người cùng thấy 1 bộ câu hỏi
     slot(c, now) {
-        if (c.rotateMin > 0) { const ms = c.rotateMin * 60000, k = Math.floor(now / ms); return { key: 'r' + k, start: k * ms, end: (k + 1) * ms }; }
+        if (c.rotateMin > 0) { const ms = c.rotateMin * 60000, k = Math.floor(now / ms); return { key: 'r' + k, idx: k, start: k * ms, end: (k + 1) * ms }; }
         const d = new Date(now); d.setHours(0, 0, 0, 0); const st = d.getTime(), e = new Date(st); e.setDate(e.getDate() + 1);
-        return { key: 'd' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(), start: st, end: e.getTime() };
+        return { key: 'd' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(), idx: Math.round(st / 86400000), start: st, end: e.getTime() };
     },
     inTime(q, now) { return q.active !== false && (!q.showAt || now >= q.showAt) && (!q.hideAt || now < q.hideAt); },
-    h(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; },
+    h(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return h >>> 0; },
     compute(all, quizCfg, now, me) {
         const c = this.cfg(quizCfg), w = this.win(c, now), sl = this.slot(c, now);
         let up = Infinity;
@@ -3961,16 +4125,26 @@ const QVis = {
         let list = [];
         if (w.open) {
             const pool = all.filter(q => this.inTime(q, now));
+            let sorted;
             if (c.mode === 'random') {
-                // Bỏ câu đã có người xác thực ở phiên trước; câu vừa xác thực trong phiên này vẫn giữ nguyên chỗ
-                list = pool.filter(q => !q.claimedBy || (q.claimedAt || 0) >= sl.start)
-                           .sort((a, b) => this.h(a.id + '|' + sl.key) - this.h(b.id + '|' + sl.key));
-                if (c.count > 0) list = list.slice(0, c.count);
-            } else {
-                list = pool.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-                // Lần lượt: chỉ N câu đầu chưa có người trả lời (câu vừa được trả lời giữ thêm 60 giây để mọi người thấy kết quả)
-                if (c.count > 0) list = list.filter(q => !q.claimedBy || now - (q.claimedAt || 0) < this.KEEP_MS).slice(0, c.count);
-            }
+                // VÒNG XOAY: mọi câu xếp theo 1 thứ tự trộn cố định (cả câu đã có người trả lời, để vòng không bị xô lệch),
+                // mỗi phiên dịch sang nhóm câu KẾ TIẾP -> câu không ai trả lời được sẽ được thay bằng câu khác, đi hết 1 vòng mới lặp lại.
+                // Ô nào trong nhóm đã có người trả lời -> lấy bù câu ở GIỮA vòng (xa các phiên sắp tới nhất, tránh lặp lại ngay phiên sau).
+                // (trước đây cách trộn theo phiên quá yếu nên đổi phiên hay ra lại đúng câu cũ)
+                const ring = pool.slice().sort((a, b) => this.h(a.id) - this.h(b.id) || (a.id < b.id ? -1 : 1));
+                const N = ring.length, step = c.count > 0 ? Math.min(c.count, N) : N, off = N ? (sl.idx * step) % N : 0;
+                const win = [], rest = [];
+                for (let k = 0; k < N; k++) (k < step ? win : rest).push(ring[(off + k) % N]);
+                const mid = Math.floor(rest.length / 2);
+                sorted = win.concat(rest.slice(mid), rest.slice(0, mid));
+            } else sorted = pool.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));   // lần lượt: theo thứ tự tạo
+            // Chỗ hiện câu hỏi LUÔN dành cho câu CHƯA ai trả lời: câu đã có người xác thực (kể cả chính mình) không chiếm chỗ
+            // -> trả lời xong / bị người khác trả lời trước là có ngay câu kế tiếp hiện lên thay
+            let open = sorted.filter(q => !q.claimedBy);
+            if (c.count > 0) open = open.slice(0, c.count);
+            const keep = new Set(open);
+            sorted.forEach(q => { if (q.claimedBy && q.claimedBy !== me && now - (q.claimedAt || 0) < this.KEEP_MS) keep.add(q); });
+            list = sorted.filter(q => keep.has(q));
         }
         if (me) all.forEach(q => { if (q.claimedBy === me && q.ticketUsed !== true && !list.includes(q)) list.push(q); });   // vé chưa dùng của mình luôn hiện
         return { list, cfg: c, open: w.open, next: w.next, slotEnd: c.mode === 'random' ? sl.end : null, upcoming: isFinite(up) ? up : null };
@@ -5199,7 +5373,9 @@ const QVis = {
                             return;
                         }
                         
-                        await db.collection("accounts").add({
+                        // NHANH: tạo tài khoản + đánh dấu đơn đã duyệt trong 1 lần ghi (trước đây 2 lần nối nhau)
+                        const ab = db.batch();
+                        ab.set(db.collection("accounts").doc(), {
                             user: username,
                             pass: password,
                             role: 'user',
@@ -5211,11 +5387,11 @@ const QVis = {
                             tickets: 0,
                             created_at: Date.now()
                         });
-                        
-                        await db.collection('pending_users').doc(id).update({
+                        ab.update(db.collection('pending_users').doc(id), {
                             status: 'approved',
                             approvedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
+                        await ab.commit();
                         
                         Utils.toast('Phê duyệt thành công!', 'success');
                     } catch(e) {
@@ -5872,14 +6048,31 @@ saveRegistrationConfig: () => {
             collectUserLogs: async (username) => {
                 const bal = { points: 0, spins: 0, tickets: 0, conThrows: 0 };
                     let logs = [];
-                    
-                    const accSnap = await db.collection("accounts").where("user", "==", username).get();
+                    // NHANH: 16 truy vấn chạy CÙNG LÚC (trước đây lần lượt từng cái -> 3-6 giây). Xử lý vẫn theo đúng thứ tự cũ.
+                    const Q = (p) => p.catch(e => { console.warn('collectUserLogs', e); throw e; });
+                    const EMPTY = { empty: true, forEach() {}, docs: [] };
+                    const [accSnap, pointSnap, spinSnap, conSnapP, ttSnap, transferFromSnap, transferToSnap, inviteerSnap, inviteeSnap, attRewardDoc, mtSnap, adminSnap, rpsCfgSnap, rpsP1Snap, rpsP2Snap] = await Promise.all([
+                        Q(db.collection("accounts").where("user", "==", username).get()),
+                        Q(db.collection("point_history").where("user", "==", username).get()),
+                        Q(db.collection("spin_history").where("userId", "==", username).get()),
+                        db.collection("con_history").where("user", "==", username).get().catch(e => { console.warn('con_history', e); return EMPTY; }),
+                        Q(db.collection("tranhthuong_history").where("userId", "==", username).get()),
+                        Q(db.collection("transfer_history").where("from", "==", username).get()),
+                        Q(db.collection("transfer_history").where("to", "==", username).get()),
+                        Q(db.collection("invite_history").where("inviter", "==", username).get()),
+                        Q(db.collection("invite_history").where("invitee", "==", username).get()),
+                        Q(db.collection("settings").doc("attendance_reward_items").get()),
+                        Q(db.collection("attendance").where("userName", "==", username).get()),
+                        Q(db.collection("admin_logs").where("user", "==", username).get()),
+                        Q(db.collection("settings").doc("rps_config").get()),
+                        Q(db.collection("rps_history").where("player1", "==", username).get()),
+                        Q(db.collection("rps_history").where("player2", "==", username).get())
+                    ]);
                     if(!accSnap.empty) {
                         const data = accSnap.docs[0].data();
                         bal.points = data.points || 0; bal.spins = data.spins || 0; bal.tickets = data.tickets || 0; bal.conThrows = data.conThrows || 0;
                     }
 
-                    const pointSnap = await db.collection("point_history").where("user", "==", username).get();
                     pointSnap.forEach(doc => {
                         const d = doc.data();
                         logs.push({ time: d.timestamp, type: 'points', action: 'add', amount: d.pointsChanged, reason: d.detail || 'Giao dịch điểm' });
@@ -5895,13 +6088,12 @@ saveRegistrationConfig: () => {
                         }
                     });
 
-                    const spinSnap = await db.collection("spin_history").where("userId", "==", username).get();
                     spinSnap.forEach(doc => {
                         logs.push({ time: doc.data().timestamp, type: 'spins', action: 'add', amount: -1, reason: `Sử dụng Vòng Quay (Trúng: ${doc.data().result})` });
                     });
 
                     try {
-                        const conSnap = await db.collection("con_history").where("user", "==", username).get();
+                        const conSnap = conSnapP;
                         const RES = { hit: 'Lọt vòng', rim: 'Chạm vành', miss: 'Trượt' };
                         conSnap.forEach(doc => {
                             const c = doc.data();
@@ -5910,56 +6102,46 @@ saveRegistrationConfig: () => {
                         });
                     } catch (e) { console.warn('con_history', e); }
 
-                    const ttSnap = await db.collection("tranhthuong_history").where("userId", "==", username).get();
                     ttSnap.forEach(doc => {
                         logs.push({ time: doc.data().timestamp, type: 'tickets', action: 'add', amount: -1, reason: `Rút Lì Xì (Trúng: ${doc.data().result})` });
                     });
 
-                    const transferFromSnap = await db.collection("transfer_history").where("from", "==", username).get();
                     transferFromSnap.forEach(doc => {
                         logs.push({ time: doc.data().timestamp, type: doc.data().type, action: 'add', amount: -doc.data().amount, reason: `Tặng quà cho đồng đội: [${doc.data().to}]` });
                     });
                     
-                    const transferToSnap = await db.collection("transfer_history").where("to", "==", username).get();
                     transferToSnap.forEach(doc => {
                         logs.push({ time: doc.data().timestamp, type: doc.data().type, action: 'add', amount: doc.data().amount, reason: `Được nhận quà từ: [${doc.data().from}]` });
                     });
 
-                    const inviteerSnap = await db.collection("invite_history").where("inviter", "==", username).get();
                     inviteerSnap.forEach(doc => {
                         logs.push({ time: doc.data().timestamp, type: 'tickets', action: 'add', amount: doc.data().rewardAmount, reason: `Nhận thưởng do [${doc.data().invitee}] nhập mã mời của bạn` });
                     });
-                    const inviteeSnap = await db.collection("invite_history").where("invitee", "==", username).get();
                     inviteeSnap.forEach(doc => {
                         logs.push({ time: doc.data().timestamp, type: 'tickets', action: 'add', amount: doc.data().rewardAmount, reason: `Nhận thưởng do bạn nhập mã mời của [${doc.data().inviter}]` });
                     });
 
-                    const attRewardDoc = await db.collection("settings").doc("attendance_reward_items").get();
                     let attSpins = 0; let attTickets = 0;
                     if (attRewardDoc.exists && attRewardDoc.data().isEnabled === true) {
                         attSpins = attRewardDoc.data().spins || 0;
                         attTickets = attRewardDoc.data().tickets || 0;
                     }
-                    const mtSnap = await db.collection("attendance").where("userName", "==", username).get();
                     mtSnap.forEach(doc => {
                         const d = doc.data();
                         if (attSpins > 0) logs.push({ time: d.timestamp, type: 'spins', action: 'add', amount: attSpins, reason: `Thưởng điểm danh hằng ngày` });
                         if (attTickets > 0) logs.push({ time: d.timestamp + 1, type: 'tickets', action: 'add', amount: attTickets, reason: `Thưởng điểm danh hằng ngày` });
                     });
 
-                    const adminSnap = await db.collection("admin_logs").where("user", "==", username).get();
                     adminSnap.forEach(doc => {
                         logs.push({ time: doc.data().timestamp, type: doc.data().type, action: doc.data().action, amount: doc.data().amount, reason: `<i class="fa-solid fa-user-shield text-info mr-1"></i> Admin can thiệp trực tiếp` });
                     });
 
-                    const rpsCfgSnap = await db.collection("settings").doc("rps_config").get();
                     let rpsWin = 10; let rpsLose = -5;
                     if(rpsCfgSnap.exists) {
                         rpsWin = rpsCfgSnap.data().winReward !== undefined ? parseInt(rpsCfgSnap.data().winReward) : 10;
                         rpsLose = rpsCfgSnap.data().loseReward !== undefined ? parseInt(rpsCfgSnap.data().loseReward) : -5;
                     }
 
-                    const rpsP1Snap = await db.collection("rps_history").where("player1", "==", username).get();
                     rpsP1Snap.forEach(doc => {
                         const d = doc.data();
                         let pointChange = d.winner === username ? rpsWin : (d.winner === 'draw' ? 0 : rpsLose);
@@ -5967,7 +6149,6 @@ saveRegistrationConfig: () => {
                         if (pointChange !== 0) logs.push({ time: d.timestamp, type: 'points', action: 'add', amount: pointChange, reason: `PvP Kéo Búa Bao vs [${d.player2}] (${rsTxt})` });
                     });
 
-                    const rpsP2Snap = await db.collection("rps_history").where("player2", "==", username).get();
                     rpsP2Snap.forEach(doc => {
                         const d = doc.data();
                         let pointChange = d.winner === username ? rpsWin : (d.winner === 'draw' ? 0 : rpsLose);
@@ -7688,7 +7869,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             db.collection('accounts').get().then(function (snap) {
                 var refs = []; snap.forEach(function (d) { if (d.data().isBlocked !== true) refs.push(d.ref); });
                 var chunks = []; for (var i = 0; i < refs.length; i += 450) chunks.push(refs.slice(i, i + 450));
-                return chunks.reduce(function (p, ch) { return p.then(function () { var b = db.batch(); ch.forEach(function (r) { b.update(r, { conThrows: FV.increment(n) }); }); return b.commit(); }); }, Promise.resolve())
+                return Promise.all(chunks.map(function (ch) { var b = db.batch(); ch.forEach(function (r) { b.update(r, { conThrows: FV.increment(n) }); }); return b.commit(); }))   // NHANH: các lô ghi cùng lúc
                     .then(function () { return db.collection('admin_logs').add({ user: '(tất cả)', type: 'conThrows', action: 'add', amount: n, count: refs.length, by: me(), timestamp: Date.now() }); })
                     .then(function () { return refs.length; });
             }).then(function (k) { toast('Đã tặng ' + n + ' lượt ném còn cho ' + k + ' thành viên!', 'success'); loadUsers(); })
@@ -7721,7 +7902,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             db.collection('con_stats').get().then(function (snap) {
                 var refs = []; snap.forEach(function (d) { refs.push(d.ref); });
                 var chunks = []; for (var i = 0; i < refs.length; i += 450) chunks.push(refs.slice(i, i + 450));
-                return chunks.reduce(function (p, ch) { return p.then(function () { var b = db.batch(); ch.forEach(function (r) { b.delete(r); }); return b.commit(); }); }, Promise.resolve());
+                return Promise.all(chunks.map(function (ch) { var b = db.batch(); ch.forEach(function (r) { b.delete(r); }); return b.commit(); }));   // NHANH: các lô xóa cùng lúc
             }).then(function () { toast('Đã làm mới bảng xếp hạng Ném Còn.', 'success'); }).catch(function () { toast('Lỗi làm mới bảng xếp hạng.', 'error'); });
         };
         var RES = { hit: '🎯 Lọt vòng', rim: '🥏 Chạm vành', miss: '💨 Trượt', free: '🎁 Nhận lượt miễn phí' };

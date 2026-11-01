@@ -1,3 +1,94 @@
+QD ELITE - ĐÓNG HỘP THOẠI KHÔNG CẦN BẤM NÚT X (02/11/2026)
+=========================================================
+File thay đổi: user.html, qt.html, tranht.html, quays.html (thêm khối "qd-modal-ease" cuối trang).
+
+Áp dụng cho mọi hộp thoại: Hồ sơ, Cài đặt, Túi đồ, Trạm Quy Đổi, Tặng lượt, Đăng ký ID Game, Thành tích,
+Số may mắn, xem ảnh chat, kết quả Vòng Quay / Rút Lì Xì / Kéo Búa Bao, lịch sử...
+- Chạm ra vùng tối bên ngoài hộp            -> đóng (kéo bôi chữ từ trong hộp ra ngoài thì không đóng)
+- Vuốt hộp xuống trên điện thoại            -> đóng (vuốt nhẹ thì hộp bật về chỗ cũ; khi nội dung đang cuộn giữa chừng thì vẫn cuộn bình thường)
+- Nút Quay lại của điện thoại / trình duyệt -> đóng hộp đang mở, KHÔNG rời khỏi trang
+- Phím Esc trên máy tính                    -> đóng
+- Đóng bằng chính nút đóng của hộp (X / Đóng / Hủy) nên mọi xử lý cũ vẫn chạy y như bấm tay
+  (vd. đóng kết quả lì xì thì bao lì xì xếp lại, đóng kết quả Kéo Búa Bao thì rời phòng).
+- Trạm Quy Đổi đang hiện bảng xác nhận: chạm ngoài / Esc / Quay lại chỉ đóng bảng xác nhận, giữ Trạm.
+  Đang xử lý đổi quà thì không đóng.
+- 2 hộp chồng nhau: mỗi lần chỉ đóng hộp nằm trên.
+
+QD ELITE - CÂU HỎI NGẪU NHIÊN ĐỔI CÂU THẬT SỰ MỖI PHIÊN (01/11/2026, bản 2)
+==========================================================================
+File thay đổi: qt.html, user.html, admin.html (cùng 1 cách chọn câu hiện).
+
+Lỗi: đang giữ lượt quay (chưa quay), câu không trả lời được vẫn hiện mãi, hết "đổi câu mới sau 0:xx" vẫn ra lại đúng câu cũ.
+Nguyên nhân: cách trộn câu theo phiên quá yếu (mã trộn chỉ khác ở vài chữ cuối) -> thứ tự gần như không đổi giữa các phiên,
+lúc nào cũng ra cùng 1 câu đứng đầu.
+Đã sửa:
+- Chế độ ngẫu nhiên giờ là VÒNG XOAY: mọi câu xếp theo 1 thứ tự trộn cố định, mỗi phiên dịch sang nhóm câu kế tiếp
+  -> hết giờ đếm ngược là có câu KHÁC, không lặp lại câu vừa hiện; đi hết vòng mới quay lại câu cũ.
+- Câu trong nhóm đã có người trả lời -> lấy bù câu ở giữa vòng (xa các phiên sắp tới) để phiên sau không ra lại.
+- Giữ lượt quay bao lâu cũng không ảnh hưởng: câu của mình hiện riêng bên dưới ("Đang giữ 1 lượt quay"), câu để trả lời vẫn đổi đều.
+- Mọi người vẫn thấy cùng 1 bộ câu trong cùng phiên; trả lời xong / người khác trả lời trước vẫn có câu mới thay ngay như bản trước.
+
+QD ELITE - CÂU HỎI NHẬN LƯỢT QUAY: THAY CÂU NGAY + XÁC THỰC DƯỚI 0,5 GIÂY (01/11/2026)
+=====================================================================================
+File thay đổi: qt.html (chính), user.html + admin.html (cùng cách chọn câu hiện), các trang khác chỉ cập nhật lớp QD Fast.
+
+1. Câu không còn trả lời được -> câu khác hiện lên thay NGAY
+   - Trước: câu đã có người xác thực (kể cả chính mình) vẫn chiếm chỗ tới khi đổi phiên (chế độ ngẫu nhiên)
+     hoặc thêm 60 giây (chế độ lần lượt) -> chỉ còn ít câu để trả lời.
+   - Nay: "Số câu hiện cùng lúc" luôn là các câu CHƯA ai trả lời. Trả lời đúng xong -> câu kế tiếp hiện ngay.
+     Câu bị người khác trả lời trước: hiện "🔒 Đã có người xác thực" 5 giây rồi nhường chỗ cho câu mới.
+     Câu mình đã trả lời (đang giữ lượt quay) vẫn hiện bên dưới, không chiếm chỗ.
+   - Hết câu chưa có người trả lời -> báo "Chờ Ban Quản Trị thêm câu mới" (hoặc giờ câu hẹn giờ tiếp theo).
+   - Mọi người vẫn thấy cùng 1 bộ câu theo phiên (chế độ ngẫu nhiên). Trang Admin (badge 👁 Đang hiện) tính theo cách mới.
+
+2. Xác thực đáp án nhanh
+   - Đáp án đúng/sai kiểm tra ngay trên máy: bấm Xác thực -> hiện "⏳ Đáp án đúng! Đang ghi nhận lượt quay..." tức thì.
+   - Khi bắt đầu gõ đáp án, trang đọc sẵn câu hỏi trên máy chủ -> bấm Xác thực chỉ còn 1 lượt ghi.
+     Vẫn đảm bảo chỉ người ĐẦU TIÊN được tính: câu đã bị trả lời trước thì máy chủ từ chối và báo "đã có người xác thực".
+   - Máy chủ xác nhận xong: +1 lượt quay và câu mới hiện ngay, không chờ dữ liệu đồng bộ về.
+   - Đo (Firestore giả lập, mỗi lượt hỏi máy chủ 250 ms): trước 0,76-0,79 s -> nay 0,26 s (đã gõ đáp án), 0,52 s (dán đáp án bấm ngay).
+     Với máy chủ Firebase thật ở gần (Singapore) thường dưới 0,15 s.
+
+QD ELITE - THAO TÁC DỮ LIỆU NHANH DƯỚI 1 GIÂY (01/11/2026)
+=========================================================
+File thay đổi: admin.html, user.html, qt.html, tranht.html, game.html, index.html, quays.html, baotri.html
+(sw.js, nhạc, video giữ nguyên). Cách cập nhật: chép đè 8 file .html lên host.
+
+ĐO TRÊN TRÌNH DUYỆT (Firestore giả lập, mỗi lượt hỏi máy chủ trễ 250 ms ~ Việt Nam -> máy chủ Mỹ)
+                                          TRƯỚC      SAU
+  Đổi điểm lấy lượt (Trạm Quy Đổi)        1,26 s -> 0,51 s
+  Rút lì xì ngày (có kết quả)             1,12 s -> 0,67 s  (0,65 s là hiệu ứng rung bao cố ý)
+  Rút bao lì xì (tranht)                  1,03 s -> 0,52 s  (bao rung lên ngay khi chạm)
+  Vòng quay: chốt ô trúng                 1,03 s -> 0,53 s  (bánh xe lấy đà ngay khi bấm)
+  Điểm danh                               1,35 s -> 0,27 s
+  Nhập mã mời                             1,01 s -> 0,51 s
+  Tặng lượt cho bạn                       0,76 s -> 0,51 s
+  Kéo Búa Bao: mở phòng chờ               0,53 s -> 0,30 s
+  Đăng ký tài khoản (trang chủ)           0,78 s -> 0,51 s
+  Admin: Lịch sử biến động 1 tài khoản    3,77 s -> 0,26 s
+  Nhiều người cùng rút lì xì / quay       2,6 - 3,3 s -> 0,5 s  (hết tranh chấp, không còn phải thử lại)
+
+NGUYÊN NHÂN CHẬM & ĐÃ SỬA
+- Giao dịch đọc lần lượt từng tài liệu (đợi xong cái này mới đọc cái kia) -> nay đọc CÙNG LÚC (1 lượt hỏi thay vì 3-4).
+- Kho giải chung (wheel_stock, tranhthuong_stock, point_shop_stock, lixi_daily) bị đọc trong mọi giao dịch: chỉ cần
+  1 người khác vừa trúng là giao dịch của mình hỏng, Firebase chờ ~1 giây rồi làm lại. Nay chỉ đọc kho khi giải vừa chọn
+  có giới hạn số lượng và CÒN ÍT (<= 3 phần) hoặc ngân sách ngày sắp cạn; còn lại cộng thẳng (increment) -> không tranh chấp.
+  Đã kiểm tra: giải 50K có 2 phần, tỉ lệ 100%, rút 4 lần -> đúng 2 lần trúng, không phát vượt.
+- Điểm danh: lấy sẵn IP khi vào trang; kiểm tra trùng IP / trùng người ngay trên danh sách điểm danh hôm nay đang hiển thị.
+- Đăng ký ID game: kiểm tra đóng/mở + đơn đã gửi ngay trên máy, màn hình đổi "Đã đăng ký ✓" tức thì.
+- Mã mời, tặng lượt, đăng nhập, mở khóa, đăng ký tài khoản, admin duyệt / từ chối đơn / thu hồi lì xì:
+  các bước đọc chạy song song; admin duyệt tài khoản = 1 lần ghi (batch) thay vì 2.
+- Admin tặng lượt hàng loạt / làm mới BXH Ném Còn: các lô ghi chạy cùng lúc.
+
+LỚP "QD FAST" DÙNG CHUNG (chèn sẵn vào mọi trang, ngay sau Firebase SDK)
+- Đọc tức thì: trang đang nghe trực tiếp cả 1 bộ sưu tập / 1 tài liệu (vd. danh bạ accounts ở user/admin, lucky_numbers ở quays)
+  -> các lệnh .get() trên dữ liệu đó lấy ngay trong bộ nhớ (0 ms) thay vì hỏi máy chủ. Không có trong bộ nhớ -> hỏi máy chủ như cũ.
+- Mở sẵn kết nối tới máy chủ Firestore khi tải trang (preconnect).
+- Theo dõi tốc độ: thao tác ghi nào chậm hơn 1 giây sẽ cảnh báo trong Console.
+  Xem thống kê: gõ QDFast.stats() trong Console. Nhật ký từng thao tác: localStorage.setItem('qd_fast_log', '1')
+- Giới hạn còn lại không tránh được: mỗi thao tác ghi vẫn cần ít nhất 1 lượt hỏi máy chủ để xác nhận (0,1-0,3 s tùy mạng
+  và vị trí máy chủ Firebase). Mạng 4G yếu có thể lâu hơn.
+
 QD ELITE - ADMIN THIẾT LẬP AI ĐI TIẾP (29/10/2026)
 ==================================================
 File thay đổi: admin.html, user.html.
