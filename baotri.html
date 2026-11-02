@@ -853,12 +853,15 @@ html.qd-lite .qd-fx { display: none !important; }
         function tick() { if (btn) { var h = hiddenNow(); if (btn.classList.contains('qh-hide') !== h) btn.classList.toggle('qh-hide', h); } }
 
         /* ---------- Mở / đóng khung ---------- */
+        // Trạng thái đăng nhập lúc mở khung (user.html): đổi trạng thái (vừa đăng nhập / đổi tài khoản) -> tải lại Quân Sư
+        function authKey() { return PAGE === 'user.html' ? (loggedIn() ? 'u:' + W.State.currentUser : 'guest') : ''; }
         function open(q) {
             if (isOpen) return; isOpen = true;
-            if (!frame) {
-                frame = d.createElement('iframe'); frame.title = 'Quân Sư AI - Hỗ trợ'; frame.setAttribute('allow', 'clipboard-write');
+            var key = authKey();
+            if (!frame || frame._auth !== key) {
+                if (!frame) { frame = d.createElement('iframe'); frame.title = 'Quân Sư AI - Hỗ trợ'; frame.setAttribute('allow', 'clipboard-write'); box.appendChild(frame); }
+                frame._auth = key;
                 frame.src = 'al.html?embed=1&from=' + encodeURIComponent(PAGE) + (q ? '&q=' + encodeURIComponent(q) : '');
-                box.appendChild(frame);
             }
             ov.classList.add('on'); tick();
             try { history.pushState({ qdHelp: 1 }, ''); } catch (e) {}
@@ -924,6 +927,9 @@ html.qd-lite .qd-fx { display: none !important; }
                 var go1 = typeof m.go === 'string' && /^[a-z0-9_-]+\.html$/i.test(m.go) ? m.go : null;
                 var act = typeof m.act === 'string' && /^[a-z]+$/.test(m.act) ? m.act : null;
                 if (go1) return closeThen(function () { if (go1.toLowerCase() !== PAGE) go(go1); });
+                // Khách chưa có tài khoản / chưa đăng nhập: mở form đăng ký (index) hoặc ô đăng nhập (user)
+                if (act === 'register') return closeThen(function () { if (PAGE === 'index.html') openReg(); else location.href = 'index.html#qd-act=register'; });
+                if (act === 'login') return closeThen(function () { if (PAGE === 'user.html') { if (!loggedIn()) focusLogin(); } else location.href = 'user.html'; });
                 if (act) closeThen(function () { if (!(PAGE === 'user.html' && loggedIn() && doAct(act))) { if (PAGE === 'user.html') queue(act); else go('user.html#qd-act=' + act); } });
             }
         });
@@ -944,6 +950,14 @@ html.qd-lite .qd-fx { display: none !important; }
             var m = /[#&]qd-act=([a-z]+)/.exec(location.hash || ''); if (!m) return;
             try { history.replaceState(history.state, '', location.pathname + location.search); } catch (e) {}
             if (PAGE === 'user.html') queue(m[1]);
+            else if (PAGE === 'index.html' && m[1] === 'register') setTimeout(openReg, 400);
+        }
+        function openReg() { if (typeof W.openRegisterModal === 'function') W.openRegisterModal(); }
+        function focusLogin() {
+            var u = d.getElementById('login-usr'), p = d.getElementById('login-pwd'), f = u && !u.value.trim() ? u : (p || u);
+            if (!f) return;
+            try { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+            setTimeout(function () { try { f.focus(); } catch (e) {} }, 250);
         }
 
         /* ---------- Khởi động ---------- */

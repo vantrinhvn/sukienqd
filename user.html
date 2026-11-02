@@ -9687,7 +9687,18 @@ html.qd-lite .qd-fx { display: none !important; }
     <div class="modal-overlay" id="modal-profile">
         <div class="modal-box text-center">
             <button class="modal-close-btn" onclick="window.UI.closeModal('modal-profile')"><i class="fa-solid fa-xmark"></i></button>
-            <div class="avatar-circle mx-auto mb-6" id="profile-avatar-large" style="width: 100px; height: 100px; font-size: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">?</div>
+            <div class="pf-avt-wrap">
+                <div class="avatar-circle" id="profile-avatar-large" style="width: 100px; height: 100px; font-size: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);" onclick="window.Avatar && window.Avatar.pick()" title="Đổi ảnh đại diện">?</div>
+                <button type="button" class="pf-avt-cam" onclick="window.Avatar && window.Avatar.pick()" aria-label="Đổi ảnh đại diện" title="Đổi ảnh đại diện"><i class="fa-solid fa-camera"></i></button>
+            </div>
+            <div class="pf-avt-acts" id="pf-avt-acts">
+                <button type="button" class="pf-avt-btn" id="pf-avt-change" onclick="window.Avatar && window.Avatar.pick()"><i class="fa-solid fa-image"></i> <span>Đổi ảnh</span></button>
+                <button type="button" class="pf-avt-btn danger" id="pf-avt-del" onclick="window.Avatar && window.Avatar.remove()" hidden><i class="fa-solid fa-trash-can"></i> <span>Xóa ảnh</span></button>
+                <button type="button" class="pf-avt-btn ok" id="pf-avt-save" onclick="window.Avatar && window.Avatar.save()" hidden><i class="fa-solid fa-check"></i> <span>Lưu ảnh</span></button>
+                <button type="button" class="pf-avt-btn" id="pf-avt-cancel" onclick="window.Avatar && window.Avatar.cancel()" hidden><i class="fa-solid fa-xmark"></i> <span>Hủy</span></button>
+            </div>
+            <p class="pf-avt-note" id="pf-avt-note">Ảnh vuông, rõ mặt · JPG / PNG / WEBP</p>
+            <input type="file" id="pf-avt-file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/*" hidden>
             <h2 class="text-3xl mb-2" id="profile-name-large">User</h2>
             <div class="badge badge-online mb-8 px-4 py-2 text-sm"><i class="fa-solid fa-shield-check mr-1"></i> Đã Xác Thực</div>
             
@@ -9896,7 +9907,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div class="mobile-header-brand hidden-desktop"><i class="fa-solid fa-atom"></i> QĐ TLH</div>
                 <div class="hidden-mobile ts-greet"><span aria-hidden="true">🏮</span> Chúc Mừng Năm Mới <span>· Xuân Đinh Mùi 2027</span></div> 
                 <div class="flex items-center gap-3">
-                    <button class="btn-icon hidden-desktop" style="color: var(--brand-primary); border-color: var(--brand-primary-soft); background: var(--brand-primary-soft);" onclick="window.UI.openModal('modal-profile')"><i class="fa-solid fa-user"></i></button>
+                    <button class="btn-icon hidden-desktop" id="nav-profile-btn" style="color: var(--brand-primary); border-color: var(--brand-primary-soft); background: var(--brand-primary-soft);" onclick="window.UI.openModal('modal-profile')" aria-label="Hồ sơ"><i class="fa-solid fa-user"></i></button>
                     <button class="btn-icon" onclick="window.UI.openModal('modal-settings')"><i class="fa-solid fa-gear"></i></button>
                     <button class="btn-icon" style="color: var(--color-danger); border-color: var(--color-danger-bg); background: var(--color-danger-bg);" onclick="window.UI.openModal('modal-logout')"><i class="fa-solid fa-power-off"></i></button>
                 </div>
@@ -10850,6 +10861,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         Utils.safeText('sidebar-name', State.currentUser); Utils.safeText('dash-name', State.currentUser); Utils.safeText('profile-name-large', State.currentUser);
                         const initial = State.currentUser.charAt(0).toUpperCase();
                         Utils.safeText('sidebar-avt', initial); Utils.safeText('profile-avatar-large', initial);
+                        if (window.Avatar) window.Avatar.apply(docData.avatar);
                         Utils.safeText('profile-uid', State.currentDocId.substring(0,10).toUpperCase());
                         
                         const roleText = document.getElementById('profile-role');
@@ -11041,7 +11053,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     snap.docs.forEach(doc => {
                         const d = doc.data(); 
                         if(d.user !== State.currentUser) {
-                            State.usersCache[d.user] = d.lastActive; const isOn = (Date.now() - (d.lastActive||0)) < 300000;
+                            State.usersCache[d.user] = d.lastActive; (State.avatars = State.avatars || {})[d.user] = d.avatar || null; const isOn = (Date.now() - (d.lastActive||0)) < 300000;
                             const dN = State.nicknames[d.user] || d.user; const isAct = State.chatTarget === d.user ? 'active' : '';
                             
                             const roomId = Utils.getRoomId(State.currentUser, d.user);
@@ -11060,7 +11072,7 @@ html.qd-lite .qd-fx { display: none !important; }
                                 
                                 card.className = `contact-card ${isAct}`;
                                 card.setAttribute('data-key', dN.toLowerCase());
-                                card.innerHTML = `<div class="avatar-circle" style="position:relative;">${dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg flex items-center justify-between" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${dN} ${unreadHtml}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}">${Utils.timeAgo(d.lastActive)}</div></div>`;
+                                card.innerHTML = `<div class="avatar-circle" style="position:relative;">${window.Avatar ? window.Avatar.inner(d.avatar, dN) : dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg flex items-center justify-between" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${dN} ${unreadHtml}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}">${Utils.timeAgo(d.lastActive)}</div></div>`;
                             });
                         }
                     });
@@ -11152,7 +11164,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 const dN = State.nicknames[State.chatTarget] || State.chatTarget; const lP = State.usersCache[State.chatTarget]; const isOn = (Date.now()-(lP||0))<300000;
                 Utils.safeText('active-name', dN); 
                 const avt = document.getElementById('active-avt');
-                if(avt) { avt.innerHTML = dN.charAt(0).toUpperCase(); avt.style.background = ''; }
+                if(avt) { avt.innerHTML = window.Avatar ? window.Avatar.inner((State.avatars || {})[State.chatTarget], dN) : dN.charAt(0).toUpperCase(); avt.style.background = ''; }
                 const st = document.getElementById('active-status'); if(st) { st.innerText = Utils.timeAgo(lP); st.className = isOn ? "text-xs text-success font-bold" : "text-xs text-muted font-bold"; }
             },
             
@@ -12616,6 +12628,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         State.availableTickets = data.tickets || 0;
                         State.availablePoints = data.points || 0;
                         if (window.Inventory) window.Inventory.refresh();
+                        if (window.Avatar) window.Avatar.apply(data.avatar);   // ảnh đại diện: đổi / xóa ở máy khác cũng cập nhật ngay
 
                         Utils.safeText('spin-count-val', State.availableSpins);
                         Utils.safeText('ticket-count-val', State.availableTickets);
@@ -17379,7 +17392,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     sorted.forEach(q => { if (q.claimedBy && q.claimedBy !== me && now - (q.claimedAt || 0) < this.KEEP_MS) keep.add(q); });
                     list = sorted.filter(q => keep.has(q));
                 }
-                if (me) all.forEach(q => { if (q.claimedBy === me && q.ticketUsed !== true && !list.includes(q)) list.push(q); });   // vé chưa dùng của mình luôn hiện
+                // Câu mình đã trả lời đúng: ẨN khỏi danh sách (lượt quay đã cộng vào bộ đếm, không hiện lại câu hỏi)
                 return { list, cfg: c, open: w.open, next: w.next, slotEnd: c.mode === 'random' ? sl.end : null, upcoming: isFinite(up) ? up : null };
             },
             fmtClock(ms) { const d = new Date(ms), n = new Date(), p = x => String(x).padStart(2, '0'); const hm = p(d.getHours()) + ':' + p(d.getMinutes()); return d.toDateString() === n.toDateString() ? hm : hm + ' ' + p(d.getDate()) + '/' + p(d.getMonth() + 1); },
@@ -19363,6 +19376,143 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         setInterval(warmIP, 9 * 60 * 1000);
     })();
     </script>
+    <!-- ===== ẢNH ĐẠI DIỆN: thành viên tự đổi / xóa trong Hồ sơ =====
+         Lưu ở accounts/{id}.avatar (ảnh JPEG vuông 192px dạng data URL, ~10-20 KB). Không có ảnh -> chữ cái đầu tên (mặc định).
+         Hiện ở: Hồ sơ, thanh bên, nút hồ sơ trên điện thoại, danh bạ chat, đầu khung chat. -->
+    <style id="qd-avatar-css">
+        .avatar-circle > img.avt-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; pointer-events: none; }
+        .avatar-circle.has-img { background: #2a0000 !important; color: transparent; }
+        .pf-avt-wrap { position: relative; width: 100px; height: 100px; margin: 0 auto 12px; }
+        .pf-avt-wrap #profile-avatar-large { cursor: pointer; transition: transform .2s ease; }
+        .pf-avt-wrap #profile-avatar-large:active { transform: scale(.96); }
+        .pf-avt-wrap.pending #profile-avatar-large { outline: 3px dashed #ffd95a; outline-offset: 4px; }
+        .pf-avt-wrap.busy #profile-avatar-large { opacity: .55; }
+        .pf-avt-cam { position: absolute; right: -2px; bottom: -2px; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 2px solid #fff; cursor: pointer; font-size: 14px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+        .pf-avt-cam:active { transform: scale(.92); }
+        .pf-avt-acts { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+        .pf-avt-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+            color: var(--text-main); background: var(--bg-elevated, rgba(255,255,255,.08)); border: 1px solid var(--border-strong, rgba(255,255,255,.2)); }
+        .pf-avt-btn[hidden] { display: none; }
+        .pf-avt-btn.danger { color: #c81e1e; background: #fff; border-color: #fecaca; }
+        .pf-avt-btn.danger.armed { color: #fff; background: #dc2626; border-color: #fff; animation: pfArm .9s ease-in-out infinite; }
+        @keyframes pfArm { 50% { box-shadow: 0 0 0 4px rgba(255, 255, 255, .35); } }
+        .pf-avt-btn.ok { color: #fff; background: var(--color-success, #10b981); border-color: transparent; }
+        .pf-avt-btn:disabled { opacity: .55; cursor: wait; }
+        .pf-avt-note { font-size: 12px; color: var(--text-muted); margin: 0 0 20px; }
+        #nav-profile-btn.has-img { padding: 0; overflow: hidden; }
+        #nav-profile-btn.has-img img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+    </style>
+    <script id="qd-avatar-js">
+    (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); };
+        var SIZE = 192, OK = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+        var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var valid = function (u) { return typeof u === 'string' && u.length < 400000 && OK.test(u) ? u : null; };
+        var initial = function (name) { return esc(String(name || '?').charAt(0).toUpperCase()); };
+        var toast = function (m, t) { if (window.Utils && window.Utils.toast) window.Utils.toast(m, t || 'success'); };
+        var A = window.Avatar = { mine: null, pending: null, busy: false };
+
+        /* Nội dung ô tròn: ảnh nếu có, không thì chữ cái đầu (dùng cho danh bạ / đầu khung chat) */
+        A.inner = function (url, name) { url = valid(url); return url ? '<img class="avt-img" src="' + url + '" alt="" loading="lazy" decoding="async">' : initial(name); };
+        function paint(el, url, name) {
+            if (!el) return; url = valid(url);
+            el.innerHTML = A.inner(url, name); el.classList.toggle('has-img', !!url);
+            // ô ở danh bạ còn chấm trạng thái -> class has-img gắn trên ô cha
+        }
+        function paintNav(url) {
+            var b = $('nav-profile-btn'); if (!b) return; url = valid(url);
+            b.innerHTML = url ? '<img src="' + url + '" alt="">' : '<i class="fa-solid fa-user"></i>'; b.classList.toggle('has-img', !!url);
+        }
+        function buttons() {
+            var p = !!A.pending;
+            $('pf-avt-change').hidden = p; $('pf-avt-del').hidden = p || !A.mine;
+            $('pf-avt-save').hidden = !p; $('pf-avt-cancel').hidden = !p;
+            $('pf-avt-note').textContent = p ? 'Xem trước — bấm "Lưu ảnh" để dùng ảnh này' : (A.mine ? 'Bấm vào ảnh hoặc biểu tượng máy ảnh để đổi ảnh khác' : 'Chưa có ảnh — đang dùng ảnh mặc định (chữ cái đầu tên)');
+            var w = document.querySelector('.pf-avt-wrap'); if (w) { w.classList.toggle('pending', p); w.classList.toggle('busy', A.busy); }
+            ['pf-avt-change', 'pf-avt-del', 'pf-avt-save', 'pf-avt-cancel'].forEach(function (id) { $(id).disabled = A.busy; });
+            disarm();
+        }
+        /* Vẽ ảnh của mình ở mọi chỗ; url rỗng -> ảnh mặc định */
+        A.apply = function (url) {
+            A.mine = valid(url);
+            var me = window.State && window.State.currentUser;
+            if (!A.pending) paint($('profile-avatar-large'), A.mine, me);
+            paint($('sidebar-avt'), A.mine, me); paintNav(A.mine);
+            buttons();
+        };
+
+        /* ---------- Chọn ảnh -> cắt vuông, thu nhỏ -> xem trước ---------- */
+        A.pick = function () { if (A.busy) return; var f = $('pf-avt-file'); f.value = ''; f.click(); };
+        function loadImg(file) {
+            return new Promise(function (res, rej) {
+                var url = URL.createObjectURL(file), img = new Image();
+                img.onload = function () { res(img); setTimeout(function () { URL.revokeObjectURL(url); }, 1000); };
+                img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('decode')); };
+                img.src = url;
+            });
+        }
+        function toSquare(img) {
+            var w = img.naturalWidth, h = img.naturalHeight, s = Math.min(w, h);
+            var sx = (w - s) / 2, sy = h > w ? (h - s) * 0.3 : (h - s) / 2;   // ảnh dọc: lấy lệch lên trên (thường là mặt)
+            var c = document.createElement('canvas'), x;
+            // Ảnh rất lớn: thu nhỏ 2 bước cho mịn
+            var src = img, mid = SIZE * 3;
+            if (s > mid * 1.5) { var m = document.createElement('canvas'); m.width = m.height = mid; x = m.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, sx, sy, s, s, 0, 0, mid, mid); src = m; sx = sy = 0; s = mid; }
+            c.width = c.height = SIZE; x = c.getContext('2d');
+            x.fillStyle = '#ffffff'; x.fillRect(0, 0, SIZE, SIZE);   // ảnh PNG trong suốt -> nền trắng
+            x.imageSmoothingQuality = 'high'; x.drawImage(src, sx, sy, s, s, 0, 0, SIZE, SIZE);
+            var out = c.toDataURL('image/jpeg', 0.84);
+            if (out.length > 60000) out = c.toDataURL('image/jpeg', 0.7);
+            return out;
+        }
+        $('pf-avt-file').addEventListener('change', function () {
+            var file = this.files && this.files[0]; if (!file) return;
+            if (file.type && !/^image\//.test(file.type)) return toast('Vui lòng chọn một tệp ảnh.', 'error');
+            if (file.size > 25 * 1024 * 1024) return toast('Ảnh quá lớn (tối đa 25 MB).', 'error');
+            loadImg(file).then(function (img) {
+                if (!img.naturalWidth) throw new Error('empty');
+                A.pending = toSquare(img);
+                paint($('profile-avatar-large'), A.pending, ''); buttons();
+            }).catch(function () { toast('Không đọc được ảnh này. Hãy thử ảnh JPG hoặc PNG khác.', 'error'); });
+        });
+
+        /* ---------- Lưu / hủy / xóa ---------- */
+        function ref() { return window.State && window.State.currentDocId ? db.collection('accounts').doc(window.State.currentDocId) : null; }
+        A.save = function () {
+            var r = ref(), url = A.pending; if (!r || !url || A.busy) return;
+            A.busy = true; buttons();
+            r.update({ avatar: url, avatarUpdatedAt: Date.now() }).then(function () {
+                A.pending = null; A.busy = false; A.apply(url); toast('Đã cập nhật ảnh đại diện!');
+            }).catch(function (e) { console.error('avatar save', e); A.busy = false; buttons(); toast('Lưu ảnh thất bại, kiểm tra kết nối rồi thử lại.', 'error'); });
+        };
+        A.cancel = function () { if (A.busy) return; A.pending = null; A.apply(A.mine); };
+        var armT = 0;
+        function disarm() { clearTimeout(armT); var b = $('pf-avt-del'); if (b && b.classList.contains('armed')) { b.classList.remove('armed'); b.querySelector('span').textContent = 'Xóa ảnh'; } }
+        A.remove = function () {
+            var b = $('pf-avt-del'), r = ref(); if (!r || A.busy || !A.mine) return;
+            if (!b.classList.contains('armed')) {   // bấm lần 1: hỏi lại ngay trên nút
+                b.classList.add('armed'); b.querySelector('span').textContent = 'Bấm lần nữa để xóa';
+                clearTimeout(armT); armT = setTimeout(disarm, 3500); return;
+            }
+            disarm(); A.busy = true; buttons();
+            r.update({ avatar: firebase.firestore.FieldValue.delete(), avatarUpdatedAt: Date.now() }).then(function () {
+                A.busy = false; A.apply(null); toast('Đã xóa ảnh, quay về ảnh mặc định.');
+            }).catch(function (e) { console.error('avatar delete', e); A.busy = false; buttons(); toast('Xóa ảnh thất bại, thử lại sau.', 'error'); });
+        };
+
+        /* Đóng Hồ sơ khi đang xem trước mà chưa lưu -> bỏ ảnh xem trước */
+        function hookClose() {
+            var U = window.UI; if (!U || !U.closeModal || U.closeModal._avt) return;
+            var orig = U.closeModal;
+            U.closeModal = function (id) { if (id === 'modal-profile' && A.pending && !A.busy) A.cancel(); return orig.apply(this, arguments); };
+            U.closeModal._avt = true;
+        }
+        hookClose(); document.addEventListener('DOMContentLoaded', hookClose);
+        buttons();
+    })();
+    </script>
     <script id="qd-modal-ease">
     /* ===== QD MODAL EASE: đóng hộp thoại (hồ sơ, cài đặt, túi đồ, kết quả...) không bắt buộc bấm nút X =====
        - Chạm ra vùng tối bên ngoài hộp            -> đóng
@@ -19573,12 +19723,15 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         function tick() { if (btn) { var h = hiddenNow(); if (btn.classList.contains('qh-hide') !== h) btn.classList.toggle('qh-hide', h); } }
 
         /* ---------- Mở / đóng khung ---------- */
+        // Trạng thái đăng nhập lúc mở khung (user.html): đổi trạng thái (vừa đăng nhập / đổi tài khoản) -> tải lại Quân Sư
+        function authKey() { return PAGE === 'user.html' ? (loggedIn() ? 'u:' + W.State.currentUser : 'guest') : ADMIN ? 'adm' : ''; }
         function open(q) {
             if (isOpen) return; isOpen = true;
-            if (!frame) {
-                frame = d.createElement('iframe'); frame.title = 'Quân Sư AI - Hỗ trợ'; frame.setAttribute('allow', 'clipboard-write');
-                frame.src = 'al.html?embed=1&from=' + encodeURIComponent(PAGE) + (q ? '&q=' + encodeURIComponent(q) : '');
-                box.appendChild(frame);
+            var key = authKey();
+            if (!frame || frame._auth !== key) {
+                if (!frame) { frame = d.createElement('iframe'); frame.title = 'Quân Sư AI - Hỗ trợ'; frame.setAttribute('allow', 'clipboard-write'); box.appendChild(frame); }
+                frame._auth = key;
+                frame.src = 'al.html?embed=1&from=' + encodeURIComponent(PAGE) + (key.indexOf('u:') === 0 ? '&u=' + encodeURIComponent(key.slice(2)) : key === 'adm' ? '&adm=1' : '') + (q ? '&q=' + encodeURIComponent(q) : '');
             }
             ov.classList.add('on'); tick();
             try { history.pushState({ qdHelp: 1 }, ''); } catch (e) {}
@@ -19629,7 +19782,9 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             setTimeout(function () { a.remove(); }, 1000);
         }
         W.addEventListener('message', function (e) {
-            if (e.origin !== location.origin || !e.data || typeof e.data !== 'object') return;
+            // Chỉ nhận tin từ đúng khung Quân Sư (mở dạng file:// thì origin là 'null' nên kiểm tra theo nguồn gửi)
+            if (!frame || e.source !== frame.contentWindow || !e.data || typeof e.data !== 'object') return;
+            if (e.origin !== location.origin && e.origin !== 'null') return;
             var m = e.data;
             if (m.type === 'qd-help-close') close(false);
             else if (m.type === 'qd-help-act' && ADMIN) {   // trang Admin: mở đúng mục quản trị, trang thành viên thì mở tab mới
@@ -19644,6 +19799,9 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 var go1 = typeof m.go === 'string' && /^[a-z0-9_-]+\.html$/i.test(m.go) ? m.go : null;
                 var act = typeof m.act === 'string' && /^[a-z]+$/.test(m.act) ? m.act : null;
                 if (go1) return closeThen(function () { if (go1.toLowerCase() !== PAGE) go(go1); });
+                // Khách chưa có tài khoản / chưa đăng nhập: mở form đăng ký (index) hoặc ô đăng nhập (user)
+                if (act === 'register') return closeThen(function () { if (PAGE === 'index.html') openReg(); else location.href = 'index.html#qd-act=register'; });
+                if (act === 'login') return closeThen(function () { if (PAGE === 'user.html') { if (!loggedIn()) focusLogin(); } else location.href = 'user.html'; });
                 if (act) closeThen(function () { if (!(PAGE === 'user.html' && loggedIn() && doAct(act))) { if (PAGE === 'user.html') queue(act); else go('user.html#qd-act=' + act); } });
             }
         });
@@ -19664,6 +19822,14 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             var m = /[#&]qd-act=([a-z]+)/.exec(location.hash || ''); if (!m) return;
             try { history.replaceState(history.state, '', location.pathname + location.search); } catch (e) {}
             if (PAGE === 'user.html') queue(m[1]);
+            else if (PAGE === 'index.html' && m[1] === 'register') setTimeout(openReg, 400);
+        }
+        function openReg() { if (typeof W.openRegisterModal === 'function') W.openRegisterModal(); }
+        function focusLogin() {
+            var u = d.getElementById('login-usr'), p = d.getElementById('login-pwd'), f = u && !u.value.trim() ? u : (p || u);
+            if (!f) return;
+            try { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+            setTimeout(function () { try { f.focus(); } catch (e) {} }, 250);
         }
 
         /* ---------- Khởi động ---------- */

@@ -1,3 +1,96 @@
+QD ELITE - ADMIN: XÓA TẤT CẢ DỮ LIỆU (3 LẦN NHẮC NHỞ) (02/11/2026, bản 8)
+=========================================================================
+File thay đổi: admin.html (chỉ 1 file).
+
+Chỗ mở (CHỈ tài khoản Quản trị viên thấy, Quản lý không thấy):
+- Tổng quan -> cuối trang, nhóm "⚠️ Vùng nguy hiểm" -> thẻ "Xóa tất cả dữ liệu".
+- Bảo trì hệ thống (Cài đặt Hệ thống) -> khung đỏ "Xóa tất cả dữ liệu".
+
+3 lần nhắc nhở rồi mới xóa:
+1/3 - Cảnh báo + chọn nhóm dữ liệu cần xóa (mặc định chọn hết, TRỪ cấu hình hệ thống):
+      Tài khoản & đơn đăng ký · Lịch sử (điểm, quay, rút lì xì, KBB, ném còn, mã mời, tặng lượt, quay số, đơn đổi quà, nhật ký admin)
+      · Điểm danh, số may mắn, BXH, dữ liệu hằng ngày · Kho giải đã phát · Tin nhắn · Câu hỏi vòng quay & đáp án
+      · Giải đấu & bản tin · Câu hỏi chưa trả lời của Quân Sư AI · Cấu hình hệ thống (settings — mặc định KHÔNG chọn).
+      Tùy chọn "Giữ lại tài khoản Ban Quản Trị" (mặc định BẬT) -> vẫn đăng nhập được Admin sau khi xóa.
+2/3 - Đếm số bản ghi sẽ xóa từng mục + tổng; nút "Tải bản sao lưu" (.json toàn bộ dữ liệu sắp xóa) nên bấm trước.
+3/3 - Gõ "XOA TAT CA" (có dấu hay không đều được) + chờ 5 giây đếm ngược -> nút "Xóa vĩnh viễn N bản ghi".
+Xóa: theo lô 400 bản ghi, thanh tiến độ + nhật ký từng mục; đang xóa không đóng được hộp.
+Xong: ghi 1 dòng admin_logs (type: wipe, người thực hiện, số bản ghi, mục lỗi).
+Lưu ý: Firestore Rules phải cho phép xóa các bộ sưu tập trên; mục nào bị chặn sẽ báo lỗi riêng, các mục khác vẫn xóa.
+Tài khoản admin mặc định (admin / 123) vẫn đăng nhập được kể cả khi đã xóa hết tài khoản.
+
+QD ELITE - VÒNG QUAY: TRẢ LỜI ĐÚNG THÌ ẨN CÂU HỎI (02/11/2026, bản 7)
+====================================================================
+File thay đổi: qt.html, user.html, admin.html (cùng 1 quy tắc chọn câu hiện).
+
+- Trước: trả lời đúng xong câu hỏi vẫn hiện lại bên dưới với dòng "🎟️ Bạn đã trả lời đúng! Đang giữ 1 lượt quay...".
+- Nay: trả lời đúng -> câu đó ẨN ngay, câu kế tiếp (nếu có) hiện lên thay.
+  Vẫn có: thông báo "🎉 Chính xác! ... nhận 1 lượt quay", bộ đếm lượt quay +1 và sáng lên, trang tự cuộn tới vòng quay.
+- Lượt quay đang giữ không mất: vẫn tính trong bộ đếm và dùng khi bấm BẮT ĐẦU QUAY như cũ.
+- Câu bị NGƯỜI KHÁC trả lời trước vẫn hiện "🔒 Đã có người xác thực" 5 giây rồi nhường chỗ (giữ nguyên).
+
+QD ELITE - THÀNH VIÊN TỰ ĐỔI ẢNH ĐẠI DIỆN (02/11/2026, bản 6)
+=============================================================
+File thay đổi: user.html (chỉ 1 file).
+
+Hồ sơ (bấm tên/ảnh ở thanh bên, hoặc nút 👤 trên điện thoại):
+- Bấm vào ảnh, biểu tượng 📷 hoặc nút "Đổi ảnh" -> chọn ảnh trong máy (JPG / PNG / WEBP / ảnh iPhone, tối đa 25 MB).
+- Ảnh tự cắt vuông giữa ảnh (ảnh dọc lấy lệch lên trên, thường là mặt), thu nhỏ 192x192 -> XEM TRƯỚC với viền vàng đứt.
+  "Lưu ảnh" để dùng, "Hủy" (hoặc đóng Hồ sơ) để bỏ.
+- "Xóa ảnh": bấm 2 lần để xác nhận (lần 1 nút đổi thành "Bấm lần nữa để xóa") -> quay về ẢNH MẶC ĐỊNH (chữ cái đầu tên).
+- Ảnh hiện ở: Hồ sơ, thanh bên trái, nút hồ sơ trên điện thoại, danh bạ Trò Chuyện và đầu khung chat của người khác.
+- Đổi / xóa trên máy này thì máy khác đang đăng nhập cùng tài khoản cũng cập nhật ngay.
+Lưu trữ: Firestore accounts/{id}.avatar (ảnh JPEG dạng data URL, ~10-20 KB) + avatarUpdatedAt. Xóa ảnh = xóa trường avatar.
+Lưu ý: nếu Firestore Rules giới hạn các trường được sửa trong accounts, cần cho phép avatar và avatarUpdatedAt.
+
+QD ELITE - QUÂN SƯ AI CÓ ẢNH ĐẠI DIỆN (02/11/2026, bản 5)
+=========================================================
+File thay đổi: al.html (chỉ 1 file).
+
+Lỗi: ảnh đại diện Quân Sư (thanh tiêu đề + cạnh mỗi tin nhắn) lấy từ logo.jpg; host không có file này -> ảnh trống / vỡ.
+Đã sửa: ảnh đại diện cắt từ huy hiệu Team T"L"Headshot (đầu lâu mũ trùm đỏ), 144x144, ~8 KB, NHÚNG SẴN trong al.html
+-> luôn hiện, không cần file logo.jpg, không tốn thêm lượt tải. Biểu tượng tab trình duyệt của al.html cũng dùng ảnh này.
+
+QD ELITE - SỬA LỖI: ĐÃ ĐĂNG NHẬP MÀ QUÂN SƯ VẪN BÁO "CẦN ĐĂNG NHẬP" (02/11/2026, bản 4)
+=================================================================================
+File thay đổi: al.html, và khối "qd-help" ở index/user/qt/quays/tranht/game/baotri/admin (chép đè cả 9 file).
+
+Lỗi: ở user.html đã đăng nhập, mở Hỗ trợ vẫn hiện "🔒 Bạn cần đăng nhập"; bấm X / Esc / "Đăng nhập ngay" không phản hồi.
+Nguyên nhân: khi trình duyệt không cho khung Quân Sư đọc trang mẹ (điển hình: mở web dạng file trên máy - file://),
+Quân Sư không thấy phiên đăng nhập; đồng thời tin nhắn giữa khung và trang bị chặn vì origin của file:// không hợp lệ.
+Đã sửa:
+- Trang mẹ tự truyền tên đăng nhập hiện tại cho khung khi mở (user.html) / cờ quản trị (admin.html);
+  Quân Sư vẫn ưu tiên kiểm tra thẳng trên trang mẹ, chỉ dùng thông tin truyền khi bị chặn đọc.
+- Gửi / nhận tin giữa khung và trang chạy được cả khi mở dạng file://; trang chỉ nhận tin từ đúng khung Quân Sư.
+- Kiểm tra: đăng nhập thật rồi mở Hỗ trợ -> chế độ đầy đủ, xem đúng túi đồ; X / Esc đóng được (cả http và file://).
+
+QD ELITE - QUÂN SƯ AI: TRANG CHỦ CHỈ HƯỚNG DẪN TẠO TÀI KHOẢN, TRANG USER PHẢI ĐĂNG NHẬP (02/11/2026, bản 3)
+=====================================================================================================
+File thay đổi: al.html, và khối "qd-help" ở index/user/qt/quays/tranht/game/baotri/admin
+(cùng 1 khối dùng chung, chép đè cả 9 file cho đồng bộ).
+
+1. Mở Quân Sư từ index.html (trang sự kiện) = CHẾ ĐỘ KHÁCH, chỉ hướng dẫn tạo tài khoản
+   - Lời chào + 6 chủ đề: Cách tạo tài khoản (3 bước), Đơn đăng ký của tôi duyệt chưa?, Đăng nhập / quên mật khẩu,
+     Tài khoản bị khóa, Tổng quan hệ thống, Đếm ngược Tết.
+   - "Đơn duyệt chưa?": đọc đơn đã gửi từ thiết bị này -> báo ĐÃ DUYỆT / ĐANG CHỜ DUYỆT / BỊ TỪ CHỐI.
+   - Hỏi tính năng thành viên (vòng quay, điểm, lì xì, điểm danh...) -> "🔒 ... dành cho thành viên đã đăng nhập"
+     kèm nút Đăng ký ngay / Đã có tài khoản. Không hiện số dư, không xem dữ liệu tài khoản nào.
+   - Nút "📝 Mở form đăng ký" đóng khung Quân Sư và mở thẳng hộp Đăng ký tài khoản trên trang.
+     (Từ trang khác bấm nút này -> chuyển về index.html và tự mở hộp đăng ký.)
+
+2. Mở Quân Sư từ user.html khi CHƯA đăng nhập = KHÓA, yêu cầu đăng nhập
+   - Chỉ hiện "🔒 Bạn cần đăng nhập" + nút "🔑 Đăng nhập ngay" (đóng khung, đưa con trỏ vào ô tên đăng nhập)
+     và "📝 Chưa có tài khoản? Đăng ký" (sang index.html, tự mở hộp đăng ký).
+   - Ô hỏi, hàng gợi ý, nút cuộc trò chuyện mới bị khóa; không lưu lịch sử trò chuyện.
+   - Đăng nhập xong bấm lại "Hỗ trợ" -> Quân Sư tự tải lại ở chế độ đầy đủ (đang mở khung mà trang tự đăng nhập lại
+     cũng tự chuyển). Đổi tài khoản -> Quân Sư tải lại theo tài khoản mới.
+
+3. Sửa lỗi: trước đây Quân Sư nhận "đã đăng nhập" theo qd_current_username trong máy, mà khóa này KHÔNG bị xóa khi
+   đăng xuất -> người đã thoát vẫn thấy số dư của tài khoản cũ. Nay ở user.html Quân Sư kiểm tra thẳng phiên đăng nhập
+   của trang (State.currentUser + đang hiện app-shell).
+
+Các trang Vòng Quay / Rút Lì Xì / Quay Số / Ném Còn / Bảo trì và Admin giữ cách hoạt động như bản 2.
+
 QD ELITE - ADMIN CÓ HỘP THOẠI HỖ TRỢ QUÂN SƯ AI (02/11/2026, bản 2)
 ==================================================================
 File thay đổi: admin.html (thêm khối "qd-help"), al.html, và khối "qd-help" ở index/user/qt/quays/tranht/game/baotri
