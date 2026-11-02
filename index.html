@@ -1445,5 +1445,181 @@ html.qd-lite .qd-fx { display: none !important; }
         if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
     })();
     </script>
+    <!-- ===== QD HỖ TRỢ: nút "Hỗ trợ" mở Quân Sư AI (al.html) trong khung nổi, dùng chung mọi trang =====
+         - Bấm nút -> khung trò chuyện trượt lên (điện thoại) / khung nổi góc phải (máy tính), không rời trang đang xem
+         - Đóng: nút X, chạm ra ngoài, phím Esc, nút Quay lại của điện thoại
+         - Nút hành động trong câu trả lời (Mở Trạm Quy Đổi, Điểm danh, Vòng Quay...) mở đúng chức năng;
+           ở trang khác thì chuyển sang user.html#qd-act=... và tự mở sau khi đăng nhập
+         - Tự ẩn khi đang mở hộp thoại / đang chat để không che nút của trang -->
+    <style id="qd-help-css">
+        #qd-help-btn { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(16px, calc(env(safe-area-inset-bottom) + 10px)); z-index: 9050;
+            display: flex; align-items: center; gap: 7px; height: 48px; padding: 0 16px 0 6px; border-radius: 999px; border: 2px solid #ffd95a; cursor: pointer; color: #fff;
+            background: radial-gradient(circle at 30% 25%, #e3262d, #a10b12 60%, #6a0000); box-shadow: 0 8px 20px rgba(0, 0, 0, .4);
+            font: 800 14px/1 "Plus Jakarta Sans", "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; letter-spacing: .2px;
+            -webkit-tap-highlight-color: transparent; transition: transform .2s, opacity .25s; }
+        #qd-help-btn .qh-ico { position: relative; flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        #qd-help-btn .qh-ico svg { width: 20px; height: 20px; display: block; }
+        #qd-help-btn .qh-ico::after { content: ''; position: absolute; top: -1px; right: -1px; width: 10px; height: 10px; border-radius: 50%; background: #22c55e; border: 2px solid #fff6c8; }
+        #qd-help-btn:active { transform: scale(.94); }
+        #qd-help-btn:focus-visible { outline: 3px solid rgba(255, 217, 90, .7); outline-offset: 3px; }
+        #qd-help-btn.qh-hide { opacity: 0; pointer-events: none; transform: translateY(14px); }
+        #qd-help-btn.qh-ping { animation: qhPing 1.6s ease-out 3; }
+        @keyframes qhPing { 0% { box-shadow: 0 8px 20px rgba(0, 0, 0, .4), 0 0 0 0 rgba(255, 217, 90, .75); } 100% { box-shadow: 0 8px 20px rgba(0, 0, 0, .4), 0 0 0 16px rgba(255, 217, 90, 0); } }
+        #qd-help-ov { position: fixed; inset: 0; z-index: 9995; display: none; align-items: flex-end; justify-content: center; background: rgba(30, 0, 0, .5); }
+        #qd-help-ov.on { display: flex; }
+        #qd-help-box { width: 100%; max-width: 560px; height: 88vh; height: 88dvh; border-radius: 22px 22px 0 0; overflow: hidden; background: #fff8e6;
+            border: 2px solid #ffd95a; border-bottom: none; box-shadow: 0 -12px 40px rgba(0, 0, 0, .4); animation: qhUp .28s cubic-bezier(.2, .9, .3, 1); }
+        #qd-help-box iframe { width: 100%; height: 100%; border: 0; display: block; background: #fff8e6; }
+        @media (min-width: 700px) {
+            #qd-help-ov { justify-content: flex-end; padding: 0 20px 20px; background: rgba(30, 0, 0, .25); }
+            #qd-help-box { width: 420px; height: min(700px, calc(100vh - 40px)); border-radius: 22px; border-bottom: 2px solid #ffd95a; }
+        }
+        @keyframes qhUp { from { transform: translateY(40px); opacity: 0; } }
+        /* user.html: nằm trên thanh điều hướng dưới cùng (điện thoại / máy tính bảng) */
+        @media (max-width: 1023px) { body.qh-user #qd-help-btn { bottom: calc(env(safe-area-inset-bottom) + 80px); } body.qh-admin #qd-help-btn { bottom: calc(env(safe-area-inset-bottom) + 96px); } }
+        /* game.html: góc phải là thanh lực ném -> đặt bên trái, trên nút nhạc, chỉ biểu tượng */
+        body.qh-game #qd-help-btn { right: max(10px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 70px + min(34vh, 260px) + 14px); padding: 0 5px; height: 46px; }
+        body.qh-game #qd-help-btn .qh-txt { display: none; }
+        @media (max-width: 360px) { #qd-help-btn .qh-txt { display: none; } #qd-help-btn { padding: 0 5px; } }
+        @media (prefers-reduced-motion: reduce) { #qd-help-btn, #qd-help-box { animation: none !important; transition: none !important; } }
+    </style>
+    <script id="qd-help-js">
+    (function () {
+        'use strict';
+        try { if (window.QDHelp || window.top !== window) return; } catch (e) { return; }   // không chèn khi trang nằm trong khung
+        var d = document, W = window, PAGE = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+        if (!/\.html$/.test(PAGE)) PAGE = 'index.html';
+        if (PAGE === 'al.html') return;
+        var ADMIN = PAGE === 'admin.html';
+        var btn, ov, box, frame, isOpen = false, after = null;
+        var H = W.QDHelp = { open: open, close: function () { close(false); } };
+        var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+            + '<path d="M12 3a7 7 0 0 0-7 7v2.5"/><path d="M19 12.5V10a7 7 0 0 0-7-7"/><rect x="3" y="11.5" width="4" height="6" rx="1.6" fill="currentColor"/><rect x="17" y="11.5" width="4" height="6" rx="1.6" fill="currentColor"/><path d="M19 17.5v.5a3 3 0 0 1-3 3h-2.5"/></svg>';
+
+        /* ---------- Ẩn nút khi trang đang mở hộp thoại / đang chat ---------- */
+        function hiddenNow() {
+            if (isOpen) return true;
+            if (d.querySelector('.modal-overlay.active, .sheet.on, .mt-gate.show, #ps2-pop.show')) return true;
+            if (d.body.classList.contains('in-chat-mode')) return true;
+            if (ADMIN) { var g = d.getElementById('auth-gate'); if (g && g.style.display !== 'none' && getComputedStyle(g).display !== 'none') return true; }
+            if (PAGE === 'user.html' && innerWidth <= 1023) { var c = d.getElementById('view-chat'); if (c && c.classList.contains('active')) return true; }
+            return false;
+        }
+        function tick() { if (btn) { var h = hiddenNow(); if (btn.classList.contains('qh-hide') !== h) btn.classList.toggle('qh-hide', h); } }
+
+        /* ---------- Mở / đóng khung ---------- */
+        function open(q) {
+            if (isOpen) return; isOpen = true;
+            if (!frame) {
+                frame = d.createElement('iframe'); frame.title = 'Quân Sư AI - Hỗ trợ'; frame.setAttribute('allow', 'clipboard-write');
+                frame.src = 'al.html?embed=1&from=' + encodeURIComponent(PAGE) + (q ? '&q=' + encodeURIComponent(q) : '');
+                box.appendChild(frame);
+            }
+            ov.classList.add('on'); tick();
+            try { history.pushState({ qdHelp: 1 }, ''); } catch (e) {}
+            setTimeout(function () { try { frame.contentWindow.focus(); } catch (e) {} }, 320);
+        }
+        function close(fromPop) {
+            if (!isOpen) return; isOpen = false; ov.classList.remove('on'); tick();
+            if (!fromPop && history.state && history.state.qdHelp) { try { history.back(); } catch (e) {} }
+        }
+        // Đóng khung rồi mới làm việc tiếp (chờ bước "Quay lại" của khung xong, tránh đụng chuyển trang)
+        function closeThen(fn) {
+            if (isOpen && history.state && history.state.qdHelp) {
+                after = fn; isOpen = false; ov.classList.remove('on'); tick();
+                try { history.back(); } catch (e) {}
+                setTimeout(function () { if (after) { var f = after; after = null; f(); } }, 450);
+            } else { close(true); fn(); }
+        }
+        W.addEventListener('popstate', function () {
+            if (after) { var f = after; after = null; setTimeout(f, 0); return; }
+            if (isOpen) close(true);
+        });
+        d.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen) close(false); });
+
+        /* ---------- Nút hành động gửi từ khung ---------- */
+        function getUI() { try { if (typeof UI !== 'undefined' && UI) return UI; } catch (e) {} return W.UI; }   // admin.html khai báo const UI (không nằm trên window)
+        function nav(v) {
+            var U = getUI(); if (!U || !U.navigate) return false;
+            U.navigate(v, d.querySelector('.nav-item[onclick*="\'' + v + '\'"]'));
+            try { var w = d.querySelector('.workspace-area'); if (w && w.scrollTo) w.scrollTo({ top: 0 }); W.scrollTo({ top: 0 }); } catch (e) {}
+            return true;
+        }
+        function loggedIn() { var s = d.getElementById('app-shell'); return !!(W.State && W.State.currentUser && s && s.style.display !== 'none'); }
+        function doAct(a) {
+            var U = getUI();
+            switch (a) {
+                case 'attendance': case 'news': case 'tournament': case 'chat': return nav(a);
+                case 'rps': if (W.RPSGame && W.RPSGame.openFromTab) { W.RPSGame.openFromTab(); return true; } return nav('rps');
+                case 'shop': if (W.PointShop && W.PointShop.open) { W.PointShop.open(); return true; } break;
+                case 'lucky': if (W.LnTab && W.LnTab.open) { W.LnTab.open(); return true; } break;
+                case 'regid': if (W.RegID && W.RegID.open) { W.RegID.open(); return true; } break;
+                case 'inventory': case 'transfer': case 'profile': case 'settings': if (U && U.openModal) { U.openModal('modal-' + a); return true; } break;
+                case 'lixi': if (nav('dashboard')) { setTimeout(function () { var c = d.getElementById('lixi-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 250); return true; } break;
+            }
+            return false;
+        }
+        function go(url) {   // qua thẻ <a data-resume>: user.html lưu phiên tạm để khi quay lại tự đăng nhập
+            var a = d.createElement('a'); a.href = url; a.setAttribute('data-resume', ''); a.style.display = 'none'; d.body.appendChild(a); a.click();
+            setTimeout(function () { a.remove(); }, 1000);
+        }
+        W.addEventListener('message', function (e) {
+            if (e.origin !== location.origin || !e.data || typeof e.data !== 'object') return;
+            var m = e.data;
+            if (m.type === 'qd-help-close') close(false);
+            else if (m.type === 'qd-help-act' && ADMIN) {   // trang Admin: mở đúng mục quản trị, trang thành viên thì mở tab mới
+                var v = typeof m.adm === 'string' && /^[a-z]+$/.test(m.adm) ? m.adm : null;
+                if (!v && typeof m.go === 'string') v = ADM_GO[m.go.toLowerCase()] || null;
+                if (!v && typeof m.act === 'string') v = ADM_DO[m.act] || null;
+                if (v) return closeThen(function () { nav(v); });
+                var url = typeof m.go === 'string' && /^[a-z0-9_-]+\.html$/i.test(m.go) ? m.go : 'user.html';
+                try { W.open(url, '_blank'); } catch (er) {}
+            }
+            else if (m.type === 'qd-help-act') {
+                var go1 = typeof m.go === 'string' && /^[a-z0-9_-]+\.html$/i.test(m.go) ? m.go : null;
+                var act = typeof m.act === 'string' && /^[a-z]+$/.test(m.act) ? m.act : null;
+                if (go1) return closeThen(function () { if (go1.toLowerCase() !== PAGE) go(go1); });
+                if (act) closeThen(function () { if (!(PAGE === 'user.html' && loggedIn() && doAct(act))) { if (PAGE === 'user.html') queue(act); else go('user.html#qd-act=' + act); } });
+            }
+        });
+
+        var ADM_GO = { 'qt.html': 'wheel', 'tranht.html': 'tranhthuong', 'game.html': 'nemcon', 'quays.html': 'luckynumber', 'index.html': 'approvals', 'user.html': 'dashboard' };
+        var ADM_DO = { attendance: 'attendance', shop: 'pointshop', lucky: 'luckynumber', rps: 'rps', regid: 'registration', tournament: 'tournament', news: 'news', lixi: 'lixi', inventory: 'accounts', transfer: 'accounts', profile: 'accounts' };
+
+        /* ---------- user.html#qd-act=...: chờ đăng nhập xong rồi mở đúng chức năng ---------- */
+        var pending = null, pendT = 0;
+        function queue(act) {
+            pending = { act: act, until: Date.now() + 180000 }; clearInterval(pendT);
+            pendT = setInterval(function () {
+                if (!pending || Date.now() > pending.until) { clearInterval(pendT); pending = null; return; }
+                if (loggedIn()) { var a = pending.act; pending = null; clearInterval(pendT); setTimeout(function () { doAct(a); }, 600); }
+            }, 400);
+        }
+        function readHash() {
+            var m = /[#&]qd-act=([a-z]+)/.exec(location.hash || ''); if (!m) return;
+            try { history.replaceState(history.state, '', location.pathname + location.search); } catch (e) {}
+            if (PAGE === 'user.html') queue(m[1]);
+        }
+
+        /* ---------- Khởi động ---------- */
+        function boot() {
+            d.body.classList.add('qh-' + PAGE.replace(/\.html$/, ''));
+            btn = d.createElement('button');
+            btn.type = 'button'; btn.id = 'qd-help-btn'; btn.setAttribute('aria-label', 'Hỗ trợ — hỏi Quân Sư AI'); btn.title = 'Hỗ trợ — hỏi Quân Sư AI';
+            btn.innerHTML = '<span class="qh-ico">' + ICON + '</span><span class="qh-txt">Hỗ trợ</span>';
+            btn.addEventListener('click', function (e) { e.stopPropagation(); open(); });
+            ov = d.createElement('div'); ov.id = 'qd-help-ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Quân Sư AI - Hỗ trợ');
+            box = d.createElement('div'); box.id = 'qd-help-box'; ov.appendChild(box);
+            ov.addEventListener('click', function (e) { if (e.target === ov) close(false); });
+            d.body.appendChild(ov); d.body.appendChild(btn);
+            try { if (!sessionStorage.getItem('qd_help_seen')) { sessionStorage.setItem('qd_help_seen', '1'); btn.classList.add('qh-ping'); } } catch (e) {}
+            var tt = 0; if (W.MutationObserver) new MutationObserver(function () { if (!tt) tt = setTimeout(function () { tt = 0; tick(); }, 60); }).observe(d.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
+            setInterval(tick, 1500); tick();
+            readHash(); W.addEventListener('hashchange', readHash);
+        }
+        if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+    })();
+    </script>
 </body>
 </html>

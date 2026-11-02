@@ -1,3 +1,53 @@
+QD ELITE - ADMIN CÓ HỘP THOẠI HỖ TRỢ QUÂN SƯ AI (02/11/2026, bản 2)
+==================================================================
+File thay đổi: admin.html (thêm khối "qd-help"), al.html, và khối "qd-help" ở index/user/qt/quays/tranht/game/baotri
+(cùng 1 khối dùng chung, chép đè cả 9 file cho đồng bộ).
+
+- admin.html có nút "Hỗ trợ" (góc phải dưới; điện thoại nằm trên thanh menu dưới). Chỉ hiện sau khi đăng nhập quản trị,
+  tự ẩn khi đang mở hộp thoại. Bấm -> khung Quân Sư AI mở ngay trên trang Admin, không rời trang.
+- Mở từ Admin = CHẾ ĐỘ BAN QUẢN TRỊ:
+  + Mỗi câu trả lời kèm khung xanh "⚙️ Chỉnh ở Admin → <mục>" và nút "⚙️ Mở mục ..." -> chuyển thẳng tới mục cấu hình
+    (vd. hỏi "vòng quay" -> nút mở mục Vòng quay; "điểm danh" -> mục Điểm danh; "tài khoản bị khóa" -> Quản trị tài khoản).
+  + Chủ đề riêng cho quản trị: "Cấu hình từng tính năng ở đâu trong Admin?" và "Dạy Quân Sư câu trả lời riêng".
+  + Nút ✎ (Dạy Quân Sư) luôn có trong chế độ này, kể cả đăng nhập bằng tài khoản admin mặc định.
+  + Nút mở trang thành viên (Vòng Quay, Rút Lì Xì...) mở ở tab mới để không mất phiên Admin.
+  + Không hiện thanh số dư, không lưu câu hỏi của Admin vào "câu chưa trả lời được".
+- Phía thành viên giữ nguyên; các chủ đề dành cho quản trị không hiện với thành viên.
+
+QD ELITE - TRỢ LÝ AI "QUÂN SƯ" + NÚT HỖ TRỢ (02/11/2026)
+========================================================
+File mới: al.html. File thay đổi: index.html, user.html, qt.html, quays.html, tranht.html, game.html, baotri.html
+(chỉ thêm khối "qd-help" cuối trang). admin.html, sw.js, nhạc, video, ảnh giữ nguyên.
+
+1. Trang al.html - Quân Sư AI giải thích cơ chế hệ thống Quân Đoàn
+   - Hiểu câu hỏi tiếng Việt có dấu / không dấu / gõ sai 1 chữ / viết tắt (ko, dc, kbb, lx, bqt, tk...).
+   - 35 chủ đề: tổng quan, điểm lì xì, nguồn lượt, điểm danh + chống điểm danh hộ, lì xì hằng ngày, Rút Lì Xì,
+     Vòng Quay, câu hỏi nhận lượt quay, Trạm Quy Đổi, Kéo Búa Bao, Ném Còn, Quay Số May Mắn, mã mời, tặng lượt,
+     túi đồ, nhận thưởng tiền mặt, đăng ký / đăng nhập / tài khoản bị khóa, ID game, giải đấu, chat, thông báo,
+     thành tựu, cài đặt & nhạc, bảo trì, mất mạng, bản tin, liên hệ BQT, "đang mở gì", đếm ngược Tết.
+   - Số liệu lấy TRỰC TIẾP từ settings/* do Admin cấu hình (giờ điểm danh, thưởng, giá Trạm Quy Đổi, giải còn lại,
+     giờ Kéo Búa Bao, lượt quay số kế tiếp...) -> Admin đổi cấu hình là AI trả lời theo ngay.
+   - Đã đăng nhập: thanh số dư (điểm / lượt rút / lượt quay / lượt ném) + "Hôm nay nên làm gì?" (đã nhận thưởng
+     đăng nhập chưa, điểm danh chưa, còn mấy lần lì xì, lượt ném miễn phí, số may mắn...).
+   - Câu trả lời có nút làm ngay: Mở Trạm Quy Đổi, Điểm danh, Chọn số, Mở Vòng Quay...
+   - Hỏi tiếp ngắn ("mấy giờ mở?") hiểu theo chủ đề vừa hỏi. Không trả lời được -> gợi ý chủ đề gần nhất.
+   - Từ chối xin đáp án / hack / mã quản trị. AI KHÔNG đọc đáp án câu hỏi, số quay chốt sẵn hay mã Admin Gateway.
+
+2. Ban Quản Trị dạy AI (tài khoản role admin / manager thấy nút bút chì trên đầu trang al.html)
+   - Câu trả lời riêng: câu hỏi mẫu + từ khóa + câu trả lời (hỗ trợ **đậm** và gạch đầu dòng "- "), được ưu tiên.
+     Lưu ở Firestore settings/ai_config.faqs; có Sửa / Tạm tắt / Xóa / Thử hỏi.
+   - Câu chưa trả lời được: thành viên hỏi mà AI không hiểu được lưu ở bộ sưu tập ai_unanswered -> bấm "Dạy câu này".
+   - Lời chào thêm (settings/ai_config.greeting), vd. thông báo sự kiện.
+   Lưu ý: nếu Firestore Rules đang giới hạn theo tên bộ sưu tập, cần cho phép đọc/ghi settings/ai_config và ai_unanswered.
+
+3. Nút "Hỗ trợ" trên mọi trang (trừ admin)
+   - Nút đỏ-vàng góc phải dưới; user.html nằm trên thanh điều hướng điện thoại; Ném Còn đặt bên phải phía trên thanh lực.
+   - Bấm -> khung Quân Sư trượt lên (điện thoại) / khung nổi góc phải (máy tính), KHÔNG rời trang, không mất đăng nhập.
+   - Đóng: nút X, chạm ra ngoài, Esc, nút Quay lại của điện thoại (không rời trang).
+   - Nút làm ngay: ở user.html mở thẳng chức năng; ở trang khác chuyển sang user.html và tự mở chức năng sau khi đăng nhập.
+   - Tự ẩn khi đang mở hộp thoại hoặc đang chat (không che nút của trang). Lần đầu mỗi phiên nút nhấp nháy nhẹ.
+   - Mở trực tiếp al.html (không qua khung) vẫn dùng được, có nút quay lại trang trước (al.html?from=qt.html).
+
 QD ELITE - ĐÓNG HỘP THOẠI KHÔNG CẦN BẤM NÚT X (02/11/2026)
 =========================================================
 File thay đổi: user.html, qt.html, tranht.html, quays.html (thêm khối "qd-modal-ease" cuối trang).

@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" content="#b91c1c">
+    <title>Quân Sư AI - Trợ Lý Quân Đoàn</title>
+    <link rel="icon" href="logo.jpg">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script>try{var _tc=localStorage.getItem("qd_tet_color");if(_tc==="dao"||_tc==="chung")document.documentElement.setAttribute("data-tet-color",_tc);if(window.top!==window||/[?&]embed=1/.test(location.search))document.documentElement.classList.add("embed");}catch(e){document.documentElement.classList.add("embed");}</script>
+    <style>
+        /* =====================================================================
+           QUÂN SƯ AI - trợ lý giải thích cơ chế hệ thống Quân Đoàn (QĐ TLH)
+           Màu theo chủ đề Tết đã chọn ở trang user: Đỏ Lì Xì / Hoa Đào / Bánh Chưng
+           ===================================================================== */
+        :root {
+            --lq1: #d42330; --lq2: #8f0a12; --lq3: #6a0008; --ink: #9b0d19;
+            --gold: #ffd54a; --gold-2: #f2b705; --gold-line: rgba(214, 158, 30, .5);
+            --paper: rgba(255, 249, 232, .94); --paper-solid: #fff8e6; --cream: #fffdf6;
+            --text: #3b1a00; --muted: #8a5a2b; --ok: #15803d; --bad: #c81e1e;
+            --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --r: 18px;
+        }
+        html[data-tet-color="dao"] { --lq1: #d93a72; --lq2: #8e1442; --lq3: #650c30; --ink: #9d1748; }
+        html[data-tet-color="chung"] { --lq1: #14965b; --lq2: #06553a; --lq3: #033d29; --ink: #0b6b40; }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; }
+        body {
+            font-family: var(--font); color: var(--text); -webkit-font-smoothing: antialiased; overflow: hidden;
+            background: #fff0cf url('nen-tet-ngang.jpg') center top / cover no-repeat;
+        }
+        @media (orientation: portrait) { body { background-image: url('nen-tet-doc.jpg'); } }
+        html.embed body { background: var(--paper-solid); }
+        button, input, textarea { font: inherit; color: inherit; }
+        button { border: none; background: none; cursor: pointer; }
+        a { color: inherit; }
+
+        /* ---------- Khung ứng dụng ---------- */
+        .app {
+            position: fixed; inset: 0; display: flex; flex-direction: column; margin: 0 auto; max-width: 780px;
+            background: var(--paper); border-left: 1.5px solid var(--gold-line); border-right: 1.5px solid var(--gold-line);
+            box-shadow: 0 0 60px -20px rgba(120, 40, 0, .45);
+        }
+        @media (min-width: 820px) and (min-height: 640px) {
+            .app { inset: 24px 0; border-radius: 26px; border: 1.5px solid var(--gold-line); overflow: hidden; }
+        }
+        html.embed .app { max-width: none; border: none; box-shadow: none; border-radius: 0; inset: 0; background: var(--paper-solid); }
+
+        /* ---------- Thanh trên ---------- */
+        .top {
+            flex: 0 0 auto; display: flex; align-items: center; gap: 10px;
+            padding: max(10px, env(safe-area-inset-top)) 12px 10px;
+            background: linear-gradient(160deg, var(--lq1), var(--lq2)); color: #fff; border-bottom: 2px solid var(--gold-2);
+            position: relative; z-index: 3;
+        }
+        html.embed .top { padding-top: 10px; }
+        .ic-btn {
+            flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: var(--gold); background: rgba(0, 0, 0, .18); border: 1.5px solid rgba(255, 213, 74, .65); text-decoration: none;
+        }
+        .ic-btn:active { transform: scale(.92); }
+        .ic-btn svg { width: 20px; height: 20px; }
+        .ic-btn[hidden] { display: none; }
+        .avatar { flex: 0 0 auto; position: relative; width: 44px; height: 44px; }
+        .avatar img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); background: #2a0000; display: block; }
+        .avatar .badge {
+            position: absolute; right: -4px; bottom: -3px; padding: 1px 5px; border-radius: 999px; font-size: 9.5px; font-weight: 800; letter-spacing: .4px;
+            color: var(--lq3); background: linear-gradient(135deg, #fff6c8, var(--gold) 55%, var(--gold-2)); border: 1.5px solid #fff;
+        }
+        .ttl { flex: 1 1 auto; min-width: 0; line-height: 1.2; }
+        .ttl b { display: block; font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .ttl small { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #fde68a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; }
+        .dot.on { background: #4ade80; box-shadow: 0 0 0 3px rgba(74, 222, 128, .25); }
+
+        /* ---------- Túi đồ (khi đã đăng nhập) ---------- */
+        .wallet {
+            flex: 0 0 auto; display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; scrollbar-width: none;
+            background: var(--cream); border-bottom: 1px solid var(--gold-line);
+        }
+        .wallet::-webkit-scrollbar { display: none; }
+        .wallet[hidden] { display: none; }
+        .wchip {
+            flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px;
+            font-size: 12.5px; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--gold-line);
+        }
+        .wchip b { font-size: 14px; font-weight: 800; color: var(--lq2); font-variant-numeric: tabular-nums; }
+        .wchip.me { color: var(--muted); background: transparent; border-style: dashed; }
+
+        .notice { flex: 0 0 auto; padding: 8px 14px; font-size: 13px; font-weight: 700; color: #7c2d12; background: #fef3c7; border-bottom: 1px solid #fcd34d; }
+        .notice[hidden] { display: none; }
+
+        /* ---------- Hội thoại ---------- */
+        .log { position: relative; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 16px 12px 8px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+        .row { display: flex; gap: 8px; align-items: flex-end; max-width: 100%; }
+        .row.u { justify-content: flex-end; }
+        .row .mini { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold-2); background: #2a0000; }
+        .bub {
+            max-width: min(86%, 620px); padding: 11px 14px; border-radius: var(--r); font-size: 14.5px; line-height: 1.55; overflow-wrap: anywhere;
+        }
+        .row.u .bub { color: #fff; background: linear-gradient(160deg, var(--lq1), var(--lq2)); border-bottom-right-radius: 6px; font-weight: 600; }
+        .row.b .bub { background: #fff; border: 1px solid var(--gold-line); border-bottom-left-radius: 6px; box-shadow: 0 6px 18px -12px rgba(120, 50, 0, .45); }
+        .bub p + p, .bub p + ul, .bub ul + p, .bub p + .tbl, .bub .tbl + p, .bub ul + .tbl, .bub .tbl + ul { margin-top: 8px; }
+        .bub ul { padding-left: 4px; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+        .bub li { position: relative; padding-left: 18px; }
+        .bub li::before { content: ''; position: absolute; left: 3px; top: .62em; width: 7px; height: 7px; border-radius: 2px; transform: rotate(45deg); background: var(--gold-2); }
+        .bub li.ck::before, .bub li.no::before, .bub li.wt::before { display: none; }
+        .bub li.ck, .bub li.no, .bub li.wt { padding-left: 24px; }
+        .bub li.ck > i, .bub li.no > i, .bub li.wt > i { position: absolute; left: 0; top: 0; font-style: normal; }
+        .bub b { color: var(--ink); font-weight: 800; }
+        .row.u .bub b { color: #fff; }
+        .bub h4 { font-size: 15px; font-weight: 800; color: var(--ink); margin: 2px 0 6px; }
+        .bub small, .bub .note { font-size: 12.5px; color: var(--muted); }
+        .bub .note { display: block; margin-top: 8px; }
+        .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 800; vertical-align: 1px; }
+        .tag.ok { color: #065f46; background: #d1fae5; }
+        .tag.no { color: #991b1b; background: #fee2e2; }
+        .tag.wt { color: #92400e; background: #fef3c7; }
+        .tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; border-radius: 12px; overflow: hidden; background: var(--cream); border: 1px solid var(--gold-line); }
+        .tbl td { padding: 7px 10px; border-top: 1px solid rgba(214, 158, 30, .25); vertical-align: top; }
+        .tbl tr:first-child td { border-top: none; }
+        .tbl td:last-child { text-align: right; font-weight: 800; color: var(--lq2); white-space: nowrap; }
+        .live { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+        .live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+        .live.off::before { background: #9ca3af; }
+
+        .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .act {
+            display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 999px; font-size: 13px; font-weight: 800; text-decoration: none;
+            color: var(--lq3); background: linear-gradient(135deg, #fff6c8, var(--gold) 55%, var(--gold-2)); box-shadow: 0 4px 10px -6px rgba(150, 80, 0, .8);
+        }
+        .bub .admnote { margin-top: 10px; padding: 8px 11px; border-radius: 12px; font-size: 13px; font-weight: 700; color: #1e3a8a; background: #e0ecff; border: 1px solid #bfd3fb; }
+        .bub .admnote b { color: #1e40af; }
+        .act.adm { color: #fff; background: linear-gradient(160deg, #2563eb, #1e3a8a); }
+        .act.ghost { color: var(--ink); background: #fff; border: 1px solid var(--gold-line); box-shadow: none; }
+        .act:active { transform: scale(.96); }
+
+        .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 10px; }
+        @media (min-width: 520px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        .gbtn {
+            display: flex; align-items: center; gap: 8px; padding: 10px 11px; border-radius: 14px; text-align: left; min-width: 0;
+            font-size: 13px; font-weight: 700; line-height: 1.25; color: var(--text); background: var(--cream); border: 1px solid var(--gold-line);
+        }
+        .gbtn span { flex: 0 0 auto; font-size: 18px; }
+        .gbtn:active { transform: scale(.97); background: #fff3c4; }
+
+        .typing { display: inline-flex; gap: 5px; padding: 14px 16px; }
+        .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--gold-2); animation: tp 1s ease-in-out infinite; }
+        .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+        @keyframes tp { 0%, 80%, 100% { transform: translateY(0); opacity: .45; } 40% { transform: translateY(-5px); opacity: 1; } }
+        .row.in { animation: rin .28s ease-out both; }
+        @keyframes rin { from { opacity: 0; transform: translateY(8px); } }
+        .bub.reveal > * { animation: rin .3s ease-out both; }
+
+        /* ---------- Gợi ý + ô nhập ---------- */
+        .sugg { flex: 0 0 auto; display: flex; gap: 6px; padding: 8px 12px 2px; overflow-x: auto; scrollbar-width: none; }
+        .sugg::-webkit-scrollbar { display: none; }
+        .chip {
+            flex: 0 0 auto; padding: 7px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap;
+            color: var(--ink); background: #fff; border: 1px solid var(--gold-line);
+        }
+        .chip:active { background: #fff3c4; }
+        .composer { flex: 0 0 auto; display: flex; gap: 8px; align-items: center; padding: 8px 12px max(10px, env(safe-area-inset-bottom)); }
+        .composer input {
+            flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 16px; border-radius: 999px; font-size: 15px; font-weight: 600; outline: none;
+            background: #fff; border: 1.5px solid var(--gold-line);
+        }
+        .composer input:focus { border-color: var(--lq1); box-shadow: 0 0 0 3px rgba(212, 35, 48, .14); }
+        .send {
+            flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: var(--gold); background: linear-gradient(160deg, var(--lq1), var(--lq2)); border: 2px solid var(--gold-2);
+        }
+        .send svg { width: 20px; height: 20px; }
+        .send:disabled { opacity: .5; }
+        .foot { flex: 0 0 auto; text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); padding: 0 12px 6px; margin-top: -4px; }
+
+        /* ---------- Bảng dạy AI (Ban Quản Trị) ---------- */
+        .ov { position: fixed; inset: 0; z-index: 50; display: none; align-items: flex-end; justify-content: center; background: rgba(40, 5, 0, .55); }
+        .ov.show { display: flex; }
+        @media (min-width: 640px) { .ov { align-items: center; padding: 20px; } }
+        .sheet {
+            width: 100%; max-width: 640px; max-height: 92vh; display: flex; flex-direction: column; border-radius: 22px 22px 0 0; overflow: hidden;
+            background: var(--paper-solid); border: 1.5px solid var(--gold-line); box-shadow: 0 -10px 40px rgba(0, 0, 0, .35);
+        }
+        @media (min-width: 640px) { .sheet { border-radius: 22px; } }
+        .sh-top { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: linear-gradient(160deg, var(--lq1), var(--lq2)); color: #fff; border-bottom: 2px solid var(--gold-2); }
+        .sh-top b { flex: 1; font-size: 16px; font-weight: 800; }
+        .sh-tabs { display: flex; gap: 6px; padding: 10px 14px 0; }
+        .sh-tab { padding: 8px 12px; border-radius: 999px; font-size: 13px; font-weight: 800; color: var(--ink); background: #fff; border: 1px solid var(--gold-line); }
+        .sh-tab.on { color: #fff; background: var(--lq1); border-color: var(--lq1); }
+        .sh-body { overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+        .fld label { display: block; font-size: 12.5px; font-weight: 800; color: var(--ink); margin-bottom: 5px; }
+        .fld input, .fld textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--gold-line); background: #fff; font-size: 14px; outline: none; }
+        .fld textarea { min-height: 110px; resize: vertical; line-height: 1.5; }
+        .fld small { display: block; margin-top: 4px; font-size: 11.5px; color: var(--muted); }
+        .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn { padding: 10px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 800; color: #fff; background: linear-gradient(160deg, var(--lq1), var(--lq2)); }
+        .btn.alt { color: var(--ink); background: #fff; border: 1px solid var(--gold-line); }
+        .btn:disabled { opacity: .55; }
+        .item { padding: 11px 12px; border-radius: 14px; background: #fff; border: 1px solid var(--gold-line); font-size: 13.5px; }
+        .item .q { font-weight: 800; color: var(--ink); }
+        .item .k { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .item .a { margin-top: 6px; white-space: pre-wrap; color: var(--text); max-height: 4.6em; overflow: hidden; }
+        .item .btns { margin-top: 8px; }
+        .item .btns button { padding: 6px 12px; font-size: 12px; }
+        .empty { text-align: center; color: var(--muted); font-weight: 600; font-size: 13.5px; padding: 16px; }
+
+        .toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); z-index: 60; padding: 10px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 800; color: #fff; background: #1f2937; box-shadow: 0 10px 25px rgba(0, 0, 0, .3); opacity: 0; pointer-events: none; transition: opacity .25s; max-width: calc(100vw - 32px); text-align: center; }
+        .toast.show { opacity: 1; }
+        /* Nút nhạc dùng chung: chuyển lên góc phải phía trên ô nhập để không đè ô gõ câu hỏi */
+        #qd-music-btn { left: auto !important; right: max(12px, env(safe-area-inset-right)) !important; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 128px) !important; width: 40px !important; height: 40px !important; opacity: .92; }
+        #qd-music-btn .qd-mu-tip { left: auto !important; right: 50px; }
+        @media (min-width: 820px) { #qd-music-btn { right: calc(50% - 390px + 14px) !important; } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <header class="top">
+            <a class="ic-btn" id="btn-back" href="user.html" aria-label="Quay lại" title="Quay lại">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </a>
+            <div class="avatar"><img src="logo.jpg" alt="" onerror="this.style.visibility='hidden'"><span class="badge">AI</span></div>
+            <div class="ttl">
+                <b>Quân Sư AI</b>
+                <small><span class="dot" id="st-dot"></span><span id="st-txt">Đang kết nối dữ liệu...</span></small>
+            </div>
+            <button type="button" class="ic-btn" id="btn-teach" hidden aria-label="Dạy Trợ Lý AI" title="Dạy Trợ Lý AI (Ban Quản Trị)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
+            <button type="button" class="ic-btn" id="btn-new" aria-label="Cuộc trò chuyện mới" title="Cuộc trò chuyện mới">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+            <button type="button" class="ic-btn" id="btn-close" hidden aria-label="Đóng" title="Đóng">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </header>
+        <div class="wallet" id="wallet" hidden></div>
+        <div class="notice" id="notice" hidden></div>
+        <main class="log" id="log" aria-live="polite"></main>
+        <div class="sugg" id="sugg"></div>
+        <form class="composer" id="composer" autocomplete="off">
+            <input id="q" type="text" maxlength="300" placeholder="Hỏi về điểm, lượt quay, lì xì, điểm danh..." aria-label="Câu hỏi cho trợ lý" enterkeyhint="send">
+            <button class="send" id="send" type="submit" aria-label="Gửi">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6l-.01 6.53L15 12 3.39 13.87z"/></svg>
+            </button>
+        </form>
+        <div class="foot">Quân Sư AI đọc cấu hình trực tiếp từ hệ thống · Cần hỗ trợ riêng hãy nhắn Ban Quản Trị</div>
+    </div>
+
+    <!-- Bảng dạy AI: chỉ Ban Quản Trị (admin / manager) thấy -->
+    <div class="ov" id="teach" role="dialog" aria-modal="true" aria-labelledby="teach-title">
+        <div class="sheet">
+            <div class="sh-top">
+                <b id="teach-title">🧠 Dạy Quân Sư AI</b>
+                <button type="button" class="ic-btn" id="teach-x" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            </div>
+            <div class="sh-tabs">
+                <button type="button" class="sh-tab on" data-t="faq">Câu trả lời riêng</button>
+                <button type="button" class="sh-tab" data-t="miss">Câu chưa trả lời được</button>
+                <button type="button" class="sh-tab" data-t="greet">Lời chào</button>
+            </div>
+            <div class="sh-body" id="teach-body"></div>
+        </div>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script id="qd-ai-js">
+    /* ===== QUÂN SƯ AI =====
+       - Bộ hiểu câu hỏi tiếng Việt (có dấu / không dấu / gõ sai 1 chữ / viết tắt: ko, dc, kbb, lx, bqt...)
+       - Kho kiến thức về toàn bộ cơ chế hệ thống, số liệu lấy TRỰC TIẾP từ settings/* do Admin cấu hình
+       - Đã đăng nhập (qd_current_username): xem số dư, việc cần làm hôm nay
+       - Ban Quản Trị dạy thêm câu trả lời riêng: settings/ai_config.faqs; câu chưa trả lời được lưu ở ai_unanswered
+       - Mở trong khung (nút Hỗ trợ của các trang): các nút hành động nhờ trang mẹ mở đúng chức năng
+       Không đọc / không tiết lộ: đáp án câu hỏi, số quay chốt sẵn, mã quản trị. */
+    (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var norm = function (s) { return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim(); };
+        var num = function (v, d) { var x = parseInt(v, 10); return isNaN(x) ? d : x; };
+        var fmt = function (n) { return Number(n || 0).toLocaleString('vi-VN'); };
+        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        var dayKey = function () { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+        var todayVN = function () { return new Date().toLocaleDateString('vi-VN'); };
+        var mins = function (s) { var m = /^(\d{1,2}):(\d{2})/.exec(s || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+        var nowMin = function () { var d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+        var ts = function (d, t) { if (!(d && t)) return null; var v = new Date(d + 'T' + t).getTime(); return isNaN(v) ? null : v; };
+        function fmtWhen(ms) {
+            var t = new Date(ms), n = new Date(), hm = pad(t.getHours()) + ':' + pad(t.getMinutes());
+            if (t.toDateString() === n.toDateString()) return hm + ' hôm nay';
+            var tm = new Date(n); tm.setDate(n.getDate() + 1);
+            if (t.toDateString() === tm.toDateString()) return hm + ' ngày mai';
+            return hm + ' · ' + pad(t.getDate()) + '/' + pad(t.getMonth() + 1) + '/' + t.getFullYear();
+        }
+        function fmtLeft(ms) {
+            var s = Math.max(0, Math.round(ms / 1000)), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+            if (d) return d + ' ngày ' + h + ' giờ'; if (h) return h + ' giờ ' + m + ' phút'; if (m) return m + ' phút'; return 'vài giây';
+        }
+        function fmtMin(m) {
+            if (m >= 1440 && m % 1440 === 0) return (m / 1440) + ' ngày';
+            if (m >= 60 && m % 60 === 0) return (m / 60) + ' giờ';
+            if (m >= 60) return Math.floor(m / 60) + ' giờ ' + (m % 60) + ' phút';
+            return m + ' phút';
+        }
+        function inWin(start, end) {   // hỗ trợ khung giờ qua đêm
+            var s = mins(start), e = mins(end), c = nowMin(); if (s == null || e == null) return true;
+            return s <= e ? (c >= s && c <= e) : (c >= s || c <= e);
+        }
+
+        /* ---------- Trang hiện tại / khung nhúng ---------- */
+        var QS = new URLSearchParams(location.search);
+        var EMBED = document.documentElement.classList.contains('embed');
+        var FROM = (function () { var f = QS.get('from') || ''; return /^[a-z0-9_-]+\.html$/i.test(f) && !/^al\.html$/i.test(f) ? f : ''; })();
+        var ME = ''; try { ME = localStorage.getItem('qd_current_username') || ''; } catch (e) {}
+        /* Mở từ nút Hỗ trợ của trang Admin (đã đăng nhập quản trị) -> chế độ Ban Quản Trị */
+        function adminCtx() {
+            if (!EMBED || FROM !== 'admin.html') return false;
+            try { var pw = window.parent; if (!/admin(\.html)?$/i.test(pw.location.pathname)) return false; var sh = pw.document.getElementById('app-shell'); return !!sh && pw.getComputedStyle(sh).display !== 'none'; }
+            catch (e) { return false; }
+        }
+        var ADMIN = adminCtx();
+        if (ADMIN) document.documentElement.classList.add('adm');
+        if (ADMIN) document.addEventListener('DOMContentLoaded', function () { var b = document.getElementById('btn-teach'); if (b) b.hidden = false; });
+
+        /* =====================================================================
+           1. DỮ LIỆU TRỰC TIẾP (chỉ đọc)
+           ===================================================================== */
+        var DOCS = ['lixi_config', 'wheel_config', 'tranhthuong_config', 'point_shop_config', 'rps_config', 'con_config', 'attendance',
+            'attendance_reward_items', 'task_config', 'invite_config', 'account_config', 'registration_config', 'lucky_live', 'maintenance', 'ai_config'];
+        var L = { cfg: {}, got: {}, stock: {}, acc: null, accId: null, accLoaded: false, att: null, lucky: undefined, fb: false, online: false, role: 'user' };
+        var db = null;
+
+        function initFB() {
+            if (!window.firebase || !firebase.firestore) { status(); return; }
+            try { if (!firebase.apps.length) firebase.initializeApp({ apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", projectId: "web-dangky-123" }); db = firebase.firestore(); L.fb = true; }
+            catch (e) { console.warn('AI firebase', e); status(); return; }
+            DOCS.forEach(function (id) {
+                db.collection('settings').doc(id).onSnapshot(function (s) {
+                    L.cfg[id] = s.exists ? s.data() : null; L.got[id] = true;
+                    if (!s.metadata.fromCache) L.online = true;
+                    onLive(id);
+                }, function () { L.got[id] = true; onLive(id); });
+            });
+            [['wheel', 'wheel_stock'], ['tranh', 'tranhthuong_stock'], ['shop', 'point_shop_stock']].forEach(function (p) {
+                db.collection(p[1]).doc('counts').onSnapshot(function (s) { L.stock[p[0]] = (s.exists && s.data().counts) || {}; }, function () {});
+            });
+            if (ME) {
+                db.collection('accounts').where('user', '==', ME).limit(1).onSnapshot(function (snap) {
+                    L.accLoaded = true;
+                    if (snap.empty) { L.acc = null; L.accId = null; } else { L.acc = snap.docs[0].data(); L.accId = snap.docs[0].id; }
+                    L.role = L.acc ? (L.acc.role || (L.acc.user === 'admin' ? 'admin' : 'user')) : 'user';
+                    renderWallet();
+                    $('btn-teach').hidden = !isAdmin();
+                }, function () { L.accLoaded = true; renderWallet(); });
+                db.collection('lucky_numbers').doc(ME).onSnapshot(function (s) { L.lucky = s.exists ? s.data() : null; }, function () { L.lucky = null; });
+                refreshAtt();
+            }
+        }
+        function refreshAtt() {
+            if (!db || !ME) return Promise.resolve();
+            return db.collection('attendance').where('date', '==', todayVN()).where('userName', '==', ME).limit(1).get()
+                .then(function (s) { L.att = !s.empty; }).catch(function () {});
+        }
+        var stT = 0;
+        function onLive(id) {
+            clearTimeout(stT); stT = setTimeout(status, 120);
+            if (id === 'ai_config') prepCustom();
+            if (id === 'maintenance') {
+                var m = L.cfg.maintenance, n = $('notice');
+                if (m && m.isEnabled === true) { n.hidden = false; n.textContent = '🛠️ Hệ thống đang bảo trì' + (m.endDate && m.endTime ? ' — dự kiến mở lại ' + m.endTime + ' ' + m.endDate.split('-').reverse().join('/') : '') + '. Bạn vẫn có thể hỏi Quân Sư.'; }
+                else n.hidden = true;
+            }
+        }
+        function status() {
+            var on = L.fb && L.online, dot = $('st-dot'), t = $('st-txt');
+            dot.classList.toggle('on', on);
+            t.textContent = on ? 'Trực tuyến · số liệu trực tiếp' : (L.fb ? 'Đang kết nối máy chủ...' : 'Ngoại tuyến · dùng cấu hình mặc định');
+        }
+        function renderWallet() {
+            var w = $('wallet'), a = L.acc;
+            if (!ME || !a || ADMIN) { w.hidden = true; return; }
+            w.hidden = false;
+            w.innerHTML = '<span class="wchip">💰 <b>' + fmt(a.points) + '</b> điểm</span>'
+                + '<span class="wchip">🧧 <b>' + fmt(a.tickets) + '</b> lượt rút</span>'
+                + '<span class="wchip">🎡 <b>' + fmt(a.spins) + '</b> lượt quay</span>'
+                + '<span class="wchip">🎯 <b>' + fmt(a.conThrows) + '</b> lượt ném</span>'
+                + '<span class="wchip me">👤 ' + esc(ME) + '</span>';
+        }
+
+        /* =====================================================================
+           2. CẤU HÌNH ĐÃ CHUẨN HÓA (cùng mặc định với các trang của hệ thống)
+           ===================================================================== */
+        var C = {
+            task: function () { var t = L.cfg.task_config || {}; return { login: num(t.loginReward, 10), att: num(t.attendanceReward, 20) }; },
+            att: function () { var a = L.cfg.attendance || {}; return { start: a.start || '09:00', end: a.end || '10:00', anti: a.antiProxyEnabled !== false }; },
+            attReward: function () { var r = L.cfg.attendance_reward_items || {}; return { on: r.isEnabled === true, tickets: num(r.tickets, 0) }; },
+            lixi: function () {
+                var d = L.cfg.lixi_config || {};
+                var prizes = (Array.isArray(d.prizes) ? d.prizes : []).map(function (p) { return { points: Math.floor(Number(p && p.points)), chance: Number(p && p.chance) }; })
+                    .filter(function (p) { return p.points >= 1 && isFinite(p.chance) && p.chance >= 0; });
+                if (!prizes.some(function (p) { return p.chance > 0; })) prizes = [{ points: 8, chance: 35 }, { points: 18, chance: 30 }, { points: 28, chance: 20 }, { points: 38, chance: 10 }, { points: 68, chance: 4 }, { points: 88, chance: 1 }];
+                var c = { on: d.isEnabled !== false, open: ts(d.openDate, d.openTime), end: ts(d.endDate, d.endTime), msg: d.closedMessage || '',
+                    prizes: prizes.filter(function (p) { return p.chance > 0; }), budget: Math.max(0, Math.floor(Number(d.dailyBudget) || 0)),
+                    limit: d.allowRedraw === true ? Math.min(50, Math.max(2, Math.floor(Number(d.maxPerDay)) || 3)) : 1 };
+                var n = Date.now();
+                c.phase = !c.on ? 'closed' : (c.open && n < c.open) ? 'upcoming' : (c.end && n >= c.end) ? 'closed' : 'open';
+                var pts = c.prizes.map(function (p) { return p.points; }); c.min = Math.min.apply(null, pts); c.max = Math.max.apply(null, pts);
+                return c;
+            },
+            closedBy: function (c) {
+                c = c || {}; if (c.isEnabled === false) return 'off';
+                var dl = ts(c.endDate, c.endTime); if (dl && Date.now() >= dl) return 'expired';
+                return null;
+            },
+            prizes: function (list, def) {
+                var src = (list && list.length) ? list : def;
+                return src.map(function (p, i) { return { id: p.id || ('p' + i), text: String(p.text || ''), qty: (p.qty === '' || p.qty == null || isNaN(parseInt(p.qty, 10))) ? null : Math.max(0, parseInt(p.qty, 10)), chance: parseFloat(p.chance) || 0 }; });
+            },
+            wheel: function () {
+                var w = L.cfg.wheel_config || {}, q = w.quiz || {}, mode = q.mode === 'random' ? 'random' : 'all', n = parseInt(q.count, 10);
+                return { closed: this.closedBy(w), endAt: ts(w.endDate, w.endTime),
+                    prizes: this.prizes(w.prizes, [{ id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 12 }, { id: 'w1', text: 'Lời Chúc Tết', qty: null, chance: 27 }, { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 6 }, { id: 'w2', text: 'Lời Chúc Tết', qty: null, chance: 27 }, { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 }, { id: 'w3', text: 'Lời Chúc Tết', qty: null, chance: 26 }]),
+                    quiz: { mode: mode, count: isNaN(n) ? (mode === 'random' ? 3 : 0) : Math.min(50, Math.max(0, n)), rotateMin: Math.max(0, parseInt(q.rotateMin, 10) || 0), start: q.start || '', end: q.end || '' } };
+            },
+            tranh: function () {
+                var t = L.cfg.tranhthuong_config || {};
+                return { closed: this.closedBy(t), endAt: ts(t.endDate, t.endTime),
+                    prizes: this.prizes(t.prizes, [{ id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 15 }, { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 8 }, { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 }, { id: 'luck', text: 'Lời Chúc Tết', qty: null, chance: 75 }]) };
+            },
+            shop: function () {
+                var c = L.cfg.point_shop_config || {};
+                var list = Array.isArray(c.items) && c.items.length ? c.items : [
+                    { id: 'tk1', icon: '🧧', name: '1 Lượt rút lì xì', type: 'tickets', amount: 1, cost: c.ticketCost != null ? c.ticketCost : 50, stock: null, dailyLimit: null },
+                    { id: 'tk5', icon: '🧧', name: 'Combo 5 lượt rút lì xì', type: 'tickets', amount: 5, cost: 220, stock: null, dailyLimit: 2 },
+                    { id: 'tk10', icon: '🧧', name: 'Combo 10 lượt rút lì xì', type: 'tickets', amount: 10, cost: 400, stock: null, dailyLimit: 1 }];
+                var items = list.filter(function (x) { return ['tickets', 'conThrows'].indexOf(x.type || 'tickets') >= 0 && x.active !== false; }).map(function (x, i) {
+                    return { id: x.id || ('i' + i), icon: x.icon || (x.type === 'conThrows' ? '🎯' : '🧧'), name: String(x.name || ''), type: x.type || 'tickets',
+                        amount: Math.max(1, parseInt(x.amount, 10) || 1), cost: Math.max(0, parseInt(x.cost, 10) || 0),
+                        stock: x.stock == null || x.stock === '' ? null : Math.max(0, parseInt(x.stock, 10) || 0),
+                        dailyLimit: x.dailyLimit == null || x.dailyLimit === '' ? null : Math.max(0, parseInt(x.dailyLimit, 10) || 0) };
+                });
+                return { on: c.isEnabled !== false, items: items };
+            },
+            rps: function () {
+                var c = L.cfg.rps_config || {};
+                var r = { on: c.isEnabled !== false, start: c.start || '00:00', end: c.end || '23:59', fee: num(c.fee, 5), win: num(c.winReward, 10), lose: num(c.loseReward, -5), limit: Math.max(3, num(c.timeLimit, 10)) };
+                r.state = !r.on ? 'off' : inWin(r.start, r.end) ? 'open' : 'hours';
+                return r;
+            },
+            con: function () {
+                var c = L.cfg.con_config || {}, int = function (v, d, lo, hi) { v = parseInt(v, 10); if (isNaN(v)) v = d; return Math.min(hi, Math.max(lo, v)); };
+                return { on: c.enabled !== false, diff: ['easy', 'normal', 'hard'].indexOf(c.difficulty) >= 0 ? c.difficulty : 'normal', wind: c.wind !== false,
+                    hit: int(c.hitPoints, 20, 0, 1e5), rim: int(c.rimPoints, 5, 0, 1e5), every: int(c.streakEvery, 3, 0, 100), bonus: int(c.streakBonus, 30, 0, 1e5),
+                    free: int(c.freePerDay, 3, 0, 100), shop: c.shopEnabled !== false, msg: String(c.closedMsg || '') };
+            },
+            invite: function () { var i = L.cfg.invite_config; return { on: !!(i && i.isEnabled), reward: num(i && i.rewardTickets, 1) || 1 }; },
+            account: function () { var a = L.cfg.account_config || {}; return { inact: a.inactivityMinutes !== undefined ? num(a.inactivityMinutes, 1440) : 1440, auto: num(a.autoUnlockMinutes, 0), temp: num(a.tempUnlockMinutes, 0) }; },
+            reg: function () {
+                var r = L.cfg.registration_config || {}, dl = ts(r.endDate, r.endTime);
+                return { on: r.isEnabled !== false && !(dl && Date.now() >= dl), off: r.isEnabled === false, deadline: dl };
+            },
+            lucky: function () {
+                var l = L.cfg.lucky_live || {}, rs = l.rounds || {};
+                var list = Object.keys(rs).map(function (id) { return Object.assign({ id: id }, rs[id]); }).filter(function (r) { return r && r.at; }).sort(function (a, b) { return a.at - b.at; });
+                var next = list.filter(function (r) { return !r.done; })[0] || null;
+                var done = list.filter(function (r) { return r.done && !r.missed && r.number; });
+                return { live: l.isLive === true, total: list.length, next: next, last: done[done.length - 1] || null };
+            }
+        };
+        var isWish = function (t) { var n = norm(t); return !t || /chuc may man|loi chuc|chuc tet|may man lan sau|ti nua|them ti/.test(n); };
+        var DIFF_NAME = { easy: 'Dễ', normal: 'Thường', hard: 'Khó' };
+
+        /* ---------- Mẩu HTML dùng chung ---------- */
+        var P = function (s) { return '<p>' + s + '</p>'; };
+        var UL = function (a) { return '<ul>' + a.filter(Boolean).map(function (x) { return typeof x === 'string' ? '<li>' + x + '</li>' : '<li class="' + x.c + '"><i>' + x.i + '</i>' + x.t + '</li>'; }).join('') + '</ul>'; };
+        var TBL = function (rows) { return '<table class="tbl">' + rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</table>'; };
+        var LIVE = function () { return '<span class="live' + (L.online ? '' : ' off') + '">' + (L.online ? 'Số liệu trực tiếp từ cấu hình của Ban Quản Trị' : 'Chưa kết nối máy chủ — đang dùng số mặc định') + '</span>'; };
+        var TAG = function (cls, t) { return '<span class="tag ' + cls + '">' + t + '</span>'; };
+        var pts = function (n) { return (n > 0 ? '+' : '') + fmt(n); };
+        var needLogin = function () { return P('Bạn chưa đăng nhập nên mình chưa xem được dữ liệu riêng của bạn. Hãy <b>đăng nhập ở trang chính</b> (user.html) rồi mở lại Quân Sư nhé.'); };
+        function prizeRows(list, counts) {
+            var seen = {}, rows = [], wish = false;
+            list.forEach(function (p) {
+                if (!(p.chance > 0)) return;
+                if (isWish(p.text)) { wish = true; return; }
+                if (seen[p.text]) return; seen[p.text] = 1;
+                var left = p.qty == null ? 'không giới hạn' : (Math.max(0, p.qty - ((counts || {})[p.id] || 0)) ? 'còn ' + Math.max(0, p.qty - ((counts || {})[p.id] || 0)) + '/' + p.qty : 'đã hết');
+                rows.push(['💵 ' + esc(p.text), left]);
+            });
+            if (wish) rows.push(['🧧 Lời chúc Tết', 'luôn có']);
+            return rows;
+        }
+
+        /* =====================================================================
+           3. KHO KIẾN THỨC
+           act: { t: nhãn, go: 'trang.html' } mở trang | { t, do: 'tên' } mở chức năng trong trang chính | { t, ask: 'id' } hỏi tiếp
+           ===================================================================== */
+        var KB = [
+            { id: 'overview', icon: '🗺️', title: 'Hệ thống Quân Đoàn hoạt động thế nào?',
+              keys: ['tong quan', 'co che', 'he thong', 'quan doan', 'qd tlh', 'hoat dong the nao', 'gioi thieu', 'choi the nao', 'bat dau tu dau', 'nguoi moi', 'huong dan', 'luat', 'the le', 'cach choi', 'web nay', 'trang nay la gi', 'lam duoc gi'],
+              ans: function () {
+                  return P('<b>QĐ TLH</b> (Quân Đoàn T"L"Headshot) là cổng sự kiện Tết Đinh Mùi 2027 của team. Mọi hoạt động xoay quanh <b>4 loại tài sản</b> trong Túi đồ của bạn:')
+                      + UL(['💰 <b>Điểm lì xì</b> — "tiền tệ" chính. Kiếm từ đăng nhập, điểm danh, lì xì hằng ngày, Kéo Búa Bao, Ném Còn. Dùng để đổi lượt ở <b>Trạm Quy Đổi</b>.',
+                          '🧧 <b>Lượt rút lì xì</b> — mở 1 trong 6 bao ở trang Rút Lì Xì, trúng tiền mặt hoặc lời chúc.',
+                          '🎡 <b>Lượt vòng quay</b> — nhận được khi bạn là người <b>trả lời đúng sớm nhất</b> một câu hỏi ở trang Vòng Quay.',
+                          '🎯 <b>Lượt ném còn</b> — chơi Ném Còn để kiếm thêm điểm.'])
+                      + P('Vòng lặp chính: <b>làm nhiệm vụ hằng ngày → tích điểm → đổi lượt → trúng thưởng</b>. Ngoài ra còn Quay Số May Mắn theo giờ, Giải đấu máy chủ, Trò chuyện nội bộ và Bản tin Quân Đoàn.');
+              },
+              acts: [{ t: '📅 Hôm nay nên làm gì?', ask: 'today' }, { t: '💰 Cách kiếm điểm', ask: 'points' }, { t: '🎟️ Lấy lượt ở đâu', ask: 'turns' }] },
+
+            { id: 'today', icon: '📅', title: 'Hôm nay mình nên làm gì?',
+              keys: ['hom nay lam gi', 'nen lam gi', 'viec hom nay', 'nhiem vu hom nay', 'goi y hom nay', 'hom nay', 'can lam gi', 'lam gi tiep', 'checklist', 'nhiem vu hang ngay', 'viec can lam', 'toi da lam gi'],
+              ans: function () {
+                  var t = C.task(), a = C.att(), lx = C.lixi(), cn = C.con(), lk = C.lucky(), acc = L.acc, rows = [];
+                  if (!ME || (L.accLoaded && !acc)) {
+                      return P('Lộ trình mỗi ngày để không bỏ lỡ lộc:') + UL([
+                          '🔑 Đăng nhập lần đầu trong ngày: <b>+' + t.login + ' điểm</b>',
+                          '✅ Điểm danh trong khung <b>' + a.start + ' – ' + a.end + '</b>: <b>+' + t.att + ' điểm</b>',
+                          '🧧 Mở lì xì hằng ngày: <b>' + lx.min + '–' + lx.max + ' điểm</b> (' + lx.limit + ' lần/ngày)',
+                          cn.on && cn.free > 0 ? '🎯 Nhận <b>' + cn.free + ' lượt ném còn miễn phí</b> tại sân' : '',
+                          '🧠 Canh câu hỏi ở trang Vòng Quay để giành lượt quay',
+                          '🔢 Chọn số may mắn trước giờ quay số'
+                      ]) + (ME ? '' : needLogin());
+                  }
+                  if (!acc) return P('Mình đang tải dữ liệu tài khoản của bạn, hỏi lại sau vài giây nhé.');
+                  var vn = todayVN();
+                  rows.push(acc.lastLoginRewardDate === vn ? { c: 'ck', i: '✅', t: 'Đã nhận thưởng đăng nhập hôm nay (+' + t.login + ')' }
+                      : { c: 'no', i: '⬜', t: 'Chưa nhận thưởng đăng nhập: đăng nhập lại ở trang chính để nhận <b>+' + t.login + ' điểm</b>' });
+                  if (L.att === true) rows.push({ c: 'ck', i: '✅', t: 'Đã điểm danh hôm nay' });
+                  else {
+                      var c = nowMin(), s = mins(a.start), e = mins(a.end);
+                      if (c >= s && c <= e) rows.push({ c: 'wt', i: '🟢', t: '<b>Cổng điểm danh đang mở</b> tới ' + a.end + ' — vào điểm danh ngay để nhận <b>+' + t.att + ' điểm</b>' });
+                      else if (c < s) rows.push({ c: 'no', i: '⏰', t: 'Chưa điểm danh: cổng mở lúc <b>' + a.start + '</b> (đến ' + a.end + ')' });
+                      else rows.push({ c: 'no', i: '⛔', t: 'Hôm nay đã qua giờ điểm danh (' + a.start + ' – ' + a.end + '). Mai nhớ nhé!' });
+                  }
+                  var used = acc.lixiDate === vn ? (acc.lixiCount != null ? acc.lixiCount : 1) : 0;
+                  if (lx.phase !== 'open') rows.push({ c: 'no', i: '🔒', t: 'Lì xì hằng ngày đang ' + (lx.phase === 'upcoming' ? 'chờ mở (' + fmtWhen(lx.open) + ')' : 'đóng') });
+                  else rows.push(used >= lx.limit ? { c: 'ck', i: '✅', t: 'Đã mở lì xì hôm nay (' + used + '/' + lx.limit + ')' }
+                      : { c: 'wt', i: '🧧', t: 'Còn <b>' + (lx.limit - used) + ' lần</b> mở lì xì hôm nay (' + lx.min + '–' + lx.max + ' điểm/lần)' });
+                  if (cn.on && cn.free > 0) rows.push(acc.conFreeDate === dayKey() ? { c: 'ck', i: '✅', t: 'Đã nhận lượt ném còn miễn phí' }
+                      : { c: 'wt', i: '🎯', t: 'Chưa nhận <b>' + cn.free + ' lượt ném miễn phí</b> — vào sân Ném Còn để nhận' });
+                  if ((acc.spins || 0) > 0) rows.push({ c: 'wt', i: '🎡', t: 'Bạn đang giữ <b>' + acc.spins + ' lượt vòng quay</b> chưa dùng' });
+                  if ((acc.tickets || 0) > 0) rows.push({ c: 'wt', i: '🧧', t: 'Bạn còn <b>' + acc.tickets + ' lượt rút lì xì</b> — mở bao thôi!' });
+                  if (L.lucky === null) rows.push({ c: 'no', i: '🔢', t: 'Bạn <b>chưa chọn số may mắn</b>' + (lk.next ? ' — lượt quay tới lúc ' + fmtWhen(lk.next.at) : '') });
+                  else if (L.lucky && L.lucky.number) rows.push({ c: 'ck', i: '🔢', t: 'Số may mắn của bạn: <b>' + pad(parseInt(L.lucky.number, 10)) + '</b>' + (lk.next ? ' · quay lúc ' + fmtWhen(lk.next.at) : '') });
+                  return P('Việc hôm nay của <b>' + esc(ME) + '</b>:') + UL(rows) + LIVE();
+              },
+              acts: function () {
+                  var a = []; if (L.att === false) a.push({ t: '✅ Điểm danh', do: 'attendance' });
+                  a.push({ t: '🧧 Lì xì hằng ngày', do: 'lixi' });
+                  if (L.acc && L.acc.spins > 0) a.push({ t: '🎡 Vòng quay', go: 'qt.html' });
+                  if (L.acc && L.acc.tickets > 0) a.push({ t: '🎁 Rút lì xì', go: 'tranht.html' });
+                  if (L.lucky === null) a.push({ t: '🔢 Chọn số', do: 'lucky' });
+                  return a;
+              } },
+
+            { id: 'wallet', icon: '👛', title: 'Tôi đang có bao nhiêu điểm / lượt?',
+              keys: ['so du', 'toi co bao nhieu', 'minh co bao nhieu', 'tui co bao nhieu', 'em co bao nhieu', 'con bao nhieu luot', 'con may luot', 'diem cua toi', 'diem cua minh', 'luot cua toi', 'tai san cua toi', 'kiem tra diem', 'xem diem', 'vi cua toi', 'tui do cua toi'],
+              ans: function () {
+                  if (!ME) return needLogin();
+                  var a = L.acc; if (!a) return P(L.accLoaded ? 'Mình không tìm thấy tài khoản <b>' + esc(ME) + '</b>. Hãy đăng nhập lại ở trang chính nhé.' : 'Đang tải dữ liệu tài khoản, hỏi lại sau vài giây nhé.');
+                  return P('Túi đồ của <b>' + esc(ME) + '</b> lúc này:') + TBL([['💰 Điểm lì xì', fmt(a.points)], ['🧧 Lượt rút lì xì', fmt(a.tickets)], ['🎡 Lượt vòng quay', fmt(a.spins)], ['🎯 Lượt ném còn', fmt(a.conThrows)]])
+                      + '<span class="note">Lượt vòng quay ở đây là lượt trong tài khoản; vé nhận từ câu hỏi (chưa quay) được tính riêng ở trang Vòng Quay.</span>' + LIVE();
+              },
+              acts: [{ t: '🎒 Mở Túi đồ', do: 'inventory' }, { t: '🏪 Trạm Quy Đổi', do: 'shop' }] },
+
+            { id: 'points', icon: '💰', title: 'Điểm lì xì kiếm và dùng thế nào?',
+              keys: ['diem li xi', 'diem', 'kiem diem', 'tich diem', 'cach kiem diem', 'lam sao co diem', 'tang diem', 'cong diem', 'tru diem', 'mat diem', 'diem dung de lam gi', 'nhiem vu', 'farm diem', 'cay diem'],
+              ans: function () {
+                  var t = C.task(), a = C.att(), lx = C.lixi(), r = C.rps(), cn = C.con(), sh = C.shop();
+                  var minCost = sh.items.length ? Math.min.apply(null, sh.items.map(function (x) { return x.cost; })) : 50;
+                  return '<h4>Cách kiếm điểm</h4>' + UL([
+                      '🔑 Đăng nhập lần đầu mỗi ngày: <b>+' + t.login + '</b>',
+                      '✅ Điểm danh đúng khung ' + a.start + ' – ' + a.end + ': <b>+' + t.att + '</b>',
+                      '🧧 Lì xì hằng ngày: <b>' + lx.min + '–' + lx.max + '</b> điểm/lần, ' + lx.limit + ' lần/ngày',
+                      '⚔️ Kéo Búa Bao: thắng <b>' + pts(r.win) + '</b>, thua <b>' + pts(r.lose) + '</b>',
+                      '🎯 Ném Còn: lọt vòng <b>+' + cn.hit + '</b>, chạm vành <b>+' + cn.rim + '</b>' + (cn.every > 1 && cn.bonus > 0 ? ', mỗi ' + cn.every + ' lần lọt liên tiếp thêm <b>+' + cn.bonus + '</b>' : '')
+                  ]) + '<h4 style="margin-top:10px">Dùng điểm để làm gì</h4>' + UL([
+                      '🏪 Trạm Quy Đổi: đổi lấy lượt rút lì xì / lượt ném còn (từ <b>' + fmt(minCost) + ' điểm</b>)',
+                      '⚔️ Vào bàn Kéo Búa Bao cần có ít nhất <b>' + r.fee + ' điểm</b>'
+                  ]) + (L.acc ? P('Bạn đang có <b>' + fmt(L.acc.points) + ' điểm</b>.') : '') + LIVE();
+              },
+              acts: [{ t: '🏪 Trạm Quy Đổi', ask: 'shop' }, { t: '📅 Việc hôm nay', ask: 'today' }] },
+
+            { id: 'turns', icon: '🎟️', title: 'Lấy lượt quay / lượt rút / lượt ném ở đâu?',
+              keys: ['luot', 'lay luot', 'them luot', 'kiem luot', 'nhan luot', 'het luot', 'mua luot', 'lam sao co luot', 'nguon luot', 've', 'luot quay o dau', 'luot rut o dau', 'khong co luot'],
+              ans: function () {
+                  var iv = C.invite(), ar = C.attReward(), cn = C.con();
+                  return '<h4>🎡 Lượt vòng quay</h4>' + UL(['Trả lời đúng <b>sớm nhất</b> câu hỏi ở trang Vòng Quay (+1 lượt / câu)', 'Đồng đội tặng, hoặc Ban Quản Trị tặng trong sự kiện'])
+                      + '<h4 style="margin-top:10px">🧧 Lượt rút lì xì</h4>' + UL(['Đổi điểm ở <b>Trạm Quy Đổi</b>',
+                          iv.on ? 'Nhập <b>mã mời</b> của bạn bè: cả hai cùng <b>+' + iv.reward + ' lượt</b>' : 'Mã mời (hiện Ban Quản Trị đang tắt)',
+                          ar.on && ar.tickets > 0 ? 'Thưởng điểm danh: <b>+' + ar.tickets + ' lượt</b> mỗi lần điểm danh' : '',
+                          'Đồng đội tặng, hoặc Ban Quản Trị tặng'])
+                      + '<h4 style="margin-top:10px">🎯 Lượt ném còn</h4>' + UL([cn.free > 0 ? '<b>' + cn.free + ' lượt miễn phí mỗi ngày</b> nhận ngay tại sân' : '', 'Đổi điểm ngay tại sân hoặc ở Trạm Quy Đổi', 'Ban Quản Trị tặng']) + LIVE();
+              },
+              acts: [{ t: '🧠 Câu hỏi nhận lượt quay', ask: 'quiz' }, { t: '🏪 Trạm Quy Đổi', ask: 'shop' }, { t: '🤝 Mã mời', ask: 'invite' }] },
+
+            { id: 'attendance', icon: '✅', title: 'Điểm danh hoạt động thế nào?',
+              keys: ['diem danh', 'chuyen can', 'xac nhan co mat', 'gio diem danh', 'khung gio diem danh', 'diem danh may gio', 'quen diem danh', 'khong diem danh duoc', 'cong diem danh', 'he thong dang khoa'],
+              ans: function () {
+                  var a = C.att(), t = C.task(), ar = C.attReward(), c = nowMin(), open = c >= mins(a.start) && c <= mins(a.end);
+                  return P('Mỗi ngày bạn được điểm danh <b>1 lần</b> trong khung giờ <b>' + a.start + ' – ' + a.end + '</b> ' + (open ? TAG('ok', 'ĐANG MỞ') : TAG('no', 'ĐANG KHÓA')) + '.')
+                      + UL(['Thưởng: <b>+' + t.att + ' điểm lì xì</b>' + (ar.on && ar.tickets > 0 ? ' và <b>+' + ar.tickets + ' lượt rút lì xì</b>' : ''),
+                          'Vào mục <b>Điểm Danh</b> → bấm nút xanh <b>"Xác nhận có mặt"</b>. Ngoài khung giờ nút sẽ bị khóa.',
+                          a.anti ? '🛡️ Đang bật <b>chống điểm danh hộ</b>: mỗi thiết bị và mỗi mạng Internet chỉ điểm danh cho <b>1 tài khoản/ngày</b>.' : 'Chống điểm danh hộ đang tắt.',
+                          'Danh sách ai đã điểm danh hôm nay hiện ngay bên dưới nút.'])
+                      + (ME && L.att != null ? P(L.att ? '✅ Bạn <b>đã điểm danh</b> hôm nay.' : '⬜ Bạn <b>chưa điểm danh</b> hôm nay.') : '') + LIVE();
+              },
+              acts: [{ t: '✅ Đi tới Điểm danh', do: 'attendance' }, { t: '🛡️ Bị báo điểm danh hộ?', ask: 'proxy' }] },
+
+            { id: 'proxy', icon: '🛡️', title: 'Bị báo "điểm danh hộ" / trùng thiết bị?',
+              keys: ['diem danh ho', 'trung ip', 'dia chi mang', 'thiet bi nay da diem danh', 'nghi van', 'bi chan diem danh', 'dung chung wifi', 'chung mang', 'cung wifi', 'may cua ban'],
+              ans: function () {
+                  var a = C.att();
+                  return P(a.anti ? 'Chế độ <b>chống điểm danh hộ</b> đang bật. Hệ thống từ chối khi:' : 'Hiện Ban Quản Trị đang <b>tắt</b> chống điểm danh hộ, nhưng quy tắc vẫn là:')
+                      + UL(['Thiết bị này đã điểm danh cho <b>một tài khoản khác</b> trong hôm nay.', 'Mạng Internet (Wi-Fi/4G) bạn đang dùng đã được dùng để điểm danh cho người khác hôm nay.'])
+                      + P('Cách xử lý: dùng <b>điện thoại và mạng của chính bạn</b> (ví dụ tắt Wi-Fi chung, chuyển sang 4G). Nếu bạn và đồng đội ở chung nhà/chung Wi-Fi, hãy nhắn <b>Ban Quản Trị</b> để được ghi nhận thủ công.')
+                      + '<span class="note">Mỗi tài khoản chỉ nên điểm danh bằng thiết bị của chính chủ — điểm danh hộ là vi phạm quy định Quân Đoàn.</span>';
+              },
+              acts: [{ t: '💬 Nhắn Ban Quản Trị', do: 'chat' }] },
+
+            { id: 'lixi', icon: '🧧', title: 'Lì xì hằng ngày (nhận điểm)',
+              keys: ['li xi hang ngay', 'li xi moi ngay', 'li xi ngay', 'li xi dau ngay', 'mo li xi', 'bao li xi hang ngay', '1 lan 1 ngay', 'mot lan mot ngay', 'li xi het', 'li xi hom nay', 'li xi da phat het', 'li xi dong cua', 'rut lai li xi', 'li xi diem', 'loc'],
+              ans: function () {
+                  var c = C.lixi(), ph = c.phase === 'open' ? TAG('ok', 'ĐANG MỞ') : c.phase === 'upcoming' ? TAG('wt', 'MỞ ' + fmtWhen(c.open).toUpperCase()) : TAG('no', 'ĐANG ĐÓNG');
+                  var vals = c.prizes.map(function (p) { return p.points; }).sort(function (a, b) { return a - b; }).join(' · ');
+                  var s = P('Ở Trang chủ có thẻ <b>Lì xì hằng ngày</b> ' + ph + ': chọn 1 bao để nhận <b>điểm lì xì</b> ngẫu nhiên.')
+                      + UL(['Số lần mở: <b>' + c.limit + ' lần/ngày</b> (qua 0 giờ là có lượt mới)', 'Mệnh giá có thể nhận: <b>' + vals + '</b> điểm — bao lớn hiếm hơn',
+                          c.budget > 0 ? 'Có <b>ngân sách chung ' + fmt(c.budget) + ' điểm/ngày</b> cho cả hệ thống: phát hết thì báo "Lì xì hôm nay đã phát hết", mai mở lại.' : '',
+                          c.end ? 'Hạn đóng: <b>' + fmtWhen(c.end) + '</b>' : '',
+                          'Điểm được cộng thẳng vào Túi đồ, có ghi trong Lịch sử.']);
+                  if (c.phase === 'closed' && c.msg) s += P('Lời nhắn của BQT: <i>' + esc(c.msg) + '</i>');
+                  if (L.acc) { var used = L.acc.lixiDate === todayVN() ? (L.acc.lixiCount != null ? L.acc.lixiCount : 1) : 0; s += P('Hôm nay bạn đã mở <b>' + used + '/' + c.limit + '</b> lần.'); }
+                  return s + '<span class="note">Khác với <b>Rút Lì Xì</b> (dùng lượt rút, trúng tiền mặt) ở trang riêng.</span>' + LIVE();
+              },
+              acts: [{ t: '🧧 Mở lì xì', do: 'lixi' }, { t: '🎁 Rút Lì Xì là gì?', ask: 'tranh' }] },
+
+            { id: 'lixidiff', icon: '❓', title: 'Phân biệt các loại "lì xì"',
+              keys: ['li xi', 'li xi may man', 'khac nhau', 'phan biet', 'bao li xi', 'loai li xi'],
+              ans: function () {
+                  var c = C.lixi();
+                  return P('Hệ thống có <b>2 trò lì xì</b> khác nhau, dễ nhầm:') + UL([
+                      '🧧 <b>Lì xì hằng ngày</b> (thẻ ở Trang chủ): miễn phí, ' + c.limit + ' lần/ngày, nhận <b>điểm lì xì</b> (' + c.min + '–' + c.max + ' điểm).',
+                      '🎁 <b>Rút Lì Xì</b> (trang tranht): mỗi lần tốn <b>1 lượt rút lì xì</b>, chọn 1 trong 6 bao, trúng <b>tiền mặt</b> hoặc lời chúc Tết.'])
+                      + P('Còn <b>điểm lì xì</b> là tên của loại điểm dùng chung toàn hệ thống.');
+              },
+              acts: [{ t: '🧧 Lì xì hằng ngày', ask: 'lixi' }, { t: '🎁 Rút Lì Xì', ask: 'tranh' }] },
+
+            { id: 'tranh', icon: '🎁', title: 'Rút Lì Xì (6 bao, trúng tiền mặt)',
+              keys: ['rut li xi', 'luot rut', 'luot rut li xi', '6 bao', 'sau bao', 'xe ve', 'luot xe ve', 'luot mo the', 'tranh thuong', 'tranht', 'mo bao', 'chon bao', 'trung tien'],
+              ans: function () {
+                  var c = C.tranh(), rows = prizeRows(c.prizes, L.stock.tranh);
+                  return P('Trang <b>Rút Lì Xì</b> ' + (c.closed ? TAG('no', c.closed === 'expired' ? 'ĐÃ HẾT HẠN' : 'ĐANG ĐÓNG') : TAG('ok', 'ĐANG MỞ')) + ': mỗi lần dùng <b>1 lượt rút lì xì</b>, chọn 1 trong <b>6 bao</b> để mở.')
+                      + UL(['Phần thưởng chọn ngẫu nhiên theo tỉ lệ Ban Quản Trị đặt, <b>chỉ trong các giải còn số lượng</b>.', 'Giải có giới hạn số lượng: hết thì không ra nữa. Bao không trúng tiền sẽ là <b>lời chúc Tết</b>.',
+                          'Nếu cửa vừa đóng lúc bạn bấm thì <b>không bị trừ lượt</b>.', 'Xem lại kết quả ở nút <b>Lịch sử</b> trên trang (30 ngày gần nhất).', c.endAt && !c.closed ? 'Hạn đóng: <b>' + fmtWhen(c.endAt) + '</b>' : ''])
+                      + (rows.length ? '<h4 style="margin-top:10px">Giải thưởng hiện có</h4>' + TBL(rows) : '')
+                      + (L.acc ? P('Bạn đang có <b>' + fmt(L.acc.tickets) + ' lượt rút</b>.') : '') + LIVE();
+              },
+              acts: [{ t: '🎁 Mở trang Rút Lì Xì', go: 'tranht.html' }, { t: '🎟️ Thêm lượt rút', ask: 'turns' }, { t: '💵 Nhận tiền thế nào?', ask: 'claim' }] },
+
+            { id: 'wheel', icon: '🎡', title: 'Vòng Quay may mắn',
+              keys: ['vong quay', 'quay thuong', 'luot quay', 'quay vong', 'banh xe', 'qt html', 'vong quay xuan', 'quay trung', 'giai vong quay', 'bat dau quay'],
+              ans: function () {
+                  var c = C.wheel(), rows = prizeRows(c.prizes, L.stock.wheel);
+                  return P('<b>Vòng Quay</b> ' + (c.closed ? TAG('no', c.closed === 'expired' ? 'ĐÃ HẾT HẠN' : 'ĐANG ĐÓNG') : TAG('ok', 'ĐANG MỞ')) + ' — mỗi lần quay dùng <b>1 lượt</b>.')
+                      + UL(['Lượt có được khi bạn <b>trả lời đúng sớm nhất</b> một câu hỏi ngay trên trang Vòng Quay (+1 lượt/câu). Đồng đội hoặc BQT cũng có thể tặng lượt.',
+                          'Thứ tự dùng: <b>vé từ câu hỏi</b> dùng trước, hết vé mới trừ lượt trong tài khoản.', 'Ô trúng được máy chủ chốt ngẫu nhiên theo tỉ lệ, chỉ trong các giải còn số lượng. Hết sạch giải thì vòng quay dừng ở ô <b>lời chúc</b>.',
+                          'Kết quả lưu ở nút <b>Lịch sử</b> (30 ngày).', c.endAt && !c.closed ? 'Hạn đóng: <b>' + fmtWhen(c.endAt) + '</b>' : ''])
+                      + (rows.length ? '<h4 style="margin-top:10px">Giải trên vòng quay</h4>' + TBL(rows) : '')
+                      + (L.acc ? P('Lượt quay trong tài khoản của bạn: <b>' + fmt(L.acc.spins) + '</b>.') : '') + LIVE();
+              },
+              acts: [{ t: '🎡 Mở Vòng Quay', go: 'qt.html' }, { t: '🧠 Luật câu hỏi', ask: 'quiz' }, { t: '💵 Nhận tiền thế nào?', ask: 'claim' }] },
+
+            { id: 'quiz', icon: '🧠', title: 'Câu hỏi nhận lượt quay',
+              keys: ['cau hoi', 'tra loi', 'dap an', 'xac thuc', 'cau do', 'da co nguoi xac thuc', 'doi cau', 'cau moi', 'het cau', 'cau hoi nhan luot', 'giu luot', 'tra loi dung', 'sai dap an', 'nhan luot quay'],
+              ans: function () {
+                  var q = C.wheel().quiz, win = q.start && q.end && q.start !== q.end;
+                  return P('Ở trang Vòng Quay có khung <b>🧠 Câu hỏi nhận lượt quay</b>:')
+                      + UL(['Gõ đáp án rồi bấm <b>Xác thực</b>. Không phân biệt chữ hoa/thường, có dấu hay không dấu.',
+                          'Mỗi câu chỉ <b>1 người</b> được tính: người trả lời đúng <b>sớm nhất</b>. Người tới sau sẽ thấy "🔒 Đã có người xác thực".',
+                          'Đúng → nhận ngay <b>1 vé quay</b>; câu đó nhường chỗ cho câu mới.',
+                          q.mode === 'random' ? '🎲 Chế độ <b>ngẫu nhiên</b>: hiện ' + (q.count || 'tất cả') + ' câu cùng lúc, mọi người thấy chung một bộ câu, ' + (q.rotateMin > 0 ? '<b>đổi câu mới mỗi ' + fmtMin(q.rotateMin) + '</b>' : 'đổi câu mới mỗi ngày') + '.'
+                              : '📋 Chế độ <b>lần lượt</b>: ' + (q.count ? 'hiện ' + q.count + ' câu một lúc, trả lời xong có câu kế tiếp' : 'hiện tất cả câu đang mở') + '.',
+                          win ? '⏰ Câu hỏi chỉ hiện trong khung <b>' + q.start + ' – ' + q.end + '</b> mỗi ngày.' : '',
+                          'Hết câu chưa ai trả lời → chờ Ban Quản Trị thêm câu mới (có câu được hẹn giờ hiện).'])
+                      + '<span class="note">Quân Sư không biết và không gợi ý đáp án — hãy là người nhanh tay nhất nhé!</span>' + LIVE();
+              },
+              acts: [{ t: '🎡 Đi trả lời câu hỏi', go: 'qt.html' }] },
+
+            { id: 'shop', icon: '🏪', title: 'Trạm Quy Đổi (đổi điểm lấy lượt)',
+              keys: ['tram quy doi', 'quy doi', 'doi diem', 'doi qua', 'cua hang', 'shop', 'combo', 'mua luot', 'bang gia', 'gia bao nhieu', 'doi luot', 'doi diem lay luot', 'het hang', 'het luot hom nay'],
+              ans: function () {
+                  var s = C.shop(), cnt = L.stock.shop || {};
+                  if (!s.items.length) return P('Trạm Quy Đổi hiện chưa có vật phẩm nào.');
+                  var rows = s.items.map(function (x) {
+                      var meta = []; if (x.stock != null) meta.push('kho còn ' + Math.max(0, x.stock - (cnt[x.id] || 0))); if (x.dailyLimit != null) meta.push('tối đa ' + x.dailyLimit + '/ngày');
+                      return [esc(x.icon) + ' ' + esc(x.name) + '<br><small>Nhận +' + x.amount + ' ' + (x.type === 'conThrows' ? 'lượt ném' : 'lượt rút') + (meta.length ? ' · ' + meta.join(' · ') : '') + '</small>', fmt(x.cost) + ' điểm'];
+                  });
+                  var best = s.items.filter(function (x) { return x.type === 'tickets' && x.cost > 0; }).sort(function (a, b) { return a.cost / a.amount - b.cost / b.amount; })[0];
+                  return P('Trạm Quy Đổi ' + (s.on ? TAG('ok', 'ĐANG MỞ') : TAG('no', 'ĐANG ĐÓNG')) + ' — mở từ thẻ <b>🏪 Trạm Quy Đổi</b> ở Trang chủ hoặc nút "Đổi quà" trong Túi đồ.') + TBL(rows)
+                      + UL(['Chọn số lượng (tối đa 20/lần) → bấm <b>Đổi ngay</b> → kiểm tra bảng xác nhận (số dư trước/sau) → <b>Xác nhận</b>.', 'Lượt đổi được cộng thẳng vào Túi đồ. Lỗi hay hết hàng thì <b>không bị trừ điểm</b>.',
+                          best && best.amount > 1 ? '💡 Mẹo: <b>' + esc(best.name) + '</b> rẻ nhất, chỉ ~' + fmt(Math.round(best.cost / best.amount)) + ' điểm/lượt.' : ''])
+                      + (L.acc ? P('Số dư của bạn: <b>' + fmt(L.acc.points) + ' điểm</b>.') : '') + LIVE();
+              },
+              acts: [{ t: '🏪 Mở Trạm Quy Đổi', do: 'shop' }, { t: '💰 Cách kiếm điểm', ask: 'points' }] },
+
+            { id: 'rps', icon: '⚔️', title: 'Kéo Búa Bao (đấu 1 chọi 1)',
+              keys: ['keo bua bao', 'oan tu ti', 'tim doi thu', 'dau truong', 'pvp', 'thach dau', 'ghep tran', 'keo', 'bua', 'bao tay', 'ra chieu', 'hiep', 'thang tran', 'thua tran', 'chien than'],
+              ans: function () {
+                  var r = C.rps(), st = r.state === 'open' ? TAG('ok', 'ĐANG MỞ') : r.state === 'off' ? TAG('no', 'BẢO TRÌ') : TAG('wt', 'NGOÀI GIỜ');
+                  return P('<b>Đấu trường Kéo Búa Bao</b> ' + st + ' — mở từ <b>' + r.start + '</b> đến <b>' + r.end + '</b>.')
+                      + UL(['Bấm <b>Tìm đối thủ ngay</b>: hệ thống tự ghép với người đang chờ.', 'Đấu 1 chọi 1, <b>ai thắng 2 hiệp trước thắng trận</b>. Hòa thì đánh lại hiệp đó.',
+                          '✊ Búa thắng ✌️ Kéo · ✌️ Kéo thắng 🖐️ Bao · 🖐️ Bao thắng ✊ Búa', 'Mỗi lượt có <b>' + r.limit + ' giây</b> để ra chiêu — hết giờ không chọn là <b>thua hiệp đó</b>.',
+                          'Cần ít nhất <b>' + r.fee + ' điểm</b> để vào bàn.', 'Kết quả: thắng <b>' + pts(r.win) + ' điểm</b>, thua <b>' + pts(r.lose) + ' điểm</b>.',
+                          '🏅 Thắng 50 trận để mở thành tựu <b>Chiến Thần Kéo Búa Bao</b>.']) + LIVE();
+              },
+              acts: [{ t: '⚔️ Vào đấu trường', do: 'rps' }] },
+
+            { id: 'con', icon: '🎯', title: 'Ném Còn',
+              keys: ['nem con', 'tung con', 'vong con', 'luot nem', 'nem trung', 'cham vanh', 'game html', 'san nem', 'nem'],
+              ans: function () {
+                  var c = C.con();
+                  return P('<b>Ném Còn</b> ' + (c.on ? TAG('ok', 'ĐANG MỞ') : TAG('no', 'ĐANG ĐÓNG')) + ' — trò dân gian: ném quả còn lọt qua vòng treo trên cột tre. Độ khó: <b>' + DIFF_NAME[c.diff] + '</b>.')
+                      + UL(['Chạm sân rồi <b>vuốt lên</b>: vuốt dài ném cao, vuốt chéo để đổi hướng.', c.wind ? 'Để ý <b>gió</b> 🍃 — gió thổi lệch quả còn, hãy ném bù.' : '',
+                          'Mỗi lần ném tốn <b>1 lượt ném còn</b>.', '🎯 Lọt vòng <b>+' + c.hit + '</b> · 🥏 Chạm vành <b>+' + c.rim + '</b>' + (c.every > 1 && c.bonus > 0 ? ' · 🔥 Mỗi ' + c.every + ' lần lọt liên tiếp <b>+' + c.bonus + '</b>' : '') + ' điểm',
+                          c.free > 0 ? 'Mỗi ngày nhận <b>' + c.free + ' lượt miễn phí</b> ngay tại sân.' : '', c.shop ? 'Hết lượt: đổi điểm lấy lượt ngay tại sân (nút 🏪).' : '',
+                          'Có <b>Bảng xếp hạng</b> theo số lần ném trúng.'])
+                      + (!c.on && c.msg ? P('Lời nhắn BQT: <i>' + esc(c.msg) + '</i>') : '') + (L.acc ? P('Bạn còn <b>' + fmt(L.acc.conThrows) + ' lượt ném</b>.') : '') + LIVE();
+              },
+              acts: [{ t: '🎯 Ra sân ném', go: 'game.html' }] },
+
+            { id: 'lucky', icon: '🔢', title: 'Quay Số May Mắn (theo giờ)',
+              keys: ['quay so', 'so may man', 'chon so', 'loc so', 'quay so truc tiep', 'quays', 'xo so', 'con so', 'doi so', 'sua so', 'trung so', 'quay so dau xuan', 'gio quay so'],
+              ans: function () {
+                  var k = C.lucky(), s = P('<b>Quay Số May Mắn</b>: mỗi thành viên chọn <b>1 con số từ 01 đến 100</b> (thẻ 🎯 Quay Số May Mắn ở Trang chủ).')
+                      + UL(['Chọn xong số sẽ <b>bị khóa</b>; muốn đổi phải được Ban Quản Trị cho phép sửa.', 'Nhiều người có thể chọn trùng một số — trúng thì tất cả cùng được vinh danh.',
+                          'Đến giờ hẹn, hệ thống quay ra 1 số và mọi người xem <b>trực tiếp</b> cùng lúc ở trang Quay Số Đầu Xuân.', 'Ai có số trùng kết quả là <b>trúng thưởng</b>; lịch sử các lượt được lưu lại.']);
+                  if (k.next) s += P('⏰ Lượt quay tới: <b>' + esc(k.next.label || 'Lượt kế tiếp') + '</b> lúc <b>' + fmtWhen(k.next.at) + '</b> (còn ' + fmtLeft(k.next.at - Date.now()) + ').');
+                  else if (k.total) s += P('Các lượt quay đã lên lịch đều đã diễn ra.');
+                  if (k.last) s += P('Kết quả gần nhất: <b>' + pad(parseInt(k.last.number, 10)) + '</b>' + (k.last.label ? ' (' + esc(k.last.label) + ')' : '') + '.');
+                  if (k.live) s += P('🔴 Đang phát <b>trực tiếp</b>!');
+                  if (L.lucky === null) s += P('Bạn <b>chưa chọn số</b>.'); else if (L.lucky && L.lucky.number) s += P('Số của bạn: <b>' + pad(parseInt(L.lucky.number, 10)) + '</b>' + (L.lucky.canEdit ? ' (đang được phép sửa)' : '') + '.');
+                  return s + LIVE();
+              },
+              acts: [{ t: '🔢 Chọn số', do: 'lucky' }, { t: '📺 Xem quay trực tiếp', go: 'quays.html' }] },
+
+            { id: 'invite', icon: '🤝', title: 'Mã mời bạn bè',
+              keys: ['ma moi', 'moi ban', 'gioi thieu ban', 'nhap ma', 'code moi', 'ref', 'moi nguoi', 'ma gioi thieu', 'moi ban be'],
+              ans: function () {
+                  var iv = C.invite();
+                  return P('Mã mời ' + (iv.on ? TAG('ok', 'ĐANG BẬT') : TAG('no', 'ĐANG TẮT')) + ':')
+                      + UL(['Mã của bạn nằm trong <b>Hồ sơ</b> (bấm vào tên/ảnh đại diện) — có nút sao chép để gửi bạn bè.', 'Ô <b>"Nhập Mã Mời Nhận Lượt Mở"</b> cũng ở Hồ sơ: nhập mã của người đã mời bạn.',
+                          'Thành công: <b>cả hai</b> cùng nhận <b>+' + iv.reward + ' lượt rút lì xì</b>.', 'Mỗi tài khoản chỉ nhập mã <b>1 lần</b> và không được nhập mã của chính mình.'])
+                      + (L.acc && L.acc.inviteCode ? P('Mã mời của bạn: <b>' + esc(L.acc.inviteCode) + '</b>' + (L.acc.hasUsedInvite ? ' · bạn đã dùng lượt nhập mã.' : '')) : '') + LIVE();
+              },
+              acts: [{ t: '👤 Mở Hồ sơ', do: 'profile' }] },
+
+            { id: 'transfer', icon: '🎁', title: 'Tặng lượt cho đồng đội',
+              keys: ['tang luot', 'chuyen luot', 'tang qua', 'cho luot', 'chuyen qua', 'tang ban', 'chuyen diem', 'tang diem', 'cho diem'],
+              ans: function () {
+                  return P('Bạn có thể <b>tặng lượt</b> cho đồng đội qua hộp <b>Tặng Quà Đồng Đội</b>:')
+                      + UL(['Loại tặng được: <b>lượt vòng quay</b> hoặc <b>lượt rút lì xì (mở thẻ)</b>.', 'Nhập đúng <b>tên đăng nhập</b> của người nhận và số lượng (không quá số bạn đang có).',
+                          'Không tự tặng cho chính mình. <b>Điểm lì xì không chuyển được</b>.', 'Mọi lần tặng đều được ghi lịch sử để Ban Quản Trị đối soát.']);
+              },
+              acts: [{ t: '🎁 Mở hộp tặng quà', do: 'transfer' }] },
+
+            { id: 'inventory', icon: '🎒', title: 'Túi đồ & lịch sử nhận quà',
+              keys: ['tui do', 'tui qua', 'lich su', 'lich su nhan qua', 'lich su giao dich', 'xem lai', 'bien dong', 'kho do'],
+              ans: function () {
+                  return P('<b>Túi Quà Cá Nhân</b> (bấm vào ô điểm ở Trang chủ) hiển thị:')
+                      + UL(['💰 Điểm lì xì (nút <b>Đổi quà</b>), 🧧 Lượt rút lì xì (nút <b>Rút ngay</b>), 🎡 Lượt vòng quay (nút <b>Quay ngay</b>).', '<b>Lịch sử nhận quà</b> lọc theo: Tiền · Lì xì · Vòng quay · Điểm.',
+                          'Túi đồ tự đồng bộ với máy chủ, không cần tải lại trang.', 'Từng trò còn có nút Lịch sử riêng (Vòng Quay, Rút Lì Xì, Ném Còn...).']);
+              },
+              acts: [{ t: '🎒 Mở Túi đồ', do: 'inventory' }] },
+
+            { id: 'claim', icon: '💵', title: 'Trúng tiền mặt thì nhận thế nào?',
+              keys: ['nhan tien', 'tra thuong', 'trao thuong', 'rut tien', 'bao gio nhan', 'nhan qua the nao', 'trung roi', 'chuyen khoan', 'nhan thuong', 'xac nhan nhan qua', 'tien mat'],
+              ans: function () {
+                  return P('Khi trúng giải tiền mặt ở Vòng Quay hoặc Rút Lì Xì:')
+                      + UL(['Kết quả được <b>ghi tự động</b> vào lịch sử (có thời gian, tên giải) — Ban Quản Trị đối soát theo dữ liệu này.', 'Bạn xem lại ở nút <b>Lịch sử</b> trên trang trò chơi hoặc mục <b>💵 Tiền</b> trong Túi đồ.',
+                          'Ban Quản Trị sẽ liên hệ và <b>trao thưởng trực tiếp</b>. Nên chụp màn hình kết quả để đối chiếu khi cần.', 'Có thắc mắc về phần thưởng, nhắn <b>Ban Quản Trị</b> qua Trò Chuyện Nội Bộ.']);
+              },
+              acts: [{ t: '💬 Nhắn Ban Quản Trị', do: 'chat' }] },
+
+            { id: 'register', icon: '📝', title: 'Đăng ký tài khoản',
+              keys: ['dang ky', 'tao tai khoan', 'lap tai khoan', 'dang ky tai khoan', 'cho duyet', 'duyet', 'chua duoc duyet', 'bi tu choi', 'ten dang nhap', 'mo tai khoan'],
+              ans: function () {
+                  return P('Tạo tài khoản tại <b>Trang chủ sự kiện</b> (index.html) → nút <b>Đăng ký tài khoản</b>:')
+                      + UL(['<b>Tên đăng nhập</b>: viết liền, không khoảng trắng, ít nhất 4 ký tự, chưa ai dùng.', 'Mật khẩu và <b>Họ tên hiển thị</b>.',
+                          'Gửi xong đơn vào <b>hàng chờ</b> — Ban Quản Trị kiểm tra và kích hoạt. Được duyệt mới đăng nhập được.', 'Mỗi thiết bị gửi 1 đơn. Nếu bị từ chối, bạn có thể đăng ký lại.']);
+              },
+              acts: [{ t: '🏮 Trang đăng ký', go: 'index.html' }] },
+
+            { id: 'login', icon: '🔑', title: 'Đăng nhập / quên mật khẩu',
+              keys: ['dang nhap', 'quen mat khau', 'mat khau', 'sai mat khau', 'khong dang nhap duoc', 'dang xuat', 'ghi nho', 'doi mat khau', 'bi dang xuat', 'thong tin dang nhap khong chinh xac', 'login', 'pass'],
+              ans: function () {
+                  return UL(['Đăng nhập ở <b>trang chính</b> (user.html) bằng tên đăng nhập + mật khẩu đã đăng ký. Tích <b>"Ghi nhớ"</b> để lần sau khỏi gõ lại.',
+                          'Báo "thông tin không chính xác": kiểm tra chữ hoa/thường, khoảng trắng thừa, hoặc tài khoản <b>chưa được duyệt</b>.', 'Không hoạt động lâu, phiên đăng nhập sẽ tự thoát để bảo mật — chỉ cần đăng nhập lại.',
+                          '<b>Quên mật khẩu</b>: hệ thống không có nút tự lấy lại — hãy nhắn <b>Ban Quản Trị</b> để được cấp lại.', 'Đăng nhập lần đầu mỗi ngày còn được <b>+' + C.task().login + ' điểm</b>.']);
+              },
+              acts: [{ t: '🔑 Trang đăng nhập', go: 'user.html' }, { t: '🔒 Tài khoản bị khóa?', ask: 'locked' }] },
+
+            { id: 'locked', icon: '🔒', title: 'Tài khoản bị khóa',
+              keys: ['bi khoa', 'khoa tai khoan', 'mo khoa', 'tai khoan bi khoa', 'yeu cau mo khoa', 'khong hoat dong', 'bi block', 'ban acc'],
+              ans: function () {
+                  var a = C.account();
+                  return P('Để giữ an toàn, tài khoản sẽ <b>tự khóa</b> nếu ' + (a.inact > 0 ? '<b>không hoạt động quá ' + fmtMin(a.inact) + '</b>' : 'Ban Quản Trị khóa') + '.')
+                      + UL([a.auto > 0 ? 'Khi đăng nhập sẽ hiện hộp <b>Tài khoản bị khóa</b> → bấm <b>Yêu cầu mở khóa</b>: sau <b>' + fmtMin(a.auto) + '</b> hệ thống tự mở và đăng nhập lại cho bạn (có đồng hồ đếm ngược).'
+                              : 'Hiện Ban Quản Trị <b>tắt tự mở khóa</b> — nhắn BQT để được mở.',
+                          a.temp > 0 ? 'Sau khi mở khóa, tài khoản được dùng trong <b>' + fmtMin(a.temp) + '</b> rồi sẽ khóa lại nếu chưa được BQT mở hẳn.' : '',
+                          'Đăng nhập đều đặn mỗi ngày (điểm danh, mở lì xì) để tài khoản không bị khóa.']) + LIVE();
+              },
+              acts: [{ t: '💬 Nhắn Ban Quản Trị', do: 'chat' }] },
+
+            { id: 'regid', icon: '🪪', title: 'Đăng ký ID Game',
+              keys: ['id game', 'dang ky id', 'ma id', 'ten nhan vat', 'khai bao id', 'dinh danh', 'nop lai', 'nop don'],
+              ans: function () {
+                  var r = C.reg();
+                  return P('Đăng ký ID Game ' + (r.on ? TAG('ok', 'ĐANG MỞ') : TAG('no', r.off ? 'ĐÃ ĐÓNG' : 'HẾT HẠN')) + ' — dùng để xếp bạn vào danh sách thi đấu.')
+                      + UL(['Mở từ thẻ <b>🪪 Đăng Ký ID Game</b> (Trang chủ), menu bên, hoặc tab Giải Đấu.', 'Nhập <b>tên nhân vật</b> và <b>ID</b> (chỉ gồm chữ số).',
+                          'Mỗi tài khoản đăng ký <b>1 lần duy nhất</b>; gửi xong thẻ đổi thành "Đã đăng ký ✓", bấm vào để xem lại đơn.', 'Ghi sai? Nhờ Ban Quản Trị bấm <b>Cho phép nộp lại</b>.',
+                          r.on && r.deadline ? 'Hạn chót: <b>' + fmtWhen(r.deadline) + '</b> (còn ' + fmtLeft(r.deadline - Date.now()) + ')' : '']) + LIVE();
+              },
+              acts: [{ t: '🪪 Mở đăng ký ID', do: 'regid' }] },
+
+            { id: 'tournament', icon: '🏆', title: 'Giải đấu & sơ đồ thi đấu',
+              keys: ['giai dau', 'so do', 'so do giai', 'thi dau', 'vong loai', 'tu ket', 'ban ket', 'chung ket', 'di tiep', 'w o', 'dac cach', 'giai doi', 'giai don', 'tran cua toi', 'vo dich', 'doi thi dau', 'giai'],
+              ans: function () {
+                  return P('Tab <b>Giải Đấu Máy Chủ</b> có danh sách tuyển thủ và <b>sơ đồ kiểu World Cup</b>:')
+                      + UL(['Thể thức <b>Giải Đơn (1 vs 1)</b> hoặc <b>Giải Đôi (2 vs 2)</b>, quy mô 4 → 64. Thiếu người thì có suất <b>Miễn đấu</b> tự đi tiếp.',
+                          'Điện thoại: xem <b>Theo vòng</b> (vuốt trái/phải đổi vòng, tab ⭐ <b>Trận Của Tôi</b>). Máy tính/xoay ngang: xem <b>Sơ đồ</b> cây, phóng to bằng chụm 2 ngón hoặc Ctrl + lăn chuột.',
+                          'Ban Quản Trị nhập tỉ số → người thắng tự vào vòng sau. Ký hiệu: <b>W.O / BỎ</b> (đối thủ bỏ cuộc), <b>LOẠI</b>, <b>★</b> (đặc cách).',
+                          'Bấm tên tuyển thủ để xem thẻ chi tiết: Cá nhân · ID Game · Tài khoản · Thành tích.', 'Muốn được xếp vào giải: nhớ <b>Đăng ký ID Game</b> trước.']);
+              },
+              acts: [{ t: '🏆 Mở Giải Đấu', do: 'tournament' }, { t: '🪪 Đăng ký ID', ask: 'regid' }] },
+
+            { id: 'chat', icon: '💬', title: 'Trò chuyện nội bộ',
+              keys: ['tro chuyen', 'chat', 'nhan tin', 'tin nhan', 'danh ba', 'biet danh', 'tha tim', 'da xem', 'gui anh', 'inbox'],
+              ans: function () {
+                  return UL(['Mục <b>Trò Chuyện Nội Bộ</b>: mở <b>Danh bạ</b> → chọn thành viên để nhắn riêng.', 'Bấm giữ/nhấn vào tin để xem chi tiết: <b>❤️ thả tim</b>, <b>👁 đã xem</b>.',
+                          'Đặt <b>biệt danh</b> cho người chat (chỉ lưu trên máy bạn).', 'Bật <b>thông báo</b> trong Cài đặt để nhận tin khi đang ở ngoài; bấm thông báo sẽ mở đúng phòng chat.']);
+              },
+              acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }, { t: '🔔 Thông báo', ask: 'notif' }] },
+
+            { id: 'notif', icon: '🔔', title: 'Thông báo đẩy',
+              keys: ['thong bao', 'push', 'khong nhan thong bao', 'bat thong bao', 'banner', 'notification'],
+              ans: function () {
+                  return UL(['Vào <b>Cài đặt</b> → <b>Kiểm tra Thông báo</b> → Bật, rồi cho phép thông báo khi trình duyệt hỏi.', 'Bấm <b>Test (5s)</b> rồi thoát ra màn hình chính để thử banner.',
+                          'Không thấy thông báo: kiểm tra quyền thông báo của trình duyệt/điện thoại; trên iPhone cần "Thêm vào Màn hình chính" rồi mở web từ biểu tượng đó.', 'Bấm thông báo sẽ mở lại web và vào đúng phòng chat.']);
+              },
+              acts: [{ t: '⚙️ Mở Cài đặt', do: 'settings' }] },
+
+            { id: 'achieve', icon: '🏅', title: 'Thành tựu Quân Đoàn',
+              keys: ['thanh tuu', 'huy hieu', 'danh hieu', 'tan binh', 'chuoi ngay', 'chuoi 7 ngay', 'mo khoa thanh tuu'],
+              ans: function () {
+                  return P('Các thành tựu hiện có:') + UL(['🪖 <b>Tân Binh Gia Nhập</b> — đăng nhập lần đầu.', '📆 <b>Chuỗi Ngày Chăm Chỉ</b> — điểm danh <b>7 ngày liên tiếp</b> không ngắt quãng.', '⚔️ <b>Chiến Thần Kéo Búa Bao</b> — thắng <b>50 trận</b> PvP.']);
+              },
+              acts: [{ t: '✅ Điểm danh', ask: 'attendance' }] },
+
+            { id: 'settings', icon: '⚙️', title: 'Cài đặt giao diện & nhạc nền',
+              keys: ['cai dat', 'giao dien', 'mau', 'chu de', 'che do toi', 'sang toi', 'nhac', 'nhac nen', 'tat nhac', 'bat nhac', 'am luong', 'bai nhac', 'hoa dao', 'banh chung', 'do li xi'],
+              ans: function () {
+                  return UL(['<b>Màu chủ đề Tết</b>: Đỏ Lì Xì · Hoa Đào · Bánh Chưng (áp dụng cho các trang trò chơi).', '<b>Chế độ Sáng/Tối</b> và màu bong bóng chat.',
+                          '<b>Nhạc nền</b>: 4 bài Tết (Xuân Về Phơi Phới, Xuân Rộn Ràng, Lân Về Phố, Sum Vầy Ngày Xuân). Chọn tự chuyển bài hoặc lặp 1 bài, chỉnh âm lượng.',
+                          'Ở các trang khác, nút tròn 🎵 góc trái dưới để bật/tắt nhạc. Cài đặt dùng chung cho mọi trang.', 'Trình duyệt chặn tự phát nhạc → chạm vào màn hình 1 lần là nhạc chạy.']);
+              },
+              acts: [{ t: '⚙️ Mở Cài đặt', do: 'settings' }] },
+
+            { id: 'maintenance', icon: '🛠️', title: 'Bảo trì hệ thống',
+              keys: ['bao tri', 'dang bao tri', 'khi nao mo lai', 'he thong dong', 'baotri', 'khong vao duoc'],
+              ans: function () {
+                  var m = L.cfg.maintenance;
+                  if (m && m.isEnabled === true) return P('🛠️ Hệ thống <b>đang bảo trì</b>.' + (m.endDate && m.endTime ? ' Dự kiến mở lại: <b>' + esc(m.endTime) + ' ' + esc(m.endDate.split('-').reverse().join('/')) + '</b>.' : '') + (m.message ? '<br><i>' + esc(m.message) + '</i>' : ''))
+                      + P('Trong lúc bảo trì, các trang tự chuyển sang màn hình chờ và <b>tự quay lại</b> đúng trang bạn đang xem khi mở lại — không cần tải lại.') + LIVE();
+                  return P('Hiện hệ thống <b>không bảo trì</b> ' + TAG('ok', 'HOẠT ĐỘNG BÌNH THƯỜNG') + '. Khi bảo trì, các trang sẽ chuyển sang màn hình chờ và tự quay lại khi xong.') + LIVE();
+              } },
+
+            { id: 'network', icon: '📶', title: 'Mất mạng / lỗi kết nối / chậm',
+              keys: ['mat mang', 'loi ket noi', 'khong co mang', 'lag', 'cham', 'giat', 'loi may chu', 'request timeout', 'treo', 'khong tai duoc', 'loi'],
+              ans: function () {
+                  return UL(['Khi mất mạng, trên cùng màn hình hiện thẻ đỏ <b>"Không có kết nối Internet"</b> — bấm <b>Thử lại</b> hoặc chờ, hệ thống tự kết nối lại.',
+                          'Thao tác bị lỗi giữa chừng (đổi quà, rút lì xì, quay) thì <b>không bị trừ</b> điểm/lượt.', 'Máy chậm: hệ thống tự bật chế độ nhẹ (tắt bớt hiệu ứng hoa rơi, làm mờ).',
+                          'Vẫn lỗi: tải lại trang, kiểm tra Wi-Fi/4G, hoặc chụp màn hình gửi Ban Quản Trị.']);
+              } },
+
+            { id: 'news', icon: '📰', title: 'Bản tin Quân Đoàn',
+              keys: ['ban tin', 'tin tuc', 'thong bao moi', 'cap nhat', 'su kien moi', 'news'],
+              ans: function () { return P('Mục <b>Bản Tin Quân Đoàn</b> là nơi Ban Quản Trị đăng thông báo, sự kiện và cập nhật mới nhất. Nên ghé xem mỗi ngày để không lỡ sự kiện tặng lượt!'); },
+              acts: [{ t: '📰 Mở Bản tin', do: 'news' }] },
+
+            { id: 'contact', icon: '🙋', title: 'Liên hệ Ban Quản Trị / báo lỗi',
+              keys: ['lien he', 'ban quan tri', 'admin', 'bao loi', 'khieu nai', 'gap admin', 'ho tro', 'giup voi', 'can giup', 'nguoi that', 'quan ly'],
+              ans: function () {
+                  return P('Cần người thật hỗ trợ? Nhắn <b>Ban Quản Trị</b> qua <b>Trò Chuyện Nội Bộ</b> (chọn tài khoản quản trị trong Danh bạ).')
+                      + UL(['Ghi rõ <b>tên đăng nhập</b>, thời gian, việc bạn đang làm.', 'Đính kèm <b>ảnh chụp màn hình</b> lỗi hoặc kết quả trúng thưởng.']);
+              },
+              acts: [{ t: '💬 Nhắn Ban Quản Trị', do: 'chat' }] },
+
+            { id: 'status', icon: '📡', title: 'Bây giờ đang mở những gì?',
+              keys: ['dang mo', 'mo cua', 'trang thai', 'dong cua', 'cai nao dang mo', 'tinh trang', 'cai gi dang mo', 'gio mo cua', 'mo luc may gio'],
+              ans: function () {
+                  var a = C.att(), lx = C.lixi(), w = C.wheel(), t = C.tranh(), s = C.shop(), r = C.rps(), cn = C.con(), k = C.lucky(), c = nowMin();
+                  var on = function (b) { return b ? TAG('ok', 'Mở') : TAG('no', 'Đóng'); };
+                  return P('Tình trạng lúc <b>' + pad(new Date().getHours()) + ':' + pad(new Date().getMinutes()) + '</b>:') + TBL([
+                      ['✅ Điểm danh (' + a.start + '–' + a.end + ')', on(c >= mins(a.start) && c <= mins(a.end))],
+                      ['🧧 Lì xì hằng ngày', lx.phase === 'upcoming' ? TAG('wt', 'Sắp mở') : on(lx.phase === 'open')],
+                      ['🎡 Vòng Quay', on(!w.closed)], ['🎁 Rút Lì Xì', on(!t.closed)], ['🏪 Trạm Quy Đổi', on(s.on)],
+                      ['⚔️ Kéo Búa Bao (' + r.start + '–' + r.end + ')', r.state === 'hours' ? TAG('wt', 'Ngoài giờ') : on(r.state === 'open')],
+                      ['🎯 Ném Còn', on(cn.on)], ['🤝 Mã mời', on(C.invite().on)], ['🪪 Đăng ký ID Game', on(C.reg().on)],
+                      ['🔢 Quay số kế tiếp', k.next ? fmtWhen(k.next.at) : 'Chưa có lịch']
+                  ]) + LIVE();
+              } },
+
+            { id: 'tet', icon: '🏮', title: 'Còn bao lâu nữa đến Tết?',
+              keys: ['tet', 'giao thua', 'con bao lau', 'mung 1', 'nam moi', 'dinh mui', 'dem nguoc'],
+              ans: function () {
+                  var gt = new Date(2027, 1, 6, 0, 0, 0).getTime(), left = gt - Date.now();
+                  return left > 0 ? P('🏮 Còn <b>' + fmtLeft(left) + '</b> nữa là Giao thừa! Mùng 1 Tết Đinh Mùi rơi vào <b>thứ Bảy, 06/02/2027</b>. Tích lộc từ bây giờ nhé!')
+                      : P('🎆 Chúc mừng năm mới Đinh Mùi 2027! An khang thịnh vượng, vạn sự như ý, headshot liên tục!');
+              } },
+
+            { id: 'cheat', icon: '🚫', title: 'Hack / gian lận',
+              keys: ['hack', 'cheat', 'gian lan', 'bug', 'lach luat', 'tool', 'auto', 'xin dap an', 'cho dap an', 'ma admin', 'mat khau admin', 'admin gateway', 'vao trang admin', 'so chot', 'hack diem', 'bug diem', 'nhan ban'],
+              ans: function () {
+                  return P('Quân Sư không hỗ trợ gian lận, lấy đáp án hay vào khu vực quản trị — mọi thao tác điểm/lượt đều được máy chủ kiểm tra và ghi lịch sử, tài khoản vi phạm có thể bị khóa.')
+                      + P('Nếu bạn phát hiện <b>lỗi</b> (bug), hãy báo cho Ban Quản Trị — đó mới là cách được ghi nhận 🫡');
+              },
+              acts: [{ t: '🙋 Báo lỗi cho BQT', ask: 'contact' }] }
+        ];
+        /* Trò chuyện xã giao */
+        var SMALL = [
+            { id: 'hi', keys: ['xin chao', 'chao', 'hello', 'hi', 'alo', 'hey', 'chao ban', 'chao shop', 'yo'], ans: function () { return P('Chào ' + (ME ? '<b>' + esc(ME) + '</b>' : 'bạn') + '! 🧧 Mình là <b>Quân Sư AI</b> của Quân Đoàn. Bạn muốn hỏi về điểm, lượt quay, lì xì hay điểm danh?'); }, acts: [{ t: '📅 Hôm nay làm gì?', ask: 'today' }, { t: '🗺️ Tổng quan', ask: 'overview' }] },
+            { id: 'thanks', keys: ['cam on', 'thanks', 'thank', 'tks', 'thank you', 'ok cam on', 'hay qua', 'tuyet voi'], ans: function () { return P('Không có chi! Chúc bạn năm mới <b>an khang thịnh vượng</b> và nhiều lộc 🧧. Cần gì cứ hỏi Quân Sư nhé!'); } },
+            { id: 'who', keys: ['ban la ai', 'ai vay', 'quan su', 'ban la gi', 'bot', 'ai la gi', 'tri tue nhan tao', 'chatgpt'], ans: function () { return P('Mình là <b>Quân Sư AI</b> — trợ lý của QĐ TLH. Mình hiểu câu hỏi tiếng Việt (có dấu hay không dấu đều được), đọc <b>cấu hình trực tiếp</b> mà Ban Quản Trị đặt để giải thích đúng luật hiện hành, và xem được túi đồ của bạn khi bạn đã đăng nhập.'); } },
+            { id: 'bye', keys: ['tam biet', 'bye', 'pai', 'hen gap lai', 'thoi'], ans: function () { return P('Tạm biệt! Nhớ điểm danh và mở lì xì mỗi ngày nhé 🏮'); } },
+            { id: 'menu', keys: ['menu', 'chu de', 'danh muc', 'help', 'tro giup', 'hoi gi', 'ban biet gi'], ans: function () { return P('Đây là các chủ đề mình nắm rõ — chọn một mục hoặc gõ câu hỏi:') + gridHTML(); } }
+        ];
+
+        /* ---------- Chế độ Ban Quản Trị: chủ đề -> [mục trong admin.html, tên mục, khung cấu hình] ---------- */
+        var ADM = {
+            attendance: ['attendance', 'Điểm danh', 'Khung giờ hoạt động · Thưởng vật phẩm điểm danh'], proxy: ['attendance', 'Điểm danh', 'Chống điểm danh hộ'],
+            today: ['pointshop', 'Cửa hàng điểm', 'Cấu hình thưởng nhiệm vụ'], points: ['pointshop', 'Cửa hàng điểm', 'Cấu hình thưởng nhiệm vụ (đăng nhập / điểm danh)'],
+            lixi: ['lixi', 'Lì xì điểm', 'Đóng/mở cửa · Phần thưởng & tỉ lệ · Ngân sách ngày'], lixidiff: ['lixi', 'Lì xì điểm', 'Rút lì xì (6 bao) ở mục "Rút lì xì"'],
+            tranh: ['tranhthuong', 'Rút lì xì', 'Đóng/mở · Mệnh giá, số lượng & tỉ lệ'], wheel: ['wheel', 'Vòng quay', 'Đóng/mở · Phần thưởng, số lượng & tỉ lệ'],
+            quiz: ['wheel', 'Vòng quay', 'Câu hỏi nhận lượt quay (chế độ, số câu hiện, phiên đổi câu, khung giờ)'], claim: ['wheel', 'Vòng quay', 'Lịch sử quay · Rút lì xì: Lịch sử rút'],
+            shop: ['pointshop', 'Cửa hàng điểm', 'Danh mục vật phẩm quy đổi'], rps: ['rps', 'Kéo búa bao', 'Cấu hình đấu trường · Cược & thưởng PvP'],
+            con: ['nemcon', 'Ném còn', 'Cấu hình sân · Tặng lượt · Gói đổi lượt'], lucky: ['luckynumber', 'Quay số may mắn', 'Quay theo giờ · Phát trực tiếp · Danh sách số'],
+            invite: ['invite', 'Mã mời', 'Bật/tắt · Thưởng lượt rút'], turns: ['pointshop', 'Cửa hàng điểm', 'và các mục Vòng quay / Mã mời / Điểm danh / Ném còn'],
+            register: ['approvals', 'Phê duyệt tài khoản', 'Đơn đăng ký chờ phê duyệt'], login: ['accounts', 'Quản trị tài khoản', 'Cấp lại mật khẩu, khóa / mở khóa'],
+            locked: ['accounts', 'Quản trị tài khoản', 'Cấu hình khóa & mở tự động'], regid: ['registration', 'Đăng ký ID game', 'Đóng/mở vòng đăng ký · Cho phép nộp lại'],
+            tournament: ['tournament', 'Giải đấu', 'Sơ đồ giải đấu · Thiết lập đi tiếp'], news: ['news', 'Bản tin', 'Soạn bản tin'],
+            transfer: ['accounts', 'Quản trị tài khoản', 'Ví điểm / lượt của từng thành viên'], inventory: ['accounts', 'Quản trị tài khoản', 'Ví điểm / lượt của từng thành viên'],
+            status: ['dashboard', 'Tổng quan', '']
+        };
+        KB.push(
+            { id: 'admguide', adminOnly: true, icon: '🛡️', title: 'Cấu hình từng tính năng ở đâu trong Admin?',
+              keys: ['cau hinh o dau', 'chinh o dau', 'admin', 'quan tri', 'cai dat admin', 'muc nao', 'huong dan quan tri', 'thiet lap', 'sua cau hinh', 'doi cau hinh'],
+              ans: function () {
+                  return P('Bản đồ cấu hình trong Admin (menu bên trái / menu điện thoại):') + TBL([
+                      ['✅ Giờ điểm danh, thưởng vật phẩm, chống điểm danh hộ', 'Điểm danh'], ['🔑 Điểm thưởng đăng nhập / điểm danh', 'Cửa hàng điểm'],
+                      ['🏪 Vật phẩm Trạm Quy Đổi, giá, kho, giới hạn ngày', 'Cửa hàng điểm'], ['🧧 Lì xì hằng ngày: mệnh giá, tỉ lệ, ngân sách', 'Lì xì điểm'],
+                      ['🎁 Rút Lì Xì 6 bao: giải, số lượng, tỉ lệ', 'Rút lì xì'], ['🎡 Giải vòng quay + câu hỏi nhận lượt', 'Vòng quay'],
+                      ['🔢 Lịch quay số, phát trực tiếp', 'Quay số may mắn'], ['⚔️ Giờ mở, phí, thưởng/phạt Kéo Búa Bao', 'Kéo búa bao'],
+                      ['🎯 Sân Ném Còn, điểm, lượt miễn phí, tặng lượt', 'Ném còn'], ['🤝 Mã mời', 'Mã mời'], ['📝 Duyệt đăng ký', 'Phê duyệt tài khoản'],
+                      ['🔒 Khóa / mở khóa tự động, phân quyền', 'Quản trị tài khoản'], ['🪪 Đăng ký ID game', 'Đăng ký ID game'], ['🏆 Sơ đồ giải đấu', 'Giải đấu'], ['📰 Thông báo', 'Bản tin']])
+                      + P('Hỏi tên tính năng (vd. <i>"vòng quay"</i>) để xem luật hiện hành và nút mở thẳng mục cấu hình.');
+              },
+              acts: [{ t: '📡 Đang mở gì?', ask: 'status' }, { t: '✎ Cách dạy Quân Sư', ask: 'admteach' }] },
+            { id: 'admteach', adminOnly: true, icon: '✎', title: 'Dạy Quân Sư câu trả lời riêng',
+              keys: ['day ai', 'day quan su', 'them cau tra loi', 'cau tra loi rieng', 'huan luyen', 'cau chua tra loi', 'loi chao', 'faq'],
+              ans: function () {
+                  return UL(['Bấm nút <b>✎</b> trên đầu khung Quân Sư.', '<b>Câu trả lời riêng</b>: nhập câu hỏi mẫu + từ khóa (cách nhau dấu phẩy) + câu trả lời. Hỗ trợ <b>**in đậm**</b> và dòng bắt đầu bằng <b>- </b> để gạch đầu dòng. Câu riêng được <b>ưu tiên</b> hơn kiến thức có sẵn.',
+                          '<b>Câu chưa trả lời được</b>: các câu thành viên hỏi mà AI không hiểu — bấm <b>Dạy câu này</b> để thêm.', '<b>Lời chào</b>: thêm thông báo sự kiện hiện ngay khi thành viên mở Quân Sư.',
+                          'Dữ liệu lưu ở <b>settings/ai_config</b> và bộ sưu tập <b>ai_unanswered</b>.']);
+              },
+              acts: [{ t: '✎ Mở bảng dạy AI', teach: 1 }] }
+        );
+
+        /* ---------- Câu trả lời riêng do Ban Quản Trị dạy (settings/ai_config) ---------- */
+        function md(s) {   // Markdown rất gọn: **đậm**, - gạch đầu dòng, xuống dòng; mọi thứ khác đều được thoát ký tự
+            var lines = esc(s).split(/\r?\n/), out = '', list = [];
+            var flush = function () { if (list.length) { out += '<ul>' + list.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>'; list = []; } };
+            lines.forEach(function (l) {
+                l = l.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+                if (/^\s*[-•+]\s+/.test(l)) list.push(l.replace(/^\s*[-•+]\s+/, ''));
+                else { flush(); if (l.trim()) out += '<p>' + l + '</p>'; }
+            });
+            flush(); return out;
+        }
+        var CUSTOM = [];
+        function prepCustom() {
+            var c = L.cfg.ai_config || {};
+            CUSTOM = (Array.isArray(c.faqs) ? c.faqs : []).filter(function (f) { return f && f.on !== false && f.a; }).map(function (f, i) {
+                var keys = String(f.keys || '').split(',').map(function (k) { return k.trim(); }).filter(Boolean);
+                if (f.q) keys.push(f.q);
+                return { id: 'c_' + (f.id || i), icon: '📌', title: f.q || 'Thông tin từ Ban Quản Trị', custom: true, keys: keys, ans: function () { return md(f.a) + '<span class="note">📌 Thông tin từ Ban Quản Trị</span>'; } };
+            });
+            prepKeys(CUSTOM);
+        }
+
+        /* =====================================================================
+           4. BỘ HIỂU CÂU HỎI
+           ===================================================================== */
+        var ABBR = { ko: 'khong', k: 'khong', kh: 'khong', hong: 'khong', hok: 'khong', dc: 'duoc', dk: 'dang ky', dky: 'dang ky', bn: 'bao nhieu', bnh: 'bao nhieu', j: 'gi', z: 'vay', v: 'vay',
+            kbb: 'keo bua bao', lx: 'li xi', lixi: 'li xi', vq: 'vong quay', bqt: 'ban quan tri', ad: 'admin', ib: 'nhan tin', acc: 'tai khoan', tk: 'tai khoan', mn: 'moi nguoi',
+            nv: 'nhiem vu', sd: 'su dung', ntn: 'nhu the nao', lm: 'lam', mik: 'minh', mjk: 'minh', t: 'toi', e: 'em', ae: 'anh em', pass: 'mat khau', diemdanh: 'diem danh', vongquay: 'vong quay' };
+        var VOCAB = Object.create(null);
+        function prepKeys(list) {
+            list.forEach(function (t) {
+                t._k = t.keys.map(function (k) { var n = norm(k); n.split(' ').forEach(function (w) { if (w.length >= 3) VOCAB[w] = 1; }); return { n: n, w: 1 + n.split(' ').length * 1.25 }; }).filter(function (k) { return k.n; });
+            });
+        }
+        prepKeys(KB); prepKeys(SMALL);
+        function lev(a, b) {
+            if (Math.abs(a.length - b.length) > 1) return 2;
+            var p = [], i, j; for (j = 0; j <= b.length; j++) p[j] = j;
+            for (i = 1; i <= a.length; i++) { var prev = p[0]; p[0] = i; for (j = 1; j <= b.length; j++) { var t = p[j]; p[j] = Math.min(p[j] + 1, p[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; } }
+            return p[b.length];
+        }
+        function clean(text) {
+            var toks = norm(text).split(' ').filter(Boolean).map(function (w) { return ABBR[w] || w; }).join(' ').split(' ');
+            var fixed = toks.map(function (w) {   // sửa lỗi gõ sai 1 chữ theo từ vựng của kho kiến thức
+                if (VOCAB[w] || w.length < 4) return w;
+                for (var v in VOCAB) if (lev(w, v) === 1) return v;
+                return w;
+            });
+            return { q: ' ' + fixed.join(' ') + ' ', toks: fixed };
+        }
+        function score(t, q) {
+            var s = 0, hit = 0;
+            for (var i = 0; i < t._k.length; i++) { var k = t._k[i]; if (q.indexOf(' ' + k.n + ' ') >= 0) { s += k.w; hit++; } }
+            return s + (hit > 1 ? hit * 0.3 : 0);
+        }
+        var ASPECT = /\b(may gio|gio nao|khi nao|bao gio|bao nhieu|o dau|the nao|nhu nao|tai sao|vi sao|sao|con|duoc khong|co khong|lam sao)\b/;
+        var last = null;
+        function understand(text) {
+            var c = clean(text), q = c.q, all = CUSTOM.concat(KB, SMALL).filter(function (t) { return ADMIN || !t.adminOnly; });
+            var ranked = all.map(function (t) { var s = score(t, q); return { t: t, s: s > 0 && t.custom ? s + 1.5 : s }; }).filter(function (r) { return r.s > 0; }).sort(function (a, b) { return b.s - a.s; });
+            // Hỏi về chính mình: "tôi còn bao nhiêu lượt", "mình có mấy điểm"
+            if (/ (toi|minh|tui|em|tao) /.test(q) && /( bao nhieu | may (diem|luot|ve) | con (bao nhieu|may|lai|luot|diem|ve) )/.test(q) && !/ (lam sao|cach|o dau|tai sao|the nao|nhu nao|choi) /.test(q)) {
+                var w = ranked.filter(function (r) { return r.t.id === 'wallet'; })[0];
+                if (w) w.s += 3; else ranked.push({ t: byId('wallet'), s: 3.5 });
+                ranked.sort(function (a, b) { return b.s - a.s; });
+            }
+            var best = ranked[0];
+            if (best && best.s >= 2) { if (!SMALL.some(function (x) { return x === best.t; })) last = best.t; return { t: best.t, alt: ranked.slice(1, 4).filter(function (r) { return r.s >= Math.max(2, best.s * 0.8) && r.t !== best.t && SMALL.indexOf(r.t) < 0; }).map(function (r) { return r.t; }) }; }
+            // Hỏi tiếp ngắn gọn về chủ đề vừa nói: "mấy giờ mở?", "được bao nhiêu?"
+            if (last && c.toks.length <= 7 && ASPECT.test(q.trim())) return { t: last, follow: true, alt: [] };
+            return { t: null, near: ranked.slice(0, 3).map(function (r) { return r.t; }) };
+        }
+        function byId(id) { var all = KB.concat(SMALL, CUSTOM); for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i]; return null; }
+
+        /* =====================================================================
+           5. GIAO DIỆN TRÒ CHUYỆN
+           ===================================================================== */
+        var log = $('log'), HIST = [], KEY = 'qd_ai_log_v1';
+        function save() { try { sessionStorage.setItem(KEY, JSON.stringify({ at: Date.now(), me: ME, h: HIST.slice(-40) })); } catch (e) {} }
+        function scrollEnd() { requestAnimationFrame(function () { log.scrollTop = log.scrollHeight; }); }
+        function actHTML(acts) {
+            if (!acts || !acts.length) return '';
+            return '<div class="acts">' + acts.map(function (a, i) { return '<button type="button" class="act' + (a.ask ? ' ghost' : (a.adm || a.teach) ? ' adm' : '') + '" data-a="' + esc(JSON.stringify(a)) + '">' + esc(a.t) + '</button>'; }).join('') + '</div>';
+        }
+        function addRow(who, html, acts, opt) {
+            opt = opt || {};
+            var row = document.createElement('div'); row.className = 'row ' + who + (opt.anim === false ? '' : ' in');
+            row.innerHTML = (who === 'b' ? '<img class="mini" src="logo.jpg" alt="">' : '') + '<div class="bub' + (who === 'b' && opt.anim !== false ? ' reveal' : '') + '">' + html + (who === 'b' ? actHTML(acts) : '') + '</div>';
+            if (who === 'b' && opt.anim !== false) Array.prototype.forEach.call(row.querySelector('.bub').children, function (c, i) { c.style.animationDelay = Math.min(i * 70, 700) + 'ms'; });
+            log.appendChild(row);
+            if (opt.store !== false) { HIST.push({ r: who, h: html, a: acts || null }); save(); }
+            if (who === 'b' && opt.anim !== false && row.offsetHeight > log.clientHeight * 0.7) requestAnimationFrame(function () { log.scrollTop = Math.max(0, row.offsetTop - 10); });
+            else scrollEnd();
+            return row;
+        }
+        function typing() { var r = document.createElement('div'); r.className = 'row b in'; r.innerHTML = '<img class="mini" src="logo.jpg" alt=""><div class="bub typing" aria-label="Quân Sư đang trả lời"><i></i><i></i><i></i></div>'; log.appendChild(r); scrollEnd(); return r; }
+        function gridHTML(only) {
+            var ids = only || ['overview', 'today', 'points', 'turns', 'attendance', 'lixi', 'tranh', 'wheel', 'quiz', 'shop', 'rps', 'con', 'lucky', 'invite', 'locked', 'tournament', 'status', 'contact'];
+            return '<div class="grid">' + ids.map(function (id) { var t = byId(id); if (!t) return ''; return '<button type="button" class="gbtn" data-a="' + esc(JSON.stringify({ ask: id, t: t.title })) + '"><span>' + t.icon + '</span>' + esc(t.title) + '</button>'; }).join('') + '</div>';
+        }
+        var PAGE_TOPICS = { 'qt.html': ['wheel', 'quiz', 'claim'], 'tranht.html': ['tranh', 'turns', 'claim'], 'quays.html': ['lucky', 'status'], 'game.html': ['con', 'turns'],
+            'index.html': ['register', 'overview', 'tet'], 'baotri.html': ['maintenance', 'overview'], 'user.html': ['today', 'points', 'turns'], 'admin.html': ['admguide', 'status', 'admteach'] };
+        var PAGE_NAME = { 'qt.html': 'Vòng Quay', 'tranht.html': 'Rút Lì Xì', 'quays.html': 'Quay Số', 'game.html': 'Ném Còn', 'index.html': 'Trang sự kiện', 'baotri.html': 'Bảo trì', 'user.html': 'Trang chính' };
+        function suggest(ids) {
+            var base = (ids && ids.length ? ids : (PAGE_TOPICS[FROM] || ['today', 'points', 'turns'])).concat(['status', 'shop', 'rps', 'attendance', 'lixi', 'lucky']);
+            var seen = {}, out = [];
+            base.forEach(function (id) { if (!seen[id] && byId(id) && out.length < 7) { seen[id] = 1; out.push(id); } });
+            $('sugg').innerHTML = out.map(function (id) { var t = byId(id); return '<button type="button" class="chip" data-a="' + esc(JSON.stringify({ ask: id, t: t.title })) + '">' + t.icon + ' ' + esc(t.title) + '</button>'; }).join('');
+            $('sugg').scrollLeft = 0;
+        }
+        function welcome() {
+            var c = L.cfg.ai_config || {}, greet = c.greeting ? md(c.greeting) : '';
+            var hi = (ME ? 'Chào <b>' + esc(ME) + '</b>! ' : 'Chào bạn! ') + '🧧 Mình là <b>Quân Sư AI</b> — hỏi mình bất cứ điều gì về cơ chế của Quân Đoàn: điểm lì xì, lượt quay, lì xì, điểm danh, Kéo Búa Bao, Ném Còn, quay số...';
+            var where = FROM && PAGE_NAME[FROM] ? P('Bạn vừa mở từ trang <b>' + PAGE_NAME[FROM] + '</b> — gợi ý câu hỏi ở hàng chip bên dưới.') : '';
+            if (ADMIN) {
+                addRow('b', P('Chào <b>' + esc(ME || 'Ban Quản Trị') + '</b>! 🛡️ Đang ở <b>chế độ Ban Quản Trị</b>.') + UL(['Hỏi về bất kỳ cơ chế nào — mình giải thích đúng như thành viên đang thấy, kèm <b>mục cấu hình</b> trong Admin và nút mở thẳng mục đó.',
+                    'Hỏi <b>"đang mở gì"</b> để xem nhanh tình trạng mọi tính năng lúc này.', 'Bấm nút <b>✎</b> trên đầu khung để <b>dạy Quân Sư</b> câu trả lời riêng và xem các câu thành viên hỏi mà AI chưa trả lời được.'])
+                    + greet + P('Chọn nhanh:') + gridHTML(['admguide', 'status', 'admteach', 'attendance', 'lixi', 'wheel', 'quiz', 'tranh', 'shop', 'rps', 'con', 'lucky', 'invite', 'locked', 'register', 'tournament', 'points', 'turns']), null);
+                suggest(); return;
+            }
+            addRow('b', P(hi) + greet + where + P('Chọn nhanh một chủ đề:') + gridHTML(), null);
+            suggest();
+        }
+
+        var busy = false;
+        function answer(topic, opt) {
+            opt = opt || {};
+            var html, acts;
+            try { html = topic.ans(); acts = typeof topic.acts === 'function' ? topic.acts() : (topic.acts || []); }
+            catch (e) { console.error('AI answer', e); html = P('Xin lỗi, mình gặp trục trặc khi đọc dữ liệu. Bạn thử hỏi lại nhé.'); acts = []; }
+            if (opt.follow) html = '<p><small>↪ Về chủ đề <b>' + esc(topic.title) + '</b>:</small></p>' + html;
+            var am = ADMIN && ADM[topic.id];
+            if (am) { html += '<p class="admnote">⚙️ Chỉnh ở Admin → <b>' + esc(am[1]) + '</b>' + (am[2] ? ' · ' + esc(am[2]) : '') + '</p>'; acts = [{ t: '⚙️ Mở mục ' + am[1], adm: am[0] }].concat(acts || []); }
+            if (opt.alt && opt.alt.length) html += '<p><small>Có thể bạn cũng muốn hỏi: ' + opt.alt.map(function (t) { return '<b>' + esc(t.title) + '</b>'; }).join(' · ') + '</small></p>';
+            return { html: html, acts: acts, rel: (opt.alt || []).map(function (t) { return t.id; }).concat((acts || []).filter(function (a) { return a.ask; }).map(function (a) { return a.ask; })) };
+        }
+        function reply(res) {
+            busy = true; $('send').disabled = true;
+            var t = typing(), delay = Math.min(1100, 380 + res.html.length * 0.35);
+            setTimeout(function () { t.remove(); addRow('b', res.html, res.acts); suggest(res.rel); busy = false; $('send').disabled = false; }, delay);
+        }
+        function ask(text) {
+            text = String(text || '').trim(); if (!text || busy) return;
+            addRow('u', esc(text));
+            var u = understand(text), res;
+            if (u.t) {
+                var go = function () { reply(answer(u.t, { follow: u.follow, alt: u.alt })); };
+                if (u.t.id === 'today' || u.t.id === 'attendance') refreshAtt().then(go, go); else go();
+                return;
+            }
+            var near = (u.near || []).filter(function (t) { return t && !SMALL.some(function (x) { return x === t; }); });
+            res = { html: P('Hmm, câu này mình chưa chắc hiểu đúng 🤔. Bạn thử hỏi ngắn gọn hơn (ví dụ: <i>"điểm danh mấy giờ"</i>, <i>"làm sao có lượt quay"</i>) hoặc chọn một chủ đề:')
+                    + (near.length ? '<p>' + near.map(function (t) { return '<b>' + t.icon + ' ' + esc(t.title) + '</b>'; }).join('<br>') + '</p>' : gridHTML()) + P('Nếu cần người thật, hãy nhắn <b>Ban Quản Trị</b>.'),
+                acts: near.map(function (t) { return { t: t.icon + ' ' + t.title, ask: t.id }; }).concat([{ t: '💬 Nhắn Ban Quản Trị', do: 'chat' }]), rel: near.map(function (t) { return t.id; }) };
+            reply(res);
+            if (db && !ADMIN) db.collection('ai_unanswered').add({ q: text.slice(0, 300), user: ME || null, page: FROM || null, at: Date.now() }).catch(function () {});
+        }
+
+        /* ---------- Nút hành động ---------- */
+        var DO_GO = { attendance: 'user.html', lixi: 'user.html', shop: 'user.html', inventory: 'user.html', lucky: 'user.html', rps: 'user.html', transfer: 'user.html', profile: 'user.html',
+            regid: 'user.html', tournament: 'user.html', chat: 'user.html', news: 'user.html', settings: 'user.html' };
+        function runAct(a) {
+            if (a.teach) { if (isAdmin() && db) openTeach(); else toast('Chỉ Ban Quản Trị dùng được chức năng này.'); return; }
+            if (a.ask) { var t = byId(a.ask); if (t && !busy) { addRow('u', esc(t.title)); var go = function () { reply(answer(t)); }; last = t; if (a.ask === 'today' || a.ask === 'attendance') refreshAtt().then(go, go); else go(); } return; }
+            if (a.adm) { try { parent.postMessage({ type: 'qd-help-act', adm: a.adm }, location.origin); } catch (e) {} return; }
+            var target = a.go || (a.do ? DO_GO[a.do] + '#qd-act=' + a.do : null); if (!target) return;
+            if (EMBED) { try { parent.postMessage({ type: 'qd-help-act', go: a.go || null, act: a.do || null }, location.origin); return; } catch (e) {} }
+            location.href = target;
+        }
+        document.addEventListener('click', function (e) {
+            var b = e.target.closest && e.target.closest('[data-a]'); if (!b) return;
+            try { runAct(JSON.parse(b.getAttribute('data-a'))); } catch (err) { console.warn(err); }
+        });
+        $('composer').addEventListener('submit', function (e) { e.preventDefault(); var i = $('q'), v = i.value; i.value = ''; ask(v); });
+        $('btn-new').addEventListener('click', function () { HIST = []; save(); log.innerHTML = ''; last = null; welcome(); });
+        if (EMBED) {
+            $('btn-back').hidden = true; $('btn-close').hidden = false;
+            $('btn-close').addEventListener('click', function () { try { parent.postMessage({ type: 'qd-help-close' }, location.origin); } catch (e) {} });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('teach').classList.contains('show')) { try { parent.postMessage({ type: 'qd-help-close' }, location.origin); } catch (er) {} } });
+        } else {
+            $('btn-back').href = FROM || 'user.html';
+            if (FROM === 'user.html' || !FROM) $('btn-back').setAttribute('aria-label', 'Về trang chính');
+        }
+
+        /* =====================================================================
+           6. DẠY AI (chỉ Ban Quản Trị) — settings/ai_config + ai_unanswered
+           ===================================================================== */
+        var T = { tab: 'faq', edit: null, miss: null };
+        function toast(m) { var t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove('show'); }, 2600); }
+        function isAdmin() { return ADMIN || L.role === 'admin' || L.role === 'manager'; }
+        function faqs() { var c = L.cfg.ai_config || {}; return Array.isArray(c.faqs) ? c.faqs.slice() : []; }
+        function saveCfg(data) { return db.collection('settings').doc('ai_config').set(Object.assign({ updatedAt: Date.now(), updatedBy: ME }, data), { merge: true }); }
+        function renderTeach() {
+            document.querySelectorAll('.sh-tab').forEach(function (b) { b.classList.toggle('on', b.dataset.t === T.tab); });
+            var body = $('teach-body');
+            if (T.tab === 'faq') {
+                var e = T.edit || {}, list = faqs();
+                body.innerHTML = '<div class="fld"><label for="f-q">Câu hỏi mẫu</label><input id="f-q" maxlength="160" placeholder="VD: Giải thưởng Tết được trao khi nào?" value="' + esc(e.q || '') + '"></div>'
+                    + '<div class="fld"><label for="f-k">Từ khóa (cách nhau bằng dấu phẩy)</label><input id="f-k" maxlength="400" placeholder="trao giai, nhan giai, khi nao trao" value="' + esc(e.keys || '') + '"><small>Viết có dấu hay không dấu đều được. Câu trả lời riêng được ưu tiên hơn kiến thức có sẵn.</small></div>'
+                    + '<div class="fld"><label for="f-a">Câu trả lời</label><textarea id="f-a" maxlength="2000" placeholder="Hỗ trợ **in đậm** và dòng bắt đầu bằng - để gạch đầu dòng">' + esc(e.a || '') + '</textarea></div>'
+                    + '<div class="btns"><button type="button" class="btn" id="f-save">' + (e.id ? 'Lưu thay đổi' : '＋ Thêm câu trả lời') + '</button>' + (e.id || e.q ? '<button type="button" class="btn alt" id="f-cancel">Hủy</button>' : '') + '<button type="button" class="btn alt" id="f-test">Thử hỏi</button></div>'
+                    + '<h4 style="font-size:14px;color:var(--ink);margin-top:6px">Đã dạy (' + list.length + ')</h4>'
+                    + (list.length ? list.map(function (f) {
+                        return '<div class="item"><div class="q">' + (f.on === false ? '⏸ ' : '📌 ') + esc(f.q || '(không có câu hỏi)') + '</div><div class="k">Từ khóa: ' + esc(f.keys || '—') + '</div><div class="a">' + esc(f.a) + '</div>'
+                            + '<div class="btns"><button type="button" class="btn alt" data-f="edit" data-id="' + esc(f.id) + '">Sửa</button><button type="button" class="btn alt" data-f="toggle" data-id="' + esc(f.id) + '">' + (f.on === false ? 'Bật' : 'Tạm tắt') + '</button><button type="button" class="btn alt" data-f="del" data-id="' + esc(f.id) + '">Xóa</button></div></div>';
+                    }).join('') : '<div class="empty">Chưa có câu trả lời riêng nào.</div>');
+            } else if (T.tab === 'miss') {
+                if (T.miss == null) { body.innerHTML = '<div class="empty">Đang tải...</div>'; loadMiss(); return; }
+                body.innerHTML = '<p style="font-size:13px;color:var(--muted)">Các câu thành viên đã hỏi mà Quân Sư chưa trả lời được. Bấm <b>Dạy câu này</b> để thêm câu trả lời.</p>'
+                    + (T.miss.length ? T.miss.map(function (m) {
+                        return '<div class="item"><div class="q">' + esc(m.q) + '</div><div class="k">' + esc(m.user || 'Khách') + (m.page ? ' · ' + esc(m.page) : '') + ' · ' + new Date(m.at).toLocaleString('vi-VN') + '</div>'
+                            + '<div class="btns"><button type="button" class="btn" data-f="learn" data-id="' + esc(m.id) + '">Dạy câu này</button><button type="button" class="btn alt" data-f="mdel" data-id="' + esc(m.id) + '">Bỏ qua</button></div></div>';
+                    }).join('') : '<div class="empty">Chưa có câu nào — Quân Sư đang trả lời tốt 🎉</div>');
+            } else {
+                var g = (L.cfg.ai_config || {}).greeting || '';
+                body.innerHTML = '<div class="fld"><label for="g-t">Lời chào thêm (hiện dưới lời chào mặc định)</label><textarea id="g-t" maxlength="600" placeholder="VD: 🔥 Sự kiện x2 điểm danh từ 1/12 đến 7/12!">' + esc(g) + '</textarea><small>Để trống nếu không dùng.</small></div>'
+                    + '<div class="btns"><button type="button" class="btn" id="g-save">Lưu lời chào</button></div>';
+            }
+        }
+        function loadMiss() {
+            db.collection('ai_unanswered').orderBy('at', 'desc').limit(40).get().then(function (s) {
+                T.miss = s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); if (T.tab === 'miss') renderTeach();
+            }).catch(function () { T.miss = []; if (T.tab === 'miss') { renderTeach(); toast('Không tải được danh sách (kiểm tra quyền Firestore).'); } });
+        }
+        function openTeach() { if (!isAdmin() || !db) return; T.edit = null; T.miss = null; $('teach').classList.add('show'); renderTeach(); }
+        function closeTeach() { $('teach').classList.remove('show'); }
+        $('btn-teach').addEventListener('click', openTeach);
+        $('teach-x').addEventListener('click', closeTeach);
+        $('teach').addEventListener('click', function (e) { if (e.target === this) closeTeach(); });
+        document.querySelectorAll('.sh-tab').forEach(function (b) { b.addEventListener('click', function () { T.tab = b.dataset.t; renderTeach(); }); });
+        $('teach-body').addEventListener('click', function (e) {
+            var b = e.target.closest('button'); if (!b || !isAdmin()) return;
+            var id = b.dataset.id, f = b.dataset.f, list = faqs();
+            if (b.id === 'f-save') {
+                var q = $('f-q').value.trim(), k = $('f-k').value.trim(), a = $('f-a').value.trim();
+                if (!a || (!q && !k)) return toast('Cần có câu trả lời và ít nhất câu hỏi mẫu hoặc từ khóa.');
+                var ed = T.edit && T.edit.id ? T.edit.id : null;
+                if (ed) list = list.map(function (x) { return x.id === ed ? Object.assign({}, x, { q: q, keys: k, a: a, at: Date.now() }) : x; });
+                else list.push({ id: 'f' + Date.now().toString(36), q: q, keys: k, a: a, on: true, at: Date.now(), by: ME });
+                b.disabled = true;
+                saveCfg({ faqs: list }).then(function () { toast(ed ? 'Đã lưu thay đổi.' : 'Đã dạy thêm 1 câu trả lời.'); T.edit = null; L.cfg.ai_config = Object.assign({}, L.cfg.ai_config, { faqs: list }); prepCustom(); renderTeach(); })
+                    .catch(function () { b.disabled = false; toast('Lưu thất bại — kiểm tra kết nối / quyền ghi.'); });
+            } else if (b.id === 'f-cancel') { T.edit = null; renderTeach(); }
+            else if (b.id === 'f-test') { var tq = $('f-q').value.trim(); if (tq) { closeTeach(); ask(tq); } else toast('Nhập câu hỏi mẫu để thử.'); }
+            else if (b.id === 'g-save') { saveCfg({ greeting: $('g-t').value.trim() }).then(function () { toast('Đã lưu lời chào.'); }).catch(function () { toast('Lưu thất bại.'); }); }
+            else if (f === 'edit') { T.edit = list.filter(function (x) { return x.id === id; })[0] || null; renderTeach(); $('teach-body').scrollTop = 0; }
+            else if (f === 'toggle' || f === 'del') {
+                if (f === 'del' && !confirm('Xóa câu trả lời này?')) return;
+                list = f === 'del' ? list.filter(function (x) { return x.id !== id; }) : list.map(function (x) { return x.id === id ? Object.assign({}, x, { on: x.on === false }) : x; });
+                saveCfg({ faqs: list }).then(function () { L.cfg.ai_config = Object.assign({}, L.cfg.ai_config, { faqs: list }); prepCustom(); renderTeach(); }).catch(function () { toast('Lưu thất bại.'); });
+            } else if (f === 'learn') {
+                var m = (T.miss || []).filter(function (x) { return x.id === id; })[0]; if (!m) return;
+                T.tab = 'faq'; T.edit = { q: m.q, keys: '', a: '' }; renderTeach(); $('f-a').focus();
+                db.collection('ai_unanswered').doc(id).delete().catch(function () {}); T.miss = T.miss.filter(function (x) { return x.id !== id; });
+            } else if (f === 'mdel') {
+                db.collection('ai_unanswered').doc(id).delete().then(function () { T.miss = T.miss.filter(function (x) { return x.id !== id; }); renderTeach(); }).catch(function () { toast('Không xóa được.'); });
+            }
+        });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('teach').classList.contains('show')) closeTeach(); });
+
+        /* =====================================================================
+           7. KHỞI ĐỘNG
+           ===================================================================== */
+        initFB(); status();
+        setTimeout(status, 4000);
+        (function restore() {
+            var s = null; try { s = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
+            if (s && s.h && s.h.length && Date.now() - s.at < 2 * 3600e3 && s.me === ME) {
+                HIST = s.h; s.h.forEach(function (m) { addRow(m.r, m.h, m.a, { anim: false, store: false }); }); suggest();
+            } else welcome();
+            var q0 = QS.get('q'); if (q0) setTimeout(function () { ask(q0); }, 300);
+        })();
+        if (!EMBED || matchMedia('(min-width: 700px)').matches) setTimeout(function () { try { $('q').focus({ preventScroll: true }); } catch (e) {} }, 400);
+    })();
+    </script>
+    <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
+    <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>
+        <div class="qd-net-card">
+            <span class="qd-net-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path class="qd-off" d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path class="qd-off" d="M19 12.9a10 10 0 0 0-2.3-1.7"/><path class="qd-on" d="M19 12.9a10 10 0 0 0-14 0" style="display:none"/><path d="M2 9.3a15 15 0 0 1 4.2-2.8"/><path class="qd-off" d="M22 9.3A15 15 0 0 0 10.7 5"/><path class="qd-on" d="M22 9.3a15 15 0 0 0-20 0" style="display:none"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+            </span>
+            <span class="qd-net-txt">
+                <b id="qd-net-title">Không có kết nối Internet</b>
+                <small id="qd-net-sub">Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.</small>
+            </span>
+            <button type="button" class="qd-net-btn" id="qd-net-retry">Thử lại</button>
+        </div>
+    </div>
+    <style>
+        .qd-net { position: fixed; left: 0; right: 0; top: 0; z-index: 2147483000; display: flex; justify-content: center; padding: max(10px, env(safe-area-inset-top)) 12px 0; pointer-events: none; }
+        .qd-net[hidden] { display: none !important; }
+        .qd-net-card { pointer-events: auto; display: flex; align-items: center; gap: 12px; width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 16px; box-sizing: border-box;
+            font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; text-align: left; color: #fff;
+            background: linear-gradient(135deg, #b3121b, #7a0000); border: 2px solid #ffd95a; box-shadow: 0 12px 30px rgba(0,0,0,.45); animation: qdNetIn .35s cubic-bezier(.2, 1.4, .4, 1); }
+        .qd-net-card * { text-shadow: none !important; box-sizing: border-box; }
+        .qd-net-ico { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .qd-net-txt b { font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; }
+        .qd-net-txt small { font-size: 12.5px; font-weight: 600; color: #fef08a; line-height: 1.4; }
+        .qd-net-btn { flex: 0 0 auto; padding: 9px 14px; border-radius: 999px; border: none; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; color: #7a0000; background: linear-gradient(135deg, #fff6c8, #ffd95a 55%, #e9a91c); }
+        .qd-net-btn:disabled { opacity: .7; cursor: wait; }
+        .qd-net.ok .qd-net-card { background: linear-gradient(135deg, #059669, #065f46); border-color: #a7f3d0; }
+        .qd-net.ok .qd-net-ico { color: #065f46; background: #d1fae5; }
+        .qd-net.ok .qd-net-btn, .qd-net.ok .qd-off { display: none; }
+        .qd-net.ok .qd-on { display: inline !important; }
+        .qd-net:not(.ok) .qd-net-ico { animation: qdNetPulse 1.6s ease-in-out infinite; }
+        @keyframes qdNetIn { from { transform: translateY(-120%); opacity: 0; } }
+        @keyframes qdNetPulse { 50% { transform: scale(.88); } }
+        @media (max-width: 420px) { .qd-net-card { gap: 10px; padding: 10px 12px; } .qd-net-txt b { font-size: 14px; } .qd-net-txt small { font-size: 12px; } .qd-net-btn { padding: 8px 11px; } }
+        @media (prefers-reduced-motion: reduce) { .qd-net-card, .qd-net-ico { animation: none !important; } }
+    </style>
+    <script>
+    /* Phát hiện mất mạng: sự kiện online/offline của trình duyệt + kiểm tra thật định kỳ
+       (navigator.onLine có thể báo "có mạng" khi Wi-Fi đã kết nối nhưng không ra được Internet) */
+    (function () {
+        'use strict';
+        if (window.__qdNetGuard) return; window.__qdNetGuard = true;
+        var box = document.getElementById('qd-net'), title = document.getElementById('qd-net-title'), sub = document.getElementById('qd-net-sub'), btn = document.getElementById('qd-net-retry');
+        var PROBES = ['https://www.gstatic.com/generate_204', 'https://firestore.googleapis.com/', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
+        var offline = false, fails = 0, okTimer = null, checking = false;
+
+        function probe(url) {
+            return new Promise(function (resolve, reject) {
+                var ctrl = window.AbortController ? new AbortController() : null;
+                var t = setTimeout(function () { if (ctrl) ctrl.abort(); reject(new Error('timeout')); }, 6000);
+                fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now(), { mode: 'no-cors', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+                    .then(function () { clearTimeout(t); resolve(true); }, function (e) { clearTimeout(t); reject(e); });
+            });
+        }
+        function anyOk() {   // chỉ cần 1 máy chủ phản hồi là có mạng
+            return new Promise(function (resolve) {
+                var left = PROBES.length;
+                PROBES.forEach(function (u) { probe(u).then(function () { resolve(true); }, function () { if (--left === 0) resolve(false); }); });
+            });
+        }
+        function show() {
+            if (offline) return; offline = true;
+            clearTimeout(okTimer);
+            box.classList.remove('ok');
+            title.textContent = 'Không có kết nối Internet';
+            sub.textContent = 'Vui lòng kiểm tra Wi-Fi hoặc 4G. Hệ thống sẽ tự kết nối lại.';
+            box.hidden = false;
+        }
+        function hide() {
+            if (!offline) return; offline = false;
+            box.classList.add('ok');
+            title.textContent = 'Đã kết nối lại Internet';
+            sub.textContent = 'Dữ liệu đang được đồng bộ lại.';
+            clearTimeout(okTimer);
+            okTimer = setTimeout(function () { box.hidden = true; box.classList.remove('ok'); }, 2500);
+        }
+        function check() {
+            if (checking) return; checking = true;
+            if (navigator.onLine === false) { checking = false; fails = 2; show(); return; }
+            anyOk().then(function (ok) {
+                checking = false;
+                if (ok) { fails = 0; hide(); }
+                else if (++fails >= 2 || offline) show();   // lỗi 2 lần liên tiếp mới báo, tránh báo nhầm
+                else setTimeout(check, 3000);
+            });
+        }
+
+        window.addEventListener('offline', function () { fails = 2; show(); });
+        window.addEventListener('online', function () { setTimeout(check, 500); });
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+        btn.addEventListener('click', function () {
+            btn.disabled = true; btn.textContent = 'Đang thử...';
+            sub.textContent = 'Đang kiểm tra kết nối...';
+            fails = 1; checking = false;
+            check();
+            setTimeout(function () {
+                btn.disabled = false; btn.textContent = 'Thử lại';
+                if (offline) sub.textContent = 'Vẫn chưa có mạng. Vui lòng kiểm tra Wi-Fi hoặc 4G.';
+            }, 2500);
+        });
+        // Kiểm tra định kỳ: mất mạng thì 5 giây/lần để báo có mạng lại nhanh; bình thường 20 giây/lần
+        (function loop() { setTimeout(function () { if (!document.hidden || offline) check(); loop(); }, offline ? 5000 : 20000); })();
+        if (navigator.onLine === false) show();
+    })();
+    </script>
+    <!-- ===== QD TẾT MUSIC: nhạc nền Tết dùng chung (mọi trang trừ admin; user.html có trình phát riêng) ===== -->
+    <script id="qd-music-js">
+    /* - Vào trang tự bật nhạc Tết (mặc định Bật). Trình duyệt chặn tự phát -> phát ở lần chạm / bấm phím đầu tiên
+       - 4 bài: mặc định tự chuyển bài lần lượt; chọn lặp 1 bài trong Cài đặt của trang user (qd_music_track: 'auto' | '0'..'3')
+       - Dùng chung cài đặt với trang user: qd_music_on ('0' = tắt), qd_music_vol (0-100, mặc định 50)
+       - Chuyển trang -> nghe tiếp đúng đoạn đang phát; ẩn tab -> tạm dừng, quay lại -> phát tiếp
+       - Nút tròn góc trái dưới: bấm để Bật / Tắt nhạc */
+    (function () {
+        'use strict';
+        if (window.QDMusic || document.getElementById('bg-music')) return;
+        try { if (window.top !== window) return; } catch (e) { return; }   // mở trong khung Hỗ trợ: trang mẹ đã có nhạc
+        var d = document, W = window;
+        var TRACKS = [
+            { src: 'nhac-tet.mp3', name: 'Xuân Về Phơi Phới' },
+            { src: 'nhac-tet-2.mp3', name: 'Xuân Rộn Ràng' },
+            { src: 'nhac-tet-3.mp3', name: 'Lân Về Phố' },
+            { src: 'nhac-tet-4.mp3', name: 'Sum Vầy Ngày Xuân' }
+        ];
+        function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+        function readVol() { var v = parseInt(ls('qd_music_vol'), 10); return isNaN(v) ? 50 : Math.min(100, Math.max(0, v)); }
+        function readMode() { var m = ls('qd_music_track'); return m != null && m !== '' && TRACKS[+m] ? String(+m) : 'auto'; }
+        var M = W.QDMusic = { tracks: TRACKS, mode: readMode(), idx: 0, enabled: ls('qd_music_on') !== '0', vol: readVol(), active: false, waiting: false, el: null, btn: null, ctx: null, gain: null, useGain: false };
+
+        var CSS = '#qd-music-btn{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(16px,calc(env(safe-area-inset-bottom) + 10px));z-index:9990;width:46px;height:46px;padding:0;border-radius:50%;border:2px solid #ffd95a;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#ffd95a;background:radial-gradient(circle at 35% 30%,#e3262d,#a10b12 58%,#6a0000);box-shadow:0 6px 18px rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent;transition:transform .2s;font-family:"Be Vietnam Pro","Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}'
+            + '#qd-music-btn:active{transform:scale(.9)}#qd-music-btn:focus-visible{outline:3px solid rgba(255,217,90,.6);outline-offset:3px}'
+            + '#qd-music-btn svg{width:22px;height:22px;display:block}'
+            + '.qd-mu-ring{position:absolute;inset:-6px;border-radius:50%;border:2px dashed rgba(255,217,90,.75);opacity:0;pointer-events:none;transition:opacity .3s}'
+            + '#qd-music-btn.on .qd-mu-ring{opacity:1;animation:qdMuSpin 8s linear infinite}'
+            + '#qd-music-btn.wait .qd-mu-ring{opacity:1;border-style:solid;animation:qdMuPing 1.6s ease-out infinite}'
+            + '.qd-mu-eq{display:none;gap:3px;align-items:flex-end;height:18px}.qd-mu-eq i{display:block;width:4px;height:18px;border-radius:2px;background:#ffd95a;transform-origin:50% 100%;animation:qdMuEq .9s ease-in-out infinite}'
+            + '.qd-mu-eq i:nth-child(2){animation-delay:-.3s}.qd-mu-eq i:nth-child(3){animation-delay:-.6s}'
+            + '#qd-music-btn.on .qd-mu-eq{display:flex}#qd-music-btn.on .qd-mu-note{display:none}.qd-mu-x{display:none}#qd-music-btn.off .qd-mu-x{display:inline}#qd-music-btn.off{opacity:.8}'
+            + '.qd-mu-tip{position:absolute;left:58px;top:50%;transform:translateY(-50%);white-space:nowrap;padding:8px 13px;border-radius:999px;font-size:12.5px;font-weight:800;line-height:1;color:#7a0000;background:linear-gradient(135deg,#fff6c8,#ffd95a 55%,#e9a91c);box-shadow:0 6px 16px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .35s}'
+            + '#qd-music-btn.tip .qd-mu-tip{opacity:1}'
+            + '@keyframes qdMuSpin{to{transform:rotate(360deg)}}@keyframes qdMuEq{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}@keyframes qdMuPing{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.35);opacity:0}}'
+            + '@media (prefers-reduced-motion:reduce){#qd-music-btn *{animation:none!important}}';
+        var ICON = '<span class="qd-mu-ring" aria-hidden="true"></span>'
+            + '<svg class="qd-mu-note" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13" /><circle cx="6" cy="18" r="3" fill="currentColor" /><circle cx="17" cy="16" r="3" fill="currentColor" /><path class="qd-mu-x" d="M3 3l18 18" stroke="#fff6c8" stroke-width="2.6" /></svg>'
+            + '<span class="qd-mu-eq" aria-hidden="true"><i></i><i></i><i></i></span>'
+            + '<span class="qd-mu-tip"></span>';
+
+        function ui() {
+            var b = M.btn; if (!b) return;
+            var on = !!(M.el && !M.el.paused);
+            b.classList.toggle('on', on);
+            b.classList.toggle('wait', !on && M.waiting);
+            b.classList.toggle('off', !on && !M.waiting);
+            b.setAttribute('aria-label', on ? 'Tắt nhạc nền' : 'Bật nhạc nền');
+            b.title = on ? 'Tắt nhạc nền' : 'Bật nhạc nền';
+            if (on && M.waiting === false && shown === M.idx && b.querySelector('.qd-mu-tip').textContent.indexOf('Chạm') >= 0) b.classList.remove('tip');
+        }
+        // Gán bài thứ i (không tự phát)
+        function setTrack(i) {
+            var n = TRACKS.length; i = ((i % n) + n) % n;
+            M.idx = i; M.el.loop = M.mode !== 'auto';
+            var url = new URL(TRACKS[i].src, location.href).href;
+            if (M.el.src !== url) M.el.src = url;
+            ls('qd_music_last', String(i));
+        }
+        M.next = function () { var on = !M.el.paused || M.active; setTrack(M.idx + 1); if (on && M.enabled) M.play(true); };
+        function vol(v) {
+            var x = Math.min(100, Math.max(0, v)) / 100; x = x * x;   // 50% -> 25%: nghe tự nhiên hơn
+            if (M.gain) { try { M.gain.gain.setTargetAtTime(x, M.ctx.currentTime, 0.03); } catch (e) { M.gain.gain.value = x; } M.el.volume = 1; }
+            else if (M.el) M.el.volume = x;
+        }
+        var fadeT = 0;
+        function fadeIn() {
+            var t0 = performance.now(); clearInterval(fadeT); vol(0);
+            fadeT = setInterval(function () { var k = Math.min(1, (performance.now() - t0) / 1200); vol(M.vol * k); if (k >= 1) clearInterval(fadeT); }, 50);
+        }
+        // iPhone/iPad không cho JS chỉnh audio.volume -> đi qua Web Audio (phải tạo trong lúc người dùng chạm)
+        function setupGain() {
+            if (!M.useGain || M.gain) return;
+            try {
+                var AC = W.AudioContext || W.webkitAudioContext; M.ctx = new AC();
+                var src = M.ctx.createMediaElementSource(M.el); M.gain = M.ctx.createGain();
+                src.connect(M.gain); M.gain.connect(M.ctx.destination); vol(M.vol);
+            } catch (e) { M.useGain = false; M.gain = null; }
+        }
+        var GEST = ['touchend', 'click', 'keydown', 'mousedown'], tipT = 0, shown = -1;
+        function tip(text, ms) {
+            var b = M.btn; if (!b) return;
+            b.querySelector('.qd-mu-tip').textContent = text;
+            clearTimeout(tipT); b.classList.add('tip'); tipT = setTimeout(function () { b.classList.remove('tip'); }, ms);
+        }
+        function wait() {
+            if (M.waiting) return; M.waiting = true; ui();
+            tip('🎵 Chạm để bật nhạc Tết', 6000);
+            GEST.forEach(function (ev) { d.addEventListener(ev, go, true); });
+        }
+        function go(e) {
+            if (e && e.target && e.target.closest && e.target.closest('#qd-music-btn')) return;   // bấm nút: để nút tự xử lý
+            GEST.forEach(function (ev) { d.removeEventListener(ev, go, true); });
+            M.waiting = false;
+            if (M.enabled && M.active && M.el.paused) M.play(true); else ui();
+        }
+        M.play = function (gesture) {
+            var el = M.el; M.active = true;
+            if (d.hidden) { M.hid = true; return; }
+            if (M.useGain && !M.gain) { if (!gesture) return wait(); setupGain(); }
+            if (M.ctx && M.ctx.state !== 'running') { try { M.ctx.resume(); } catch (e) {} }
+            if (!el.paused) return ui();
+            fadeIn();
+            var p = el.play();
+            if (p && p.then) p.then(function () {
+                M.waiting = false; GEST.forEach(function (ev) { d.removeEventListener(ev, go, true); }); ui();
+            }, function (err) {
+                if (err && err.name === 'NotAllowedError') { M.waiting = false; return wait(); }
+                M.active = false; ui();
+            });
+        };
+        M.stop = function () { M.active = false; clearInterval(fadeT); if (M.el) M.el.pause(); ui(); };
+        M.toggle = function () {
+            if (M.el.paused) { M.enabled = true; ls('qd_music_on', '1'); M.play(true); }
+            else { M.enabled = false; ls('qd_music_on', '0'); M.stop(); }
+        };
+
+        function boot() {
+            var st = d.createElement('style'); st.id = 'qd-music-css'; st.textContent = CSS; d.head.appendChild(st);
+            var el = M.el = d.createElement('audio');
+            el.id = 'qd-music'; el.preload = 'auto'; el.setAttribute('playsinline', '');
+            // chọn bài: nghe tiếp bài của trang trước; lần đầu ở chế độ tự động -> bài sau bài nghe lần trước
+            var sp = null; try { sp = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'); } catch (e) {}
+            var start = 0;
+            if (M.mode !== 'auto') start = +M.mode;
+            else if (sp && TRACKS[sp.i] && Date.now() - sp.at < 15000) start = sp.i;
+            else { var last = parseInt(ls('qd_music_last'), 10); start = isNaN(last) ? 0 : last + 1; }
+            setTrack(start);
+            el.addEventListener('ended', function () { if (M.mode === 'auto') M.next(); });
+            el.addEventListener('playing', function () { if (shown !== M.idx) { shown = M.idx; tip('🎵 ' + TRACKS[M.idx].name, 3500); } });
+            var b = M.btn = d.createElement('button');
+            b.type = 'button'; b.id = 'qd-music-btn'; b.innerHTML = ICON;
+            b.addEventListener('click', function (e) { e.stopPropagation(); M.toggle(); });
+            d.body.appendChild(el); d.body.appendChild(b);
+            try { var t = new Audio(); t.volume = 0.5; M.useGain = Math.abs(t.volume - 0.5) > 0.01 && !!(W.AudioContext || W.webkitAudioContext); } catch (e) {}
+            vol(M.vol);
+            el.addEventListener('play', ui); el.addEventListener('pause', ui);
+            el.addEventListener('error', function () { M.active = false; M.waiting = false; if (M.btn) M.btn.style.display = 'none'; });
+            // nghe tiếp đoạn nhạc từ trang trước
+            el.addEventListener('loadedmetadata', function () {
+                try {
+                    var s = JSON.parse(sessionStorage.getItem('qd_music_pos') || 'null'), du = el.duration;
+                    if (s && s.i === M.idx && du && isFinite(du) && Date.now() - s.at < 15000) { el.currentTime = Math.min(s.t + (Date.now() - s.at) / 1000, du - 0.5); shown = M.idx; }
+                } catch (e) {}
+            }, { once: true });
+            W.addEventListener('pagehide', function () {
+                try { if (!el.paused) sessionStorage.setItem('qd_music_pos', JSON.stringify({ i: M.idx, t: el.currentTime, at: Date.now() })); else sessionStorage.removeItem('qd_music_pos'); } catch (e) {}
+            });
+            d.addEventListener('visibilitychange', function () {
+                if (d.hidden) { if (!el.paused) { M.hid = true; el.pause(); } return; }
+                if (M.hid) { M.hid = false; if (M.enabled && M.active) M.play(false); }
+            });
+            // đổi âm lượng / bật tắt ở tab khác (trang user) -> áp dụng ngay
+            W.addEventListener('storage', function (e) {
+                if (e.key === 'qd_music_vol') { M.vol = readVol(); clearInterval(fadeT); vol(M.vol); }
+                else if (e.key === 'qd_music_on') { M.enabled = e.newValue !== '0'; if (!M.enabled) M.stop(); }
+                else if (e.key === 'qd_music_track') {
+                    M.mode = readMode(); el.loop = M.mode !== 'auto';
+                    if (M.mode !== 'auto' && +M.mode !== M.idx) { var on = !el.paused; setTrack(+M.mode); if (on) M.play(true); }
+                }
+            });
+            ui();
+            if (M.enabled) M.play(false);   // mặc định: vào trang là bật nhạc
+        }
+        if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+    })();
+    </script>
+</body>
+</html>
