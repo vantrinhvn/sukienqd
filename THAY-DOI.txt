@@ -1,3 +1,255 @@
+QD ELITE - ADMIN BẬT / TẮT "BẢO VỆ MÃ NGUỒN" (CHẶN CTRL+U, F12, CHUỘT PHẢI...) (03/11/2026, bản 16)
+================================================================================================
+File thay đổi (chép đè 8 file): admin.html + khối "qd-guard" ở index.html, user.html, qt.html, quays.html, tranht.html, game.html, baotri.html.
+Mặc định: TẮT (bật ở Admin mới có tác dụng).
+
+ADMIN > Chống gian lận > thẻ "Bảo vệ mã nguồn" (ngay dưới 2 công tắc tổng)
+- Công tắc tổng "Bảo vệ mã nguồn" (lưu ngay; độc lập với công tắc "Chống gian lận").
+- Tùy chọn (mỗi cái 1 công tắc, lưu ngay):
+  ⌨️ Chặn phím xem mã: Ctrl+U (xem nguồn trang), F12, Ctrl+Shift+I / J / C / K, Ctrl+S (lưu trang), phím tương ứng trên Mac — mặc định BẬT
+  🖱️ Chặn chuột phải (ô nhập chữ vẫn dán được) — mặc định BẬT
+  📋 Chặn bôi đen & sao chép nội dung, kéo ảnh (ô nhập chữ, khung chat vẫn dùng bình thường) — mặc định TẮT
+  🛠️ Báo khi mở DevTools (máy tính, có thể báo nhầm khi thu nhỏ cửa sổ) — mặc định TẮT
+  🛡️ Miễn cho thiết bị Ban Quản Trị: trình duyệt đã đăng nhập Admin (30 ngày) không bị chặn — mặc định BẬT.
+     Muốn tự thử chặn trên máy mình: tắt mục này, hoặc mở web bằng trình duyệt / máy khác.
+- Lời nhắn hiện khi bị chặn (mặc định "Chức năng này đã bị Ban Quản Trị khóa.").
+- Cố mở mã 3 lần / phút -> cảnh báo "Cố mở mã nguồn" (mức Thấp) trong tab Cảnh báo (nếu Chống gian lận đang bật).
+
+Trên trang thành viên
+- Áp dụng mọi trang: index, user, qt, quays, tranht, game, baotri — kể cả khung Quân Sư AI mở trong trang.
+- Admin bật / tắt -> trang đang mở đổi theo NGAY (khối qd-guard nay nghe cấu hình trực tiếp thay vì 5 phút đọc 1 lần;
+  các công tắc Chống gian lận khác cũng có hiệu lực ngay).
+- Cấu hình được nhớ trên máy -> lần sau mở trang được bảo vệ ngay từ đầu, không chờ kết nối máy chủ.
+- Bị chặn: hiện lời nhắn ngắn ở cuối màn hình (hoặc thông báo của trang).
+
+GIỚI HẠN (ghi rõ trong Admin): trang web không thể mã hóa / giấu mã tuyệt đối — trình duyệt luôn tải mã về máy để chạy, người rành
+vẫn xem được qua menu trình duyệt, "view-source:" hoặc công cụ chuyên dụng. Đây là lớp chặn phổ thông, đủ ngăn đa số người dùng.
+Không để mật khẩu / đáp án / bí mật trong mã trang (đáp án câu hỏi đã băm SHA-256 sẵn).
+
+Dữ liệu: settings/security_config.protect = { on, keys, menu, copy, devtools, staffExempt, msg }.
+Máy thành viên: localStorage qd_prot (bản nhớ cấu hình), qd_staff (thiết bị đã đăng nhập Admin).
+
+QD ELITE - CHUYỂN "CHỐNG ĐIỂM DANH HỘ" SANG CHỐNG GIAN LẬN + ẢNH ĐẠI DIỆN QUÂN SƯ MỚI (03/11/2026, bản 15)
+=========================================================================================================
+File thay đổi (chép đè 9 file): admin.html, user.html, al.html, index.html, qt.html, quays.html, tranht.html, game.html, baotri.html
+(6 trang index/qt/quays/tranht/game/baotri chỉ cập nhật khối "qd-guard").
+
+1. Chống Điểm Danh Hộ (Kiểm tra Thiết bị & IP mạng)
+- ĐÃ BỎ thẻ này ở Admin > Điểm danh.
+- Nay nằm ở Admin > Chống gian lận > Bộ phát hiện > "Trên máy thành viên", dòng đầu tiên "🛡️ Chống điểm danh hộ (Thiết bị & IP mạng)".
+  Bật / tắt là lưu ngay, vẫn lưu ở settings/attendance.antiProxyEnabled như cũ -> cấu hình cũ giữ nguyên, không cần cài lại.
+- Công tắc tổng "Chống gian lận" TẮT thì chống điểm danh hộ cũng tắt theo (trang Điểm danh không chặn nữa).
+- Mỗi lần chặn điểm danh hộ (trùng thiết bị hoặc trùng mạng) -> gửi cảnh báo "Bị chặn điểm danh hộ" (mức Trung bình) về tab Cảnh báo,
+  ghi rõ tài khoản bị chặn, đã điểm danh cho ai, chặn theo thiết bị hay theo IP. Xử lý như các cảnh báo khác (xem biến động / khóa / bỏ qua).
+- Quân Sư AI: ở chế độ Ban Quản Trị, hỏi "điểm danh hộ" -> nút mở thẳng mục Chống gian lận; bản đồ cấu hình cập nhật.
+  Trả lời thành viên + Cẩm nang tân binh: "đang bật / tắt chống điểm danh hộ" tính theo cả công tắc tổng.
+
+2. Ảnh đại diện Quân Sư AI (biểu tượng tab, đầu khung chat, cạnh mỗi tin nhắn; cả biểu tượng trong công cụ Cẩm nang tân binh)
+- Ảnh cũ: đầu lâu lệch trái, 1 bên có sao 1 bên không, dính chữ "HE...OOT" ở đáy, chỉ 144 px nên mờ trên màn hình nét.
+- Ảnh mới: cắt lại từ huy hiệu gốc, CÂN GIỮA theo trục huy hiệu (đầu lâu + mũ trùm đỏ), bỏ chữ / sao / súng ở mép,
+  4 góc tối dần -> đẹp cả khung tròn lẫn khung vuông bo góc, trên nền đỏ hay nền tối. 192 x 192 px, ~13 KB, vẫn nhúng sẵn (không cần file).
+- Nhãn "AI" dịch ra mép, không che mặt đầu lâu.
+- File cẩm nang tạo ra nặng thêm ~14 KB (~55 KB) do ảnh nét hơn.
+
+QD ELITE - CHỐNG GIAN LẬN & PHÁT HIỆN LỖI, ADMIN BẬT / TẮT (03/11/2026, bản 14)
+==========================================================================
+File thay đổi (chép đè 9 file): admin.html, user.html, al.html, index.html, qt.html, quays.html, tranht.html, game.html, baotri.html
+(7 trang thành viên thêm cùng 1 khối "qd-guard", ngay sau lớp QD Fast). sw.js, nhạc, video giữ nguyên.
+Chưa cấu hình = Chống gian lận BẬT, Tự ghi lỗi BẬT với ngưỡng mặc định.
+
+ADMIN > Chống gian lận (menu Thành viên, menu điện thoại, thẻ ở Tổng quan; huy hiệu đỏ = số cảnh báo chưa xử lý; phân quyền "Chống Gian Lận")
+- 2 công tắc tổng (lưu ngay): Chống gian lận · Tự ghi lỗi hệ thống.
+- Bộ phát hiện, mỗi bộ 1 công tắc (lưu ngay) + ngưỡng (bấm "Lưu ngưỡng"):
+  Trên máy thành viên (thời gian thực):
+    🤖 Script tự bấm (click do mã lệnh / tiện ích tạo ra, mặc định ≥ 15 lần/phút) — Cao
+    ⛔ Tự chặn: tạm chặn các cú bấm giả lập 2 phút (người bấm tay không bị ảnh hưởng)
+    🎯 Nhịp bấm đều bất thường (20 lần bấm cách đều gần như tuyệt đối = phần mềm auto-click) — Trung bình
+    🕹️ Trình duyệt tự động hóa (webdriver / bot) — Cao
+    📱 Nhiều tài khoản trên 1 thiết bị (mặc định ≥ 3) — Trung bình
+  Quét dữ liệu (nút "Quét dữ liệu ngay"; tự quét khi mở mục nếu lần trước đã quá 10 phút):
+    ➖ Số dư âm · 🧧 Vượt giới hạn lì xì / ngày · ✅ Điểm danh trùng ngày (Cao / Cao / Trung bình)
+    ⚡ Thao tác dồn dập: quay / rút lì xì / ném còn / đổi quà ≥ 12 lượt trong 60 giây
+    🎰 Tỉ lệ trúng tiền bất thường (Vòng Quay, Rút Lì Xì): ≥ 3 × mặt bằng chung, tối thiểu 10 lượt
+    ⚔️ Thắng Kéo Búa Bao bất thường (≥ 90% sau ≥ 10 trận) — Thấp
+    🎁 Dồn lượt qua tặng quà: 1 người nhận từ ≥ 3 người trong 7 ngày (nghi nuôi tài khoản phụ)
+    🌐 Nhiều tài khoản / 1 mạng (điểm danh cùng địa chỉ mạng, ≥ 4) — Thấp (có thể là Wi-Fi chung)
+- Danh sách bỏ qua: tài khoản không bị cảnh báo (vd. tài khoản thử nghiệm).
+- Tab Cảnh báo: lọc mức độ / trạng thái / tên; mỗi cảnh báo có mức độ, nguồn (Máy thành viên / Quét dữ liệu), chi tiết, trang, thiết bị.
+  Bấm tên -> xem Lịch sử biến động. Nút: Khóa (bấm 2 lần) · Đã xử lý / Mở lại · Bỏ qua (thêm vào danh sách bỏ qua).
+  Khóa từ đây ghi lockReason = 'security': thành viên KHÔNG tự mở khóa được (hiện "Tài khoản đang được BQT kiểm tra..."),
+  vòng tự mở khóa của Admin cũng bỏ qua; mở khóa tay ở Quản trị tài khoản như cũ (xóa lý do khóa).
+- Tab Lỗi hệ thống: lỗi gộp theo từng lỗi (trang, file:dòng, số lần, số người gặp, lần gần nhất, chi tiết kỹ thuật).
+  Loại: Lỗi trang (JS) · Lỗi xử lý ngầm (promise) · Lỗi đã bắt (console.error, vd. thiếu quyền Firestore) · File không tải được (ảnh / nhạc / video / script thiếu trên host).
+  Nút: Đã sửa (xuất hiện lại -> tự mở lại) · Xóa · Xóa lỗi đã sửa. Lọc theo trạng thái / loại.
+- Xuất báo cáo: 2 nguồn mới trong hộp Xuất Báo Cáo: "Cảnh Báo Gian Lận", "Lỗi Hệ Thống".
+- Mọi thao tác bật / tắt / khóa ghi admin_logs (type: security).
+
+SỬA KÈM (bộ ghi lỗi tìm ra khi chạy thử): user.html > Điểm danh: bản ghi điểm danh thiếu tên / mã tài khoản làm hỏng cả danh sách
+"điểm danh hôm nay" (lỗi substring) -> nay hiện "Không rõ" / "—".
+QUÂN SƯ AI: hỏi "hack / gian lận" -> báo hệ thống chống gian lận đang bật (theo cấu hình), tài khoản bị khóa vì gian lận phải liên hệ BQT.
+
+Dữ liệu Firestore mới:
+- settings/security_config: isEnabled, errorReport, autoBlock, whitelist, rules.{script|rhythm|bot|device|neg|lixi|attDup|burst|win|rps|funnel|ip}.{on, n, x, min, pct}
+- settings/security_state: lastScanAt, lastScanBy, lastCount, resolved.{mã cảnh báo}
+- security_flags (thành viên tạo): type, sev, detail, user, page, device, ua, at, status
+- security_devices/{mã thiết bị} (thành viên ghi): users[], lastUser, lastAt, ua
+- error_logs/{mã lỗi} (thành viên ghi gộp): kind, msg, file, line, stack, page, count, users[], lastAt, lastUser, status
+- accounts: lockReason ('security'), lockNote
+Lưu ý: nếu Firestore Rules giới hạn theo tên bộ sưu tập, cần cho phép thành viên TẠO security_flags, GHI security_devices và
+error_logs, đọc settings/security_config; Admin đọc / sửa / xóa cả 3 + security_state.
+Giới hạn: phát hiện trên máy thành viên chạy bằng JavaScript nên người rành kỹ thuật có thể vô hiệu hóa; phần "Quét dữ liệu" đọc thẳng
+dữ liệu trên máy chủ nên vẫn bắt được kết quả bất thường. Muốn chặn tận gốc (không cho ghi sai) cần siết Firestore Rules.
+
+QD ELITE - SỬA: HỘP "CẨM NANG TÂN BINH" BỊ ĐÈ LÊN THANH NÚT (03/11/2026, bản 13.1)
+=================================================================================
+File thay đổi: admin.html (chỉ 1 file).
+- Lỗi: màn hình thấp (cao dưới ~800 px, kể cả điện thoại) -> khung xem trước và cột thiết lập tràn xuống, che dòng ghi chú
+  và các nút Sao chép tin nhắn / In / Tải file HTML.
+- Đã sửa: 2 khung luôn nằm gọn giữa đầu hộp và thanh nút, tự cuộn bên trong; thanh nút luôn nằm trên cùng.
+  Đã kiểm tra 1500x700, 1366x640, 1280x900, 1024x600, điện thoại 390x700.
+- Nút màu chủ đề không còn xuống dòng ("Bánh Chưng"). Điện thoại: ẩn dòng ghi chú và phụ đề để dành chỗ cho xem trước.
+
+QD ELITE - ADMIN: TẠO "CẨM NANG TÂN BINH" GIỚI THIỆU HỆ THỐNG CHO NGƯỜI MỚI (03/11/2026, bản 13)
+==========================================================================================
+File thay đổi: admin.html (chỉ 1 file).
+
+Chỗ mở: Tổng quan -> nút nhanh "Cẩm nang tân binh" + thẻ trong nhóm Thành viên; trang Phê duyệt tài khoản -> nút "Cẩm nang tân binh".
+
+Hộp "Tạo cẩm nang tân binh" (trái: thiết lập · phải: xem trước trực tiếp, đổi xem Máy tính / Điện thoại; điện thoại có 2 tab)
+- Tiêu đề, lời chào, liên hệ Ban Quản Trị, link nhóm cộng đồng, địa chỉ web (tự điền index.html của host -> nút "Vào cổng sự kiện").
+- Màu chủ đề: Đỏ Lì Xì · Hoa Đào · Bánh Chưng.
+- Chọn mục (11 mục, Chọn hết / Bỏ hết): Giới thiệu & tài sản · Bắt đầu trong 3 bước · Việc mỗi ngày · Trò chơi & giải thưởng ·
+  Trạm Quy Đổi (bảng giá) · Mã mời & tặng quà · Giải đấu & ID game · Nhận thưởng tiền mặt · Quy định · Hỏi đáp nhanh · Cần hỗ trợ.
+- Số liệu lấy TRỰC TIẾP từ cấu hình lúc mở hộp: thưởng đăng nhập / điểm danh, giờ điểm danh, lì xì hằng ngày, giải Vòng Quay /
+  Rút Lì Xì (chỉ giải tiền), giờ câu hỏi, giờ + phí + thưởng Kéo Búa Bao, điểm Ném Còn, lịch Quay Số kế tiếp, bảng giá Trạm Quy Đổi,
+  thưởng mã mời, loại / giới hạn tặng quà, hạn đăng ký ID, thời gian tự khóa tài khoản, chống điểm danh hộ. Mục nào đang đóng ghi "Tạm đóng".
+- Xuất:
+  · Tải file HTML: 1 file duy nhất (logo nhúng sẵn, ~40 KB), gửi qua Zalo / Messenger, mở trên điện thoại không cần mạng, có mục lục bấm được.
+  · In / Lưu PDF: bố cục A4.
+  · Sao chép tin nhắn: đoạn giới thiệu ngắn có emoji để dán vào nhóm chat.
+- "Lưu thiết lập cho lần sau" -> settings/guide_config (tiêu đề, lời chào, liên hệ, link nhóm, web, màu, các mục).
+- Mỗi lần tải / in / sao chép ghi 1 dòng admin_logs (type: guide).
+
+QD ELITE - GỢI Ý NGƯỜI NHẬN + XUẤT BÁO CÁO MỌI LỊCH SỬ TRONG ADMIN (03/11/2026, bản 12)
+=====================================================================================
+File thay đổi: admin.html, user.html, al.html (chép đè 3 file).
+
+USER > Tặng Quà Đồng Đội: ô "Tài Khoản Người Nhận" có GỢI Ý
+- Chạm vào ô: hiện "Tặng gần đây" (người mình hay tặng) hoặc thành viên đang online.
+- Gõ tên đăng nhập HOẶC họ tên, có dấu / không dấu / hoa / thường đều được (vd. "binh" ra "Trần Văn Bình", "binh99").
+  Mỗi dòng: ảnh đại diện (chấm xanh = đang online), tên đăng nhập, họ tên, biệt danh đã đặt trong chat, nhãn BQT / Online; chữ khớp được gạch chân.
+- Chọn: chạm, hoặc phím ↑ ↓ + Enter / Tab -> điền tên và chuyển sang ô Số lượng. Esc đóng danh sách (không đóng hộp).
+- Dưới ô: "✓ Người nhận: <tên> — <họ tên>" khi đúng; rời ô mà chưa đúng tên / không có ai -> báo rõ.
+- Không gợi ý chính mình và tài khoản đang bị khóa. Gõ khác hoa / thường vẫn gửi đúng tài khoản.
+
+ADMIN: hộp "XUẤT BÁO CÁO" dùng chung cho mọi lịch sử
+- Mở từ: nút "Xuất Báo Cáo" ở Vòng quay, Rút lì xì, Lì xì điểm, Quay số, Cửa hàng điểm, Điểm danh, Đăng ký ID game, Kéo búa bao
+  (thay các nút "Xuất Excel" cũ), nút mới ở Ném còn, Mã mời, Tặng lượt, hộp "Biến động dữ liệu" của 1 tài khoản,
+  và nút nhanh "Xuất báo cáo" ở Tổng quan (tự chọn đúng mục đang mở).
+- 12 nguồn, đổi qua lại bằng hàng chip trên đầu hộp: Vòng Quay · Rút Lì Xì · Lì Xì Điểm · Quay Số · Cửa Hàng Điểm · Điểm Danh ·
+  Đăng Ký ID Game · Kéo Búa Bao · Ném Còn · Mã Mời · Tặng Quà · Biến động 1 tài khoản. Quản lý chỉ thấy nguồn thuộc mục được cấp quyền.
+- Lọc: Hôm nay / 7 ngày / 30 ngày / Tháng này / Tất cả / Tùy chọn (từ ngày - đến ngày) + ô lọc theo tên thành viên.
+- Xem trước: 4 ô số liệu (số bản ghi, số thành viên + số liệu riêng từng mục: trúng giải tiền, điểm đã phát, tỉ lệ lọt vòng,
+  trận hòa, đã chuyển...), biểu đồ cột theo ngày, Xếp hạng thành viên / Phân bổ (theo phần thưởng, mệnh giá, kết quả, loại...),
+  6 dòng dữ liệu đầu.
+- Định dạng tải:
+  · Excel (.xls): tiêu đề màu theo mục, thông tin báo cáo, số liệu tóm tắt, thống kê theo ngày (+ tổng), xếp hạng (top 50),
+    phân bổ (có %), bảng chi tiết kẻ ô xen màu; ID / số giữ nguyên dạng chữ.
+  · CSV: dữ liệu thô (có BOM, mở Excel không lỗi dấu).
+  · In / Lưu PDF: trang A4 có dải tiêu đề màu, ô số liệu, biểu đồ theo ngày, xếp hạng, bảng chi tiết (tối đa 2000 dòng).
+  Tùy chọn kèm: Trang tóm tắt · Thống kê theo ngày · Xếp hạng & phân bổ. Tên file: Bao_Cao_<Mục>_<từ>-<đến>.xls
+- Mỗi lần xuất ghi 1 dòng admin_logs (type: report, nguồn, định dạng, số dòng, người xuất).
+- Sửa kèm: nhật ký bật / tắt Tặng lượt (bản 11) giờ ghi đúng tên người thao tác thay vì luôn là "admin".
+
+QUÂN SƯ AI: hướng dẫn tặng lượt nói về ô gợi ý người nhận.
+
+QD ELITE - TẶNG QUÀ ĐỒNG ĐỘI: ADMIN ĐÓNG / MỞ + LƯU LỊCH SỬ TẶNG (03/11/2026, bản 11)
+====================================================================================
+File thay đổi: admin.html, user.html, al.html (chép đè 3 file).
+LƯU Ý: chưa cấu hình = ĐANG ĐÓNG. Sau khi chép file, vào Admin > Tặng lượt bật công tắc để thành viên dùng được.
+
+ADMIN > Tặng lượt (menu "Giải trí & thưởng", menu điện thoại, thẻ ở Tổng quan; phân quyền Quản lý: "Tặng Lượt")
+- Công tắc "Cho phép tặng quà": bật / tắt là lưu ngay (ghi 1 dòng admin_logs).
+- Loại được tặng, mỗi loại 1 công tắc lưu ngay: 🎡 Lượt vòng quay · 🧧 Lượt rút lì xì · 🎯 Lượt ném còn
+  (mặc định: lượt quay + lượt rút BẬT, lượt ném TẮT). Điểm lì xì không chuyển được.
+- Giới hạn & hẹn giờ (bấm "Lưu thiết lập", ô đang sửa viền vàng + "Chưa lưu"):
+  Tối đa mỗi lần tặng · Số lần tặng / người / ngày · ⏰ Mở từ · ⏰ Đóng lúc · Lời nhắn khi đóng. 0 / để trống = không giới hạn.
+- Dòng xem trước: thành viên đang thấy gì (đang mở / chờ giờ mở / hết giờ / chưa có loại nào).
+- Thống kê: tổng lượt tặng, hôm nay, tổng đã chuyển từng loại, Top 5 người tặng.
+- Lịch sử tặng quà: chia theo ngày, tìm theo tên người tặng / nhận, lọc loại, lọc Hôm nay / 7 / 30 ngày,
+  nút CSV tải danh sách đang lọc (mở bằng Excel).
+- Quân Sư ở Admin: hỏi "tặng lượt" -> nút mở thẳng mục Tặng lượt.
+
+USER
+- Lối vào (chỉ hiện khi Admin BẬT): Túi đồ -> nút "🎁 Tặng lượt cho đồng đội"; menu bên máy tính "Tặng Quà Đồng Đội".
+- Hộp Tặng Quà: dòng trạng thái (Đang mở · tối đa x/lần · hôm nay đã tặng a/b lần / đang đóng + lời nhắn / mở lúc...),
+  chỉ hiện loại Admin cho phép kèm số dư, nút "Tặng tối đa", Enter để gửi.
+  Đóng / hết giờ / hết lần trong ngày -> khóa ô nhập. Admin đổi cấu hình là hộp cập nhật ngay.
+- Lịch sử tặng / nhận của chính mình ngay trong hộp: Tất cả · Đã tặng · Đã nhận.
+- Kiểm tra lại trên máy chủ trong cùng giao dịch: Admin vừa đóng / tắt loại / vượt mức / hết lần -> không trừ lượt, báo lý do.
+- Sửa: hộp Tặng Quà trước đây không có nút nào mở được, chỉ có 1 loại "Lượt Mở Thẻ"; nay mở chồng lên Túi đồ.
+- Quân Sư AI: trả lời theo trạng thái đóng / mở, loại được tặng, giới hạn; có trong "Đang mở gì" và Tóm tắt trang User.
+
+Dữ liệu Firestore:
+- settings/transfer_config: isEnabled, types.{spins|tickets|conThrows}.on, maxPerTransfer, dailyLimit, from, to, closedMsg, updatedAt
+- accounts (người tặng): giftDay ('YYYY-MM-DD'), giftCount (số lần tặng trong ngày) + trừ / cộng loại được tặng (cả conThrows)
+- transfer_history: from, to, type, amount, timestamp, day (thêm trường day; bản ghi cũ vẫn hiện đúng)
+Lưu ý: nếu Firestore Rules giới hạn theo tên bộ sưu tập / trường, cần cho phép đọc settings/transfer_config,
+đọc transfer_history (Admin + thành viên xem của mình) và sửa accounts các trường giftDay, giftCount, conThrows.
+
+QD ELITE - QUÂN SƯ AI: TÓM TẮT TRANG USER (GIỜ MỞ / ĐÓNG + CƠ CHẾ CHƠI) (03/11/2026, bản 10)
+=========================================================================================
+File thay đổi: al.html (chỉ 1 file).
+
+Chủ đề mới "📖 Tóm tắt trang User: giờ mở / đóng & cách chơi"
+- Hỏi kiểu: "tóm tắt trang user", "các mục mở đóng lúc nào", "cơ chế chơi từng mục", "trang user có gì"...
+  Có sẵn ở lưới chọn nhanh, hàng gợi ý khi mở từ user.html, nút trong "Tổng quan" và chế độ Ban Quản Trị.
+- Mỗi mục 1 thẻ: tên + trạng thái lúc này (Đang mở / Đóng / Sắp mở / Ngoài giờ / Hết hạn),
+  ⏰ thời gian mở - đóng, 🎮 cơ chế chơi, nút "Chi tiết ›" mở câu trả lời đầy đủ của mục đó.
+- 3 nhóm:
+    📅 Nhiệm vụ hằng ngày (làm mới lúc 0 giờ): Đăng nhập · Điểm Danh · Lì xì hằng ngày
+    🎮 Trò chơi trúng thưởng: Vòng Quay (+ khung giờ câu hỏi) · Rút Lì Xì May Mắn · Kéo Búa Bao · Ném Còn · Quay Số May Mắn
+    🏪 Đổi thưởng & tài khoản: Trạm Quy Đổi · Mã mời · Đăng Ký ID Game · Túi đồ / Tặng lượt · Giải Đấu / Trò Chuyện / Bản Tin
+- Số liệu lấy TRỰC TIẾP từ cấu hình Admin (giờ điểm danh, giờ Kéo Búa Bao, ngày mở / hạn đóng lì xì, vòng quay, rút lì xì,
+  hạn đăng ký ID, giờ phần thưởng mã mời, lịch quay số, điểm thưởng, phí...) -> Admin đổi là bản tóm tắt đổi theo.
+- Đang bảo trì: hiện dòng báo bảo trì + giờ dự kiến mở lại ở đầu bản tóm tắt.
+
+QD ELITE - HỆ THỐNG MÃ MỜI: NHIỀU PHẦN THƯỞNG, BẬT / TẮT TỪNG LOẠI (03/11/2026, bản 9)
+====================================================================================
+File thay đổi: admin.html, user.html, al.html (chép đè 3 file).
+
+ADMIN > Mã mời
+- Công tắc tổng "Nhập mã mời" (giữ như cũ).
+- 4 phần thưởng hệ thống, MỖI LOẠI CÓ CÔNG TẮC RIÊNG (bật / tắt là lưu ngay):
+    💰 Điểm lì xì · 🧧 Lượt rút lì xì · 🎡 Lượt vòng quay · 🎯 Lượt ném còn
+  Mỗi loại có 2 mức riêng: "Người nhập mã" và "Người mời" (0 = bên đó không nhận loại này).
+  Sửa mức xong bấm "Lưu mức thưởng" (ô đang sửa viền vàng + chữ "Chưa lưu"; bật/tắt loại khác không làm mất số đang gõ).
+- Giới hạn thưởng cho mỗi người mời (0 = không giới hạn): đủ số lần thì người mời thôi nhận, người nhập mã vẫn nhận.
+- Khung "Thành viên sẽ nhận": xem trước 2 bên nhận gì; cảnh báo khi đang bật mà không có phần thưởng nào.
+- Thống kê: tổng lượt mời, hôm nay, tổng đã phát từng loại, Top 5 người mời.
+- Lịch sử nhập mã: hiện đủ từng loại mỗi bên nhận, ghi "Đã đạt giới hạn thưởng"; ô tìm theo tên.
+- Lịch sử biến động / Ví giải trí của 1 tài khoản: mã mời ghi đúng từng loại (điểm, lượt rút, lượt quay, lượt ném).
+- Cấu hình cũ (chỉ có "mức thưởng cho cả 2" lượt rút lì xì) tự hiểu thành: Lượt rút lì xì BẬT, 2 bên cùng mức cũ.
+  Lịch sử cũ vẫn hiện đúng.
+
+USER > Hồ sơ
+- Ô "Nhập Mã Mời Nhận Quà" hiện đúng phần thưởng Admin đang bật: "Bạn nhận" / "Người mời" (cập nhật ngay khi Admin đổi).
+  Hệ thống tắt hoặc không có thưởng -> khóa ô nhập + báo lý do. Enter để gửi.
+- Dưới "Mã Mời của bạn": số người đã mời (+ số lần đã được thưởng / giới hạn) và phần thưởng mỗi lần có người nhập mã của mình.
+- Nhập xong: hiện "Đã nhập mã của <người mời>" + các phần thưởng đã nhận; máy khác cùng tài khoản cũng cập nhật.
+- Chặn thêm: nhập ngược mã của người đã nhập mã mình (A mời B rồi B mời lại A).
+- Túi đồ + thẻ Vòng quay trang chủ: đếm cả lượt quay trong tài khoản (từ mã mời / đổi điểm...), khớp với trang Vòng Quay.
+- Quân Sư AI (al.html): trả lời theo phần thưởng đang bật, mức 2 bên và giới hạn.
+
+Dữ liệu Firestore:
+- settings/invite_config: isEnabled, rewards.{points|tickets|spins|conThrows}.{on, invitee, inviter}, maxPerInviter
+  (rewardTickets vẫn ghi để tương thích).
+- accounts (người nhập): hasUsedInvite, invitedBy, invitedAt + cộng các loại thưởng.
+- accounts (người mời): inviteCount, inviteRewardCount + cộng các loại thưởng.
+- invite_history: rewards.invitee / rewards.inviter, inviterCapped.
+Lưu ý: nếu Firestore Rules giới hạn các trường được sửa trong accounts, cần cho phép thêm
+points, spins, conThrows, invitedBy, invitedAt, inviteCount, inviteRewardCount (trước đây chỉ có tickets, hasUsedInvite).
+
 QD ELITE - ADMIN: XÓA TẤT CẢ DỮ LIỆU (3 LẦN NHẮC NHỞ) (02/11/2026, bản 8)
 =========================================================================
 File thay đổi: admin.html (chỉ 1 file).

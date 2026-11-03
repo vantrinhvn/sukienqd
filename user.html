@@ -306,6 +306,8 @@
            --------------------------------------------------------------------- */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: var(--z-index-modal-backdrop); opacity: 0; transition: opacity var(--transition-fast); padding: 20px; } .modal-overlay.active { display: flex; opacity: 1; }
         .modal-box { background: var(--bg-surface); padding: 40px; border-radius: var(--radius-xl); border: 1px solid var(--border-strong); width: 100%; max-width: 440px; transform: scale(0.95) translateY(20px); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; box-shadow: var(--shadow-lg); } .modal-overlay.active .modal-box { transform: scale(1) translateY(0); }
+        /* Hộp thoại cao hơn màn hình (vd. Hồ sơ) trên máy tính: tự cuộn bên trong hộp, không tràn ra ngoài */
+        @media (min-width: 768px) { .modal-box { max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; } }
         .modal-close-btn { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: var(--radius-full); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border-strong); color: var(--text-muted); transition: var(--transition-fast); font-size: 16px; } .modal-close-btn:hover { background: var(--color-danger-bg); color: var(--color-danger); border-color: var(--color-danger); transform: rotate(90deg); }
 
         /* Nền đăng nhập: ảnh Tết (ngang cho máy tính, dọc cho điện thoại) */
@@ -9400,33 +9402,115 @@ html.qd-lite .qd-fx { display: none !important; }
     </div>
 
     <div class="modal-overlay" id="modal-transfer">
-        <div class="modal-box text-center">
+        <div class="modal-box text-center gift2">
             <button class="modal-close-btn" onclick="window.UI.closeModal('modal-transfer')"><i class="fa-solid fa-xmark"></i></button>
-            <div class="flex items-center justify-center mx-auto mb-6" style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-info-bg); color: var(--color-info); font-size: 36px;"><i class="fa-solid fa-gift"></i></div>
+            <div class="flex items-center justify-center mx-auto mb-4" style="width: 72px; height: 72px; border-radius: 50%; background: var(--color-info-bg); color: var(--color-info); font-size: 32px;"><i class="fa-solid fa-gift"></i></div>
             <h2 class="text-2xl mb-2">Tặng Quà Đồng Đội</h2>
-            <p class="text-muted mb-8 px-2">Chuyển lượt quay vòng quay hoặc lượt xé vé của bạn cho thành viên khác.</p>
-            
-            <div class="form-group mb-4 text-left">
-                <label class="form-label text-xs">Tài Khoản Người Nhận</label>
-                <div class="relative"><i class="fa-solid fa-user absolute text-muted" style="left: 16px; top: 50%; transform: translateY(-50%);"></i><input type="text" id="transfer-target" class="form-control" style="padding-left: 45px;" placeholder="Nhập tên đăng nhập người nhận..."></div>
-            </div>
+            <p class="text-muted mb-4 px-2">Chuyển lượt của bạn cho thành viên khác. Mọi lần tặng đều được lưu lịch sử.</p>
 
-            <div class="flex gap-4 mb-8">
-                <div class="form-group mb-0 flex-1 text-left">
-                    <label class="form-label text-xs">Loại Quà Tặng</label>
-                    <select id="transfer-type" class="form-control">
-                        <option value="tickets">Lượt Mở Thẻ</option>
-                    </select>
-                </div>
-                <div class="form-group mb-0 flex-1 text-left">
-                    <label class="form-label text-xs">Số Lượng</label>
-                    <input type="number" id="transfer-amount" class="form-control font-bold text-center" placeholder="0" min="1">
-                </div>
-            </div>
+            <div class="gift-state" id="gift-state" aria-live="polite"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải thiết lập...</div>
 
-            <button class="btn btn-info w-full" id="btn-execute-transfer" style="background: var(--color-info); color: #fff; padding: 18px;" onclick="window.Transfer.execute()"><i class="fa-solid fa-paper-plane mr-2"></i> Xác Nhận Chuyển</button>
+            <fieldset class="gift-form" id="gift-form" disabled>
+                <div class="form-group mb-4 text-left">
+                    <label class="form-label text-xs" for="transfer-target">Tài Khoản Người Nhận</label>
+                    <div class="relative"><i class="fa-solid fa-user absolute text-muted" style="left: 16px; top: 50%; transform: translateY(-50%);"></i><input type="text" id="transfer-target" class="form-control" style="padding-left: 45px;" placeholder="Gõ tên đăng nhập hoặc họ tên..." autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="gift-sug"></div>
+                    <div class="gift-sug" id="gift-sug" role="listbox" hidden></div>
+                    <div class="gift-who" id="gift-who" aria-live="polite"></div>
+                </div>
+
+                <div class="flex gap-4 mb-2">
+                    <div class="form-group mb-0 flex-1 text-left">
+                        <label class="form-label text-xs" for="transfer-type">Loại Quà Tặng</label>
+                        <select id="transfer-type" class="form-control"></select>
+                    </div>
+                    <div class="form-group mb-0 flex-1 text-left">
+                        <label class="form-label text-xs" for="transfer-amount">Số Lượng</label>
+                        <input type="number" id="transfer-amount" class="form-control font-bold text-center" placeholder="0" min="1" inputmode="numeric" enterkeyhint="send">
+                    </div>
+                </div>
+                <p class="gift-hint text-left" id="gift-hint"></p>
+
+                <button class="btn btn-info w-full" id="btn-execute-transfer" style="background: var(--color-info); color: #fff; padding: 18px;" onclick="window.Transfer.execute()"><i class="fa-solid fa-paper-plane mr-2"></i> Xác Nhận Chuyển</button>
+            </fieldset>
+
+            <div class="gift-hist">
+                <div class="gift-hist-head">
+                    <b><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử tặng / nhận</b>
+                    <div class="gift-tabs" role="tablist">
+                        <button type="button" class="gift-tab active" data-f="all">Tất cả</button>
+                        <button type="button" class="gift-tab" data-f="out">Đã tặng</button>
+                        <button type="button" class="gift-tab" data-f="in">Đã nhận</button>
+                    </div>
+                </div>
+                <div class="gift-list" id="gift-list"><div class="gift-empty">Đang tải...</div></div>
+            </div>
         </div>
     </div>
+
+    <style id="gift-css">
+    /* ===== Tặng Quà Đồng Đội ===== */
+    #modal-transfer { z-index: 1100 !important; }   /* mở từ Túi đồ (z-index 1050): nằm chồng lên trên */
+    #modal-transfer .gift2 { max-width: 520px; }
+    .gift-state { margin: 0 0 18px; padding: 10px 14px; border-radius: var(--radius-md, 12px); font-size: 13.5px; line-height: 1.5; text-align: left; color: var(--text-muted); background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+    .gift-state.ok, .gift-state.no { color: var(--text-main); border-left-width: 4px; }
+    .gift-state.ok { border-left-color: var(--color-success); }
+    .gift-state.no { border-left-color: var(--color-danger); }
+    .gift-state b { color: inherit; }
+    .gift-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--color-success); box-shadow: 0 0 0 3px var(--color-success-bg); margin-right: 6px; vertical-align: 0; }
+    .gift-form { border: 0; padding: 0; margin: 0; min-width: 0; }
+    .gift-form:disabled { opacity: .5; }
+    .gift-form:disabled * { cursor: not-allowed; }
+    .gift-hint { margin: 6px 0 20px; font-size: 12.5px; color: var(--text-muted); min-height: 18px; }
+    .gift-hint b { color: var(--text-main); }
+    .gift-all { border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: var(--color-info); cursor: pointer; text-decoration: underline; }
+    .gift-hist { margin-top: 22px; padding-top: 16px; border-top: 1px dashed var(--border-strong); text-align: left; }
+    .gift-hist-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .gift-hist-head b { font-size: 14px; color: var(--text-main); }
+    .gift-tabs { display: flex; gap: 4px; }
+    .gift-tab { border: 1px solid var(--border-strong); background: var(--bg-body); color: var(--text-muted); border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .gift-tab.active { color: #fff; background: var(--color-info); border-color: var(--color-info); }
+    .gift-list { max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; overscroll-behavior: contain; }
+    .gift-empty { padding: 14px; text-align: center; font-size: 13px; color: var(--text-muted); }
+    .gift-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--bg-elevated); border: 1px solid var(--border-subtle, var(--border-strong)); }
+    .gift-ic { flex: 0 0 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #fff; background: var(--color-danger); }
+    .gift-row.in .gift-ic { background: var(--color-success); }
+    .gift-tx { flex: 1 1 auto; min-width: 0; }
+    .gift-tx b { display: block; font-size: 13.5px; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gift-tx small { font-size: 11.5px; color: var(--text-muted); }
+    .gift-amt { flex: 0 0 auto; font-weight: 800; font-size: 14px; color: var(--color-danger); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .gift-row.in .gift-amt { color: var(--color-success); }
+    .gift-amt small { font-weight: 600; font-size: 11px; color: var(--text-muted); }
+    #nav-gift[hidden], .inv2-gift[hidden], .gift-sug[hidden] { display: none !important; }
+    /* Gợi ý người nhận */
+    .gift-sug { margin-top: 6px; padding: 6px; border-radius: 14px; background: var(--bg-surface, var(--bg-elevated)); border: 1px solid var(--border-strong); box-shadow: 0 12px 28px -14px rgba(0,0,0,.6); max-height: 270px; overflow-y: auto; overscroll-behavior: contain; text-align: left; }
+    .gift-sug-lbl { padding: 4px 8px 6px; font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--text-muted); }
+    .gift-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 0; border-radius: 10px; background: transparent; color: var(--text-main); font: inherit; text-align: left; cursor: pointer; }
+    .gift-opt:hover, .gift-opt.on { background: var(--bg-hover, var(--bg-elevated)); }
+    .gift-opt.on { box-shadow: inset 0 0 0 1.5px var(--color-info); }
+    .gift-av { position: relative; flex: 0 0 38px; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 15px; color: #fff; background: linear-gradient(135deg, #f59e0b, #dc2626); overflow: visible; }
+    .gift-av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+    .gift-av i { position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%; background: #9ca3af; border: 2px solid var(--bg-surface, #222); }
+    .gift-av i.on { background: var(--color-success); }
+    .gift-opt-tx { flex: 1 1 auto; min-width: 0; line-height: 1.3; }
+    .gift-opt-tx b { display: block; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gift-opt-tx small { display: block; font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gift-opt mark { background: transparent; color: inherit; font-weight: 900; text-decoration: underline; text-decoration-color: var(--color-info); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+    .gift-opt-tag { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; color: var(--color-info); background: var(--color-info-bg); }
+    .gift-sug-empty { padding: 12px 8px; font-size: 13px; color: var(--text-muted); text-align: center; }
+    .gift-who { min-height: 0; margin-top: 6px; font-size: 12.5px; text-align: left; }
+    .gift-who:empty { display: none; }
+    .gift-who.ok { color: var(--color-success); font-weight: 700; }
+    .gift-who.no { color: var(--color-warning); font-weight: 700; }
+    .inv2-gift { display: flex; align-items: center; gap: 12px; width: 100%; margin: 4px 0 16px; padding: 12px 14px; border-radius: 14px; cursor: pointer; text-align: left; font: inherit;
+        color: var(--text-main); background: var(--color-info-bg); border: 1px solid var(--color-info); }
+    .inv2-gift:active { transform: scale(.98); }
+    .inv2-gift.is-off { opacity: .65; border-style: dashed; }
+    .inv2-gift-ico { font-size: 24px; flex: 0 0 auto; }
+    .inv2-gift-txt { flex: 1 1 auto; min-width: 0; }
+    .inv2-gift-txt b { display: block; font-size: 14px; }
+    .inv2-gift-txt small { display: block; font-size: 12px; color: var(--text-muted); }
+    .inv2-gift > i { color: var(--color-info); }
+    </style>
 
     <div class="modal-overlay" id="modal-registration">
         <div class="modal-box text-center">
@@ -9530,7 +9614,7 @@ html.qd-lite .qd-fx { display: none !important; }
             <h2 class="text-3xl text-success mb-2 font-bold uppercase">ĐIỂM DANH THÀNH CÔNG!</h2>
             <p class="text-muted font-medium text-md mb-6">Bạn đã hoàn thành xuất sắc điểm danh hôm nay. Xin chúc mừng bạn nhận được:</p>
             
-            <div class="flex justify-center gap-4 mb-8">
+            <div class="flex justify-center gap-4 mb-8" id="popup-reward-list">
                 <div class="flex-col items-center justify-center p-4 rounded-xl w-1/2" style="border: 1px solid var(--color-warning); background: var(--color-warning-bg); display: flex; transition: var(--transition-fast);">
                     <i class="fa-solid fa-fan text-warning text-4xl mb-2"></i>
                     <span class="font-bold text-main text-lg">+<span id="popup-reward-spins">1</span> Lượt Quay</span>
@@ -9720,20 +9804,22 @@ html.qd-lite .qd-fx { display: none !important; }
                         <span class="font-bold font-mono text-success text-xl" id="my-invite-code" style="letter-spacing: 2px;">---</span>
                         <button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; background: transparent; color: var(--color-success); border: none;" onclick="window.AppCore.copyInviteCode()" title="Sao Chép"><i class="fa-regular fa-copy"></i></button>
                     </div>
+                    <div class="ivu-mine" id="ivu-mine"></div>
                 </div>
             </div>
 
             <div class="text-left bg-elevated rounded-xl p-5 mb-8 border-strong" style="border: 1px solid var(--border-strong); background: rgba(245, 158, 11, 0.05);">
-                <h4 class="mb-3 text-warning"><i class="fa-solid fa-envelope-circle-check"></i> Nhập Mã Mời Nhận Lượt Mở</h4>
+                <h4 class="mb-3 text-warning"><i class="fa-solid fa-envelope-circle-check"></i> Nhập Mã Mời Nhận Quà</h4>
                 <div id="invite-input-area">
-                    <p class="text-sm text-muted mb-3">Nhập mã của đồng nghiệp để cả 2 cùng nhận lượt xé vé:</p>
+                    <div class="ivu-info" id="ivu-info"><p class="text-sm text-muted mb-3">Nhập mã của đồng đội đã mời bạn để cả 2 cùng nhận quà.</p></div>
                     <div class="flex gap-2">
                         <input type="text" id="inp-invite-code" class="form-control" placeholder="Nhập mã mời..." style="padding: 12px 16px; font-family: var(--font-family-mono); text-transform: uppercase; flex: 1; min-width: 0;">
                         <button class="btn btn-warning" style="padding: 12px 20px; flex-shrink: 0;" onclick="window.AppCore.submitInviteCode()"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </div>
                 <div id="invite-success-area" class="hidden mt-2 text-success font-bold text-sm">
-                    <i class="fa-solid fa-circle-check"></i> Chúc mừng! Bạn đã nhận thưởng từ mã mời.
+                    <i class="fa-solid fa-circle-check"></i> <span id="ivu-done-text">Chúc mừng! Bạn đã nhận thưởng từ mã mời.</span>
+                    <div class="ivu-chips" id="ivu-done-chips" style="margin-top: 8px;"></div>
                 </div>
             </div>
 
@@ -9824,6 +9910,12 @@ html.qd-lite .qd-fx { display: none !important; }
                     </div>
                 </div>
 
+                <button type="button" class="inv2-gift" id="inv2-gift" onclick="window.GiftUI.open()" hidden>
+                    <span class="inv2-gift-ico" aria-hidden="true">🎁</span>
+                    <span class="inv2-gift-txt"><b>Tặng lượt cho đồng đội</b><small id="inv2-gift-sub">Chuyển lượt quay / lượt rút cho thành viên khác</small></span>
+                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
+
                 <div class="inv2-hist-head">
                     <h3>Lịch sử nhận quà</h3>
                     <div class="inv2-chips" role="tablist">
@@ -9889,6 +9981,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div class="nav-item" onclick="window.UI.navigate('tournament', this)"><i class="fa-solid fa-fire"></i> <span>Giải Đấu Máy Chủ</span></div>
                 <div class="nav-item" onclick="window.RegID.open()"><i class="fa-solid fa-id-card"></i> <span>Đăng Ký ID Game</span></div>
                 <div class="nav-item" onclick="window.UI.navigate('rps', this)"><i class="fa-regular fa-hand-scissors"></i> <span>Kéo Búa Bao</span></div>
+                <div class="nav-item" id="nav-gift" onclick="window.GiftUI.open()" hidden><i class="fa-solid fa-gift"></i> <span>Tặng Quà Đồng Đội</span></div>
                 <div class="nav-item" data-resume onclick="location.href='game.html'"><i class="fa-solid fa-bullseye"></i> <span>Ném Còn</span></div>
             </nav>
             
@@ -10462,6 +10555,211 @@ html.qd-lite .qd-fx { display: none !important; }
         QF.nearOut = function (p, counts, extra) { return !!p && p.qty != null && p.qty - ((counts || {})[p.id] || 0) <= (extra == null ? 3 : extra); };
     })();
     </script>
+    <!-- ===== QD GUARD: chống gian lận + tự ghi lỗi (khối dùng chung mọi trang thành viên) =====
+         Bật / tắt + ngưỡng: Admin > Chống gian lận (settings/security_config). Chưa cấu hình = BẬT với ngưỡng mặc định.
+         - Script tự bấm: click do mã lệnh tạo ra (không phải tay người) dồn dập -> security_flags (+ tạm chặn nếu bật "Tự chặn")
+         - Nhịp bấm đều bất thường (phần mềm auto-click) · Trình duyệt tự động hóa (webdriver) · Ghi thiết bị -> security_devices
+         - Lỗi: lỗi JavaScript, promise lỗi không bắt, console.error, file trên host không tải được -> error_logs (gộp theo lỗi, đếm số lần)
+         - Bảo vệ mã nguồn (Admin bật / tắt riêng, security_config.protect): chặn Ctrl+U, F12, Ctrl+Shift+I/J/C/K, Ctrl+S, chuột phải,
+           (tùy chọn) bôi đen / sao chép, báo khi mở DevTools. Áp dụng cả khung Quân Sư nhúng trong trang. Thiết bị đã đăng nhập Admin được miễn.
+         Không đọc / gửi mật khẩu, nội dung chat hay dữ liệu riêng; mỗi phiên giới hạn số bản ghi gửi đi. -->
+    <script id="qd-guard">
+    (function () {
+        'use strict';
+        var W = window, d = document;
+        if (W.__qdGuard) return; W.__qdGuard = true;
+        var PAGE = (location.pathname.split('/').pop() || 'index.html').slice(0, 60);
+        var SESS = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        var DEF = { on: true, err: true, autoBlock: true, script: { on: true, n: 15 }, rhythm: { on: true }, bot: { on: true }, device: { on: true } };
+        var CFG = null, DB = null, sent = {}, errSent = {}, errN = 0, flagN = 0, busy = false, devDone = {};
+        function me() { try { if (typeof State !== 'undefined' && State && State.currentUser) return String(State.currentUser); } catch (e) {} try { return localStorage.getItem('qd_current_username') || ''; } catch (e) { return ''; } }
+        function dev() { try { var v = localStorage.getItem('qd_dev_id'); if (!v) { v = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); localStorage.setItem('qd_dev_id', v); } return v; } catch (e) { return 'khong-luu-duoc'; } }
+        function db() { if (DB) return DB; try { if (W.firebase && firebase.apps && firebase.apps.length && firebase.firestore) DB = firebase.firestore(); } catch (e) {} return DB; }
+        function norm(c) {
+            c = c || {}; var r = c.rules || {}, o = JSON.parse(JSON.stringify(DEF));
+            o.on = c.isEnabled !== false; o.err = c.errorReport !== false; o.autoBlock = c.autoBlock !== false;
+            ['script', 'rhythm', 'bot', 'device'].forEach(function (k) { if (r[k]) { o[k].on = r[k].on !== false; if (r[k].n != null) o[k].n = Math.max(3, parseInt(r[k].n, 10) || o[k].n || 0); } });
+            o.white = {}; (Array.isArray(c.whitelist) ? c.whitelist : []).forEach(function (u) { o.white[String(u)] = 1; });
+            o.prot = protNorm(c.protect);
+            return o;
+        }
+        function protNorm(p) {
+            p = p || {};
+            return { on: p.on === true, keys: p.keys !== false, menu: p.menu !== false, copy: p.copy === true, devtools: p.devtools === true, staff: p.staffExempt !== false,
+                msg: String(p.msg || 'Chức năng này đã bị Ban Quản Trị khóa.').slice(0, 160) };
+        }
+        var listening = false;
+        function load() {   // nghe trực tiếp: Admin bật / tắt là trang đang mở đổi theo ngay
+            var D = db(); if (!D || listening) return; listening = true;
+            D.collection('settings').doc('security_config').onSnapshot(function (s) {
+                var first = !CFG; CFG = norm(s.exists ? s.data() : null);
+                try { localStorage.setItem('qd_prot', JSON.stringify(s.exists ? (s.data().protect || {}) : {})); } catch (e) {}
+                protApply(); if (first) start();
+            }, function () { if (!CFG) { CFG = norm(null); start(); } });
+        }
+        var PROT0 = (function () { try { return protNorm(JSON.parse(localStorage.getItem('qd_prot') || '{}')); } catch (e) { return protNorm(null); } })();   // dùng ngay khi mở trang
+        function cfg() { if (CFG) return CFG; var o = norm(null); o.prot = PROT0; return o; }
+        function hush(fn) { busy = true; try { return fn(); } finally { busy = false; } }
+
+        /* ---------- Gửi cảnh báo (mỗi loại tối đa 1 lần / 5 phút / phiên, tối đa 12 lần / phiên) ---------- */
+        function flag(type, sev, detail, extra) {
+            var c = cfg(), u = me(); if (!c.on || (u && c.white[u])) return;
+            var now = Date.now(); if (sent[type] && now - sent[type] < 300000) return; if (++flagN > 12) return; sent[type] = now;
+            var D = db(); if (!D) return;
+            var doc = { type: type, sev: sev, detail: String(detail || '').slice(0, 300), user: u || null, page: PAGE, device: dev(), ua: navigator.userAgent.slice(0, 180), at: now, status: 'new', session: SESS };
+            if (extra) Object.keys(extra).forEach(function (k) { doc[k] = extra[k]; });
+            hush(function () { D.collection('security_flags').add(doc).catch(function () {}); });
+        }
+        W.QDGuard = { flag: flag, dev: dev, off: function () { return !cfg().on; } };   // off(): Admin tắt Chống gian lận -> tắt cả chống điểm danh hộ
+
+        /* ---------- 1. Script tự bấm: click không do người bấm (isTrusted = false) dồn dập ---------- */
+        var fake = [], blockUntil = 0, CLOSE = '.modal-close-btn, .modal-close, .close-btn, [data-guard-ok], [aria-label="Đóng"], .inv2-x, .rp-x, .gd-x';
+        function act(t) { return t && t.closest ? t.closest('button, a, [onclick], [role="button"], .gift-opt, .chip, .act') : null; }
+        d.addEventListener('click', function (e) {
+            var c = cfg(); if (!c.on || !c.script.on || e.isTrusted || busy) return;
+            var el = act(e.target); if (!el || el.closest(CLOSE)) return;
+            var now = Date.now();
+            if (blockUntil > now && c.autoBlock) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+            fake.push(now); while (fake.length && now - fake[0] > 60000) fake.shift();
+            if (fake.length >= c.script.n) {
+                flag('script', 'high', fake.length + ' lần bấm do mã lệnh tạo ra trong 1 phút (nút: ' + String(el.innerText || el.id || el.className || el.tagName).trim().slice(0, 60) + ')', { count: fake.length });
+                if (c.autoBlock) {
+                    blockUntil = now + 120000; e.preventDefault(); e.stopImmediatePropagation();
+                    try { if (W.Utils && Utils.toast) Utils.toast('Phát hiện thao tác tự động — tạm chặn 2 phút.', 'warning'); } catch (er) {}
+                }
+            }
+        }, true);
+
+        /* ---------- 2. Nhịp bấm đều bất thường (phần mềm auto-click: khoảng cách giữa các lần bấm gần như y hệt) ---------- */
+        var taps = [];
+        d.addEventListener('pointerdown', function (e) {
+            var c = cfg(); if (!c.on || !c.rhythm.on || !e.isTrusted || !act(e.target)) return;
+            var now = performance.now(); taps.push(now); if (taps.length > 21) taps.shift();
+            if (taps.length < 21) return;
+            var gaps = []; for (var i = 1; i < taps.length; i++) gaps.push(taps[i] - taps[i - 1]);
+            var mean = gaps.reduce(function (a, b) { return a + b; }, 0) / gaps.length; if (mean > 450) return;
+            var sd = Math.sqrt(gaps.reduce(function (a, g) { return a + (g - mean) * (g - mean); }, 0) / gaps.length);
+            if (sd < 6) { flag('rhythm', 'med', '20 lần bấm liên tiếp cách đều ' + Math.round(mean) + ' ms (lệch ' + sd.toFixed(1) + ' ms) — nghi dùng phần mềm tự bấm', { mean: Math.round(mean), sd: +sd.toFixed(1) }); taps = []; }
+        }, true);
+
+        /* ---------- 3 + 4. Trình duyệt tự động hóa + ghi thiết bị (Admin quét: nhiều tài khoản / 1 thiết bị) ---------- */
+        var botTry = 0;
+        function botCheck() {   // đợi biết tài khoản (tối đa ~1 phút) để cảnh báo ghi đúng tên
+            var c = cfg(); if (!c.on || !c.bot.on || navigator.webdriver !== true || sent.bot) return;
+            if (me() || ++botTry >= 3) flag('bot', 'high', 'Trình duyệt đang bị điều khiển tự động (webdriver)');
+        }
+        function start() { var c = cfg(); if (!c.on) return; botCheck(); seen(); }
+        function seen() {
+            botCheck();
+            var c = cfg(), u = me(), D = db(); if (!c.on || !c.device.on || !u || devDone[u] || !D || !firebase.firestore.FieldValue) return;
+            devDone[u] = 1;
+            hush(function () { D.collection('security_devices').doc(dev()).set({ users: firebase.firestore.FieldValue.arrayUnion(u), lastUser: u, lastAt: Date.now(), page: PAGE, ua: navigator.userAgent.slice(0, 180) }, { merge: true }).catch(function () {}); });
+        }
+        setInterval(seen, 20000);   // đăng nhập sau khi vào trang
+
+        /* ---------- 5. Bảo vệ mã nguồn (Admin > Chống gian lận > Bảo vệ mã nguồn) ---------- */
+        function staff() { try { return Date.now() - (+localStorage.getItem('qd_staff') || 0) < 30 * 864e5; } catch (e) { return false; } }   // thiết bị đã đăng nhập Admin trong 30 ngày
+        function prot() { var p = cfg().prot; return p.on && !(p.staff && staff()) ? p : null; }
+        var tipAt = 0, tries = [];
+        function tip(msg) {
+            var now = Date.now(); if (now - tipAt < 1500) return; tipAt = now;
+            try { if (W.Utils && Utils.toast) { Utils.toast('🔒 ' + msg, 'warning'); return; } } catch (e) {}
+            var t = d.getElementById('qd-prot-tip');
+            if (!t) { t = d.createElement('div'); t.id = 'qd-prot-tip'; t.setAttribute('role', 'status');
+                t.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:2147483647;max-width:calc(100vw - 32px);padding:11px 18px;border-radius:999px;font:600 14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;background:rgba(20,6,6,.92);border:1px solid rgba(255,213,74,.6);box-shadow:0 12px 30px -12px rgba(0,0,0,.6);transition:opacity .25s;pointer-events:none';
+                d.body.appendChild(t); }
+            t.textContent = '🔒 ' + msg; t.style.opacity = '1'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.opacity = '0'; }, 2200);
+        }
+        function tried(what) {   // thử mở mã nguồn nhiều lần -> cảnh báo mức Thấp
+            var now = Date.now(); tries.push(now); while (tries.length && now - tries[0] > 60000) tries.shift();
+            if (tries.length >= 3) flag('source', 'low', 'Cố mở mã nguồn / công cụ nhà phát triển ' + tries.length + ' lần trong 1 phút (' + what + ')');
+        }
+        function editable(t) { return t && t.closest && t.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]'); }
+        function keyName(e) {
+            var k = String(e.key || '').toLowerCase(), c = e.ctrlKey || e.metaKey, s = e.shiftKey, a = e.altKey;
+            if (e.key === 'F12' || e.keyCode === 123) return 'F12';
+            if (c && !s && !a && (k === 'u' || e.keyCode === 85)) return 'Ctrl+U';
+            if (e.metaKey && a && (k === 'u' || e.keyCode === 85)) return 'Cmd+Option+U';
+            if (c && s && /^[ijck]$/.test(k)) return 'Ctrl+Shift+' + k.toUpperCase();
+            if (e.metaKey && a && /^[ijc]$/.test(k)) return 'Cmd+Option+' + k.toUpperCase();
+            if (c && !s && !a && (k === 's' || e.keyCode === 83)) return 'Ctrl+S';
+            return '';
+        }
+        function bind(doc) {
+            if (!doc || doc.__qdProt) return; doc.__qdProt = true;
+            doc.addEventListener('keydown', function (e) {
+                var p = prot(); if (!p || !p.keys) return; var n = keyName(e); if (!n) return;
+                e.preventDefault(); e.stopPropagation(); tip(p.msg); tried(n);
+            }, true);
+            doc.addEventListener('contextmenu', function (e) {
+                var p = prot(); if (!p || !p.menu || editable(e.target)) return;
+                e.preventDefault(); tip(p.msg); tried('chuột phải');
+            }, true);
+            ['copy', 'cut'].forEach(function (ev) { doc.addEventListener(ev, function (e) { var p = prot(); if (!p || !p.copy || editable(e.target)) return; e.preventDefault(); tip(p.msg); }, true); });
+            doc.addEventListener('dragstart', function (e) { var p = prot(); if (p && p.copy && e.target && /^(IMG|VIDEO|A)$/.test(e.target.tagName)) e.preventDefault(); }, true);
+            doc.addEventListener('selectstart', function (e) { var p = prot(); if (p && p.copy && !editable(e.target)) e.preventDefault(); }, true);
+        }
+        function protApply() {
+            var p = prot(), on = !!(p && p.copy);
+            [d].concat(frames()).forEach(function (doc) { try { if (doc.documentElement) doc.documentElement.classList.toggle('qd-nosel', on); } catch (e) {} });
+            if (!d.getElementById('qd-prot-css')) { var st = d.createElement('style'); st.id = 'qd-prot-css'; st.textContent = 'html.qd-nosel body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}html.qd-nosel input,html.qd-nosel textarea,html.qd-nosel [contenteditable]{-webkit-user-select:text;user-select:text}'; (d.head || d.documentElement).appendChild(st); }
+        }
+        function frames() {   // khung cùng trang (vd. Quân Sư AI) cũng được bảo vệ
+            var out = []; Array.prototype.forEach.call(d.querySelectorAll('iframe'), function (f) { try { var dd = f.contentDocument; if (dd && dd.documentElement) out.push(dd); } catch (e) {} }); return out;
+        }
+        bind(d); protApply();
+        setInterval(function () {
+            frames().forEach(function (dd) { bind(dd); if (!dd.getElementById('qd-prot-css')) { try { var st = dd.createElement('style'); st.id = 'qd-prot-css'; st.textContent = d.getElementById('qd-prot-css').textContent; (dd.head || dd.documentElement).appendChild(st); dd.documentElement.classList.toggle('qd-nosel', !!(prot() && prot().copy)); } catch (e) {} } });
+            var p = prot(); if (!p || !p.devtools || 'ontouchstart' in W) return;   // DevTools gắn cạnh cửa sổ (máy tính): chênh lệch kích thước lớn
+            if (W.outerWidth - W.innerWidth > 200 || W.outerHeight - W.innerHeight > 260) flag('devtools', 'low', 'Có dấu hiệu đang mở công cụ nhà phát triển (DevTools) trên ' + PAGE);
+        }, 1500);
+        d.addEventListener('DOMContentLoaded', protApply);
+
+        /* ---------- Ghi lỗi: gộp theo (trang + thông báo + vị trí), tối đa 15 lỗi khác nhau / phiên ---------- */
+        var IGN = /^Script error\.?$|ResizeObserver loop|Non-Error promise rejection|chrome-extension:|moz-extension:|safari-extension:|AbortError|The play\(\) request was interrupted|play\(\) failed because the user|NotAllowedError/i;
+        function hash(s) { var h = 5381; for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+        function base(u) { u = String(u || ''); try { var x = new URL(u, location.href); return x.origin === location.origin ? x.pathname.split('/').pop() || x.pathname : x.host + x.pathname; } catch (e) { return u.slice(0, 80); } }
+        function report(kind, msg, src, line, col, stack) {
+            var c = cfg(); if (!c.err || busy) return;
+            msg = String(msg == null ? '' : msg).replace(/\s+/g, ' ').trim().slice(0, 300);
+            if (!msg || IGN.test(msg) || IGN.test(String(src || '')) || IGN.test(String(stack || ''))) return;
+            var D = db(); if (!D || !firebase.firestore.FieldValue) { (W.__qdErrQ = W.__qdErrQ || []).push([kind, msg, src, line, col, stack]); return; }   // chưa kết nối: gửi sau
+            var file = base(src), sig = kind + '|' + PAGE + '|' + msg.slice(0, 160) + '|' + file + ':' + (line || 0);
+            if (errSent[sig]) return; if (++errN > 15) return; errSent[sig] = 1;
+            var u = me(), FV = firebase.firestore.FieldValue, now = Date.now();
+            var doc = { kind: kind, msg: msg, file: file, line: line || 0, col: col || 0, stack: String(stack || '').slice(0, 900), page: PAGE, count: FV.increment(1), lastAt: now, lastUser: u || null, lastUa: navigator.userAgent.slice(0, 180), status: 'open' };
+            if (u) doc.users = FV.arrayUnion(u);
+            hush(function () { D.collection('error_logs').doc('e_' + hash(sig)).set(doc, { merge: true }).catch(function () {}); });
+        }
+        W.addEventListener('error', function (e) {
+            var t = e.target;
+            if (t && t !== W && t.tagName) {   // file không tải được: ảnh / nhạc / video / script / css
+                var url = t.currentSrc || t.src || t.href || ''; if (!url || /^data:|^blob:/.test(url)) return;
+                try { var uu = new URL(url, location.href); if (uu.origin !== location.origin || uu.pathname === location.pathname) return; } catch (er) { return; }   // ảnh để trống đường dẫn -> trỏ về chính trang: bỏ qua
+                report('resource', 'Không tải được ' + t.tagName.toLowerCase() + ': ' + base(url), url, 0, 0, '');
+                return;
+            }
+            report('js', e.message || (e.error && e.error.message), e.filename, e.lineno, e.colno, e.error && e.error.stack);
+        }, true);
+        W.addEventListener('unhandledrejection', function (e) {
+            var r = e.reason; report('promise', r && (r.message || r.code) || String(r), '', 0, 0, r && r.stack);
+        });
+        var ce = console.error;
+        console.error = function () {
+            try {
+                var a = Array.prototype.slice.call(arguments), er = a.filter(function (x) { return x instanceof Error || (x && x.code && x.message); })[0];
+                var m = a.map(function (x) { return x instanceof Error ? x.message : (typeof x === 'object' ? (x && (x.message || x.code)) || '' : String(x)); }).join(' ').trim();
+                if (!busy) report('console', m, '', 0, 0, er && er.stack);
+            } catch (e) {}
+            return ce.apply(console, arguments);
+        };
+
+        var waitN = 0, wait = setInterval(function () {
+            if (db() || ++waitN > 60) { clearInterval(wait); if (DB) { load(); var q = W.__qdErrQ || []; W.__qdErrQ = []; q.forEach(function (a) { report.apply(null, a); }); } }
+        }, 500);
+    })();
+    </script>
+
 
     <script>
     window.LuckySchedule = (function () {
@@ -10857,6 +11155,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         }
                         State.hasUsedInvite = docData.hasUsedInvite || false;
                         State.inviteCode = invCode;
+                        if (window.InviteUI) window.InviteUI.onAcc(docData);
 
                         Utils.safeText('sidebar-name', State.currentUser); Utils.safeText('dash-name', State.currentUser); Utils.safeText('profile-name-large', State.currentUser);
                         const initial = State.currentUser.charAt(0).toUpperCase();
@@ -10907,6 +11206,12 @@ html.qd-lite .qd-fx { display: none !important; }
                     // NHANH: đọc cấu hình và tài khoản cùng lúc
                     const userRef = db.collection("accounts").doc(window.Auth.pendingLockedId);
                     const userP = userRef.get(); userP.catch(() => {});
+                    // Khóa do hệ thống chống gian lận (Admin > Chống gian lận): không tự mở, phải liên hệ Ban Quản Trị
+                    const pre = await userP;
+                    if (pre.exists && pre.data().lockReason === 'security') {
+                        timerDisplay.innerHTML = `<span class="text-danger" style="font-size:16px;line-height:1.5;display:block;">🛡️ Tài khoản đang được Ban Quản Trị kiểm tra (nghi vấn gian lận).<br>Vui lòng liên hệ Ban Quản Trị để được mở khóa.</span>`;
+                        return;
+                    }
                     const configDoc = await db.collection("settings").doc("account_config").get();
                     let autoUnlockMinutes = 0;
                     if(configDoc.exists && configDoc.data().autoUnlockMinutes !== undefined) {
@@ -12629,6 +12934,8 @@ html.qd-lite .qd-fx { display: none !important; }
                         State.availablePoints = data.points || 0;
                         if (window.Inventory) window.Inventory.refresh();
                         if (window.Avatar) window.Avatar.apply(data.avatar);   // ảnh đại diện: đổi / xóa ở máy khác cũng cập nhật ngay
+                        if (window.InviteUI) window.InviteUI.onAcc(data);       // mã mời: số người đã mời, đã nhập mã (đồng bộ mọi máy)
+                        if (window.GiftUI) window.GiftUI.onAcc(data);         // tặng lượt: số dư từng loại + số lần đã tặng hôm nay
 
                         Utils.safeText('spin-count-val', State.availableSpins);
                         Utils.safeText('ticket-count-val', State.availableTickets);
@@ -12705,7 +13012,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     window.AppCore.attToday = { date: dateVN, synced: !snap.metadata.fromCache, rows: snap.docs.map(d => d.data()) };
                     const l = document.getElementById('att-history-list'); if(!l) return; l.innerHTML = ""; if(snap.empty) { l.innerHTML = `<div class="p-10 text-center text-muted"><i class="fa-solid fa-list-ul text-4xl mb-4 opacity-30 block"></i>Chưa có ai điểm danh trong ngày hôm nay.</div>`; return; }
                     let rs = []; snap.forEach(doc => rs.push(doc.data())); rs.sort((a,b) => b.timestamp - a.timestamp);
-                    rs.forEach(d => { l.insertAdjacentHTML('beforeend', `<div class="flex justify-between items-center p-5 border-b border-strong" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-4"><div class="avatar-circle" style="width:46px;height:46px;font-size:18px;background:var(--color-success);">${d.userName.charAt(0).toUpperCase()}</div><div class="flex-col"><span class="font-bold text-main text-lg">${d.userName}</span><span class="text-sm text-muted font-mono tracking-wide">ID: ${d.userId.substring(0,8)}...</span></div></div><span class="badge badge-offline px-4 py-2 text-sm"><i class="fa-regular fa-clock mr-1"></i> ${d.time}</span></div>`); });
+                    rs.forEach(d => { l.insertAdjacentHTML('beforeend', `<div class="flex justify-between items-center p-5 border-b border-strong" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-4"><div class="avatar-circle" style="width:46px;height:46px;font-size:18px;background:var(--color-success);">${String(d.userName || '?').charAt(0).toUpperCase()}</div><div class="flex-col"><span class="font-bold text-main text-lg">${d.userName || 'Không rõ'}</span><span class="text-sm text-muted font-mono tracking-wide">ID: ${String(d.userId || '—').substring(0,8)}...</span></div></div><span class="badge badge-offline px-4 py-2 text-sm"><i class="fa-regular fa-clock mr-1"></i> ${d.time}</span></div>`); });
                 });
 
                 db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
@@ -12994,12 +13301,14 @@ html.qd-lite .qd-fx { display: none !important; }
 
                 try {
                     const todayStr = Utils.getTodayString();
-                    const anti = window.AppCore.attConfig.antiProxyEnabled;
+                    // Chống điểm danh hộ: Admin > Chống gian lận (settings/attendance.antiProxyEnabled + công tắc tổng Chống gian lận)
+                    const anti = window.AppCore.attConfig.antiProxyEnabled && !(window.QDGuard && window.QDGuard.off && window.QDGuard.off());
+                    const proxyErr = (m, extra) => { const e = new Error(m); e.proxy = extra || {}; return e; };
                     if (anti) {
                         const lastDeviceAttDate = localStorage.getItem('qd_device_att_date');
                         const lastDeviceAttUser = localStorage.getItem('qd_device_att_user');
                         if (lastDeviceAttDate === todayStr && lastDeviceAttUser !== State.currentUser) {
-                            throw new Error(`Hệ thống phát hiện thiết bị này đã điểm danh cho [${lastDeviceAttUser}] hôm nay.`);
+                            throw proxyErr(`Hệ thống phát hiện thiết bị này đã điểm danh cho [${lastDeviceAttUser}] hôm nay.`, { by: 'device', other: lastDeviceAttUser });
                         }
                     }
 
@@ -13018,7 +13327,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         const rows = local ? local.filter(r => r.ipAddress === currentIP) : (await ipCheckP).docs.map(d => d.data());
                         const other = rows.find(r => r.userName !== State.currentUser);
                         if (other) {
-                            throw new Error(`Địa chỉ mạng này (IP: ${currentIP}) đã được dùng để điểm danh cho [${other.userName}]. Nghi vấn điểm danh hộ!`);
+                            throw proxyErr(`Địa chỉ mạng này (IP: ${currentIP}) đã được dùng để điểm danh cho [${other.userName}]. Nghi vấn điểm danh hộ!`, { by: 'ip', other: other.userName, ip: currentIP });
                         }
                     }
 
@@ -13028,29 +13337,46 @@ html.qd-lite .qd-fx { display: none !important; }
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TRUYỀN TẢI...`;
                     const batch = db.batch();
                     const newAttRef = db.collection("attendance").doc();
-
-                    batch.set(newAttRef, {
+                    const attData = {
                         userId: State.currentDocId, userName: State.currentUser, time: now.toLocaleTimeString('vi-VN'), date: todayStr, timestamp: Date.now(), ipAddress: currentIP
-                    });
+                    };
 
                     let rewardSpins = 0; let rewardTickets = 0;
                     const [rewardDoc, taskDoc] = await Promise.all([rewardP, taskP]);
-                    if (rewardDoc.exists && rewardDoc.data().isEnabled === true) {
-                        rewardSpins = 0;   // đã bỏ thưởng lượt quay (lượt quay chỉ có từ câu hỏi)
-                        rewardTickets = rewardDoc.data().tickets || 0;
-                        if(rewardSpins > 0 || rewardTickets > 0) {
-                            const accRef = db.collection("accounts").doc(State.currentDocId);
-                            batch.update(accRef, { 
-                                spins: firebase.firestore.FieldValue.increment(rewardSpins),
-                                tickets: firebase.firestore.FieldValue.increment(rewardTickets)
-                            });
-                        }
+                    // Vật phẩm hệ thống (Admin > Thưởng Vật Phẩm Điểm Danh): items { points | tickets | spins | conThrows: { on, n, from, to } }
+                    // Mỗi món chỉ phát khi đang trong giờ hẹn riêng [from, to) (0 = không giới hạn; món chưa có giờ riêng dùng giờ chung cũ from / to).
+                    // Cấu hình cũ chưa có items -> chỉ thưởng lượt rút lì xì = tickets.
+                    const rwD = rewardDoc.exists ? rewardDoc.data() : {}, rwNow = Date.now();
+                    const rwIn = (f, t) => { f = Number(f) || 0; t = Number(t) || 0; return !(f && rwNow < f) && !(t && rwNow >= t); };
+                    const rewardItems = {};
+                    if (rewardDoc.exists && rwD.isEnabled === true) {
+                        const it = rwD.items && typeof rwD.items === 'object' ? rwD.items : null;
+                        if (it) ['points', 'tickets', 'spins', 'conThrows'].forEach(k => {
+                            const x = it[k] || {}, n = Math.min(1e6, parseInt(x.n, 10) || 0);
+                            if (x.on === true && n > 0 && rwIn(x.from !== undefined ? x.from : rwD.from, x.to !== undefined ? x.to : rwD.to)) rewardItems[k] = n;
+                        });
+                        else if ((parseInt(rwD.tickets, 10) || 0) > 0 && rwIn(rwD.from, rwD.to)) rewardItems.tickets = parseInt(rwD.tickets, 10);
                     }
+                    rewardSpins = rewardItems.spins || 0; rewardTickets = rewardItems.tickets || 0;
+                    if (Object.keys(rewardItems).length) {
+                        const accRef = db.collection("accounts").doc(State.currentDocId), upd = {};
+                        Object.keys(rewardItems).forEach(k => { upd[k] = firebase.firestore.FieldValue.increment(rewardItems[k]); });
+                        batch.update(accRef, upd);
+                        if (rewardItems.points) batch.set(db.collection("point_history").doc(), {
+                            user: State.currentUser, action: "add", detail: "Thưởng vật phẩm điểm danh", pointsChanged: rewardItems.points, timestamp: Date.now()
+                        });
+                    }
+
+                    attData.rewardTickets = rewardTickets;   // lưu vật phẩm thực nhận để Admin xem lịch sử chính xác
+                    attData.rewardItems = rewardItems;
+                    batch.set(newAttRef, attData);
 
                     let attRewardPoints = 20;
                     if (taskDoc.exists && taskDoc.data().attendanceReward !== undefined) {
                         attRewardPoints = parseInt(taskDoc.data().attendanceReward);
                     }
+                    // Không có vật phẩm thưởng nào đang phát (công tắc tổng tắt / các món tắt / ngoài giờ) -> CHỈ ghi nhận điểm danh, không cộng điểm Nhiệm vụ
+                    if (!Object.keys(rewardItems).length) attRewardPoints = 0;
                     if (attRewardPoints > 0) {
                         const accRef = db.collection("accounts").doc(State.currentDocId);
                         batch.update(accRef, { points: firebase.firestore.FieldValue.increment(attRewardPoints) });
@@ -13077,11 +13403,30 @@ html.qd-lite .qd-fx { display: none !important; }
                     document.getElementById('popup-reward-spins').innerText = rewardSpins;
                     try { const bx = document.getElementById('popup-reward-spins').closest('.rounded-xl'); if (bx) bx.style.display = 'none'; } catch (e) {}
                     document.getElementById('popup-reward-tickets').innerText = rewardTickets;
+                    try {   // Hiện đủ những gì vừa nhận: điểm lì xì (Nhiệm vụ + thưởng thêm) và từng vật phẩm
+                        const list = document.getElementById('popup-reward-list'), pts = Math.max(0, attRewardPoints || 0) + (rewardItems.points || 0);
+                        const box = (ic, color, bg, txt) => `<div class="att-pop-it" style="border-color:${color};background:${bg}"><i class="fa-solid ${ic} text-4xl mb-2" style="color:${color}"></i><span class="font-bold text-main text-lg">${txt}</span></div>`;
+                        const h = [];
+                        if (pts > 0) h.push(box('fa-coins', 'var(--color-success)', 'var(--color-success-bg)', `+${pts.toLocaleString('vi-VN')} Điểm Lì Xì`));
+                        if (rewardItems.tickets) h.push(box('fa-envelope-open-text', 'var(--color-danger)', 'var(--color-danger-bg)', `+${rewardItems.tickets} Lượt Rút Lì Xì`));
+                        if (rewardItems.spins) h.push(box('fa-fan', 'var(--color-warning)', 'var(--color-warning-bg)', `+${rewardItems.spins} Lượt Quay`));
+                        if (rewardItems.conThrows) h.push(box('fa-bullseye', '#f97316', 'rgba(249,115,22,.12)', `+${rewardItems.conThrows} Lượt Ném Còn`));
+                        const hid = '<span id="popup-reward-spins" hidden>' + rewardSpins + '</span><span id="popup-reward-tickets" hidden>' + rewardTickets + '</span>';
+                        const msg = list && list.previousElementSibling;
+                        if (msg && !msg.dataset.orig) msg.dataset.orig = msg.innerHTML;
+                        if (list && h.length) { list.innerHTML = h.join('') + hid; if (msg) msg.innerHTML = msg.dataset.orig; }
+                        else if (list) {   // chỉ điểm danh, không có phần thưởng
+                            list.innerHTML = box('fa-calendar-check', 'var(--color-success)', 'var(--color-success-bg)', 'Đã ghi nhận điểm danh hôm nay') + hid;
+                            if (msg) msg.innerHTML = 'Bạn đã điểm danh thành công. Hôm nay điểm danh <b>không kèm phần thưởng</b>.';
+                        }
+                    } catch (e) {}
                     window.Sound.initCtx(); window.Sound.playWin();
                     window.UI.openModal('modal-attendance-reward');
 
                 } catch (error) {
                     Utils.toast(error.message || "Lỗi kết nối máy chủ.", "error"); 
+                    // Bị chặn điểm danh hộ -> báo về Admin > Chống gian lận
+                    if (error && error.proxy && window.QDGuard) window.QDGuard.flag('proxy', 'med', (error.proxy.by === 'ip' ? 'Chặn điểm danh: cùng mạng (IP ' + error.proxy.ip + ') với ' : 'Chặn điểm danh: thiết bị này đã điểm danh cho ') + error.proxy.other + ' hôm nay', { other: error.proxy.other || null, by: error.proxy.by });
                     window.AppCore.evalAtt(); 
                 } finally {
                     window.AppCore.isProcessingAttendance = false;
@@ -13134,74 +13479,351 @@ html.qd-lite .qd-fx { display: none !important; }
                 const codeInput = document.getElementById('inp-invite-code').value.trim().toUpperCase();
                 if(!codeInput) return Utils.toast("Vui lòng nhập mã mời!", "warning");
                 if(codeInput === State.inviteCode) return Utils.toast("Bạn không thể tự nhập mã của chính mình!", "error");
+                const IV = window.InviteUI;
+                if(IV && IV.loaded && !IV.cfg.on) return Utils.toast("Chức năng Mã Mời hiện đang tắt.", "warning");
 
                 const btn = document.querySelector('#invite-input-area button');
                 btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
 
                 try {
-                    // NHANH: đọc cấu hình, tìm người mời và đọc tài khoản của mình CÙNG LÚC (trước đây 3 bước nối nhau)
+                    // NHANH: đọc cấu hình, tìm người mời và đọc tài khoản của mình CÙNG LÚC
                     const configP = db.collection("settings").doc("invite_config").get();
-                    const inviterP = db.collection("accounts").where("inviteCode", "==", codeInput).get();
+                    const inviterP = db.collection("accounts").where("inviteCode", "==", codeInput).limit(1).get();
                     configP.catch(() => {}); inviterP.catch(() => {});
-                    let config = { rewardTickets: 1 };
+                    let res = null;
 
                     await db.runTransaction(async (transaction) => {
                         const myRef = db.collection("accounts").doc(State.currentDocId);
                         const [myDoc, configDoc, inviterSnap] = await Promise.all([transaction.get(myRef), configP, inviterP]);
-                        config = configDoc.exists ? configDoc.data() : { isEnabled: false, rewardTickets: 1 };
-                        if(!config.isEnabled) throw "DISABLED";
+                        const cfg = IV.norm(configDoc.exists ? configDoc.data() : null);
+                        if(!cfg.on) throw "DISABLED";
                         if(inviterSnap.empty) throw "NOT_FOUND";
-                        const inviterDoc = inviterSnap.docs[0]; const inviterId = inviterDoc.id; const inviterData = inviterDoc.data();
-                        const inviterRef = db.collection("accounts").doc(inviterId);
+                        const inviterDoc = inviterSnap.docs[0];
+                        if(inviterDoc.id === State.currentDocId) throw "SELF";
+                        if(!myDoc.exists) throw "ERR";
                         if(myDoc.data().hasUsedInvite) throw "ALREADY_USED";
+                        const inviterRef = db.collection("accounts").doc(inviterDoc.id);
+                        let inv = inviterDoc.data();
+                        // Có giới hạn thưởng người mời -> đọc lại số lần đã thưởng ngay trong giao dịch (chính xác khi nhiều người nhập cùng lúc)
+                        if(cfg.max > 0) { const fresh = await transaction.get(inviterRef); if(!fresh.exists) throw "NOT_FOUND"; inv = fresh.data(); }
+                        if(inv.invitedBy && inv.invitedBy === State.currentUser) throw "MUTUAL";   // A mời B rồi B lại nhập mã của A
 
-                        const reward = config.rewardTickets || 1;
-                        transaction.update(myRef, { tickets: firebase.firestore.FieldValue.increment(reward), hasUsedInvite: true });
-                        transaction.update(inviterRef, { tickets: firebase.firestore.FieldValue.increment(reward) });
+                        const capped = cfg.max > 0 && (Number(inv.inviteRewardCount) || 0) >= cfg.max;
+                        const gMe = IV.give(cfg, 'invitee'), gInvFull = IV.give(cfg, 'inviter'), gInv = capped ? {} : gInvFull;
+                        if(!Object.keys(gMe).length && !Object.keys(gInv).length) throw (capped && Object.keys(gInvFull).length ? "CAPPED" : "NO_REWARD");
 
-                        const historyRef = db.collection("invite_history").doc();
-                        transaction.set(historyRef, {
-                            inviter: inviterData.user, invitee: State.currentUser, rewardAmount: reward, timestamp: Date.now()
+                        const FV = firebase.firestore.FieldValue, now = Date.now();
+                        const upMe = { hasUsedInvite: true, invitedBy: inv.user || '', invitedAt: now };
+                        const upInv = { inviteCount: FV.increment(1) };
+                        Object.keys(gMe).forEach(k => { upMe[k] = FV.increment(gMe[k]); });
+                        Object.keys(gInv).forEach(k => { upInv[k] = FV.increment(gInv[k]); });
+                        if(Object.keys(gInv).length) upInv.inviteRewardCount = FV.increment(1);
+                        transaction.update(myRef, upMe);
+                        transaction.update(inviterRef, upInv);
+                        transaction.set(db.collection("invite_history").doc(), {
+                            inviter: inv.user || '', invitee: State.currentUser,
+                            rewards: { invitee: gMe, inviter: gInv }, inviterCapped: capped,
+                            rewardAmount: gMe.tickets || 0,   // (cũ) để bản admin cũ vẫn đọc được
+                            timestamp: now
                         });
+                        res = { gMe, gInv, inviter: inv.user || '', capped };
                     });
 
-                    Utils.toast(`Thành công! Cả 2 đều được cộng +${config.rewardTickets} lượt xé vé.`, "success");
-                    document.getElementById('invite-input-area').style.display = 'none';
-                    document.getElementById('invite-success-area').style.display = 'block';
-                    document.getElementById('invite-success-area').classList.remove('hidden');
                     State.hasUsedInvite = true;
+                    IV.done(res);
+                    const txt = IV.text(res.gMe);
+                    Utils.toast(txt ? `🎉 Thành công! Bạn nhận ${txt}.` : `🎉 Đã nhập mã của ${res.inviter}!`, "success");
                 } catch(err) {
                     btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i>`;
-                    if(err === "DISABLED") Utils.toast("Chức năng Mã Mời hiện đang bị khóa.", "warning");
+                    if(err === "DISABLED") Utils.toast("Chức năng Mã Mời hiện đang tắt.", "warning");
                     else if(err === "NOT_FOUND") Utils.toast("Mã mời không tồn tại.", "error");
+                    else if(err === "SELF") Utils.toast("Bạn không thể tự nhập mã của chính mình!", "error");
                     else if(err === "ALREADY_USED") Utils.toast("Bạn đã sử dụng tính năng này rồi.", "error");
-                    else Utils.toast("Lỗi hệ thống khi xử lý mã mời.", "error");
+                    else if(err === "MUTUAL") Utils.toast("Người này đã nhập mã của bạn, không thể nhập mã ngược lại.", "error");
+                    else if(err === "CAPPED") Utils.toast("Người mời đã đạt giới hạn nhận thưởng. Hãy nhập mã của người khác.", "warning");
+                    else if(err === "NO_REWARD") { const nx = IV && IV.loaded ? IV.sched(IV.cfg).next : 0; Utils.toast(nx ? `Chưa tới giờ phát thưởng mã mời. Mở lúc ${IV.fmtT(nx)}.` : "Phần thưởng mã mời đang tạm dừng, vui lòng quay lại sau.", "warning"); if (IV && IV.render) IV.render(); }
+                    else { console.error(err); Utils.toast("Lỗi hệ thống khi xử lý mã mời.", "error"); }
                 }
             }
         };
 
 
-        window.Transfer = {
-            execute: async () => {
-                const targetUser = document.getElementById('transfer-target').value.trim();
-                const type = document.getElementById('transfer-type').value;
-                const amount = parseInt(document.getElementById('transfer-amount').value);
-                const btn = document.getElementById('btn-execute-transfer');
+        /* ===== TẶNG QUÀ ĐỒNG ĐỘI (Admin bật / tắt: settings/transfer_config) =====
+           settings/transfer_config = {
+             isEnabled: bool,                                  // công tắc tổng (chưa cấu hình = ĐÓNG)
+             types: { spins | tickets | conThrows: { on } },   // loại được tặng (chưa cấu hình: lượt quay + lượt rút BẬT, lượt ném TẮT)
+             maxPerTransfer: số,                               // tối đa mỗi lần tặng (0 = không giới hạn)
+             dailyLimit: số,                                   // số lần tặng / người / ngày (0 = không giới hạn)
+             from: ms, to: ms,                                 // hẹn giờ mở / đóng (0 = không giới hạn)
+             closedMsg: chuỗi                                  // lời nhắn khi đóng
+           }
+           accounts (người tặng): giftDay ('YYYY-MM-DD'), giftCount (số lần tặng trong ngày)
+           transfer_history: { from, to, type, amount, timestamp, day } */
+        window.GiftUI = (function () {
+            const TYPES = [
+                { k: 'spins', name: 'Lượt vòng quay', short: 'lượt quay', icon: '🎡' },
+                { k: 'tickets', name: 'Lượt rút lì xì', short: 'lượt rút', icon: '🧧' },
+                { k: 'conThrows', name: 'Lượt ném còn', short: 'lượt ném', icon: '🎯' }
+            ];
+            const TMAP = {}; TYPES.forEach(t => TMAP[t.k] = t);
+            const $ = (id) => document.getElementById(id);
+            const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const int = (v, d, lo, hi) => { v = parseInt(v, 10); if (isNaN(v)) v = d; return Math.min(hi, Math.max(lo, v)); };
+            const p2 = (n) => (n < 10 ? '0' : '') + n;
+            const dayKey = (t) => { const d = t ? new Date(t) : new Date(); return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); };
+            const fmtT = (t) => { const d = new Date(t); return p2(d.getHours()) + ':' + p2(d.getMinutes()) + ' ' + p2(d.getDate()) + '/' + p2(d.getMonth() + 1); };
+            const fmt = (n) => Number(n || 0).toLocaleString('vi-VN');
 
-                if (!targetUser) return Utils.toast("Vui lòng nhập tên người nhận!", "warning");
-                if (targetUser === State.currentUser) return Utils.toast("Bạn không thể tự chuyển quà cho chính mình!", "error");
-                if (isNaN(amount) || amount <= 0) return Utils.toast("Số lượng chuyển phải lớn hơn 0!", "warning");
+            function norm(c) {
+                c = c || {};
+                const t = c.types && typeof c.types === 'object' ? c.types : null, types = {};
+                TYPES.forEach(x => { types[x.k] = t ? !!(t[x.k] && t[x.k].on === true) : x.k !== 'conThrows'; });
+                const ms = (v) => { v = Number(v); return isFinite(v) && v > 0 ? Math.floor(v) : 0; };
+                return { on: c.isEnabled === true, types, max: int(c.maxPerTransfer, 0, 0, 1e6), daily: int(c.dailyLimit, 0, 0, 1000),
+                    from: ms(c.from), to: ms(c.to), msg: String(c.closedMsg || '').slice(0, 300) };
+            }
+            // 'off' tắt · 'wait' chưa tới giờ mở · 'end' đã hết giờ · 'none' không có loại nào · 'open' đang mở
+            function state(c, now) {
+                now = now || Date.now();
+                if (!c.on) return 'off';
+                if (c.from && now < c.from) return 'wait';
+                if (c.to && now >= c.to) return 'end';
+                if (!TYPES.some(t => c.types[t.k])) return 'none';
+                return 'open';
+            }
 
-                const typeName = type === 'spins' ? 'Lượt Quay' : 'Lượt Mở Vé';
-                const currentBalance = type === 'spins' ? State.availableSpins : State.availableTickets;
+            const G = { cfg: norm(null), loaded: false, bal: { spins: 0, tickets: 0, conThrows: 0 }, used: 0, hist: [], histFor: '', filter: 'all', started: false, TYPES, norm, state, dayKey };
 
-                if (amount > currentBalance) {
-                    return Utils.toast(`Bạn không đủ số lượng để chuyển. Hiện tại bạn có: ${currentBalance} ${typeName}`, "error");
+            G.onAcc = function (d) {
+                d = d || {};
+                TYPES.forEach(t => G.bal[t.k] = Math.max(0, Number(d[t.k]) || 0));
+                G.used = d.giftDay === dayKey() ? (Number(d.giftCount) || 0) : 0;
+                G.render();
+            };
+
+            function closedText(c, st) {
+                if (st === 'off') return '🔒 Ban Quản Trị đang <b>tạm đóng</b> chức năng tặng quà.';
+                if (st === 'wait') return '⏳ Chức năng tặng quà mở lúc <b>' + fmtT(c.from) + '</b>' + (c.to ? ' (đến ' + fmtT(c.to) + ')' : '') + '.';
+                if (st === 'end') return '⛔ Đợt tặng quà đã kết thúc lúc <b>' + fmtT(c.to) + '</b>.';
+                if (st === 'none') return '🔒 Hiện chưa có loại quà nào được phép tặng.';
+                return '';
+            }
+
+            G.render = function () {
+                const c = G.cfg, st = state(c), open = st === 'open';
+                // Lối vào: hiện khi Admin BẬT công tắc tổng (kể cả đang chờ giờ mở)
+                const show = G.loaded && c.on;
+                const nav = $('nav-gift'), ib = $('inv2-gift'), sub = $('inv2-gift-sub');
+                if (nav) nav.hidden = !show;
+                if (ib) { ib.hidden = !show; ib.classList.toggle('is-off', !open); }
+                if (sub) sub.textContent = open ? 'Chuyển ' + TYPES.filter(t => c.types[t.k]).map(t => t.short).join(' / ') + ' cho thành viên khác'
+                    : st === 'wait' ? 'Mở lúc ' + fmtT(c.from) : 'Đang tạm đóng';
+
+                const box = $('gift-state'), form = $('gift-form'); if (!box || !form) return;
+                if (!G.loaded) { box.className = 'gift-state'; box.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải thiết lập...'; form.disabled = true; return; }
+                const lim = [];
+                if (open) {
+                    if (c.to) lim.push('⏰ Mở đến <b>' + fmtT(c.to) + '</b>');
+                    if (c.max > 0) lim.push('Tối đa <b>' + fmt(c.max) + '</b>/lần');
+                    if (c.daily > 0) lim.push('Hôm nay đã tặng <b>' + G.used + '/' + c.daily + '</b> lần');
                 }
+                const dailyOut = open && c.daily > 0 && G.used >= c.daily;
+                box.className = 'gift-state ' + (open && !dailyOut ? 'ok' : 'no');
+                box.innerHTML = open
+                    ? (dailyOut ? '⛔ Bạn đã dùng hết <b>' + c.daily + ' lần tặng</b> hôm nay — quay lại sau 0 giờ nhé.' : '<span class="gift-dot"></span> Đang mở' + (lim.length ? ' · ' + lim.join(' · ') : ''))
+                    : closedText(c, st) + (c.msg ? '<br><i>' + esc(c.msg) + '</i>' : '');
+                form.disabled = !open || dailyOut;
 
+                // Loại quà: chỉ các loại Admin đang bật, kèm số dư
+                const sel = $('transfer-type'), cur = sel.value;
+                const opts = TYPES.filter(t => c.types[t.k]);
+                const html = opts.map(t => '<option value="' + t.k + '">' + t.icon + ' ' + t.name + ' (có ' + fmt(G.bal[t.k]) + ')</option>').join('') || '<option value="">Không có loại nào</option>';
+                if (sel.innerHTML !== html) { sel.innerHTML = html; if (opts.some(t => t.k === cur)) sel.value = cur; }
+                G.hint();
+            };
+            G.hint = function () {
+                const h = $('gift-hint'), sel = $('transfer-type'), c = G.cfg; if (!h || !sel) return;
+                const t = TMAP[sel.value]; if (!t) { h.innerHTML = ''; return; }
+                const have = G.bal[t.k], cap = c.max > 0 ? Math.min(c.max, have) : have;
+                const amt = $('transfer-amount'); if (amt) amt.max = Math.max(1, cap);
+                h.innerHTML = 'Bạn đang có <b>' + fmt(have) + ' ' + t.short + '</b>' + (c.max > 0 ? ' · tối đa <b>' + fmt(c.max) + '</b>/lần' : '')
+                    + (have > 0 && state(c) === 'open' ? ' · <button type="button" class="gift-all" onclick="window.GiftUI.fillMax()">Tặng tối đa (' + fmt(cap) + ')</button>' : '');
+            };
+            G.fillMax = function () {
+                const t = TMAP[($('transfer-type') || {}).value]; if (!t) return;
+                const cap = G.cfg.max > 0 ? Math.min(G.cfg.max, G.bal[t.k]) : G.bal[t.k];
+                const a = $('transfer-amount'); if (a && cap > 0) { a.value = cap; a.focus(); }
+            };
+
+            /* ---- Lịch sử tặng / nhận của chính mình ---- */
+            G.loadHist = function () {
+                const me = State.currentUser; if (!me || typeof db === 'undefined') return;
+                const list = $('gift-list'); if (list && G.histFor !== me) list.innerHTML = '<div class="gift-empty"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</div>';
+                const col = db.collection('transfer_history');
+                Promise.all([col.where('from', '==', me).get(), col.where('to', '==', me).get()]).then(r => {
+                    if (State.currentUser !== me) return;
+                    const seen = {}, all = [];
+                    r.forEach(snap => snap.forEach(doc => { if (seen[doc.id]) return; seen[doc.id] = 1; all.push(Object.assign({ id: doc.id }, doc.data())); }));
+                    all.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    G.hist = all; G.histFor = me; G.renderHist();
+                }).catch(e => { console.warn('transfer_history', e); if (list) list.innerHTML = '<div class="gift-empty">Không tải được lịch sử, thử lại sau.</div>'; });
+            };
+            G.renderHist = function () {
+                const list = $('gift-list'); if (!list) return;
+                const me = State.currentUser;
+                const rows = G.hist.filter(d => G.filter === 'all' || (G.filter === 'out' ? d.from === me : d.to === me));
+                document.querySelectorAll('#modal-transfer .gift-tab').forEach(b => b.classList.toggle('active', b.dataset.f === G.filter));
+                if (!rows.length) { list.innerHTML = '<div class="gift-empty">' + (G.hist.length ? 'Không có mục nào.' : 'Bạn chưa tặng hoặc nhận quà nào.') + '</div>'; return; }
+                list.innerHTML = rows.slice(0, 40).map(d => {
+                    const out = d.from === me, t = TMAP[d.type] || { icon: '🎁', short: 'lượt' };
+                    return '<div class="gift-row ' + (out ? 'out' : 'in') + '"><span class="gift-ic">' + (out ? '↗' : '↘') + '</span>'
+                        + '<div class="gift-tx"><b>' + (out ? 'Tặng ' + esc(d.to) : 'Nhận từ ' + esc(d.from)) + '</b><small>' + (d.timestamp ? new Date(d.timestamp).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '') + '</small></div>'
+                        + '<span class="gift-amt">' + (out ? '−' : '+') + fmt(d.amount) + ' ' + t.icon + ' <small>' + t.short + '</small></span></div>';
+                }).join('') + (rows.length > 40 ? '<div class="gift-empty">Hiện 40 mục gần nhất.</div>' : '');
+            };
+
+            /* ---- Gợi ý người nhận: danh bạ thành viên (accounts đang nghe trực tiếp -> lấy ngay trong bộ nhớ) ---- */
+            const fold = (v) => String(v == null ? '' : v).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase().trim();
+            G.dir = []; G.dirAt = 0; G.sugIdx = -1; G.sugList = [];
+            G.loadDir = function (force) {
+                if (typeof db === 'undefined' || (!force && G.dir.length && Date.now() - G.dirAt < 60000)) return Promise.resolve(G.dir);
+                return db.collection('accounts').get().then(snap => {
+                    const me = String(State.currentUser || '');
+                    G.dir = snap.docs.map(d => d.data()).filter(a => a && a.user && a.user !== me && !a.isBlocked).map(a => ({
+                        user: String(a.user), name: String(a.fullName || a.name || ''), avatar: a.avatar || (State.avatars || {})[a.user] || null,
+                        nick: (State.nicknames || {})[a.user] || '', on: (Date.now() - (Number(a.lastActive) || 0)) < 300000, role: a.role || 'user',
+                        k: fold(a.user) + ' ' + fold(a.fullName || a.name || '') + ' ' + fold((State.nicknames || {})[a.user] || '')
+                    })).sort((x, y) => (y.on - x.on) || x.user.localeCompare(y.user));
+                    G.dirAt = Date.now(); return G.dir;
+                }).catch(e => { console.warn('gift dir', e); return G.dir; });
+            };
+            function recent() {   // người mình tặng gần đây nhất (tối đa 4)
+                const seen = {}, out = [], me = State.currentUser;
+                G.hist.forEach(h => { if (h.from === me && h.to && !seen[h.to] && out.length < 4) { seen[h.to] = 1; out.push(h.to); } });
+                return out;
+            }
+            function hl(text, q) {
+                const t = String(text || ''); if (!q) return esc(t);
+                const f = fold(t), i = f.indexOf(q); if (i < 0) return esc(t);
+                return esc(t.slice(0, i)) + '<mark>' + esc(t.slice(i, i + q.length)) + '</mark>' + esc(t.slice(i + q.length));
+            }
+            function avHTML(a) {
+                const ini = esc((a.name || a.user).trim().charAt(0).toUpperCase() || '?');
+                return '<span class="gift-av">' + (a.avatar && /^data:image\/|^https?:\/\//.test(a.avatar) ? '<img src="' + esc(a.avatar) + '" alt="">' : ini) + '<i class="' + (a.on ? 'on' : '') + '"></i></span>';
+            }
+            G.suggest = function (show) {
+                const inp = $('transfer-target'), box = $('gift-sug'); if (!inp || !box) return;
+                const raw = inp.value.trim(), q = fold(raw);
+                let list, label;
+                if (!q) {
+                    const r = recent(); list = r.map(u => G.dir.find(a => a.user === u)).filter(Boolean);
+                    label = list.length ? 'Tặng gần đây' : 'Thành viên đang hoạt động';
+                    if (!list.length) list = G.dir.filter(a => a.on).slice(0, 6);
+                } else {
+                    const starts = [], has = [];
+                    G.dir.forEach(a => { const u = fold(a.user), n = fold(a.name); if (u.startsWith(q) || n.startsWith(q) || n.split(' ').some(w => w.startsWith(q))) starts.push(a); else if (a.k.indexOf(q) >= 0) has.push(a); });
+                    list = starts.concat(has).slice(0, 8); label = list.length ? 'Gợi ý thành viên' : '';
+                }
+                G.sugList = list; G.sugIdx = list.length && q ? 0 : -1;
+                const exact = G.dir.find(a => a.user === raw) || G.dir.find(a => a.user.toLowerCase() === raw.toLowerCase());
+                if (show === false || !list.length && !q || (exact && list.length === 1 && list[0] === exact && raw === exact.user)) { box.hidden = true; inp.setAttribute('aria-expanded', 'false'); }
+                else {
+                    box.innerHTML = (label ? '<div class="gift-sug-lbl">' + label + '</div>' : '') + (list.length ? list.map((a, i) =>
+                        '<button type="button" class="gift-opt' + (i === G.sugIdx ? ' on' : '') + '" role="option" data-u="' + esc(a.user) + '" id="gift-opt-' + i + '">' + avHTML(a)
+                        + '<span class="gift-opt-tx"><b>' + hl(a.user, q) + '</b><small>' + (a.name ? hl(a.name, q) : 'Chưa có họ tên') + (a.nick ? ' · “' + esc(a.nick) + '”' : '') + '</small></span>'
+                        + (a.role === 'admin' || a.role === 'manager' ? '<span class="gift-opt-tag">BQT</span>' : a.on ? '<span class="gift-opt-tag">Online</span>' : '') + '</button>').join('')
+                        : '<div class="gift-sug-empty">Không tìm thấy thành viên nào khớp “' + esc(raw) + '”</div>');
+                    box.hidden = false; inp.setAttribute('aria-expanded', 'true');
+                }
+                G.who();
+            };
+            G.who = function () {
+                const el = $('gift-who'), inp = $('transfer-target'); if (!el || !inp) return;
+                const raw = inp.value.trim(); if (!raw || !G.dir.length) { el.className = 'gift-who'; el.textContent = ''; return; }
+                const a = G.dir.find(x => x.user === raw) || G.dir.find(x => x.user.toLowerCase() === raw.toLowerCase());
+                if (a) { el.className = 'gift-who ok'; el.innerHTML = '✓ Người nhận: <b>' + esc(a.user) + '</b>' + (a.name ? ' — ' + esc(a.name) : ''); }
+                else if (String(State.currentUser || '') === raw) { el.className = 'gift-who no'; el.textContent = 'Không thể tự tặng cho chính mình.'; }
+                else if (!$('gift-sug').hidden && G.sugList.length) { el.className = 'gift-who'; el.textContent = ''; }   // đang chọn trong danh sách: chưa cảnh báo
+                else { el.className = 'gift-who no'; el.textContent = G.sugList.length ? 'Chưa đúng tên đăng nhập — chọn một người trong danh sách gợi ý.' : 'Không có thành viên nào tên “' + raw + '”.'; }
+            };
+            G.pick = function (u) {
+                const inp = $('transfer-target'); if (!inp) return;
+                inp.value = u; $('gift-sug').hidden = true; inp.setAttribute('aria-expanded', 'false'); G.who();
+                const am = $('transfer-amount'); if (am) am.focus();
+            };
+            function moveSug(d) {
+                if (!G.sugList.length) return;
+                G.sugIdx = (G.sugIdx + d + G.sugList.length) % G.sugList.length;
+                document.querySelectorAll('#gift-sug .gift-opt').forEach((b, i) => b.classList.toggle('on', i === G.sugIdx));
+                const on = $('gift-opt-' + G.sugIdx); if (on) { on.scrollIntoView({ block: 'nearest' }); $('transfer-target').setAttribute('aria-activedescendant', on.id); }
+            }
+
+            G.open = function () { if (window.UI && window.UI.openModal) window.UI.openModal('modal-transfer'); };
+            function onOpen() { G.render(); G.loadHist(); G.loadDir(true).then(() => G.who()); const sb = $('gift-sug'); if (sb) sb.hidden = true; setTimeout(() => { const t = $('transfer-target'); if (t && !$('gift-form').disabled && window.innerWidth > 760) t.focus(); }, 250); }
+
+            G.start = function () {
+                if (G.started || typeof db === 'undefined') return; G.started = true;
+                db.collection('settings').doc('transfer_config').onSnapshot(doc => {
+                    G.cfg = norm(doc.exists ? doc.data() : null); G.loaded = true; G.render();
+                }, e => { console.warn('transfer_config', e); G.loaded = true; G.render(); });
+                setInterval(() => { if (G.cfg.from || G.cfg.to) G.render(); }, 15000);   // hẹn giờ: tự mở / đóng đúng giờ
+                const m = $('modal-transfer');
+                if (m && window.MutationObserver) { let was = false; new MutationObserver(() => { const on = m.classList.contains('active'); if (on && !was) onOpen(); was = on; }).observe(m, { attributes: true, attributeFilter: ['class'] }); }
+                const sel = $('transfer-type'); if (sel) sel.addEventListener('change', G.hint);
+                const tg = $('transfer-target'), am = $('transfer-amount');
+                if (tg) {
+                    tg.addEventListener('input', () => { G.loadDir().then(() => G.suggest()); });
+                    tg.addEventListener('focus', () => { G.loadDir().then(() => G.suggest()); });
+                    tg.addEventListener('keydown', e => {
+                        const open = !$('gift-sug').hidden;
+                        if (e.key === 'ArrowDown') { e.preventDefault(); if (!open) G.suggest(); else moveSug(1); }
+                        else if (e.key === 'ArrowUp') { if (open) { e.preventDefault(); moveSug(-1); } }
+                        else if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); $('gift-sug').hidden = true; }
+                        else if (e.key === 'Enter' || e.key === 'Tab') {
+                            if (open && G.sugIdx >= 0 && G.sugList[G.sugIdx]) { e.preventDefault(); G.pick(G.sugList[G.sugIdx].user); }
+                            else if (e.key === 'Enter') { e.preventDefault(); $('gift-sug').hidden = true; am && am.focus(); }
+                        }
+                    });
+                    tg.addEventListener('blur', () => setTimeout(() => { if (document.activeElement === tg) return; const b = $('gift-sug'); if (b && !b.contains(document.activeElement)) { b.hidden = true; tg.setAttribute('aria-expanded', 'false'); } G.who(); }, 180));
+                }
+                const sb = $('gift-sug');
+                if (sb) { sb.addEventListener('mousedown', e => e.preventDefault()); sb.addEventListener('click', e => { const b = e.target.closest('.gift-opt'); if (b) G.pick(b.dataset.u); }); }
+                if (am) am.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); window.Transfer.execute(); } });
+                document.querySelectorAll('#modal-transfer .gift-tab').forEach(b => b.addEventListener('click', () => { G.filter = b.dataset.f; G.renderHist(); }));
+            };
+            return G;
+        })();
+        try { window.GiftUI.start(); } catch (e) { console.warn('GiftUI', e); }
+
+        window.Transfer = {
+            busy: false,
+            execute: async () => {
+                const G = window.GiftUI;
+                if (window.Transfer.busy) return;
+                const typed = document.getElementById('transfer-target').value.trim();
+                const hit = typed && (G.dir || []).find(a => a.user === typed) || (G.dir || []).find(a => a.user.toLowerCase() === typed.toLowerCase());
+                const targetUser = hit ? hit.user : typed;   // gõ khác hoa / thường vẫn ra đúng tài khoản
+                const type = document.getElementById('transfer-type').value;
+                const amount = parseInt(document.getElementById('transfer-amount').value, 10);
+                const btn = document.getElementById('btn-execute-transfer');
+                const T = G.TYPES.find(t => t.k === type);
+                const st = G.state(G.cfg);
+
+                if (st !== 'open') return Utils.toast("Chức năng tặng quà đang tạm đóng.", "warning");
+                if (!T || !G.cfg.types[type]) return Utils.toast("Loại quà này hiện không được phép tặng.", "warning");
+                if (!targetUser) return Utils.toast("Vui lòng nhập tên người nhận!", "warning");
+                if (targetUser.toLowerCase() === String(State.currentUser || '').toLowerCase()) return Utils.toast("Bạn không thể tự chuyển quà cho chính mình!", "error");
+                if (isNaN(amount) || amount <= 0) return Utils.toast("Số lượng chuyển phải lớn hơn 0!", "warning");
+                if (G.cfg.max > 0 && amount > G.cfg.max) return Utils.toast(`Mỗi lần chỉ được tặng tối đa ${G.cfg.max} ${T.short}.`, "warning");
+                if (G.cfg.daily > 0 && G.used >= G.cfg.daily) return Utils.toast(`Bạn đã tặng đủ ${G.cfg.daily} lần hôm nay.`, "warning");
+                if (amount > G.bal[type]) return Utils.toast(`Bạn không đủ số lượng để chuyển. Hiện tại bạn có: ${G.bal[type]} ${T.short}`, "error");
+
+                window.Transfer.busy = true;
                 btn.disabled = true;
                 btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang Xử Lý...`;
 
+                const now = Date.now(), today = G.dayKey(now);
+                let recv = targetUser;
                 try {
                     // NHANH: tìm người nhận (thường lấy ngay trong bộ nhớ vì danh bạ đang nghe trực tiếp) song song với đọc số dư
                     const targetP = db.collection("accounts").where("user", "==", targetUser).get();
@@ -13209,50 +13831,61 @@ html.qd-lite .qd-fx { display: none !important; }
 
                     await db.runTransaction(async (transaction) => {
                         const myRef = db.collection("accounts").doc(State.currentDocId);
-                        const [myDoc, targetSnap] = await Promise.all([transaction.get(myRef), targetP]);
+                        const cfgRef = db.collection("settings").doc("transfer_config");
+                        // Đọc lại cấu hình trong giao dịch: Admin vừa đóng thì không tặng được nữa
+                        const [myDoc, cfgDoc, targetSnap] = await Promise.all([transaction.get(myRef), transaction.get(cfgRef), targetP]);
+                        const cfg = G.norm(cfgDoc.exists ? cfgDoc.data() : null);
+                        if (G.state(cfg, now) !== 'open') throw new Error("CLOSED");
+                        if (!cfg.types[type]) throw new Error("TYPE_OFF");
+                        if (cfg.max > 0 && amount > cfg.max) throw new Error("OVER_MAX");
                         if (targetSnap.empty) throw new Error("NO_TARGET");
-                        const targetRef = db.collection("accounts").doc(targetSnap.docs[0].id);
+                        const tDoc = targetSnap.docs[0];
+                        if (tDoc.id === State.currentDocId) throw new Error("SELF");
+                        recv = tDoc.data().user || targetUser;
+                        const targetRef = db.collection("accounts").doc(tDoc.id);
 
-                        const myData = myDoc.data();
-                        const myCurrentBal = myData[type] || 0;
-                        if (myCurrentBal < amount) {
-                            throw new Error("INSUFFICIENT_FUNDS");
-                        }
+                        const myData = myDoc.data() || {};
+                        const used = myData.giftDay === today ? (Number(myData.giftCount) || 0) : 0;
+                        if (cfg.daily > 0 && used >= cfg.daily) throw new Error("DAILY");
+                        if ((Number(myData[type]) || 0) < amount) throw new Error("INSUFFICIENT_FUNDS");
 
                         transaction.update(myRef, {
-                            [type]: firebase.firestore.FieldValue.increment(-amount)
+                            [type]: firebase.firestore.FieldValue.increment(-amount),
+                            giftDay: today, giftCount: used + 1
                         });
-
                         transaction.update(targetRef, {
                             [type]: firebase.firestore.FieldValue.increment(amount)
                         });
-
-                        const historyRef = db.collection("transfer_history").doc();
-                        transaction.set(historyRef, {
-                            from: State.currentUser,
-                            to: targetUser,
-                            type: type,
-                            amount: amount,
-                            timestamp: Date.now()
+                        transaction.set(db.collection("transfer_history").doc(), {
+                            from: State.currentUser, to: recv, type: type, amount: amount, timestamp: now, day: today
                         });
                     });
 
-                    Utils.toast(`Giao dịch thành công! Đã tặng ${amount} ${typeName} cho ${targetUser}`, "success");
+                    Utils.toast(`Giao dịch thành công! Đã tặng ${amount} ${T.short} cho ${recv}`, "success");
                     document.getElementById('transfer-target').value = '';
                     document.getElementById('transfer-amount').value = '';
-                    window.UI.closeModal('modal-transfer');
+                    G.who();
+                    G.hist.unshift({ from: State.currentUser, to: recv, type, amount, timestamp: now });
+                    G.used += 1; G.bal[type] = Math.max(0, G.bal[type] - amount);
+                    G.render(); G.renderHist();
 
                 } catch (error) {
-                    if (error.message === "NO_TARGET") {
-                        Utils.toast("Tài khoản người nhận không tồn tại!", "error");
-                    } else if (error.message === "INSUFFICIENT_FUNDS") {
-                        Utils.toast("Số dư của bạn không đủ để thực hiện!", "error");
-                    } else {
-                        Utils.toast("Lỗi hệ thống khi thực hiện chuyển quà.", "error");
-                    }
+                    const m = error && error.message;
+                    if (m === "NO_TARGET") Utils.toast("Tài khoản người nhận không tồn tại!", "error");
+                    else if (m === "SELF") Utils.toast("Bạn không thể tự chuyển quà cho chính mình!", "error");
+                    else if (m === "INSUFFICIENT_FUNDS") Utils.toast("Số dư của bạn không đủ để thực hiện!", "error");
+                    else if (m === "CLOSED") Utils.toast("Ban Quản Trị vừa đóng chức năng tặng quà.", "warning");
+                    else if (m === "TYPE_OFF") Utils.toast("Loại quà này vừa bị tắt, vui lòng chọn loại khác.", "warning");
+                    else if (m === "OVER_MAX") Utils.toast(`Vượt mức tối đa mỗi lần tặng.`, "warning");
+                    else if (m === "DAILY") Utils.toast("Bạn đã hết lượt tặng hôm nay.", "warning");
+                    else { console.error(error); Utils.toast("Lỗi hệ thống khi thực hiện chuyển quà.", "error"); }
+                    // Cấu hình trên máy đã cũ (Admin vừa đổi): đọc lại để hộp tặng quà hiện đúng
+                    if (["CLOSED", "TYPE_OFF", "OVER_MAX", "DAILY"].indexOf(m) >= 0) db.collection("settings").doc("transfer_config").get().then(d => { G.cfg = G.norm(d.exists ? d.data() : null); G.render(); }).catch(() => {});
                 } finally {
+                    window.Transfer.busy = false;
                     btn.disabled = false;
                     btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> Xác Nhận Chuyển`;
+                    G.render();
                 }
             }
         };
@@ -17430,6 +18063,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 var tab = $('wheel-tab'); if (!tab) return;
                 var lock = this.locked(), me = window.State && window.State.currentUser, qs = this.qs, tickets = 0, open = 0;
                 (qs || []).forEach(function (q) { if (q.claimedBy === me && q.ticketUsed !== true) tickets++; });
+                tickets += Number(window.State && window.State.availableSpins) || 0;   // lượt quay trong tài khoản (mã mời / đổi điểm...)
 
                 // Chỉ đếm câu người dùng đang thực sự thấy (theo cài đặt hiển thị trong admin: số câu, ngẫu nhiên, hẹn giờ, khung giờ)
                 if (qs) QVis.compute(qs, this.cfg && this.cfg.quiz, Date.now(), null).list.forEach(function (q) { if (!q.claimedBy) open++; });
@@ -17650,7 +18284,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 var S = window.State || {};
                 this.setNum('inv-points', S.availablePoints || 0);
                 this.setNum('inv-tickets', S.availableTickets || 0);
-                const spins = this.spinTickets;   // lượt quay chỉ có từ câu hỏi đã trả lời đúng
+                const spins = this.spinTickets + (Number(S.availableSpins) || 0);   // câu hỏi đã trả lời đúng + lượt quay trong tài khoản (giống trang Vòng Quay)
                 this.setNum('inv-spins', spins);
                 if (window.WheelTab && window.WheelTab.render) try { window.WheelTab.render(); } catch (e) {}
                 var u = $('inv2-user'); if (u) u.textContent = S.currentUser ? ('Chủ túi: ' + S.currentUser) : 'Xuân Đinh Mùi 2027';
@@ -19807,7 +20441,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         });
 
         var ADM_GO = { 'qt.html': 'wheel', 'tranht.html': 'tranhthuong', 'game.html': 'nemcon', 'quays.html': 'luckynumber', 'index.html': 'approvals', 'user.html': 'dashboard' };
-        var ADM_DO = { attendance: 'attendance', shop: 'pointshop', lucky: 'luckynumber', rps: 'rps', regid: 'registration', tournament: 'tournament', news: 'news', lixi: 'lixi', inventory: 'accounts', transfer: 'accounts', profile: 'accounts' };
+        var ADM_DO = { attendance: 'attendance', shop: 'pointshop', lucky: 'luckynumber', rps: 'rps', regid: 'registration', tournament: 'tournament', news: 'news', lixi: 'lixi', inventory: 'accounts', transfer: 'transfer', profile: 'accounts' };
 
         /* ---------- user.html#qd-act=...: chờ đăng nhập xong rồi mở đúng chức năng ---------- */
         var pending = null, pendT = 0;
@@ -19849,6 +20483,160 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             readHash(); W.addEventListener('hashchange', readHash);
         }
         if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+    })();
+    </script>
+    <style id="invite-ui-css">
+    /* ===== MÃ MỜI (Hồ sơ): phần thưởng theo cấu hình Admin ===== */
+    .ivu-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ivu-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; line-height: 1.5;
+        color: var(--tone); background: rgba(127, 127, 127, .12); background: color-mix(in srgb, var(--tone) 13%, transparent);
+        border: 1px solid rgba(127, 127, 127, .25); border-color: color-mix(in srgb, var(--tone) 38%, transparent); }
+    .ivu-chip small { font-weight: 600; opacity: .9; }
+    /* Giao diện Tết (nền đỏ): chip nền kem chữ đỏ sẫm cho dễ đọc */
+    html[data-theme="tet"] .ivu-chip { color: #7a1500; background: #fff4d6; border-color: #f2c14e; }
+    html[data-theme="tet"] .ivu-mine, html[data-theme="tet"] .ivu-row > span, html[data-theme="tet"] .ivu-off { color: #ffe9b8; }
+    html[data-theme="tet"] .ivu-mine b { color: #fff; }
+    .ivu-rows { display: grid; gap: 8px; margin-bottom: 12px; }
+    .ivu-row { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: start; }
+    .ivu-row > span { font-size: 12px; font-weight: 700; color: var(--text-muted); padding-top: 4px; }
+    .ivu-off { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+    #invite-input-area.ivu-locked input, #invite-input-area.ivu-locked button { opacity: .5; pointer-events: none; }
+    .ivu-mine { font-size: 13px; color: var(--text-muted); display: grid; gap: 6px; }
+    .ivu-mine:empty { display: none; }
+    .ivu-mine b { color: var(--text-main); }
+    @media (max-width: 380px) { .ivu-row { grid-template-columns: 1fr; gap: 4px; } }
+    </style>
+    <style id="att-pop-css">
+        #popup-reward-list { flex-wrap: wrap; gap: 12px; }
+        .att-pop-it { flex: 1 1 140px; max-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 10px; border-radius: 14px; border: 1px solid; text-align: center; }
+        .att-pop-it .text-lg { line-height: 1.3; }
+    </style>
+    <script id="invite-ui-js">
+    /* ===== MÃ MỜI (trang user) =====
+       Đọc settings/invite_config (Admin > Mã mời): isEnabled + rewards { points | tickets | spins | conThrows: { on, invitee, inviter, from, to } } + maxPerInviter.
+       from / to (ms, 0 = không giới hạn): hẹn giờ bật / tắt từng phần thưởng — ngoài giờ thì loại đó không phát.
+       Cấu hình cũ chỉ có rewardTickets -> thưởng lượt rút lì xì cho cả 2 bên như trước.
+       Giao dịch nhập mã nằm ở AppCore.submitInviteCode (dùng InviteUI.norm / give để tính phần thưởng). */
+    (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var TYPES = [
+            { k: 'points', name: 'Điểm lì xì', icon: '💰', unit: 'điểm', tone: 'var(--color-success)' },
+            { k: 'tickets', name: 'Lượt rút lì xì', icon: '🧧', unit: 'lượt rút lì xì', tone: 'var(--color-danger)' },
+            { k: 'spins', name: 'Lượt vòng quay', icon: '🎡', unit: 'lượt vòng quay', tone: 'var(--color-warning)' },
+            { k: 'conThrows', name: 'Lượt ném còn', icon: '🎯', unit: 'lượt ném còn', tone: '#f97316' }
+        ];
+        function int(v, d, lo, hi) { v = parseInt(v, 10); if (isNaN(v)) v = d; return Math.min(hi, Math.max(lo, v)); }
+        function norm(c) {
+            c = c || {};
+            var r = c.rewards && typeof c.rewards === 'object' ? c.rewards : null, out = { on: !!c.isEnabled, max: int(c.maxPerInviter, 0, 0, 10000), rewards: {} };
+            TYPES.forEach(function (t) {
+                if (r) { var x = r[t.k] || {}; out.rewards[t.k] = { on: x.on === true, invitee: int(x.invitee, 0, 0, 1e6), inviter: int(x.inviter, 0, 0, 1e6), from: ms(x.from), to: ms(x.to) }; }
+                else if (t.k === 'tickets') { var n = int(c.rewardTickets, 1, 1, 1e6); out.rewards[t.k] = { on: true, invitee: n, inviter: n, from: 0, to: 0 }; }
+                else out.rewards[t.k] = { on: false, invitee: 0, inviter: 0, from: 0, to: 0 };
+            });
+            return out;
+        }
+        function ms(v) { v = Number(v); return isFinite(v) && v > 0 ? Math.floor(v) : 0; }
+        // Hẹn giờ: chỉ phát khi công tắc BẬT và đang trong khoảng [from, to)
+        function active(x, now) { now = now || Date.now(); return !!x.on && !(x.from && now < x.from) && !(x.to && now >= x.to); }
+        function give(cfg, side, now) { var g = {}; TYPES.forEach(function (t) { var x = cfg.rewards[t.k]; if (active(x, now) && x[side] > 0) g[t.k] = x[side]; }); return g; }
+        var p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+        function fmtT(t) { var d = new Date(t); return p2(d.getHours()) + ':' + p2(d.getMinutes()) + ' ' + p2(d.getDate()) + '/' + p2(d.getMonth() + 1); }
+        // Giờ mở sớm nhất của phần thưởng đang chờ (0 = không có), các mốc tắt của phần thưởng đang phát, mốc đổi trạng thái gần nhất
+        function sched(cfg, now) {
+            now = now || Date.now(); var next = 0, ends = [], marks = [];
+            TYPES.forEach(function (t) {
+                var x = cfg.rewards[t.k]; if (!x.on || !(x.invitee > 0 || x.inviter > 0)) return;
+                if (x.from && now < x.from) { if (!next || x.from < next) next = x.from; marks.push(x.from); }
+                else if (x.to && now < x.to) ends.push({ t: t, at: x.to });
+                if (x.to && now < x.to) marks.push(x.to);
+            });
+            return { next: next, ends: ends, nextMark: marks.length ? Math.min.apply(null, marks) : 0 };
+        }
+        function chips(g) {
+            return TYPES.filter(function (t) { return g && Number(g[t.k]) > 0; }).map(function (t) {
+                return '<span class="ivu-chip" style="--tone:' + t.tone + '">' + t.icon + ' +' + Number(g[t.k]).toLocaleString('vi-VN') + ' <small>' + esc(t.unit) + '</small></span>';
+            }).join('');
+        }
+        function text(g) {
+            return TYPES.filter(function (t) { return g && Number(g[t.k]) > 0; }).map(function (t) { return '+' + Number(g[t.k]).toLocaleString('vi-VN') + ' ' + t.unit; }).join(', ');
+        }
+
+        var IV = window.InviteUI = { cfg: norm(null), loaded: false, acc: null, norm: norm, give: give, chips: chips, text: text, TYPES: TYPES, sched: sched, fmtT: fmtT };
+        // Tới giờ bật / tắt -> tự vẽ lại (khóa / mở ô nhập, đổi phần thưởng)
+        var tmr = 0;
+        function arm() {
+            clearTimeout(tmr); if (!IV.loaded) return;
+            var m = sched(IV.cfg).nextMark; if (!m) return;
+            tmr = setTimeout(IV.render, Math.min(Math.max(m - Date.now() + 500, 500), 6 * 3600 * 1000));
+        }
+
+        IV.render = function () {
+            var c = IV.cfg, info = $('ivu-info'), area = $('invite-input-area'), mine = $('ivu-mine');
+            var a = give(c, 'invitee'), b = give(c, 'inviter'), has = Object.keys(a).length || Object.keys(b).length, sc = sched(c);
+            var lock = IV.loaded && (!c.on || !has);
+            if (info && IV.loaded) {
+                if (!c.on) info.innerHTML = '<div class="ivu-off"><i class="fa-solid fa-lock"></i> Hệ thống mã mời đang tạm tắt.</div>';
+                else if (!has) info.innerHTML = '<div class="ivu-off"><i class="fa-solid fa-hourglass-half"></i> <span>' + (sc.next ? 'Phần thưởng mã mời mở lúc <b>' + fmtT(sc.next) + '</b>. Hãy quay lại nhé!' : 'Phần thưởng mã mời đang tạm dừng.') + '</span></div>';
+                else info.innerHTML = '<p class="text-sm text-muted mb-3">Nhập mã của đồng đội đã mời bạn. Mỗi tài khoản nhập <b>1 lần</b>:</p>' +
+                    '<div class="ivu-rows">' +
+                    (Object.keys(a).length ? '<div class="ivu-row"><span>🙋 Bạn nhận</span><div class="ivu-chips">' + chips(a) + '</div></div>' : '') +
+                    (Object.keys(b).length ? '<div class="ivu-row"><span>🤝 Người mời</span><div class="ivu-chips">' + chips(b) + '</div></div>' : '') +
+                    '</div>' +
+                    (sc.ends.length ? '<div class="ivu-off"><i class="fa-regular fa-clock"></i> <span>' + sc.ends.map(function (e) { return e.t.icon + ' ' + esc(e.t.name) + ' đến <b>' + fmtT(e.at) + '</b>'; }).join(' · ') + '</span></div>' : '') +
+                    (sc.next ? '<div class="ivu-off"><i class="fa-solid fa-hourglass-half"></i> <span>Thêm phần thưởng từ <b>' + fmtT(sc.next) + '</b></span></div>' : '');
+            }
+            arm();
+            if (area) {
+                area.classList.toggle('ivu-locked', lock);
+                var inp = $('inp-invite-code'); if (inp) inp.disabled = lock;
+            }
+            if (mine) {
+                var n = IV.acc ? (Number(IV.acc.inviteCount) || 0) : 0, h = '';
+                if (n > 0) h += '<div>Bạn đã mời <b>' + n.toLocaleString('vi-VN') + '</b> người' + (c.max > 0 ? ' · được thưởng ' + Math.min(Number(IV.acc.inviteRewardCount) || 0, c.max) + '/' + c.max + ' lần' : '') + '</div>';
+                if (IV.loaded && c.on && Object.keys(b).length) {
+                    var full = c.max > 0 && IV.acc && (Number(IV.acc.inviteRewardCount) || 0) >= c.max;
+                    h += full ? '<div>Bạn đã nhận đủ thưởng mời bạn. Cảm ơn bạn! 🎉</div>'
+                        : '<div>Mỗi người nhập mã của bạn, bạn nhận:</div><div class="ivu-chips">' + chips(b) + '</div>';
+                }
+                mine.innerHTML = h;
+            }
+        };
+        // Dữ liệu tài khoản (đăng nhập / đồng bộ realtime)
+        IV.onAcc = function (d) {
+            if (!d) return;
+            IV.acc = d;
+            var used = !!d.hasUsedInvite, ia = $('invite-input-area'), sa = $('invite-success-area');
+            if (window.State) window.State.hasUsedInvite = used;
+            if (ia) ia.style.display = used ? 'none' : 'block';
+            if (sa) { sa.style.display = used ? 'block' : 'none'; sa.classList.toggle('hidden', !used); }
+            if (used && d.invitedBy) { var t = $('ivu-done-text'); if (t && !IV._justDone) t.innerHTML = 'Bạn đã nhập mã mời của <b>' + esc(d.invitedBy) + '</b>.'; }
+            IV.render();
+        };
+        // Vừa nhập mã thành công
+        IV.done = function (r) {
+            IV._justDone = true;
+            var ia = $('invite-input-area'), sa = $('invite-success-area'), t = $('ivu-done-text'), ch = $('ivu-done-chips');
+            if (ia) ia.style.display = 'none';
+            if (sa) { sa.style.display = 'block'; sa.classList.remove('hidden'); }
+            if (t) t.innerHTML = 'Chúc mừng! Đã nhập mã của <b>' + esc(r.inviter) + '</b>' + (Object.keys(r.gMe).length ? '. Bạn nhận:' : '.');
+            if (ch) ch.innerHTML = chips(r.gMe);
+            var inp = $('inp-invite-code'); if (inp) inp.value = '';
+        };
+
+        function start() {
+            if (typeof db === 'undefined' || !db) return;
+            try {
+                db.collection('settings').doc('invite_config').onSnapshot(function (doc) {
+                    IV.cfg = norm(doc.exists ? doc.data() : null); IV.loaded = true; IV.render();
+                }, function (e) { console.warn('invite_config', e); });
+            } catch (e) { console.warn('InviteUI', e); }
+            var inp = $('inp-invite-code');
+            if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && window.AppCore && window.AppCore.submitInviteCode) { e.preventDefault(); window.AppCore.submitInviteCode(); } });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
     })();
     </script>
 </body>
