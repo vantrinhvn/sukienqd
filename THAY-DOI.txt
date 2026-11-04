@@ -1,3 +1,230 @@
+QD ELITE - QUAY SỐ MAY MẮN: ADMIN ĐẶT PHẦN THƯỞNG, TỰ TRAO CHO NGƯỜI TRÚNG SỐ (04/11/2026, bản 21)
+=================================================================================================
+File thay đổi (chép đè 3 file): admin.html, user.html, quays.html.
+Trước: quay số chỉ ghi "số trúng + tên người trúng", BQT tự trao tay.
+
+ADMIN > Quay số may mắn > thẻ mới "Phần Thưởng Khi Trúng Số" (ngay trên "Điều Khiển Kết Quả Trúng Thưởng")
+- Công tắc BẬT / TẮT. Bật = lưu luôn phần thưởng đang nhập; chỉ trao cho phiên quay TỪ LÚC BẬT (không trao bù phiên cũ).
+- 🏆 Giải chính (trùng đúng số): Điểm lì xì · Lượt vòng quay · Lượt rút lì xì · Lượt ném còn · 💵 Tiền mặt (VNĐ).
+- 🥈 Giải phụ (lệch 1 số, vd quay 27 thì số 26 và 28), bật / tắt riêng, cùng các mục như trên.
+- Nhiều người cùng trúng: "Mỗi người nhận đủ" hoặc "Chia đều tổng giải" (chia lấy phần nguyên; tiền làm tròn xuống bội 1.000đ).
+- Dòng xem trước: "Trúng đúng số: 50.000đ tiền mặt · +100 điểm lì xì · +2 lượt quay / người · Lệch 1 số: ...". Ô sửa chưa lưu viền vàng + "Chưa lưu".
+- Lịch sử các phiên quay: thêm cột "Phần Thưởng Đã Trao" + tên người trúng giải phụ.
+
+CÁCH TRAO (tự động, mọi kiểu quay): số ngẫu nhiên khi BQT bấm quay ở màn hình quay · số BQT chốt (Lưu / Random) · quay theo giờ (nhiều lượt).
+- Ngay khi có kết quả: cộng điểm / lượt vào tài khoản người trúng, ghi Lịch sử giao dịch điểm ("Quay Số May Mắn: trúng số 27"),
+  đánh dấu phiên đã trao. Mỗi phiên trao ĐÚNG 1 LẦN (giao dịch máy chủ), nhiều máy cùng mở cũng không trao trùng.
+- Máy quay mất mạng giữa chừng: trang Admin tự trao bù cho phiên chưa được trao (trong 3 ngày).
+- Tiền mặt KHÔNG tự chuyển: hiện ở Admin > Trả thưởng (nguồn "🎯 Quay Số", nội dung CK {NGUON} = QS), BQT quét VietQR / chuyển theo lô như giải khác.
+- Ghi admin_logs (type: lucky_reward, action: save | enable | disable).
+
+THÀNH VIÊN
+- Hộp chọn số: dòng "🎁 Trúng đúng số: ... / 🥈 Lệch 1 số: ..." (khi Admin bật).
+- Màn hình quay (quays.html): dưới danh sách người trúng hiện "Mỗi người trúng nhận: ..." + người trúng giải phụ.
+- Mình trúng: thông báo "🎉 Chúc mừng! Bạn trúng Quay Số May Mắn!" kèm phần thưởng (chờ ~15 giây cho màn quay hiện số rồi mới báo, không lộ kết quả sớm).
+- Túi đồ: mỗi lần trúng có 1 dòng 🎯 Quay số may mắn; giải có tiền mặt có nhãn ⏳ Chờ BQT chuyển khoản / ✅ Đã chuyển khoản.
+
+Dữ liệu Firestore mới:
+- settings/lucky_reward_config: isEnabled, since, mode, main{points,spins,tickets,conThrows}, cash, nearOn, near{...}, nearCash, updatedAt, updatedBy
+- lucky_rewards/{mã phiên}: number, histId, winners[], near[], all[], each{}, eachNear{}, cash, nearCash, mode, at, wonAt, round, source
+- lucky_number_history: thêm rewarded, rewardText, nearUsers, nearText
+Lưu ý Rules: máy đang quay (Admin hoặc trang thành viên đang mở lúc tới giờ quay tự động) cần quyền tạo lucky_rewards và cộng điểm / lượt
+vào accounts của người trúng — giống cách các trò chơi khác đang ghi.
+
+QD ELITE - LÀM LẠI GIAO DIỆN TRANG THÀNH VIÊN (04/11/2026, bản 20)
+==================================================================
+File thay đổi: user.html (chỉ 1 file). Áp dụng cả 3 màu Tết (Đỏ Lì Xì / Hoa Đào / Bánh Chưng), máy tính + điện thoại.
+
+1. ĐĂNG NHẬP
+- Huy hiệu Quân Đoàn T"L"Headshot (nhúng sẵn, ~11 KB, không cần file) nổi ở đỉnh khung; tên "QĐ TLH" + dòng "Hệ thống Quân Đoàn · Xuân Đinh Mùi 2027".
+- Khung sơn mài theo màu chủ đề, viền vàng. Ô nhập cao 52 px, chữ gợi ý ngắn không bị cắt trên điện thoại.
+- Nút 👁 hiện / ẩn mật khẩu; Enter ở ô tên -> nhảy xuống ô mật khẩu, Enter ở ô mật khẩu -> đăng nhập.
+- "Ghi nhớ tài khoản trên máy này", nút Đăng nhập vàng nổi bật, dòng "Chưa có tài khoản? Đăng ký tại cổng sự kiện" (index.html).
+- Huy hiệu cũng thay biểu tượng nguyên tử cạnh chữ "QĐ TLH" ở menu bên và đầu trang điện thoại.
+
+2. TRANG CHỦ GỌN HƠN
+- Màn rộng (≥ 1200 px): thẻ chào (2 phần) + Lì xì hằng ngày (1 phần) chung 1 hàng -> thấy được nhiều thẻ trò chơi hơn ngay khi mở.
+  Thẻ chào: lời chào, điểm lì xì + đồng hồ bên trái, video bên phải.
+- Điện thoại: thẻ chào thấp hơn (chữ nhỏ lại, video tối đa 280 px).
+- Thẻ trò chơi cuối cùng bị lẻ hàng (vd Ném Còn) tự trải hết hàng cho cân; tự tính lại khi Admin ẩn / hiện mục.
+
+3. ĐỒNG BỘ MÀU
+- Trò Chuyện trước là nền nâu / xanh đậm cố định, nay cùng kiểu thẻ sơn mài theo màu chủ đề: danh bạ chuyển màu như các thẻ khác,
+  thẻ liên hệ trong suốt viền vàng, người đang chọn sáng vàng; khung tin nhắn tối hơn một chút để dễ đọc.
+
+4. SỬA LỖI NHÌN THẤY
+- Bản Tin: không còn hiện "Phát hành: Invalid Date" khi bản tin thiếu / sai giờ (hiện "Không rõ thời gian").
+- Điểm Danh: khung giờ (vd 09:00 đến 10:00) chữ đỏ nền đỏ -> nền vàng chữ đỏ đậm; tiêu đề "Chưa thể điểm danh" màu vàng;
+  nút "HỆ THỐNG ĐANG KHÓA" (gần như vô hình) -> viền vàng nét đứt, chữ vàng; tiêu đề "Lịch sử điểm danh" không còn vỡ dòng, ngày nền vàng.
+- Nút "Hỗ trợ" trên điện thoại / máy tính bảng: chỉ còn nút tròn biểu tượng, không đè lên thẻ, nút đăng nhập.
+
+QD ELITE - GỢI Ý NỘI DUNG CHUYỂN KHOẢN CHO BAN QUẢN TRỊ (04/11/2026, bản 19.1)
+=============================================================================
+File thay đổi: admin.html (chỉ 1 file).
+Admin > Trả thưởng > thẻ mới "Nội dung chuyển khoản" (thay ô "Nội dung chuyển khoản" cũ):
+- Mã sự kiện {MA} (mặc định QDTLH) + Mẫu nội dung (tự gõ, tối đa 60 ký tự).
+- Chèn thông tin (bấm để chèn vào vị trí con trỏ): {MA} mã sự kiện · {USER} tên đăng nhập · {SOGIAI} số giải · {TIEN} tổng tiền (70K)
+  · {NGAY} ngày chuyển (ddmm) · {NGUON} VQ = Vòng Quay / RLX = Rút Lì Xì.
+- 7 mẫu gợi ý (hiện sẵn kết quả với dữ liệu thật đang chờ trả), bấm là điền:
+  QDTLH BINH THUONG TET (khuyên dùng) · QDTLH BINH · QDTLH TRA THUONG BINH · QDTLH BINH 2 GIAI 70K · QDTLH BINH 0411 · QDTLH BINH VQ RLX · LI XI TET BINH QDTLH
+- Xem trước trực tiếp + đếm ký tự: ≤ 25 "an toàn mọi ngân hàng" · > 25 "có ngân hàng sẽ cắt bớt" · tối đa 50 (giới hạn VietQR).
+  Thiếu {USER} -> nhắc "khó đối soát". Có từ dễ bị ngân hàng giữ lệnh (CA CUOC, DANH BAC, THANG CUOC, XO SO, LO DE, NAP TIEN GAME, VAY, NO...) -> báo đỏ, không cho lưu.
+- Tự bỏ dấu, chỉ giữ chữ + số. Áp dụng cho mã VietQR, file chuyển theo lô, báo cáo; giải đã chuyển giữ nguyên nội dung cũ.
+- Đã cấu hình trước đây (chỉ có mã): giữ đúng dạng cũ "{MA} {USER}". Chưa cấu hình: mặc định "{MA} {USER} THUONG TET".
+- Lưu ghi admin_logs (type: payout, action: ref_template). Dữ liệu: settings/payout_config.tpl
+
+QD ELITE - HIỆN LẠI GIẢI ĐẤU · HỒ SƠ MỚI · SỐ TÀI KHOẢN KHAI 1 LẦN (ADMIN CHO SỬA) · BÁO CÁO CHUYỂN TIỀN (04/11/2026, bản 19)
+=========================================================================================================================
+File thay đổi (chép đè 3 file): user.html, admin.html, al.html.
+
+1. Giải Đấu hiện lại: menu bên, thanh dưới điện thoại, nút "Mở Giải Đấu" của Quân Sư AI.
+   Menu: Trang Chủ · Trò Chuyện · Điểm Danh · Bản Tin · Giải Đấu (Đăng Ký ID, Kéo Búa Bao, Tặng Quà, Ném Còn vẫn ẩn khỏi menu, mở từ thẻ Trang Chủ).
+
+2. HỒ SƠ (bấm thẻ tài khoản ở menu / nút hồ sơ trên điện thoại) làm lại theo giao diện Tết:
+   - Đầu thẻ màu chủ đề: ảnh đại diện (đổi / xóa ảnh như cũ), tên đăng nhập, họ tên, nhãn Đã xác thực + nhóm quyền (BQT có nút mở trang Quản trị).
+   - 3 ô số dư bấm được: Điểm lì xì (mở Túi đồ) · Lượt rút (Rút Lì Xì) · Lượt quay (Vòng Quay).
+   - Thông tin tài khoản: tên đăng nhập, mã ID, trạng thái.
+   - 💳 Tài khoản nhận thưởng: ngân hàng · ••4 số cuối · tên chủ TK, trạng thái (Chưa khai / Đã khóa / BQT đã cho sửa lại), Đã chuyển khoản / Chờ chuyển.
+   - Mã mời (nút Sao chép) + ô nhập mã mời nhận quà. Cuối thẻ: Đóng · Đăng xuất. Nội dung dài tự cuộn, nút luôn ở đáy; gọn trên điện thoại.
+
+3. SỐ TÀI KHOẢN NHẬP 1 LẦN
+   - Thành viên khai lần đầu -> lưu xong TỰ KHÓA. Mở lại chỉ xem (ô bị khóa, không có nút lưu), kèm dòng "muốn đổi nhắn Ban Quản Trị".
+   - Admin > Trả thưởng > tab "💳 Số tài khoản": mọi tài khoản đã khai (ngân hàng, số TK, tên, ngày khai, số lần đã sửa, cảnh báo trùng STK / vừa đổi),
+     nút "Cho sửa lại" (bấm 2 lần) -> thành viên sửa được 1 lần, lưu xong tự khóa lại; nút "Khóa lại" để thu hồi khi chưa sửa.
+   - Đang cho sửa: dòng chờ trả có cảnh báo "Đang cho sửa STK — chờ thành viên sửa xong". Sửa xong: cảnh báo "Vừa đổi STK ... — hỏi lại" trong 24 giờ.
+   - Ghi admin_logs (type: payout, action: allow_edit | lock_bank).
+
+4. BÁO CÁO CHUYỂN TIỀN (Admin > Trả thưởng, 2 nút trên đầu trang; cũng có trong hộp Xuất Báo Cáo chung)
+   - "Báo cáo chuyển tiền": mọi giải đã chuyển / không trả. Lọc Hôm nay / 7 / 30 ngày / Tháng này / Tất cả / Tùy chọn + tên thành viên.
+     Tóm tắt: tổng tiền đã chuyển, số giải, số người, số giải không trả; biểu đồ theo ngày; xếp hạng nhận nhiều tiền nhất; phân bổ theo cách chuyển.
+     Chi tiết: thời gian, tài khoản, họ tên, giải, nguồn, trúng lúc, số tiền, trạng thái, ngân hàng, số TK, chủ TK, cách chuyển, nội dung CK, người thực hiện, mã lô, ghi chú.
+   - "Báo cáo chờ trả": giải tiền còn nợ, kèm ngân hàng / số TK (hoặc "Chưa khai") và nội dung CK.
+   - Tải: Excel (.xls, số TK giữ dạng chữ) · CSV · In / Lưu PDF. Mỗi lần xuất ghi admin_logs (type: report) như các báo cáo khác.
+
+Dữ liệu mới: bank_info.allowEdit, allowEditAt, allowEditBy, editCount, firstAt.
+
+QD ELITE - MENU GỌN: CHỈ GIỮ TRANG CHỦ · TRÒ CHUYỆN · ĐIỂM DANH · BẢN TIN; BỎ GIẢI ĐẤU (04/11/2026, bản 18.1)
+===========================================================================================================
+File thay đổi (chép đè 2 file): user.html, al.html.
+- Menu bên (máy tính) chỉ còn: Trang Chủ · Trò Chuyện Nội Bộ · Điểm Danh · Bản Tin Quân Đoàn.
+  Thanh dưới (điện thoại) chỉ còn: Trang Chủ · Trò Chuyện · Điểm Danh · Tin Tức.
+- Đăng Ký ID Game, Kéo Búa Bao, Tặng Quà Đồng Đội, Ném Còn: chỉ ẨN khỏi menu, vẫn mở được từ các thẻ ở Trang Chủ / Túi đồ như cũ.
+- Giải Đấu: bỏ hẳn khỏi trang thành viên (menu, thanh dưới điện thoại, nút của Quân Sư AI). Mở bằng đường cũ -> về Trang Chủ, báo "Mục Giải Đấu hiện không mở".
+  Dữ liệu giải đấu và trang Admin > Giải đấu giữ nguyên.
+- Muốn hiện lại 1 mục: trong user.html xóa chữ "qd-off" ở mục đó (Giải Đấu: xóa thêm dòng "#view-tournament { display: none !important; }"
+  và dòng chuyển hướng 'tournament' trong UI.navigate).
+
+QD ELITE - TRẢ THƯỞNG TIỀN MẶT BÁN TỰ ĐỘNG: KHAI SỐ TÀI KHOẢN + VIETQR + FILE CHUYỂN THEO LÔ (04/11/2026, bản 18)
+====================================================================================================================
+File thay đổi (chép đè 2 file): admin.html, user.html (user.html đã gồm bản 17.1 + 17.2).
+Vì sao không gọi thẳng API ngân hàng: web chạy hoàn toàn trên trình duyệt, không có máy chủ riêng -> khóa API đặt trong trang thì ai xem
+mã nguồn cũng lấy được và tự rút tiền; kết quả trúng thưởng cũng do máy thành viên ghi nên có thể bị làm giả. Vì vậy tiền chỉ đi khi
+Ban Quản Trị tự xác nhận trên app / Internet Banking của ngân hàng; web lo phần danh sách, số tiền, số tài khoản, nội dung và đối soát.
+
+USER > Túi đồ (khi Admin bật "Thu thập tài khoản nhận thưởng", mặc định BẬT)
+- Nút "💳 Khai tài khoản nhận thưởng" (đã khai: hiện ngân hàng · ••4 số cuối · tên). Dòng phụ: Đã nhận ... · Chờ chuyển ...
+  Còn giải chờ trả mà chưa khai -> nút sáng lên nhắc.
+- Hộp khai: tìm ngân hàng (gõ "mb", "vcb"... tự chọn ngân hàng khớp nhất; 39 ngân hàng có sẵn + tự cập nhật danh sách VietQR khi có mạng),
+  số tài khoản (chỉ nhận chữ số, 6-19 số), tên chủ tài khoản (tự viết hoa, bỏ dấu), MẬT KHẨU ĐĂNG NHẬP để xác nhận là chính chủ.
+- Mỗi giải tiền mặt trong lịch sử Túi đồ có nhãn: ✅ Đã chuyển khoản dd/mm · ⏳ Chờ BQT chuyển khoản (· cần khai tài khoản nhận) · ✖ Không được trả.
+- BQT bấm Đã chuyển khi thành viên đang mở web -> hiện "💵 Ban Quản Trị đã chuyển ...đ tiền thưởng cho bạn!".
+
+ADMIN > Trả thưởng (menu "Giải trí & thưởng", menu điện thoại, thẻ ở Tổng quan; phân quyền Quản lý: "Trả Thưởng")
+- Công tắc "Thu thập tài khoản nhận thưởng" + "Nội dung chuyển khoản" (mặc định QDTLH -> nội dung "QDTLH BINH").
+- 4 ô số liệu: Chờ trả (tiền · người · giải) · Chưa khai STK · Đã trả hôm nay · Tổng đã trả.
+- Tab Chờ trả: gộp theo thành viên (nhiều giải = 1 lần chuyển), tìm theo tài khoản / họ tên / số TK, lọc Đã khai / Chưa khai / Có cảnh báo.
+  Mỗi dòng: ngân hàng · số TK · tên chủ TK, tổng tiền, "Xem n giải" (từng giải có nút Không trả), nút Mã QR, nút Đã chuyển (bấm 2 lần).
+  · Mã QR: ảnh VietQR điền sẵn ngân hàng + số TK + SỐ TIỀN + NỘI DUNG -> mở app ngân hàng quét là chuyển, kèm nút Chép từng thông tin,
+    xong bấm "Đã chuyển xong".
+  · Cảnh báo: Tài khoản đang bị khóa / nghi gian lận · Trùng số TK với người khác (nghi nuôi tài khoản phụ) · Vừa đổi STK trong 24 giờ (hỏi lại).
+    Có cảnh báo đỏ thì không chọn được vào lô (vẫn bấm Đã chuyển riêng được nếu BQT đã kiểm tra).
+- CHUYỂN THEO LÔ (tài khoản doanh nghiệp): tích chọn / "Chọn tất cả đủ điều kiện" -> "File chuyển theo lô (Excel)" hoặc CSV
+  (STT, Số tài khoản, Tên người thụ hưởng, Ngân hàng, Mã BIN, Số tiền, Nội dung; số TK giữ dạng chữ, không mất số 0 đầu).
+  Tải lên Internet Banking doanh nghiệp (mục chuyển tiền theo lô / chi lương, chép cột theo mẫu của ngân hàng), chuyển xong bấm
+  "Đánh dấu đã chuyển" (bấm 2 lần).
+- Tab Đã xử lý: theo ngày, giờ, người nhận, giải, ngân hàng + số TK lúc chuyển, cách chuyển (Quét VietQR / Chuyển theo lô / Đánh dấu tay), người làm.
+  Nút Hoàn tác (bấm 2 lần) -> giải quay lại Chờ trả.
+- Số tiền đọc từ tên giải: "20.000 VNĐ", "50K", "100 nghìn"...; Lời chúc / "chúc may mắn" không tính.
+- Mọi thao tác ghi admin_logs (type: payout, action: paid | reject | undo | export | enable | disable).
+
+Dữ liệu Firestore mới:
+- bank_info/{tên đăng nhập}: user, docId, bin, bank, accNo, accName, updatedAt, changedAt, history[{at, bin, accNo}]
+- payouts/{spin_history|tranhthuong_history}_{mã giải}: user, col, histId, prize, amount, wonAt, status (paid | rejected), paidAt, by, method, ref, bank{}, note, batch
+- settings/payout_config: isEnabled, prefix
+LƯU Ý BẢO MẬT (quan trọng vì liên quan tiền thật):
+- Web chưa có Firebase Authentication nên Firestore Rules chưa phân biệt được ai là ai. Người rành có thể đọc bank_info (số TK của thành viên)
+  hoặc sửa bank_info của người khác. Bên trong web đã chặn (cần mật khẩu khi khai / đổi, cảnh báo đổi STK 24 giờ, cảnh báo trùng STK),
+  nhưng LUÔN nhìn cảnh báo và đối chiếu tên chủ TK hiện trên app ngân hàng trước khi bấm chuyển.
+- Muốn chi tự động hoàn toàn bằng API ngân hàng doanh nghiệp: cần máy chủ riêng giữ khóa (Firebase Cloud Functions gói Blaze hoặc VPS),
+  máy chủ tự tính lại giải thưởng từ dữ liệu gốc và chỉ chi khi Admin duyệt. Danh sách payouts ở bản này dùng lại được cho bước đó.
+
+QD ELITE - SỬA: THẺ TÀI KHOẢN BỊ ĐẨY TRÀN RA NGOÀI MENU BÊN (04/11/2026, bản 17.2)
+==================================================================================
+File thay đổi: user.html (chỉ 1 file, đã gồm bản 17.1).
+- Lỗi: màn hình / cửa sổ thấp hoặc trình duyệt có thanh công cụ dưới đáy -> 9 mục menu đẩy thẻ "admin · Đang hoạt động" lòi ra ngoài khung, bị che mất.
+- Đã sửa: khung menu luôn nằm gọn trong màn hình (tính cả thanh công cụ trình duyệt). Cửa sổ thấp hơn ~880 px: tự thu gọn khoảng cách các mục;
+  thấp hơn ~720 px: chữ nhỏ lại một chút; vẫn không đủ chỗ thì danh sách mục cuộn bên trong, thẻ tài khoản luôn nằm ở đáy khung.
+  Đã kiểm tra 1440x1000, 1280x870, 1280x760, 1280x640, 1100x560, 1100x520 với cả 3 màu Tết.
+
+QD ELITE - SỬA: MENU BÊN TÔ SÁNG QUÁ NHIỀU MỤC (04/11/2026, bản 17.1)
+====================================================================
+File thay đổi: user.html (chỉ 1 file).
+- Lỗi: cùng lúc thấy 3 khối nổi (mục đang mở + mục đang rê chuột có khối vàng viền vàng + thẻ tài khoản dưới cùng), mục vừa rê qua còn vệt mờ.
+- Đã sửa: chỉ MỤC ĐANG MỞ được tô đậm. Rê chuột chỉ ánh rất nhẹ theo màu chủ đề, không viền, đổi màu nhanh (không để lại vệt).
+  Điện thoại / máy tính bảng: ô vừa chạm không bị "dính" màu. Thẻ tài khoản dưới cùng chuyển sang nền sáng viền vàng, chữ màu chủ đề.
+  Áp dụng cả 3 màu Tết (Đỏ Lì Xì / Hoa Đào / Bánh Chưng).
+
+QD ELITE - PHIÊN ĐĂNG NHẬP TOÀN HỆ THỐNG (HẾT PHIÊN / ĐÁ RA Ở MỌI TRANG) + "HOẠT ĐỘNG ... TRƯỚC" THEO THỜI GIAN THỰC (04/11/2026, bản 17)
+=====================================================================================================================================
+File thay đổi (chép đè 9 file): admin.html, user.html, al.html, index.html, qt.html, quays.html, tranht.html, game.html, baotri.html
+(8 trang thêm cùng 1 khối "qd-session", ngay sau khối qd-guard; admin.html: ngay sau thư viện Firestore). sw.js, nhạc, video giữ nguyên.
+
+1. PHIÊN ĐĂNG NHẬP DÙNG CHUNG CẢ HỆ THỐNG
+- Trước: hết phiên (6 giờ, cố định) chỉ thoát ở user.html; Vòng Quay / Rút Lì Xì / Ném Còn / Quay Số đang mở ở tab khác vẫn chơi tiếp mãi.
+  Đăng xuất ở user.html cũng không xóa phiên -> các trang khác vẫn nhận là đã đăng nhập.
+- Nay: 1 phiên cho mọi trang, mọi tab. Thao tác ở bất kỳ trang nào cũng giữ phiên cho tất cả.
+  · Không thao tác quá thời gian đặt -> MỌI trang đang mở thoát cùng lúc: hiện hộp "Phiên đăng nhập đã kết thúc" (nêu lý do),
+    nhạc / video dừng, 5 giây sau tự về trang đăng nhập, ở đó có dòng báo lý do.
+  · Còn 60 giây: hiện nhắc "⏳ Phiên đăng nhập sẽ hết sau ... giây" + nút Tiếp tục (chạm bất kỳ đâu cũng được).
+  · Tab nền / điện thoại khóa màn hình quá hạn rồi mở lại -> thoát ngay, không "sống lại".
+  · Bấm Đăng xuất ở 1 trang -> các trang khác thoát theo. Tài khoản khác đăng nhập trên cùng trình duyệt -> trang của tài khoản cũ thoát.
+  · Tài khoản bị khóa / bị xóa khi đang chơi -> mọi trang thoát (user.html vẫn hiện hộp "Tài khoản bị khóa" như cũ).
+  · Click do mã lệnh / tiện ích tạo ra KHÔNG được tính là thao tác (không dùng auto-click để giữ phiên).
+- Lần đầu chép bản này: ai đang mở trang con (qt, tranht, game, quays) bằng phiên kiểu cũ sẽ được đưa về đăng nhập lại 1 lần.
+
+2. ADMIN > QUẢN TRỊ TÀI KHOẢN > thẻ "Cấu hình Khóa & Mở tự động" (thêm)
+- Hết phiên đăng nhập — Thành viên (phút), mặc định 360 (= 6 giờ như trước). 0 = không tự hết phiên. Tối thiểu 2 phút.
+- Hết phiên đăng nhập — Ban Quản Trị (phút), mặc định 360: áp dụng trang Admin và tài khoản Quản trị / Quản lý. Tối thiểu 5 phút.
+  Admin hết phiên -> về màn hình đăng nhập, tắt tự đăng nhập; các trang thành viên mở từ Admin cũng thoát theo.
+- Nút "Đăng xuất toàn bộ thành viên" (bấm 2 lần): mọi thành viên đang mở web thoát ngay. Ban Quản Trị không bị ảnh hưởng. Hiện "Lần gần nhất ... bởi ...".
+- Bảng tài khoản: nút mới 🚪 "Đá ra khỏi hệ thống" ở từng dòng (bấm 2 lần): mọi trang / thiết bị đang đăng nhập tài khoản đó thoát ngay.
+  Đăng nhập lại bình thường ngay sau đó (không bị đá lặp lại).
+- Mỗi lần đá / đăng xuất toàn bộ ghi admin_logs (type: session, action: kick | kick_all).
+
+3. "HOẠT ĐỘNG ... TRƯỚC" THEO THỜI GIAN THỰC
+- Trước: dòng chữ chỉ tính lại khi có dữ liệu mới (đầu khung chat 30 giây / lần), "Đang trực tuyến" còn hiện tới 5 phút sau khi người đó đã đóng web,
+  và chỉ user.html báo hoạt động (đang ở Vòng Quay, Ném Còn... bị coi là offline).
+- Nay:
+  · Mọi trang báo hoạt động (45 giây / lần) khi đang mở trang VÀ có thao tác trong 5 phút.
+  · Ẩn trang, chuyển ứng dụng, đóng tab -> báo offline ngay ("Hoạt động vừa xong"). Để yên 5 phút -> offline, giữ đúng giờ thao tác cuối.
+    Còn tab khác của cùng người đang mở -> vẫn online.
+  · Chữ tự chạy mỗi 5 giây, không cần tải lại: Đang trực tuyến -> Hoạt động vừa xong -> x phút trước -> x giờ trước -> x ngày trước -> Truy cập dd/mm/yyyy.
+    Chấm xanh / xám và màu chữ đổi theo.
+  · Áp dụng: danh bạ Trò Chuyện + đầu khung chat (user.html), cột Trạng thái ở Admin > Quản trị tài khoản, gợi ý người nhận ở Tặng Quà,
+    thẻ thông tin thành viên của Quân Sư AI.
+- Danh bạ chat nhẹ hơn: chỉ vẽ lại (và đếm lại tin chưa đọc) người vừa thay đổi, thay vì cả danh sách mỗi khi có 1 người báo online.
+
+QUÂN SƯ AI: hỏi "đăng nhập / bị đăng xuất" -> trả lời theo số phút hết phiên Admin đặt, nói rõ thoát ở mọi trang và nút Tiếp tục.
+
+Dữ liệu Firestore:
+- settings/account_config: sessionMinutes, staffSessionMinutes, sessionEpoch (mốc "đăng xuất toàn bộ"), sessionEpochBy
+- accounts: online (true / false), kickAt (mốc Admin đá ra); lastActive giữ nguyên ý nghĩa (giờ hoạt động gần nhất)
+Máy thành viên (localStorage): qd_sess (phiên thành viên), qd_sess_adm (phiên Admin), qd_act (lần thao tác gần nhất, dùng chung mọi tab),
+qd_sess_cfg (bản nhớ cấu hình), qd_vis, qd_sess_end. Không lưu mật khẩu.
+Lưu ý: nếu Firestore Rules giới hạn theo trường, cần cho thành viên sửa accounts.online (thiếu quyền -> vẫn chạy, chỉ ghi lastActive),
+Admin sửa accounts.kickAt và settings/account_config.
+Giới hạn: hết phiên / đá ra chạy trên trình duyệt (như mọi kiểm tra đăng nhập hiện có của web); muốn chặn tận gốc cần Firebase Authentication + Rules.
+
 QD ELITE - ADMIN BẬT / TẮT "BẢO VỆ MÃ NGUỒN" (CHẶN CTRL+U, F12, CHUỘT PHẢI...) (03/11/2026, bản 16)
 ================================================================================================
 File thay đổi (chép đè 8 file): admin.html + khối "qd-guard" ở index.html, user.html, qt.html, quays.html, tranht.html, game.html, baotri.html.

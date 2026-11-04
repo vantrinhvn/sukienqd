@@ -571,7 +571,7 @@
                 return { st: st, open: st === 'open', types: on, txt: on.map(function (k) { return '<b>' + U[k] + '</b>'; }).join(', '), max: num(g.maxPerTransfer, 0), daily: num(g.dailyLimit, 0),
                     from: from, to: to, msg: String(g.closedMsg || '') };
             },
-            account: function () { var a = L.cfg.account_config || {}; return { inact: a.inactivityMinutes !== undefined ? num(a.inactivityMinutes, 1440) : 1440, auto: num(a.autoUnlockMinutes, 0), temp: num(a.tempUnlockMinutes, 0) }; },
+            account: function () { var a = L.cfg.account_config || {}; return { inact: a.inactivityMinutes !== undefined ? num(a.inactivityMinutes, 1440) : 1440, auto: num(a.autoUnlockMinutes, 0), temp: num(a.tempUnlockMinutes, 0), sess: a.sessionMinutes !== undefined ? num(a.sessionMinutes, 360) : 360 }; },
             reg: function () {
                 var r = L.cfg.registration_config || {}, dl = ts(r.endDate, r.endTime);
                 return { on: r.isEnabled !== false && !(dl && Date.now() >= dl), off: r.isEnabled === false, deadline: dl };
@@ -962,7 +962,7 @@
               keys: ['dang nhap', 'quen mat khau', 'mat khau', 'sai mat khau', 'khong dang nhap duoc', 'dang xuat', 'ghi nho', 'doi mat khau', 'bi dang xuat', 'thong tin dang nhap khong chinh xac', 'login', 'pass'],
               ans: function () {
                   return UL(['Đăng nhập ở <b>trang chính</b> (user.html) bằng tên đăng nhập + mật khẩu đã đăng ký. Tích <b>"Ghi nhớ"</b> để lần sau khỏi gõ lại.',
-                          'Báo "thông tin không chính xác": kiểm tra chữ hoa/thường, khoảng trắng thừa, hoặc tài khoản <b>chưa được duyệt</b>.', 'Không hoạt động lâu, phiên đăng nhập sẽ tự thoát để bảo mật — chỉ cần đăng nhập lại.',
+                          'Báo "thông tin không chính xác": kiểm tra chữ hoa/thường, khoảng trắng thừa, hoặc tài khoản <b>chưa được duyệt</b>.', (function () { var se = C.account().sess; return se > 0 ? 'Không thao tác quá <b>' + fmtMin(se) + '</b>, phiên đăng nhập <b>tự thoát ở mọi trang</b> đang mở (còn 60 giây sẽ có nhắc "Tiếp tục") — chỉ cần đăng nhập lại. Đăng xuất ở 1 trang là các trang khác thoát theo.' : 'Phiên đăng nhập không tự hết hạn; bấm <b>Đăng xuất</b> là mọi trang đang mở cùng thoát.'; })(),
                           '<b>Quên mật khẩu</b>: hệ thống không có nút tự lấy lại — hãy nhắn <b>Ban Quản Trị</b> để được cấp lại.', 'Đăng nhập lần đầu mỗi ngày còn được <b>+' + C.task().login + ' điểm</b>.']);
               },
               acts: function () { return [GUEST ? { t: '🔑 Đến trang đăng nhập', do: 'login' } : { t: '🔑 Trang đăng nhập', go: 'user.html' }, { t: '🔒 Tài khoản bị khóa?', ask: 'locked' }].concat(GUEST ? [{ t: '📝 Chưa có tài khoản?', ask: 'register' }] : []); } },

@@ -1071,6 +1071,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="nemcon"> Ném Còn</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="invite"> Mã Mời</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="transfer"> Tặng Lượt</label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="payout"> Trả Thưởng</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="security"> Chống Gian Lận</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="news"> Bản Tin</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="approvals"> Phê Duyệt TK</label>
@@ -1195,6 +1196,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('nemcon')" style="--tone: #f97316;"><div class="m-menu-icon"><i class="fa-solid fa-bullseye"></i></div><span>Ném còn</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('invite')" style="--tone: var(--brand-primary);"><div class="m-menu-icon"><i class="fa-solid fa-handshake"></i></div><span>Mã mời</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('transfer')" style="--tone: var(--color-info);"><div class="m-menu-icon"><i class="fa-solid fa-gift"></i></div><span>Tặng lượt</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('payout')" style="--tone: var(--color-success);"><div class="m-menu-icon"><i class="fa-solid fa-money-bill-transfer"></i></div><span>Trả thưởng</span></div>
                 </div>
             </div>
 
@@ -1283,6 +1285,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <button type="button" title="Ném còn" class="nav-item" onclick="UI.navigate('nemcon', this)" style="--tone: #f97316;"><i class="fa-solid fa-bullseye"></i><span>Ném còn</span></button>
                     <button type="button" title="Mã mời" class="nav-item" onclick="UI.navigate('invite', this)" style="--tone: var(--brand-primary);"><i class="fa-solid fa-handshake"></i><span>Mã mời</span></button>
                     <button type="button" title="Tặng lượt" class="nav-item" onclick="UI.navigate('transfer', this)" style="--tone: var(--color-info);"><i class="fa-solid fa-gift"></i><span>Tặng lượt</span></button>
+                    <button type="button" title="Trả thưởng tiền mặt" class="nav-item" onclick="UI.navigate('payout', this)" style="--tone: var(--color-success);"><i class="fa-solid fa-money-bill-transfer"></i><span>Trả thưởng</span></button>
                 </div>
                 <div class="nav-group">
                     <p class="nav-label">Thi đấu &amp; tin tức</p>
@@ -1430,6 +1433,10 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="card mod-card" onclick="UI.navigate('transfer')" style="--tone: var(--color-info);">
                                 <span class="mod-ico"><i class="fa-solid fa-gift"></i></span>
                                 <div><h4>Tặng lượt</h4><p>Đóng / mở tặng quà đồng đội, loại được tặng, giới hạn và lịch sử tặng.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('payout')" style="--tone: var(--color-success);">
+                                <span class="mod-ico"><i class="fa-solid fa-money-bill-transfer"></i></span>
+                                <div><h4>Trả thưởng</h4><p>Giải tiền mặt chờ trả, mã VietQR, file chuyển theo lô, lịch sử đã chuyển.</p></div>
                             </div>
                         </div>
                     </div>
@@ -2055,10 +2062,50 @@ html.qd-lite .qd-fx { display: none !important; }
                         </style>
                     </div>
 
+                    <!-- Thưởng khi trúng số (settings/lucky_reward_config) — khối lucky-reward-admin-js -->
+                    <div class="card mb-8 lr-card" id="lr-card">
+                        <div class="lr-head">
+                            <div>
+                                <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-gift" style="color:#ec4899"></i> Phần Thưởng Khi Trúng Số</h3>
+                                <p class="text-muted text-sm m-0 mt-1">Thành viên có số trùng với số quay ra (ngẫu nhiên hoặc số BQT chốt) được <b>tự động trao thưởng 1 lần</b> ngay khi có kết quả. Tiền mặt chuyển sang mục <a href="javascript:void(0)" onclick="UI.navigate('payout')">Trả thưởng</a> để BQT chuyển khoản.</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-sm" id="lr-st">ĐANG TẮT</span>
+                                <label class="switch"><input type="checkbox" id="lr-on" onchange="LuckyRewardAdmin.toggle(this)"><span class="slider"></span></label>
+                            </div>
+                        </div>
+                        <div class="lr-grid">
+                            <div class="lr-box">
+                                <h4>🏆 Giải chính <small>— trùng đúng số</small></h4>
+                                <div class="lr-fields" data-g="main"></div>
+                                <label class="lr-f lr-cash"><span>💵 Tiền mặt (VNĐ)</span><input type="number" class="form-control lr-in" id="lr-cash" min="0" step="1000" inputmode="numeric" placeholder="0"></label>
+                            </div>
+                            <div class="lr-box" id="lr-near-box">
+                                <h4 class="flex items-center justify-between gap-2"><span>🥈 Giải phụ <small>— lệch 1 số (vd quay 27: số 26, 28)</small></span>
+                                    <label class="switch"><input type="checkbox" id="lr-near-on" class="lr-in"><span class="slider"></span></label></h4>
+                                <div class="lr-fields" data-g="near"></div>
+                                <label class="lr-f lr-cash"><span>💵 Tiền mặt (VNĐ)</span><input type="number" class="form-control lr-in" id="lr-near-cash" min="0" step="1000" inputmode="numeric" placeholder="0"></label>
+                            </div>
+                        </div>
+                        <div class="lr-mode">
+                            <span class="text-sm font-bold text-muted">Nhiều người cùng trúng:</span>
+                            <label class="lr-radio"><input type="radio" name="lr-mode" value="each" class="lr-in" checked> <span><b>Mỗi người nhận đủ</b><small>3 người trúng = trao 3 phần</small></span></label>
+                            <label class="lr-radio"><input type="radio" name="lr-mode" value="split" class="lr-in"> <span><b>Chia đều tổng giải</b><small>Tiền làm tròn xuống bội 1.000đ</small></span></label>
+                        </div>
+                        <div class="lr-foot">
+                            <p class="text-sm m-0" id="lr-pv"></p>
+                            <div class="flex items-center gap-3">
+                                <span class="text-warning text-sm font-bold hidden" id="lr-dirty"><i class="fa-solid fa-circle-exclamation"></i> Chưa lưu</span>
+                                <button class="btn btn-primary" id="lr-save" onclick="LuckyRewardAdmin.save()"><i class="fa-solid fa-save mr-2"></i> Lưu phần thưởng</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card mb-8" style="border-left: 4px solid #ec4899; padding: 24px;">
                         <div class="flex justify-between items-center flex-wrap gap-6">
                             <div class="max-w-md">
                                 <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-trophy" style="color: #ec4899;"></i> Điều Khiển Kết Quả Trúng Thưởng</h3>
+
                                 <p class="text-muted text-sm">Thiết lập kết quả số độc đắc. Khi chốt kết quả, hệ thống tự động lưu vào Lịch Sử bên dưới.</p>
                             </div>
                             <div class="flex items-center gap-4 flex-wrap bg-base p-4 rounded-lg border-strong" style="background: var(--bg-base); border: 1px solid var(--border-strong); border-radius: var(--radius-md);">
@@ -2112,6 +2159,7 @@ html.qd-lite .qd-fx { display: none !important; }
                                     <tr>
                                         <th class="text-center" style="width: 150px;">Số Trúng Thưởng</th>
                                         <th>Người Dùng Trúng Giải</th>
+                                        <th>Phần Thưởng Đã Trao</th>
                                         <th class="text-right">Thời Gian</th>
                                     </tr>
                                 </thead>
@@ -2758,6 +2806,97 @@ html.qd-lite .qd-fx { display: none !important; }
                     </div>
                 </section>
 
+                <section id="view-payout" class="view-section">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Trả Thưởng Tiền Mặt</h1>
+                            <p class="text-muted">Giải tiền mặt ở Vòng Quay, Rút Lì Xì & Quay Số chưa trả. Quét mã VietQR bằng app ngân hàng, hoặc xuất file chuyển theo lô cho Internet Banking doanh nghiệp, rồi bấm <b>Đã chuyển</b>.</p>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-outline btn-report" onclick="QDReport.open('payout')" title="Báo cáo các lần chuyển tiền: Excel / CSV / PDF"><i class="fa-solid fa-file-export"></i> Báo cáo chuyển tiền</button>
+                            <button type="button" class="btn btn-outline btn-report" onclick="QDReport.open('payoutwait')" title="Danh sách giải tiền mặt còn chờ trả"><i class="fa-solid fa-hourglass-half"></i> Báo cáo chờ trả</button>
+                        </div>
+                    </div>
+
+                    <div class="card mb-6 po-cfg">
+                        <div class="po-cfg-l">
+                            <span class="po-cfg-ico"><i class="fa-solid fa-building-columns"></i></span>
+                            <div>
+                                <h3 class="text-lg m-0">Thu thập tài khoản nhận thưởng</h3>
+                                <p class="text-muted text-sm m-0">Bật = thành viên thấy nút "Tài khoản nhận thưởng" trong Túi đồ và trạng thái chuyển khoản từng giải.</p>
+                            </div>
+                        </div>
+                        <div class="po-cfg-r">
+                            <span class="font-bold text-sm" id="po-on-st">ĐANG BẬT</span>
+                            <label class="switch"><input type="checkbox" id="po-on" onchange="PayoutAdmin.toggle(this)"><span class="slider"></span></label>
+                        </div>
+                    </div>
+
+                    <div class="card mb-6 po-ref">
+                        <div class="po-ref-head">
+                            <div>
+                                <h3 class="text-lg m-0"><i class="fa-solid fa-comment-dollar text-primary"></i> Nội dung chuyển khoản</h3>
+                                <p class="text-muted text-sm m-0">Dùng cho mã VietQR, file chuyển theo lô và báo cáo. Bấm 1 mẫu gợi ý hoặc tự gõ, xem trước bên dưới rồi bấm <b>Lưu</b>.</p>
+                            </div>
+                        </div>
+                        <div class="po-ref-grid">
+                            <label class="po-pf"><span class="text-xs text-muted font-bold">Mã sự kiện {MA}</span>
+                                <input type="text" id="po-prefix" class="form-control" maxlength="12" placeholder="QDTLH" style="text-transform:uppercase" oninput="PayoutAdmin.refPreview()"></label>
+                            <label class="po-pf po-pf-wide"><span class="text-xs text-muted font-bold">Mẫu nội dung</span>
+                                <input type="text" id="po-tpl" class="form-control" maxlength="60" placeholder="{MA} {USER} THUONG TET" oninput="PayoutAdmin.refPreview()" spellcheck="false"></label>
+                        </div>
+                        <div class="po-ref-sec">
+                            <span class="po-ref-lbl">Chèn thông tin:</span>
+                            <div class="po-chips" id="po-tok"></div>
+                        </div>
+                        <div class="po-ref-sec">
+                            <span class="po-ref-lbl">💡 Mẫu gợi ý:</span>
+                            <div class="po-chips" id="po-sug"></div>
+                        </div>
+                        <div class="po-ref-pv">
+                            <div class="po-ref-pv-l"><span class="text-xs text-muted font-bold">Xem trước</span><b id="po-ref-pv">QDTLH BINH</b><small id="po-ref-pv-sub"></small></div>
+                            <div class="po-ref-len" id="po-ref-len"></div>
+                            <button class="btn btn-primary" type="button" onclick="PayoutAdmin.savePrefix()"><i class="fa-solid fa-save mr-2"></i>Lưu</button>
+                        </div>
+                        <p class="po-ref-tip">✅ Nên: không dấu, chỉ chữ và số, ≤ 25 ký tự (chuyển liên ngân hàng không bị cắt), có tên đăng nhập để đối soát.
+                            ⛔ Tránh từ dễ bị ngân hàng giữ lệnh / hỏi lại: "CA CUOC", "DANH BAC", "THANG CUOC", "XO SO", "NAP TIEN GAME", "VAY", "NO".</p>
+                    </div>
+
+                    <div class="po-stats mb-6" id="po-stats"></div>
+
+                    <div class="card po-card mb-6">
+                        <div class="po-head">
+                            <div class="po-tabs" role="tablist">
+                                <button type="button" class="po-tab active" data-tab="wait" onclick="PayoutAdmin.setTab('wait')">⏳ Chờ trả <span id="po-n-wait"></span></button>
+                                <button type="button" class="po-tab" data-tab="done" onclick="PayoutAdmin.setTab('done')">✅ Đã xử lý <span id="po-n-done"></span></button>
+                                <button type="button" class="po-tab" data-tab="bank" onclick="PayoutAdmin.setTab('bank')">💳 Số tài khoản <span id="po-n-bank"></span></button>
+                            </div>
+                            <div class="po-tools">
+                                <input type="search" id="po-q" class="form-control" placeholder="Tìm tài khoản / tên / số TK..." oninput="PayoutAdmin.render()">
+                                <select id="po-f" class="form-control" onchange="PayoutAdmin.render()">
+                                    <option value="">Tất cả</option><option value="ready">Đã khai STK</option><option value="nobank">Chưa khai STK</option><option value="warn">Có cảnh báo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="po-bar" id="po-bar">
+                            <div class="po-mode" id="po-mode" role="group" aria-label="Cách hiển thị">
+                                <button type="button" data-m="split" onclick="PayoutAdmin.setMode('split')">✂️ Tách từng giải</button>
+                                <button type="button" data-m="group" onclick="PayoutAdmin.setMode('group')">👤 Gộp theo người</button>
+                            </div>
+                            <label class="po-all"><input type="checkbox" id="po-all" onchange="PayoutAdmin.selectAll(this.checked)"> Chọn tất cả đủ điều kiện</label>
+                            <span class="po-selinfo" id="po-selinfo"></span>
+                            <div class="po-bar-btns">
+                                <button type="button" class="btn btn-outline" onclick="PayoutAdmin.exportBatch('xls')"><i class="fa-solid fa-file-excel mr-2"></i>File chuyển theo lô (Excel)</button>
+                                <button type="button" class="btn btn-outline" onclick="PayoutAdmin.exportBatch('csv')"><i class="fa-solid fa-file-csv mr-2"></i>CSV</button>
+                                <button type="button" class="btn btn-primary" id="po-mark-sel" onclick="PayoutAdmin.markSelected(this)"><i class="fa-solid fa-circle-check mr-2"></i>Đánh dấu đã chuyển</button>
+                            </div>
+                        </div>
+                        <div id="po-list" class="po-list"><div class="po-empty"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</div></div>
+                    </div>
+                    <p class="text-xs text-muted">Thành viên chỉ khai số tài khoản <b>1 lần</b>, lưu xong tự khóa. Muốn cho đổi: tab 💳 Số tài khoản → <b>Cho sửa lại</b> (thành viên sửa được 1 lần rồi tự khóa lại).
+                        Số tiền đọc từ tên giải (VD "20.000 VNĐ", "50K"). Thành viên đổi số tài khoản trong 24 giờ, trùng số tài khoản với người khác, hoặc tài khoản đang bị khóa sẽ có cảnh báo — nên hỏi lại trước khi chuyển. Mỗi thao tác ghi admin_logs (type: payout).</p>
+                </section>
+
                 <section id="view-transfer" class="view-section">
                     <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
@@ -3076,6 +3215,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="max-w-md">
                                 <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-user-clock text-primary"></i> Cấu hình Khóa & Mở tự động</h3>
                                 <p class="text-muted text-sm">Thiết lập thời gian không hoạt động bị khóa (Mặc định 24h = 1440 phút) và thiết lập thời gian tự động mở khóa theo yêu cầu.</p>
+                                <p class="text-muted text-sm mt-2">Hết phiên đăng nhập: không thao tác quá thời gian đặt (mặc định 6 giờ = 360 phút) là bị đăng xuất ở <b>mọi trang đang mở</b>. Nút <i class="fa-solid fa-right-from-bracket"></i> ở từng tài khoản: đá ngay tài khoản đó ra khỏi hệ thống.</p>
                             </div>
                             <div class="flex-col gap-4 bg-base p-5 rounded-lg border-strong flex-1 min-w-[300px]" style="background: var(--bg-base); border: 1px solid var(--border-strong);">
                                 <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
@@ -3096,8 +3236,30 @@ html.qd-lite .qd-fx { display: none !important; }
                                         <input type="number" id="cfg-acc-tempunlock" class="form-control text-center font-bold text-warning" style="width: 100px; padding: 8px;" min="0" value="0">
                                     </div>
                                 </div>
-                                <p class="text-xs text-muted mb-4">* Nhập 0 để vô hiệu hóa tính năng tự động mở / mở tạm thời.</p>
-                                <div class="text-right">
+                                <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
+                                    <div class="flex-col">
+                                        <div class="font-bold text-main"><i class="fa-solid fa-hourglass-half" style="color: var(--color-danger)"></i> Hết phiên đăng nhập — Thành viên (Phút)</div>
+                                        <div class="text-xs text-muted">Không thao tác quá thời gian này -> tự đăng xuất ở MỌI trang đang mở</div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" id="cfg-acc-session" class="form-control text-center font-bold" style="width: 100px; padding: 8px; color: var(--color-danger);" min="0" value="360">
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center pb-4 mb-4 border-b border-strong" style="border-bottom: 1px dashed var(--border-strong);">
+                                    <div class="flex-col">
+                                        <div class="font-bold text-main"><i class="fa-solid fa-user-shield" style="color: var(--color-danger)"></i> Hết phiên đăng nhập — Ban Quản Trị (Phút)</div>
+                                        <div class="text-xs text-muted">Áp dụng cho trang Admin và tài khoản Quản trị / Quản lý</div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" id="cfg-acc-session-staff" class="form-control text-center font-bold" style="width: 100px; padding: 8px; color: var(--color-danger);" min="0" value="360">
+                                    </div>
+                                </div>
+                                <p class="text-xs text-muted mb-4">* Nhập 0 để vô hiệu hóa tính năng tự động mở / mở tạm thời / hết phiên. Còn 60 giây trước khi hết phiên, thành viên được nhắc "chạm để tiếp tục".</p>
+                                <div class="flex justify-between items-center flex-wrap gap-3">
+                                    <div class="flex-col" style="gap:2px">
+                                        <button type="button" class="btn btn-outline" id="btn-kick-all" style="color: var(--color-danger); border-color: rgba(190, 18, 60, 0.45);" onclick="AdminActions.kickAll(this)"><i class="fa-solid fa-people-arrows mr-2"></i> Đăng xuất toàn bộ thành viên</button>
+                                        <span class="text-xs text-muted" id="kick-all-last"></span>
+                                    </div>
                                     <button class="btn btn-primary" onclick="AdminActions.saveAccountConfig()"><i class="fa-solid fa-save mr-2"></i> Lưu Cấu Hình</button>
                                 </div>
                             </div>
@@ -3164,6 +3326,324 @@ html.qd-lite .qd-fx { display: none !important; }
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <!-- ===== QD SESSION: phiên đăng nhập dùng chung TOÀN HỆ THỐNG + trạng thái hoạt động thời gian thực =====
+         Khối dùng chung (index, user, qt, quays, tranht, game, baotri, admin). data-kind: user | mem | public | adm
+         - 1 phiên cho mọi trang & mọi tab (localStorage qd_sess; Admin: qd_sess_adm). Thao tác ở bất kỳ trang nào cũng giữ phiên.
+         - Hết phiên (không thao tác quá X phút, Admin > Quản trị tài khoản) -> đá ra ở MỌI trang đang mở, kể cả tab nền / điện thoại vừa mở lại.
+           Còn 60 giây: hiện nhắc "chạm để tiếp tục".
+         - Đăng xuất ở 1 trang -> mọi trang khác thoát theo. Tài khoản khác đăng nhập trên cùng trình duyệt -> trang của tài khoản cũ thoát.
+         - Admin đá 1 tài khoản (accounts.kickAt) / đăng xuất toàn bộ thành viên (account_config.sessionEpoch) / khóa / xóa tài khoản -> thoát ngay.
+         - Trạng thái: accounts.lastActive + accounts.online. Gửi 45 giây/lần khi đang mở trang VÀ có thao tác trong 5 phút;
+           ẩn trang / đóng tab / để yên 5 phút -> báo offline ngay. Dòng "Hoạt động x phút / giờ trước" tự chạy theo thời gian thực.
+         Không đọc / gửi mật khẩu. -->
+    <script id="qd-session" data-kind="adm">
+    (function () {
+        'use strict';
+        var W = window, d = document;
+        if (W.QDSession) return;
+        var cs = d.currentScript, KIND = (cs && cs.getAttribute('data-kind')) || 'mem';   // user | mem | public | adm
+        var ADM = KIND === 'adm', KEY = ADM ? 'qd_sess_adm' : 'qd_sess';
+        var TAB = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        var ONLINE_MS = 120000, PING_MS = 45000, IDLE_MS = 300000, WARN_MS = 60000;
+        var STAFF = { admin: 1, manager: 1 };
+        var MSG = {
+            expired: 'Phiên đăng nhập đã hết hạn do bạn không thao tác trong thời gian dài.',
+            logout: 'Tài khoản đã đăng xuất ở một trang khác.',
+            'switch': 'Một tài khoản khác vừa đăng nhập trên trình duyệt này.',
+            admin: 'Ban Quản Trị đã đăng xuất tài khoản của bạn khỏi hệ thống.',
+            all: 'Ban Quản Trị vừa đăng xuất toàn bộ thành viên.',
+            locked: 'Tài khoản của bạn đã bị khóa.',
+            deleted: 'Tài khoản không còn tồn tại trên hệ thống.'
+        };
+        function now() { return Date.now(); }
+        function ls(k, v) {
+            try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }
+            catch (e) { return null; }
+        }
+        function jget(k) { try { return JSON.parse(ls(k) || 'null'); } catch (e) { return null; } }
+        function jset(k, o) { ls(k, o == null ? null : JSON.stringify(o)); }
+        var DB = null;
+        function db() { if (DB) return DB; try { if (W.firebase && firebase.apps && firebase.apps.length && firebase.firestore) DB = firebase.firestore(); } catch (e) {} return DB; }
+
+        /* ---------- Cấu hình (settings/account_config), nhớ trên máy để kiểm tra ngay khi mở trang ---------- */
+        function norm(c) {
+            c = c || {};
+            var n = function (v, def) { v = parseInt(v, 10); return isNaN(v) ? def : Math.max(0, Math.min(v, 525600)); };
+            return { mem: n(c.sessionMinutes, 360), adm: n(c.staffSessionMinutes, 360), epoch: +c.sessionEpoch || 0 };
+        }
+        var CFG = norm(jget('qd_sess_cfg'));
+        function limit(s) { var m = (ADM || (s && STAFF[s.role])) ? CFG.adm : CFG.mem; return m > 0 ? m * 60000 : 0; }
+
+        /* ---------- Phiên ---------- */
+        function sess() { var s = jget(KEY); return s && s.u ? s : null; }
+        function lastAct() { return +ls('qd_act') || 0; }
+        function since(s) { return Math.max(lastAct(), (s && s.s) || 0); }
+        var had = null;   // phiên mà trang này đang chạy theo
+        (function boot() {
+            var s = sess();
+            if (!ADM && !s && ls('qd_current_username')) { ls('qd_current_username', null); s = null; if (KIND === 'mem') go('expired'); return; }   // phiên bản cũ (không có hạn) -> đăng nhập lại 1 lần
+            if (!s) return;
+            var lim = limit(s);
+            if (lim && now() - since(s) > lim) { clear(s, 'expired'); if (KIND === 'mem') go('expired'); else if (KIND !== 'public') note('expired'); return; }
+            if (KIND !== 'user' && !ADM) had = s;   // user.html / admin.html: chỉ theo phiên sau khi đăng nhập trên trang (QDSession.start)
+        })();
+        function pageState() { try { if (typeof State !== 'undefined' && State) return State; } catch (e) {} return W.State || null; }
+        function active() {
+            if (!had) return false;
+            if (KIND === 'user') { var P = pageState(); return !!(P && P.currentDocId); }
+            if (ADM) { var A = pageState(); return !!(A && A.currentUser); }
+            return true;
+        }
+        function clear(s, reason) {
+            jset('qd_sess_end', { r: reason, at: now(), u: s && s.u, k: ADM ? 'adm' : 'mem' });
+            ls(KEY, null);
+            if (!ADM) { if (!s || ls('qd_current_username') === s.u) ls('qd_current_username', null); try { sessionStorage.removeItem('qd_resume'); } catch (e) {} }
+            else {
+                ls('qd_adm_autologin', 'false');
+                var m = jget('qd_sess');   // Admin hết phiên / thoát -> phiên thành viên của cùng tài khoản (các trang mở từ Admin) thoát theo
+                if (m && s && m.u === s.u) { ls('qd_sess', null); if (ls('qd_current_username') === s.u) ls('qd_current_username', null); }
+            }
+        }
+        function endReason() { var e = jget('qd_sess_end'); return e && now() - e.at < 30000 && e.k === (ADM ? 'adm' : 'mem') ? e.r : ''; }
+
+        function start(o, opt) {
+            o = o || {};
+            var t = now(), rec = { u: String(o.u || ''), id: o.id || null, role: o.role || '', s: t, kack: +o.kickAt || 0, eack: CFG.epoch, sid: TAB };
+            if (!rec.u) return;
+            jset(KEY, rec); ls('qd_act', String(t));
+            if (!ADM) ls('qd_current_username', rec.u);
+            if (ADM && !(opt && opt.member === false)) { var m = {}; for (var k in rec) m[k] = rec[k]; jset('qd_sess', m); ls('qd_current_username', rec.u); }
+            had = rec; idleSent = false; hideWarn(); listen(); ping(true);
+        }
+        function end(reason, silent) {
+            var s = sess() || had; reason = reason || 'logout';
+            if (s) offline(s, true);
+            clear(s, reason); had = null; unlisten(); hideWarn();
+            if (!silent) kicked(reason);
+        }
+
+        /* ---------- Thao tác của người dùng (dùng chung mọi tab) ---------- */
+        var actW = 0;
+        function touch(force) {
+            if (!active() || d.visibilityState === 'hidden') return;
+            var s = sess(); if (!s) return check();
+            var lim = limit(s); if (lim && now() - since(s) > lim) return check();   // đã quá hạn khi tab bị đóng băng: không được "hồi sinh"
+            var t = now(); if (!force && !warnEl && t - actW < 10000) return;
+            actW = t; ls('qd_act', String(t)); hideWarn();
+            if (idleSent && !force) ping(true);   // quay lại sau khi để yên: báo online ngay
+        }
+        ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll', 'mousemove'].forEach(function (ev) {
+            d.addEventListener(ev, function (e) { if (e.isTrusted !== false) touch(false); }, { capture: true, passive: true });
+        });
+
+        /* ---------- Kiểm tra phiên mỗi giây + khi tab khác đổi phiên ---------- */
+        function check() {
+            if (!had) return;
+            var s = sess();
+            if (!s) return gone(endReason() || 'logout');
+            if (s.u !== had.u) return gone('switch');
+            if (s.s !== had.s || s.id !== had.id) { var oldId = had.id; had = s; if (s.id !== oldId) { unlisten(); listen(); } }
+            if (!active()) return;
+            var lim = limit(s); if (!lim) return hideWarn();
+            var left = since(s) + lim - now();
+            if (left <= 0) return end('expired');
+            if (left <= WARN_MS && d.visibilityState === 'visible') showWarn(left); else hideWarn();
+        }
+        function gone(reason) {   // phiên đã bị kết thúc ở trang khác
+            var wasActive = active(); had = null; unlisten(); hideWarn();
+            if (ADM || KIND === 'mem' || wasActive) kicked(reason);
+        }
+        setInterval(check, 1000);
+        W.addEventListener('storage', function (e) { if (!e.key || e.key === KEY || e.key === 'qd_sess_cfg') { if (e.key === 'qd_sess_cfg') CFG = norm(jget('qd_sess_cfg')); check(); } });
+
+        /* ---------- Nghe máy chủ: cấu hình phiên + tài khoản (bị đá / khóa / xóa) ---------- */
+        var unCfg = null, unAcc = null, lookup = false;
+        function listen() {
+            var D = db(); if (!D) return;
+            if (!had && KIND !== 'user' && !ADM) return;   // chưa đăng nhập: trang đăng nhập vẫn nghe cấu hình để có số mới nhất
+            if (!unCfg) unCfg = D.collection('settings').doc('account_config').onSnapshot(function (doc) {
+                var raw = doc.exists ? doc.data() : {};
+                CFG = norm(raw); jset('qd_sess_cfg', { sessionMinutes: raw.sessionMinutes, staffSessionMinutes: raw.staffSessionMinutes, sessionEpoch: raw.sessionEpoch });
+                var s = had; if (!s || ADM || STAFF[s.role] || !active()) return check();
+                if (CFG.epoch && CFG.epoch > Math.max(s.s, s.eack || 0)) return end('all');
+                check();
+            }, function () { unCfg = null; });
+            var s = had; if (!s || unAcc) return;
+            if (!s.id) {
+                if (lookup) return; lookup = true;
+                D.collection('accounts').where('user', '==', s.u).limit(1).get().then(function (q) {
+                    lookup = false; var cur = sess(); if (!cur || cur.u !== s.u || q.empty) return;
+                    cur.id = q.docs[0].id; cur.role = q.docs[0].data().role || cur.role || ''; jset(KEY, cur); had = cur; listen(); ping(true);
+                }, function () { lookup = false; });
+                return;
+            }
+            var id = s.id;
+            unAcc = D.collection('accounts').doc(id).onSnapshot(function (doc) {
+                var c = had; if (!c || c.id !== id) return;
+                if (!doc.exists) { if (!doc.metadata.fromCache) end('deleted'); return; }
+                var a = doc.data() || {};
+                if (a.role !== undefined && (a.role || '') !== (c.role || '')) { c.role = a.role || ''; var cur = sess(); if (cur && cur.u === c.u) { cur.role = c.role; jset(KEY, cur); } }
+                if (+a.kickAt && +a.kickAt > Math.max(c.s, c.kack || 0)) return end('admin');
+                if (!ADM && a.isBlocked === true) return end('locked');
+            }, function () { unAcc = null; });
+        }
+        function unlisten() { if (unAcc) { try { unAcc(); } catch (e) {} unAcc = null; } }
+        var waitN = 0, wait = setInterval(function () { if (db() || ++waitN > 80) { clearInterval(wait); if (DB) { listen(); ping(true); setTimeout(function () { ping(true); }, 5000); } } }, 400);
+
+        /* ---------- Trạng thái hoạt động (online / "hoạt động x phút trước") ---------- */
+        var idleSent = false, lastPing = 0;
+        var noOnline = false;   // Firestore Rules chưa cho ghi trường online -> chỉ ghi lastActive
+        function write(s, data) {
+            var D = db(); if (!D || !s || !s.id) return;
+            if (noOnline) delete data.online;
+            try {
+                D.collection('accounts').doc(s.id).update(data).catch(function (er) {
+                    if (noOnline || !er || er.code !== 'permission-denied' || !('online' in data)) return;
+                    noOnline = true; delete data.online; D.collection('accounts').doc(s.id).update(data).catch(function () {});
+                });
+            } catch (e) {}
+        }
+        function ping(force) {
+            if (!active() || d.visibilityState !== 'visible') return;
+            var s = had, t = now(); if (!s || !s.id) return;
+            if (!force && t - lastPing < PING_MS - 2000) return;
+            var la = since(s);
+            if (t - la > IDLE_MS) { if (!idleSent) { idleSent = true; write(s, { online: false, lastActive: la }); } return; }   // để yên 5 phút: offline, giữ đúng giờ thao tác cuối
+            idleSent = false; lastPing = t; jset('qd_vis', { t: TAB, at: t });
+            write(s, { online: true, lastActive: t });
+        }
+        setInterval(function () { ping(false); }, 15000);
+        function otherTabVisible() { var v = jget('qd_vis'); return !!(v && v.t !== TAB && now() - v.at < PING_MS + 15000); }
+        function offline(s, force) {
+            if (!s || !s.id) return;
+            if (!force && otherTabVisible()) return;   // còn tab khác đang mở -> vẫn online
+            var v = jget('qd_vis'); if (v && v.t === TAB) ls('qd_vis', null);
+            if (idleSent && !force) return;
+            write(s, { online: false, lastActive: idleSent ? since(s) : now() });
+        }
+        d.addEventListener('visibilitychange', function () {
+            if (d.visibilityState === 'visible') { check(); if (active()) { touch(true); ping(true); } tick(); }
+            else if (active()) offline(had, false);
+        });
+        W.addEventListener('pagehide', function (e) {   // đóng tab / rời trang: gửi kèm bản "keepalive" để chắc chắn tới máy chủ
+            if (e.persisted || !active() || otherTabVisible() || !had || !had.id) return;
+            try {
+                var o = firebase.app().options || {};
+                if (!o.projectId || !W.fetch) return;
+                fetch('https://firestore.googleapis.com/v1/projects/' + o.projectId + '/databases/(default)/documents/accounts/' + encodeURIComponent(had.id)
+                    + '?updateMask.fieldPaths=online&updateMask.fieldPaths=lastActive&currentDocument.exists=true' + (o.apiKey ? '&key=' + encodeURIComponent(o.apiKey) : ''), {
+                    method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fields: { online: { booleanValue: false }, lastActive: { integerValue: String(idleSent ? since(had) : now()) } } })
+                }).catch(function () {});
+            } catch (er) {}
+        });
+        W.addEventListener('pageshow', function (e) { if (e.persisted) { check(); ping(true); } });
+
+        function pres(a) {   // a: dữ liệu tài khoản (lastActive, online)
+            var t = +(a && a.lastActive) || 0;
+            if (!t) return { on: false, t: 0, text: 'Chưa từng hoạt động', short: 'Chưa từng hoạt động' };
+            var age = now() - t, on = a.online !== false && age < ONLINE_MS;
+            var sh = on ? 'Đang trực tuyến' : ago(t);
+            return { on: on, t: t, text: on ? sh : (/^Truy cập/.test(sh) ? sh : 'Hoạt động ' + sh), short: sh };
+        }
+        function ago(t) {
+            var s = Math.max(0, Math.floor((now() - t) / 1000));
+            if (s < 60) return 'vừa xong';
+            if (s < 3600) return Math.floor(s / 60) + ' phút trước';
+            if (s < 86400) return Math.floor(s / 3600) + ' giờ trước';
+            if (s < 7 * 86400) return Math.floor(s / 86400) + ' ngày trước';
+            return 'Truy cập ' + new Date(t).toLocaleDateString('vi-VN');
+        }
+        function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        /* Gắn vào phần tử để tự cập nhật: QDSession.attrs(acc, { fmt: 'full'|'short'|'none', on: 'lớp khi online', off: 'lớp khi offline' }) */
+        function attrs(a, o) {
+            o = o || {};
+            return ' data-qd-t="' + (+(a && a.lastActive) || 0) + '" data-qd-o="' + (a && a.online === false ? 0 : 1) + '" data-qd-fmt="' + esc(o.fmt || 'full') + '"'
+                + (o.on ? ' data-qd-on="' + esc(o.on) + '"' : '') + (o.off ? ' data-qd-off="' + esc(o.off) + '"' : '');
+        }
+        function cls(el, list, add) { String(list || '').split(/\s+/).forEach(function (c) { if (c) el.classList.toggle(c, add); }); }
+        function tick(root) {
+            var els = (root || d).querySelectorAll ? (root || d).querySelectorAll('[data-qd-t]') : [];
+            for (var i = 0; i < els.length; i++) {
+                var el = els[i], p = pres({ lastActive: +el.getAttribute('data-qd-t'), online: el.getAttribute('data-qd-o') !== '0' });
+                var f = el.getAttribute('data-qd-fmt') || 'full';
+                if (f !== 'none') { var txt = f === 'short' ? (p.on ? '● Đang hoạt động' : p.short) : p.text; if (el.textContent !== txt) el.textContent = txt; }
+                cls(el, el.getAttribute('data-qd-off'), !p.on); cls(el, el.getAttribute('data-qd-on'), p.on);
+            }
+        }
+        setInterval(function () { if (d.visibilityState !== 'hidden') tick(); }, 5000);
+
+        /* ---------- Giao diện: nhắc sắp hết phiên · màn hình bị đá ra · thông báo ở trang đăng nhập ---------- */
+        function css() {
+            if (d.getElementById('qd-sess-css')) return;
+            var st = d.createElement('style'); st.id = 'qd-sess-css';
+            st.textContent = '#qd-sess-warn{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147483646;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);padding:10px 12px 10px 18px;border-radius:999px;font:600 14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;background:rgba(24,8,8,.94);border:1px solid rgba(255,213,74,.65);box-shadow:0 14px 34px -12px rgba(0,0,0,.65)}'
+                + '#qd-sess-warn b{color:#ffd54a;font-variant-numeric:tabular-nums}#qd-sess-warn button{flex-shrink:0;border:0;border-radius:999px;padding:8px 14px;font:700 13px system-ui,sans-serif;background:#ffd54a;color:#3b0a0a;cursor:pointer}'
+                + '#qd-sess-kick{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,4,4,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}'
+                + '#qd-sess-kick .k{width:100%;max-width:380px;border-radius:20px;padding:28px 24px 22px;text-align:center;background:#fff;color:#2a0d0d;border-top:5px solid #c1121f;box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}'
+                + '#qd-sess-kick .i{font-size:40px;line-height:1;margin-bottom:10px}#qd-sess-kick h3{margin:0 0 8px;font-size:19px;color:#a10f1a}#qd-sess-kick p{margin:0 0 18px;font-size:15px;line-height:1.5;color:#4a2a2a}'
+                + '#qd-sess-kick a{display:block;padding:12px;border-radius:12px;background:#c1121f;color:#fff;font-weight:700;text-decoration:none}#qd-sess-kick small{display:block;margin-top:12px;color:#8a6a6a;font-size:12.5px}'
+                + '#qd-sess-note{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:2147483646;display:flex;align-items:flex-start;gap:10px;width:calc(100vw - 32px);max-width:440px;padding:14px 14px 14px 16px;border-radius:14px;font:600 14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#5c1010;background:#fff5f5;border:1px solid #f0a3a3;box-shadow:0 16px 36px -14px rgba(0,0,0,.45)}'
+                + '#qd-sess-note span{flex:1}#qd-sess-note button{border:0;background:none;font-size:20px;line-height:1;color:#a10f1a;cursor:pointer;padding:0 2px}';
+            (d.head || d.documentElement).appendChild(st);
+        }
+        var warnEl = null;
+        function showWarn(left) {
+            if (!d.body) return; css();
+            if (!warnEl) {
+                warnEl = d.createElement('div'); warnEl.id = 'qd-sess-warn'; warnEl.setAttribute('role', 'alert');
+                warnEl.innerHTML = '<span>⏳ Phiên đăng nhập sẽ hết sau <b></b> do không thao tác</span><button type="button">Tiếp tục</button>';
+                warnEl.querySelector('button').onclick = function () { touch(true); };
+                d.body.appendChild(warnEl);
+            }
+            warnEl.querySelector('b').textContent = Math.ceil(left / 1000) + ' giây';
+        }
+        function hideWarn() { if (warnEl) { warnEl.remove(); warnEl = null; } }
+        function target(reason) { return (ADM ? 'admin.html' : 'user.html') + '?out=' + encodeURIComponent(reason); }
+        function go(reason) { try { location.replace(target(reason)); } catch (e) { location.href = target(reason); } }
+        var kickedOnce = false;
+        function kicked(reason) {
+            if (kickedOnce) return;
+            if (KIND === 'public') return;
+            if (KIND === 'user' && reason === 'locked') return;   // user.html tự hiện hộp "tài khoản bị khóa"
+            kickedOnce = true;
+            try { Array.prototype.forEach.call(d.querySelectorAll('audio,video'), function (m) { try { m.pause(); } catch (e) {} }); } catch (e) {}
+            try { if (W.Music && W.Music.el) W.Music.el.pause(); } catch (e) {}
+            var show = function () {
+                css();
+                var k = d.createElement('div'); k.id = 'qd-sess-kick'; k.setAttribute('role', 'alertdialog'); k.setAttribute('aria-modal', 'true');
+                k.innerHTML = '<div class="k"><div class="i">' + (reason === 'expired' ? '⏰' : reason === 'locked' ? '🔒' : '🚪') + '</div><h3>Phiên đăng nhập đã kết thúc</h3><p>' + esc(MSG[reason] || MSG.expired)
+                    + '</p><a href="' + target(reason) + '">Đăng nhập lại</a><small>Tự chuyển sau <b>5</b> giây…</small></div>';
+                d.body.appendChild(k);
+                var n = 5, b = k.querySelector('small b'), h = setInterval(function () { if (--n <= 0) { clearInterval(h); go(reason); } else b.textContent = n; }, 1000);
+            };
+            if (d.body) show(); else d.addEventListener('DOMContentLoaded', show);
+        }
+        function note(reason) {   // hiện ở trang đăng nhập (user.html / admin.html) sau khi bị đá ra
+            var t = MSG[reason]; if (!t) return;
+            var show = function () {
+                if (d.getElementById('qd-sess-note')) return; css();
+                var n = d.createElement('div'); n.id = 'qd-sess-note'; n.setAttribute('role', 'status');
+                n.innerHTML = '<span>' + (reason === 'expired' ? '⏰ ' : '🚪 ') + esc(t) + ' Vui lòng đăng nhập lại.</span><button type="button" aria-label="Đóng">×</button>';
+                n.querySelector('button').onclick = function () { n.remove(); };
+                d.body.appendChild(n); setTimeout(function () { if (n.parentNode) n.remove(); }, 12000);
+            };
+            if (d.body) show(); else d.addEventListener('DOMContentLoaded', show);
+        }
+        if (KIND === 'user' || ADM) {
+            try {
+                var q = new URLSearchParams(location.search), r = q.get('out');
+                if (r) { note(r); q.delete('out'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); }
+            } catch (e) {}
+        }
+
+        W.QDSession = {
+            kind: KIND, start: start, end: end, touch: function () { touch(true); }, ping: function () { ping(true); }, check: check,
+            get: function () { return had; }, cfg: function () { return CFG; }, minutes: function () { var s = had || sess(); return limit(s) / 60000; },
+            pres: pres, ago: ago, attrs: attrs, tick: tick, ONLINE_MS: ONLINE_MS
+        };
+    })();
+    </script>
     <script id="qd-fast-js">
     /* ===== QD FAST: thao tác dữ liệu nhanh (dùng chung mọi trang) =====
        1. Đọc tức thì: trang đang nghe trực tiếp (onSnapshot) cả 1 bộ sưu tập hoặc 1 tài liệu và đã đồng bộ với máy chủ
@@ -3324,6 +3804,93 @@ html.qd-lite .qd-fx { display: none !important; }
         QF.nearOut = function (p, counts, extra) { return !!p && p.qty != null && p.qty - ((counts || {})[p.id] || 0) <= (extra == null ? 3 : extra); };
     })();
     </script>
+    <script id="qd-lucky-reward">
+    /* ===== THƯỞNG QUAY SỐ MAY MẮN (dùng chung admin.html / user.html / quays.html) =====
+       settings/lucky_reward_config = { isEnabled, since, mode: 'each' | 'split', main: { points, spins, tickets, conThrows }, cash,
+                                        nearOn, near: { ... }, nearCash, updatedAt, updatedBy }
+       Mỗi phiên quay (lucky_number_history/{id}) được trao ĐÚNG 1 LẦN trong 1 giao dịch:
+         lucky_rewards/{id} = { number, histId, winners[], near[], all[], each{}, eachNear{}, cash, nearCash, mode, at, wonAt, round, source }
+         + cộng điểm / lượt vào accounts, ghi point_history, đánh dấu lucky_number_history.rewarded
+       Tiền mặt không cộng tự động: hiện ở Admin > Trả thưởng (nguồn "Quay Số") để BQT chuyển khoản. */
+    window.LuckyReward = (function () {
+        'use strict';
+        var KEYS = [['points', 'Điểm lì xì', 'điểm lì xì'], ['spins', 'Lượt vòng quay', 'lượt quay'], ['tickets', 'Lượt rút lì xì', 'lượt rút lì xì'], ['conThrows', 'Lượt ném còn', 'lượt ném còn']];
+        function D() { try { if (typeof db !== 'undefined' && db) return db; } catch (e) {} try { if (window.firebase && firebase.apps.length) return firebase.firestore(); } catch (e) {} return null; }
+        var n0 = function (v) { v = parseInt(v, 10); return isNaN(v) || v < 0 ? 0 : Math.min(v, 1e9); };
+        var pad = function (x) { return String(x).padStart(2, '0'); };
+        var vnd = function (x) { return Number(x || 0).toLocaleString('vi-VN'); };
+        function norm(c) {
+            c = c || {}; var main = {}, near = {};
+            KEYS.forEach(function (k) { main[k[0]] = n0((c.main || {})[k[0]]); near[k[0]] = n0((c.near || {})[k[0]]); });
+            return { on: c.isEnabled === true, since: +c.since || 0, mode: c.mode === 'split' ? 'split' : 'each', main: main, cash: n0(c.cash), nearOn: c.nearOn === true, near: near, nearCash: n0(c.nearCash) };
+        }
+        function empty(r, cash) { return !cash && KEYS.every(function (k) { return !(r[k[0]] > 0); }); }
+        /* Chia giải: 'each' = mỗi người nhận đủ · 'split' = chia đều tổng giải (tiền làm tròn xuống bội 1.000đ) */
+        function share(part, cash, count, mode) {
+            var o = {}; KEYS.forEach(function (k) { var v = part[k[0]] || 0; o[k[0]] = mode === 'split' && count > 1 ? Math.floor(v / count) : v; });
+            var c = cash || 0; if (mode === 'split' && count > 1) { var e = Math.floor(c / count); c = e >= 1000 ? Math.floor(e / 1000) * 1000 : e; }
+            o.cash = c; return o;
+        }
+        function text(r, sep) {
+            if (!r) return ''; var a = [];
+            if (r.cash > 0) a.push(vnd(r.cash) + 'đ tiền mặt');
+            KEYS.forEach(function (k) { if (r[k[0]] > 0) a.push('+' + vnd(r[k[0]]) + ' ' + k[2]); });
+            return a.join(sep || ' · ');
+        }
+        /* Tên giải cho Túi đồ / Trả thưởng: tiền đứng đầu để đọc được số tiền */
+        function prize(r, num, near) {
+            var tail = (near ? 'Quay Số (giải phụ, số ' : 'Quay Số May Mắn (số ') + pad(num) + ')';
+            if (r && r.cash > 0) { var rest = text(Object.assign({}, r, { cash: 0 })); return vnd(r.cash) + ' VNĐ · ' + tail + (rest ? ' · ' + rest : ''); }
+            return tail + ': ' + (text(r) || 'không có thưởng');
+        }
+        function accountRefs(users) {
+            var d = D(), out = {}, chunks = [];
+            for (var i = 0; i < users.length; i += 10) chunks.push(users.slice(i, i + 10));
+            return Promise.all(chunks.map(function (c) { return d.collection('accounts').where('user', 'in', c).get().then(function (q) { q.forEach(function (x) { out[x.data().user] = x.ref; }); }); })).then(function () { return out; });
+        }
+        /* Trao thưởng cho 1 phiên quay. opt = { winners (đúng danh sách đã ghi lịch sử), ts, round, source } */
+        function award(histId, num, opt) {
+            opt = opt || {}; var d = D(); num = parseInt(num, 10);
+            if (!d || !histId || !(num >= 1 && num <= 100) || !firebase.firestore.FieldValue) return Promise.resolve(null);
+            var FV = firebase.firestore.FieldValue;
+            return d.collection('settings').doc('lucky_reward_config').get().then(function (s) {
+                var c = norm(s.exists ? s.data() : null), ts = +opt.ts || Date.now();
+                if (!c.on || (c.since && ts < c.since - 60000)) return null;
+                if (empty(c.main, c.cash) && (!c.nearOn || empty(c.near, c.nearCash))) return null;
+                return d.collection('lucky_numbers').get().then(function (ls) {
+                    var main = [], near = [];
+                    ls.forEach(function (x) { var v = x.data(), k = parseInt(v.number, 10); if (!v.user || isNaN(k)) return; if (k === num) main.push(v.user); else if (c.nearOn && Math.abs(k - num) === 1) near.push(v.user); });
+                    if (Array.isArray(opt.winners)) main = opt.winners.slice();
+                    near = near.filter(function (u) { return main.indexOf(u) < 0; });
+                    var users = main.concat(near);
+                    return accountRefs(users).then(function (refs) {
+                        var rref = d.collection('lucky_rewards').doc(histId);
+                        return d.runTransaction(function (tx) {
+                            return tx.get(rref).then(function (ex) {
+                                if (ex.exists) return null;   // đã trao rồi (máy khác trao trước)
+                                var now = Date.now(), each = share(c.main, c.cash, main.length, c.mode), eachNear = share(c.near, c.nearCash, near.length, c.mode);
+                                var rec = { number: num, histId: histId, winners: main, near: near, all: users, each: each, eachNear: c.nearOn ? eachNear : null,
+                                    cash: main.length ? each.cash : 0, nearCash: near.length ? eachNear.cash : 0, mode: c.mode, at: now, wonAt: ts, round: opt.round || null, source: opt.source || '' };
+                                tx.set(rref, rec);
+                                tx.set(d.collection('lucky_number_history').doc(histId), { rewarded: true, rewardText: text(each), nearUsers: near, nearText: c.nearOn ? text(eachNear) : '' }, { merge: true });
+                                var give = function (u, r, isNear) {
+                                    var ref = refs[u]; if (!ref) return; var up = {}, any = false;
+                                    KEYS.forEach(function (k) { if (r[k[0]] > 0) { up[k[0]] = FV.increment(r[k[0]]); any = true; } });
+                                    if (any) tx.update(ref, up);
+                                    if (r.points > 0) tx.set(d.collection('point_history').doc(), { user: u, action: 'add', detail: 'Quay Số May Mắn: ' + (isNear ? 'giải phụ (lệch 1 số) — số ' : 'trúng số ') + pad(num), pointsChanged: r.points, timestamp: now });
+                                };
+                                main.forEach(function (u) { give(u, each, false); });
+                                near.forEach(function (u) { give(u, eachNear, true); });
+                                return rec;
+                            });
+                        });
+                    });
+                });
+            }).catch(function (e) { console.warn('LuckyReward', e); return null; });
+        }
+        return { KEYS: KEYS, norm: norm, share: share, text: text, prize: prize, award: award, empty: empty };
+    })();
+    </script>
 
     <script>
     window.LuckySchedule = (function () {
@@ -3399,7 +3966,10 @@ html.qd-lite .qd-fx { display: none !important; }
                     var w = []; snap.forEach(function (doc) { var x = doc.data(); if (parseInt(x.number, 10) === num) w.push(x.user); });
                     var rec = { number: num, winners: w, timestamp: Date.now(), source: source || 'live' };
                     if (label) rec.round = label;
-                    return d.collection('lucky_number_history').add(rec);
+                    return d.collection('lucky_number_history').add(rec).then(function (ref) {   // trao thưởng theo cấu hình Admin (1 lần / phiên)
+                        if (window.LuckyReward) window.LuckyReward.award(ref.id, num, { winners: w, ts: rec.timestamp, round: label || null, source: rec.source });
+                        return ref;
+                    });
                 }).catch(function (e) { console.warn('LuckySchedule history', e); });
             },
             fmtTime: function (at) {
@@ -3462,7 +4032,9 @@ html.qd-lite .qd-fx { display: none !important; }
                 container.appendChild(t); void t.offsetWidth; t.classList.add('show');
                 setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
             },
-            timeAgo: (timestamp) => {
+            // Trạng thái hoạt động thời gian thực (khối QD Session): bảng tài khoản tự chạy "Hoạt động x phút trước"
+            timeAgo: (timestamp, online) => {
+                if (window.QDSession) return timestamp ? window.QDSession.pres({ lastActive: timestamp, online: online }).text : "Chưa từng đăng nhập";
                 if (!timestamp) return "Chưa từng đăng nhập";
                 const diffSeconds = Math.floor((Date.now() - timestamp) / 1000);
                 if (diffSeconds < 300) return "Đang trực tuyến"; 
@@ -3581,6 +4153,8 @@ html.qd-lite .qd-fx { display: none !important; }
                             State.currentUserRole = userRole;
                             State.currentUserPerms = userData.permissions || ['dashboard', 'attendance', 'registration'];
                             localStorage.setItem('qd_current_username', u); // Đồng bộ với user.html
+                            // Phiên Ban Quản Trị (riêng) + phiên thành viên cho các trang mở từ Admin; hết phiên / bị đá -> thoát ở mọi trang
+                            if (window.QDSession) QDSession.start({ u: u, id: snap.docs[0].id, role: userRole, kickAt: userData.kickAt });
                             setTimeout(() => {
                                 document.getElementById('auth-gate').style.opacity = '0';
                                 setTimeout(() => {
@@ -3598,6 +4172,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         State.currentUser = 'admin';
                         State.currentUserRole = 'admin';
                         localStorage.setItem('qd_current_username', 'admin');
+                        if (window.QDSession) QDSession.start({ u: 'admin', id: null, role: 'admin' });
                         setTimeout(() => {
                             document.getElementById('auth-gate').style.opacity = '0';
                             setTimeout(() => {
@@ -3617,6 +4192,7 @@ html.qd-lite .qd-fx { display: none !important; }
             logout: () => {
                 const btn = document.querySelector('#modal-logout .btn-danger');
                 if(btn) { btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang thoát...`; btn.disabled = true; }
+                if (window.QDSession) QDSession.end('logout', true);   // thoát phiên Admin + các trang thành viên đang mở bằng tài khoản này
                 localStorage.removeItem('qd_current_username'); // Đăng xuất thì mất phiên bên user.html luôn
                 localStorage.setItem('qd_adm_autologin', 'false'); // Tắt tự động vào thẳng khi chủ động đăng xuất
                 setTimeout(() => window.location.reload(), 500);
@@ -4642,7 +5218,7 @@ const QVis = {
                                 return;
                             }
 
-                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'security', 'accounts', 'news', 'approvals'];
+                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals'];
                             
                             // 2. NẾU LÀ MANAGER THÌ ẨN/HIỆN CHỨC NĂNG THEO QUYỀN
                             if (myRole === 'manager') {
@@ -4767,6 +5343,11 @@ const QVis = {
                         if(inactEl) inactEl.value = State.accountConfig.inactivityMinutes !== undefined ? State.accountConfig.inactivityMinutes : 1440;
                         if(autoEl) autoEl.value = State.accountConfig.autoUnlockMinutes || 0;
                         if(tempEl) tempEl.value = State.accountConfig.tempUnlockMinutes || 0;
+                        const sesEl = document.getElementById('cfg-acc-session'), sesStEl = document.getElementById('cfg-acc-session-staff');
+                        if (sesEl) sesEl.value = State.accountConfig.sessionMinutes !== undefined ? State.accountConfig.sessionMinutes : 360;
+                        if (sesStEl) sesStEl.value = State.accountConfig.staffSessionMinutes !== undefined ? State.accountConfig.staffSessionMinutes : 360;
+                        const kl = document.getElementById('kick-all-last'), ep = +State.accountConfig.sessionEpoch || 0;
+                        if (kl) kl.textContent = ep ? 'Lần gần nhất: ' + new Date(ep).toLocaleString('vi-VN') + (State.accountConfig.sessionEpochBy ? ' · bởi ' + State.accountConfig.sessionEpochBy : '') : '';
                     } else {
                         State.accountConfig = { inactivityMinutes: 1440, autoUnlockMinutes: 0, tempUnlockMinutes: 0 };
                     }
@@ -5164,7 +5745,7 @@ const QVis = {
                             }
                         }
 
-                        const isOnline = (now - (d.lastActive || 0)) < 300000; 
+                        const isOnline = window.QDSession ? QDSession.pres(d).on : (now - (d.lastActive || 0)) < 120000; 
                         
                         const pointCount = d.points || 0;
                         const spinCount = d.spins || 0; 
@@ -5186,7 +5767,8 @@ const QVis = {
                                 statusHtml = `<span class="badge badge-danger"><i class="fa-solid fa-lock" style="font-size: 8px;"></i> Bị Khóa</span>`;
                             }
                         } else {
-                            statusHtml = `<span class="badge ${isOnline ? 'badge-online' : 'badge-offline'}"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> ${Utils.timeAgo(d.lastActive)}</span>`;
+                            const live = (o) => window.QDSession ? QDSession.attrs(d, o) : '';
+                            statusHtml = `<span class="badge ${isOnline ? 'badge-online' : 'badge-offline'}"${live({ fmt: 'none', on: 'badge-online', off: 'badge-offline' })}><i class="fa-solid fa-circle" style="font-size: 8px;"></i> <span${live({ fmt: 'full' })}>${Utils.timeAgo(d.lastActive, d.online)}</span></span>`;
                         }
 
                         const lockBtnIcon = isBlocked ? 'fa-unlock' : 'fa-lock';
@@ -5232,6 +5814,7 @@ const QVis = {
                                 <button class="btn-icon" style="color: var(--color-info); border-color: rgba(14, 165, 233, 0.3);" onclick="AdminActions.viewUserHistory('${d.user}')" title="Xem Lịch sử Biến động Dữ liệu"><i class="fa-solid fa-clock-rotate-left"></i></button>
                                 <button class="btn-icon" style="color: var(--brand-primary); border-color: var(--brand-primary-soft);" onclick="AdminActions.openRoleModal('${doc.id}', '${d.user}', '${uRole}', '${uPerms}')" title="Cấp Nhóm Quyền"><i class="fa-solid fa-id-card-clip"></i></button>
                                 <button class="btn-icon" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.3);" onclick="AdminActions.openSpinModal('${doc.id}', '${d.user}')" title="Cấp Lượt Giải Trí / Điểm"><i class="fa-solid fa-gift"></i></button>
+                                <button class="btn-icon acc-kick-btn" style="color: var(--color-danger); border-color: rgba(190, 18, 60, 0.3);" onclick="AdminActions.kickUser('${doc.id}', '${d.user}', this)" title="Đá ra khỏi hệ thống (đăng xuất mọi trang / thiết bị đang mở)"><i class="fa-solid fa-right-from-bracket"></i></button>
                                 <button class="btn-icon" style="color: ${lockBtnColor}; border-color: ${lockBtnColor}; background: ${lockBtnBg};" onclick="AdminActions.toggleLock('${doc.id}', ${isBlocked}, '${d.user}')" title="${lockBtnTitle}"><i class="fa-solid ${lockBtnIcon}"></i></button>
                                 <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('accounts', '${doc.id}', 'Hành động này sẽ XÓA VĨNH VIỄN tài khoản <b>${d.user}</b>.')" title="Xóa Tài Khoản"><i class="fa-solid fa-trash"></i></button>
                             </td>
@@ -5288,7 +5871,7 @@ const QVis = {
                     State.luckyNumberHistoryCache = [];
 
                     if(snap.empty) { 
-                        if(tbody) tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-8">Chưa có lịch sử quay số.</td></tr>`; 
+                        if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Chưa có lịch sử quay số.</td></tr>`; 
                         return; 
                     }
 
@@ -5297,12 +5880,13 @@ const QVis = {
                     
                     snap.forEach(doc => { 
                         const d = doc.data(); 
-                        if(d.timestamp >= thirtyDaysAgo) { records.push(d); } 
+                        if(d.timestamp >= thirtyDaysAgo) { d.__id = doc.id; records.push(d); } 
                     });
+                    if (window.LuckyRewardAdmin) LuckyRewardAdmin.catchUp(records);   // phiên quay chưa được trao (máy quay mất mạng...) -> trao bù
 
                     records.sort((a,b) => b.timestamp - a.timestamp);
                     if(records.length === 0) { 
-                        if(tbody) tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-8">Không có dữ liệu trong 30 ngày qua.</td></tr>`; 
+                        if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Không có dữ liệu trong 30 ngày qua.</td></tr>`; 
                     } else {
                         records.forEach(d => {
                             State.luckyNumberHistoryCache.push(d);
@@ -5314,7 +5898,8 @@ const QVis = {
                             if(tbody) tbody.insertAdjacentHTML('beforeend', `
                             <tr>
                                 <td class="text-center"><b style="color: #ec4899; font-size: 20px;">${d.number.toString().padStart(2, '0')}</b></td>
-                                <td>${winnersHtml}</td>
+                                <td>${winnersHtml}${(d.nearUsers && d.nearUsers.length) ? `<div class="text-xs text-muted mt-1">🥈 Giải phụ: ${d.nearUsers.join(', ')}</div>` : ''}</td>
+                                <td class="text-sm">${d.rewarded ? `<span class="text-success font-bold">✓ ${d.rewardText || 'Không có thưởng'}</span>${d.nearText && d.nearUsers && d.nearUsers.length ? `<div class="text-xs text-muted">Giải phụ: ${d.nearText}</div>` : ''}` : `<span class="text-muted">—</span>`}</td>
                                 <td class="text-right text-muted text-sm">${timeStr}</td>
                             </tr>`);
                         });
@@ -5375,6 +5960,8 @@ const QVis = {
 
                 try { InviteAdmin.start(); } catch (e) { console.error("InviteAdmin", e); }   // Hệ thống mã mời: cấu hình + lịch sử (khối invite-admin-js)
                 try { GiftAdmin.start(); } catch (e) { console.error("GiftAdmin", e); }       // Tặng quà đồng đội: đóng / mở + lịch sử (khối gift-admin-js)
+                try { if (window.PayoutAdmin) PayoutAdmin.start(); } catch (e) { console.error("PayoutAdmin", e); }
+                try { if (window.LuckyRewardAdmin) LuckyRewardAdmin.start(); } catch (e) { console.error("LuckyRewardAdmin", e); }   // Thưởng quay số (khối lucky-reward-admin-js)   // Trả thưởng tiền mặt (khối payout-admin-js)
                 setTimeout(function () { try { SecAdmin.start(); } catch (e) { console.error("SecAdmin", e); } }, 0);   // Chống gian lận & lỗi (khối sec-admin-js, nạp cuối trang)
 
                 db.collection("news").orderBy("time", "desc").onSnapshot(snap => {
@@ -5677,14 +6264,61 @@ const QVis = {
                 const inact = parseInt(document.getElementById('cfg-acc-inactivity').value) || 1440;
                 const autoUnl = parseInt(document.getElementById('cfg-acc-autounlock').value) || 0;
                 const tempUnl = parseInt(document.getElementById('cfg-acc-tempunlock').value) || 0;
+                const minOr = (id, def) => { const el = document.getElementById(id); const v = el ? parseInt(el.value) : NaN; return isNaN(v) ? def : Math.max(0, Math.min(v, 525600)); };
+                const ses = minOr('cfg-acc-session', 360), sesSt = minOr('cfg-acc-session-staff', 360);
+                if (sesSt > 0 && sesSt < 5) return Utils.toast("Phiên Ban Quản Trị tối thiểu 5 phút (hoặc 0 = không giới hạn).", "warning");
+                if (ses > 0 && ses < 2) return Utils.toast("Phiên thành viên tối thiểu 2 phút (hoặc 0 = không giới hạn).", "warning");
                 
                 db.collection("settings").doc("account_config").set({
                     inactivityMinutes: inact,
                     autoUnlockMinutes: autoUnl,
-                    tempUnlockMinutes: tempUnl
+                    tempUnlockMinutes: tempUnl,
+                    sessionMinutes: ses,
+                    staffSessionMinutes: sesSt
                 }, { merge: true })
-                .then(() => Utils.toast("Đã lưu cấu hình tự động khóa/mở tài khoản!", "success"))
+                .then(() => Utils.toast("Đã lưu cấu hình tự động khóa/mở tài khoản và thời gian phiên đăng nhập!", "success"))
                 .catch(err => Utils.toast("Lỗi lưu cấu hình trên CSDL.", "error"));
+            },
+
+            // Đá 1 tài khoản ra khỏi hệ thống: mọi trang / thiết bị đang đăng nhập tài khoản này thoát ngay (bấm 2 lần để chắc chắn)
+            kickUser: (docId, username, btn) => {
+                // Nhớ lần bấm thứ nhất theo tài khoản (bảng có thể vẽ lại giữa 2 lần bấm khi có người online / offline)
+                const arm = AdminActions._kickArm;
+                if (!arm || arm.id !== docId || Date.now() - arm.at > 5000) {
+                    AdminActions._kickArm = { id: docId, at: Date.now() };
+                    if (btn) { btn.style.background = 'rgba(190, 18, 60, 0.18)'; setTimeout(() => { btn.style.background = ''; }, 5000); }
+                    Utils.toast(`Bấm lần nữa để đá <b>${username}</b> ra khỏi hệ thống.`, "warning");
+                    return;
+                }
+                AdminActions._kickArm = null;
+                if (btn) btn.disabled = true;
+                const t = Date.now();
+                db.collection("accounts").doc(docId).update({ kickAt: t, online: false })
+                    .then(() => {
+                        Utils.toast(`Đã đá <b>${username}</b> ra khỏi hệ thống. Các trang đang mở sẽ thoát ngay.`, "success");
+                        db.collection("admin_logs").add({ type: 'session', action: 'kick', user: username, by: State.currentUser || 'admin', timestamp: t }).catch(() => {});
+                    })
+                    .catch(() => Utils.toast("Không đá được tài khoản (kiểm tra quyền Firestore).", "error"))
+                    .finally(() => { if (btn) { btn.disabled = false; btn.style.background = ''; } });
+            },
+
+            // Đăng xuất toàn bộ thành viên (Ban Quản Trị không bị ảnh hưởng)
+            kickAll: (btn) => {
+                if (btn && btn.dataset.arm !== '1') {
+                    btn.dataset.arm = '1'; const old = btn.innerHTML; btn.dataset.old = old;
+                    btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-2"></i> Bấm lần nữa để đăng xuất tất cả';
+                    setTimeout(() => { if (btn.dataset.arm === '1') { btn.dataset.arm = ''; btn.innerHTML = btn.dataset.old; } }, 4000);
+                    return;
+                }
+                if (btn) { btn.dataset.arm = ''; btn.innerHTML = btn.dataset.old || btn.innerHTML; btn.disabled = true; }
+                const t = Date.now(), by = State.currentUser || 'admin';
+                db.collection("settings").doc("account_config").set({ sessionEpoch: t, sessionEpochBy: by }, { merge: true })
+                    .then(() => {
+                        Utils.toast("Đã đăng xuất toàn bộ thành viên. Mọi trang đang mở sẽ thoát ngay.", "success");
+                        db.collection("admin_logs").add({ type: 'session', action: 'kick_all', user: '(tất cả)', by: by, timestamp: t }).catch(() => {});
+                    })
+                    .catch(() => Utils.toast("Lỗi lưu lên máy chủ.", "error"))
+                    .finally(() => { if (btn) btn.disabled = false; });
             },
 
             toggleLock: (docId, isCurrentlyBlocked, username) => {
@@ -6016,6 +6650,7 @@ saveRegistrationConfig: () => {
 
                 batch.commit().then(() => {
                     Utils.toast(`Đã chốt kết quả số ${targetNum.toString().padStart(2, '0')} và lưu vào Lịch sử!`, "success");
+                    if (window.LuckyReward) LuckyReward.award(historyRef.id, targetNum, { winners: winners, ts: Date.now(), source: 'admin' }).then(r => { if (r && (r.winners.length || r.near.length)) Utils.toast(`🎁 Đã trao thưởng cho ${r.winners.length} người trúng` + (r.near.length ? ` + ${r.near.length} giải phụ` : ''), "success"); });
                     document.getElementById('inp-force-win').value = "";
                 }).catch(err => Utils.toast("Lỗi cập nhật: " + err.message, "error"));
             },
@@ -7345,7 +7980,8 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             function fallback() { var t = d.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; d.body.appendChild(t); t.select(); try { d.execCommand('copy'); ok(); } catch (e) {} t.remove(); }
         }
         function fmtDate(ms) { if (!ms) return 'Chưa có dữ liệu'; var x = new Date(+ms); return isNaN(x) ? 'Chưa có dữ liệu' : x.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
-        function fmtAgo(ms) {
+        function fmtAgo(ms, online) {
+            if (window.QDSession) { var pq = window.QDSession.pres({ lastActive: ms, online: online }); return { t: pq.on ? '● Đang hoạt động' : pq.short, on: pq.on }; }
             if (!ms) return { t: 'Chưa từng hoạt động', on: false };
             var s = (Date.now() - ms) / 1000;
             if (s < 300) return { t: '● Đang hoạt động', on: true };
@@ -7405,7 +8041,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 h = row('Họ và tên', a1.fullName || 'Chưa cập nhật') + row('Tên Ingame', mem.ign || '---') + row('Đội', ex.team || (dbl ? e.name : 'Chưa phân đội'))
                     + row('Điểm tích lũy giải', String(ex.points || 0) + ' điểm') + row('Vị trí', s.cfg.format === 'double' ? 'Thành viên ' + (s.mi + 1) + '/' + e.members.length : 'Tuyển thủ');
             } else {
-                var a = acc || {}, ag = fmtAgo(a.lastActive);
+                var a = acc || {}, ag = fmtAgo(a.lastActive, a.online);
                 h = row('Tên tài khoản', mem.u || '---') + row('Vai trò', ROLE[a.role] || 'Thành viên') + row('Ngày tham gia', fmtDate(a.created_at || a.createdAt))
                     + row('Hoạt động', acc ? ag.t : 'Không tìm thấy tài khoản', ag.on ? 'on' : '') + row('Trạng thái', a.isBlocked ? 'Đang bị khóa' : 'Bình thường');
             }
@@ -7714,7 +8350,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             getAccount: function (u) {
                 return db.collection('accounts').where('user', '==', u).limit(1).get().then(function (s) {
                     if (s.empty) return null; var x = s.docs[0].data();
-                    return { fullName: x.fullName, role: x.role, created_at: x.created_at || x.createdAt, lastActive: x.lastActive, isBlocked: x.isBlocked };
+                    return { fullName: x.fullName, role: x.role, created_at: x.created_at || x.createdAt, lastActive: x.lastActive, online: x.online, isBlocked: x.isBlocked };
                 });
             },
             getExtra: function (u) { var p = A.parts.filter(function (x) { return x.username === u; })[0]; return p ? { points: p.points, team: p.team } : {}; }
@@ -9086,6 +9722,676 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         };
         // Dùng chung cho Lịch sử biến động / Ví giải trí của 1 tài khoản
         IA.histGive = histGive; IA.TYPES = TYPES; IA.active = active;
+    })();
+    </script>
+    <div class="modal-overlay" id="modal-payout-qr">
+        <div class="modal-content po-qr" style="max-width: 440px;">
+            <button class="modal-close-btn" onclick="UI.closeModal('modal-payout-qr')"><i class="fa-solid fa-xmark"></i></button>
+            <div id="po-qr-body"></div>
+        </div>
+    </div>
+    <style id="payout-admin-css">
+    /* ===== TRẢ THƯỞNG TIỀN MẶT (admin) ===== */
+    .po-cfg { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px 24px !important; }
+    .po-cfg-l { display: flex; align-items: center; gap: 14px; flex: 1 1 320px; min-width: 0; }
+    .po-cfg-ico { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--color-success); background: var(--color-success-bg); }
+    .po-cfg-r { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+    .po-cfg-r .switch { margin-bottom: 6px; } .po-cfg-r > .font-bold { margin-bottom: 10px; }
+    .po-pf { display: flex; flex-direction: column; gap: 6px; }
+    .po-ref { padding: 20px 24px !important; display: flex; flex-direction: column; gap: 14px; }
+    .po-ref-grid { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 14px; }
+    .po-ref-grid .form-control { font-family: var(--font-family-mono, ui-monospace, monospace); letter-spacing: .3px; }
+    .po-ref-sec { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+    .po-ref-lbl { font-size: 12.5px; font-weight: 800; color: var(--text-muted); padding-top: 7px; min-width: 100px; }
+    .po-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 300px; }
+    .po-chip { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 6px 11px; border-radius: 12px; cursor: pointer; font: 700 12.5px inherit; text-align: left;
+        color: var(--text-main); background: var(--bg-elevated); border: 1px solid var(--border-strong); transition: border-color .12s; }
+    .po-chip:hover { border-color: var(--brand-primary); }
+    .po-chip.on { border-color: var(--color-success); background: var(--color-success-bg); }
+    .po-chip small { font-weight: 600; font-size: 11px; color: var(--text-muted); }
+    .po-chip:not(.tok) { font-family: var(--font-family-mono, ui-monospace, monospace); letter-spacing: .3px; } .po-chip:not(.tok) small { font-family: var(--font-family, inherit); letter-spacing: 0; }
+    .po-chip.tok { flex-direction: row; gap: 6px; border-style: dashed; } .po-chip.tok code { color: var(--brand-primary); font-weight: 800; }
+    .po-ref-pv { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 14px; border-radius: 14px; background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+    .po-ref-pv-l { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .po-ref-pv-l b { font-family: var(--font-family-mono, ui-monospace, monospace); font-size: 17px; letter-spacing: .5px; color: var(--text-main); word-break: break-all; }
+    .po-ref-pv-l small { font-size: 12px; color: var(--text-muted); }
+    .po-ref-len { font-size: 12.5px; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+    .po-ref-len.ok { color: var(--color-success); background: var(--color-success-bg); } .po-ref-len.warn { color: var(--color-warning); background: var(--color-warning-bg); } .po-ref-len.bad { color: var(--color-danger); background: var(--color-danger-bg); }
+    .po-ref-tip { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--text-muted); }
+    @media (max-width: 760px) { .po-ref { padding: 16px !important; } .po-ref-grid { grid-template-columns: 1fr; } .po-ref-lbl { min-width: 0; width: 100%; padding: 0; } .po-ref-pv .btn { width: 100%; } }
+    .po-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .po-stat { padding: 18px 20px !important; }
+    .po-stat-lbl { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+    .po-stat-num { font-size: 26px; font-weight: 800; color: var(--text-main); margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .po-stat-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+    .po-stat.warn .po-stat-num { color: var(--color-warning); } .po-stat.ok .po-stat-num { color: var(--color-success); }
+    .po-card { padding: 0 !important; overflow: hidden; }
+    .po-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 16px 20px; border-bottom: 1px solid var(--border-normal); }
+    .po-tabs { display: flex; gap: 6px; }
+    .po-tab { border: 1px solid var(--border-strong); background: transparent; color: var(--text-muted); font: 700 14px inherit; padding: 9px 14px; border-radius: 999px; cursor: pointer; }
+    .po-tab.active { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
+    .po-tab span:empty { display: none; } .po-tab span { margin-left: 4px; opacity: .85; }
+    .po-tools { display: flex; gap: 8px; flex: 1 1 360px; justify-content: flex-end; }
+    .po-tools input { flex: 1 1 200px; max-width: 320px; } .po-tools select { width: auto; }
+    .po-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 20px; background: var(--bg-elevated); border-bottom: 1px solid var(--border-normal); }
+    .po-bar[hidden] { display: none; }
+    .po-all { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .po-selinfo { font-size: 13px; color: var(--text-muted); flex: 1 1 auto; }
+    .po-bar-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .po-list { display: flex; flex-direction: column; }
+    .po-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+    .po-g { display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1.4fr) 120px 210px; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--border-normal); }
+    .po-g:last-child { border-bottom: 0; }
+    .po-g.sel { background: var(--color-success-bg); }
+    .po-g input[type=checkbox] { width: 18px; height: 18px; }
+    .po-u b { display: block; color: var(--text-main); font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .po-u small { color: var(--text-muted); font-size: 12px; }
+    .po-bk { min-width: 0; font-size: 13.5px; }
+    .po-bk b { color: var(--text-main); } .po-bk .mono { font-family: var(--font-family-mono, ui-monospace, monospace); letter-spacing: .5px; }
+    .po-bk .none { color: var(--color-warning); font-weight: 700; }
+    .po-fl { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .po-fl span { font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; color: var(--color-warning); background: var(--color-warning-bg); }
+    .po-fl span.bad { color: var(--color-danger); background: var(--color-danger-bg); }
+    .po-amt { text-align: right; white-space: nowrap; }
+    .po-amt b { display: block; font-size: 17px; color: var(--color-success); font-variant-numeric: tabular-nums; }
+    .po-amt button { border: 0; background: none; color: var(--text-muted); font-size: 12px; cursor: pointer; padding: 0; text-decoration: underline; }
+    .po-act { display: flex; gap: 6px; justify-content: flex-end; }
+    .po-act .btn { padding: 8px 12px; font-size: 13px; white-space: nowrap; }
+    .po-btn-arm { background: var(--color-warning) !important; border-color: var(--color-warning) !important; color: #1a1a1a !important; }
+    .po-mode { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--bg-base, var(--bg-body)); border: 1px solid var(--border-strong); }
+    .po-mode button { border: 0; background: transparent; color: var(--text-muted); font: 700 13px inherit; padding: 7px 12px; border-radius: 9px; cursor: pointer; white-space: nowrap; }
+    .po-mode button.on { background: var(--brand-primary); color: #fff; }
+    .po-g.po-one:has(+ .po-one:not(.first)) { border-bottom-style: dashed; }   /* các giải của cùng 1 người: kẻ nét đứt */
+    .po-g.po-one:not(.first) .po-u b { color: var(--text-muted); font-weight: 700; }
+    .po-prz { margin-bottom: 4px; font-size: 13.5px; } .po-prz b { color: var(--text-main); }
+    .po-prz .src { display: inline-block; font-size: 11.5px; font-weight: 800; padding: 1px 8px; border-radius: 999px; background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+    .po-det { grid-column: 2 / -1; display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; border-radius: 10px; background: var(--bg-elevated); font-size: 13px; }
+    .po-w { display: flex; align-items: center; gap: 10px; }
+    .po-w span:first-child { flex: 1 1 auto; min-width: 0; }
+    .po-w .t { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+    .po-w button { border: 1px solid var(--border-strong); background: transparent; color: var(--text-muted); border-radius: 8px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
+    .po-h { display: grid; grid-template-columns: 120px minmax(0, 1fr) minmax(0, 1.2fr) auto auto; gap: 12px; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border-normal); font-size: 13.5px; }
+    .po-h .st { font-weight: 800; font-size: 12px; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+    .po-h .st.paid { color: var(--color-success); background: var(--color-success-bg); } .po-h .st.rejected { color: var(--color-danger); background: var(--color-danger-bg); }
+    .po-h button { border: 1px solid var(--border-strong); background: transparent; color: var(--text-muted); border-radius: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+    .po-day td, .po-day { padding: 8px 20px; font-size: 12px; font-weight: 800; color: var(--text-muted); background: var(--bg-elevated); border-bottom: 1px solid var(--border-normal); }
+    .po-b { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border-normal); font-size: 13.5px; }
+    .po-b .lk { font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; white-space: nowrap; display: inline-block; }
+    .po-b .lk.lock { color: var(--text-muted); background: var(--bg-elevated); border: 1px solid var(--border-strong); } .po-b .lk.open { color: var(--color-success); background: var(--color-success-bg); }
+    .po-b .btn { padding: 7px 12px; font-size: 13px; white-space: nowrap; }
+    @media (max-width: 760px) { .po-b { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 14px; } .po-b .bkx { grid-column: 1 / -1; } }
+    .po-qr h3 { margin: 4px 0 2px; font-size: 20px; } .po-qr .sub { color: var(--text-muted); font-size: 13px; margin-bottom: 14px; }
+    .po-qr-img { display: flex; justify-content: center; margin-bottom: 14px; }
+    .po-qr-img img { width: 100%; max-width: 300px; border-radius: 14px; background: #fff; border: 1px solid var(--border-strong); }
+    .po-kv { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--border-strong); font-size: 14px; }
+    .po-kv span { color: var(--text-muted); width: 110px; flex: 0 0 110px; } .po-kv b { flex: 1 1 auto; min-width: 0; word-break: break-all; color: var(--text-main); }
+    .po-kv button { border: 1px solid var(--border-strong); background: transparent; color: var(--text-muted); border-radius: 8px; padding: 3px 9px; font-size: 12px; cursor: pointer; }
+    .po-qr .po-fl { margin: 12px 0 0; }
+    .po-qr-foot { display: flex; gap: 8px; margin-top: 16px; } .po-qr-foot .btn { flex: 1 1 0; }
+    @media (max-width: 1100px) { .po-stats { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 760px) {
+        .po-stats { grid-template-columns: 1fr 1fr; gap: 10px; } .po-stat-num { font-size: 20px; }
+        .po-g { grid-template-columns: 24px minmax(0, 1fr) auto; padding: 12px 14px; gap: 8px 10px; }
+        .po-g .po-bk { grid-column: 2 / -1; grid-row: 2; } .po-g .po-act { grid-column: 1 / -1; grid-row: 3; } .po-g .po-act .btn { flex: 1 1 0; }
+        .po-det { grid-column: 1 / -1; }
+        .po-h { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 14px; } .po-h .bkx { grid-column: 1 / -1; }
+        .po-tools { flex: 1 1 100%; } .po-bar-btns { width: 100%; } .po-bar-btns .btn { flex: 1 1 auto; }
+        .po-head, .po-bar { padding-left: 14px; padding-right: 14px; }
+    }
+    </style>
+    <script id="payout-admin-js">
+    /* ===== TRẢ THƯỞNG TIỀN MẶT (admin, bán tự động) =====
+       Nguồn giải tiền: spin_history (Vòng Quay), tranhthuong_history (Rút Lì Xì), lucky_rewards (Quay Số, mỗi người trúng 1 khoản) — số tiền đọc từ tên giải.
+       bank_info/{tên đăng nhập} : thành viên tự khai trong Túi đồ { bin, bank, accNo, accName, updatedAt, changedAt, history[] }
+       payouts/{bộ sưu tập}_{mã} : { user, col, histId, prize, amount, wonAt, status: 'paid'|'rejected', paidAt, by, method: 'qr'|'batch'|'manual', ref, bank{}, note, batch }
+       settings/payout_config    : { isEnabled (mặc định BẬT), prefix (mã sự kiện), tpl (mẫu nội dung CK, vd "{MA} {USER} THUONG TET") }
+       Không giữ khóa API ngân hàng trên trang (trang chạy ở trình duyệt, ai cũng xem được mã). Chuyển tiền thật: quét VietQR bằng app ngân hàng
+       hoặc tải "File chuyển theo lô" lên Internet Banking doanh nghiệp, xong mới bấm "Đã chuyển". */
+    (function () {
+        'use strict';
+        if (!document.getElementById('view-payout') || typeof db === 'undefined') return;
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var toast = function (m, t) { if (typeof Utils !== 'undefined' && Utils.toast) Utils.toast(m, t || 'success'); };
+        var vnd = function (n) { return Number(n || 0).toLocaleString('vi-VN') + 'đ'; };
+        var p2 = function (x) { return String(x).padStart(2, '0'); };
+        var fold = function (s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D'); };
+        var money = function (t) {   // giống Túi đồ ở user.html: "10.000 VNĐ" -> 10000 ; "20K" -> 20000 ; không phải tiền -> 0
+            var m = String(t || '').match(/(\d[\d.,]*)\s*(k(?!\p{L})|nghìn|ngàn)?\s*(vnđ|vnd|đồng|đ(?!\p{L}))?/iu);
+            if (!m || (!m[2] && !m[3])) return 0;
+            var n = parseInt(m[1].replace(/[.,]/g, ''), 10) || 0;
+            return m[2] ? n * 1000 : n;
+        };
+        var isWish = function (t) { return !t || /chuc may man|loi chuc|chuc tet|ti nua|them ti/.test(fold(t).toLowerCase()); };
+        var me = function () { return (typeof State !== 'undefined' && State.currentUser) || 'admin'; };
+        var agoS = function (t) { var m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : Math.round(m / 60) + ' giờ trước'; };
+        var SRCS = [{ col: 'spin_history', name: '🎡 Vòng Quay' }, { col: 'tranhthuong_history', name: '🧧 Rút Lì Xì' }, { col: 'lucky_rewards', name: '🎯 Quay Số' }];
+        var SRCN = { spin_history: '🎡 Vòng Quay', tranhthuong_history: '🧧 Rút Lì Xì', lucky_rewards: '🎯 Quay Số' };
+        var BIN = { '970436': 'Vietcombank', '970415': 'VietinBank', '970418': 'BIDV', '970405': 'Agribank', '970422': 'MB Bank', '970407': 'Techcombank', '970416': 'ACB', '970432': 'VPBank', '970423': 'TPBank', '970403': 'Sacombank', '970437': 'HDBank', '970441': 'VIB', '970443': 'SHB', '970431': 'Eximbank', '970426': 'MSB', '970448': 'OCB', '970440': 'SeABank', '970449': 'LPBank', '970428': 'Nam A Bank', '970409': 'Bac A Bank', '970425': 'ABBANK', '970427': 'VietABank', '970412': 'PVcomBank', '970452': 'Kienlongbank', '970454': 'BVBank', '970438': 'BaoViet Bank', '970400': 'Saigonbank', '970419': 'NCB', '970414': 'OceanBank', '970430': 'PG Bank', '970408': 'GPBank', '970406': 'DongA Bank', '970429': 'SCB', '970421': 'VRB', '970442': 'Hong Leong', '970424': 'Shinhan Bank', '970457': 'Woori Bank', '546034': 'Cake by VPBank', '963388': 'Timo' };
+        var bankOf = function (b) { return b ? (b.bank || BIN[b.bin] || b.bin) : ''; };
+        var PA = window.PayoutAdmin = { wins: {}, got: {}, pays: {}, banks: {}, accs: {}, cfg: { on: true, prefix: 'QDTLH', tpl: '{MA} {USER} THUONG TET' }, sel: {}, open: {}, arm: null, tab: 'wait', started: false, lastExport: null };
+        var REF = db.collection('settings').doc('payout_config');
+        function log(action, extra) {
+            var d = { type: 'payout', action: action, by: me(), timestamp: Date.now() }; for (var k in extra || {}) d[k] = extra[k];
+            try { db.collection('admin_logs').add(d).catch(function () {}); } catch (e) {}
+        }
+        /* Bấm 2 lần để chắc chắn (nhớ theo khóa vì danh sách có thể vẽ lại giữa 2 lần bấm) */
+        function armed(key, btn, label) {
+            var a = PA.arm;
+            if (a && a.key === key && Date.now() - a.at < 5000) { PA.arm = null; return true; }
+            PA.arm = { key: key, at: Date.now() };
+            if (btn) { btn.dataset.txt = btn.dataset.txt || btn.innerHTML; btn.classList.add('po-btn-arm'); btn.innerHTML = label || 'Bấm lần nữa'; setTimeout(function () { if (btn.isConnected) { btn.classList.remove('po-btn-arm'); btn.innerHTML = btn.dataset.txt; } }, 5000); }
+            return false;
+        }
+        /* Nội dung chuyển khoản theo mẫu: {MA} mã sự kiện · {USER} tên đăng nhập · {SOGIAI} số giải · {TIEN} tổng tiền (70K) · {NGAY} ngày chuyển (ddmm) · {NGUON} VQ / RLX */
+        var DEF_TPL = '{MA} {USER} THUONG TET';
+        var TOKENS = [['{MA}', 'Mã sự kiện'], ['{USER}', 'Tên đăng nhập'], ['{SOGIAI}', 'Số giải'], ['{TIEN}', 'Tổng tiền'], ['{NGAY}', 'Ngày chuyển'], ['{NGUON}', 'Nguồn giải'], ['{MAGD}', 'Mã giải (đối soát)']];
+        var SUGGEST = [
+            ['{MA} {USER} THUONG TET', 'Ngắn gọn, dễ nhận (khuyên dùng)'],
+            ['{MA} {USER}', 'Ngắn nhất'],
+            ['{MA} TRA THUONG {USER}', 'Rõ mục đích'],
+            ['{MA} {USER} {SOGIAI} GIAI {TIEN}', 'Kèm số giải + số tiền, dễ đối soát'],
+            ['{MA} {USER} {NGAY}', 'Kèm ngày chuyển'],
+            ['{MA} {USER} {NGUON}', 'Kèm nguồn: VQ = Vòng Quay, RLX = Rút Lì Xì, QS = Quay Số'],
+            ['LI XI TET {USER} {MA}', 'Thân thiện, đúng không khí Tết'],
+            ['{MA} {USER} {MAGD}', 'Mỗi giải 1 mã riêng — đối soát từng lệnh chuyển']
+        ];
+        function refBuild(tpl, prefix, x) {
+            x = x || {}; var wins = x.wins || [], tot = +x.total || 0, d = new Date();
+            var src = {}; wins.forEach(function (w) { src[w.col === 'spin_history' ? 'VQ' : w.col === 'lucky_rewards' ? 'QS' : 'RLX'] = 1; });
+            var h = 2166136261, idk = wins.map(function (w) { return w.id || ''; }).join('|'); for (var i = 0; i < idk.length; i++) { h ^= idk.charCodeAt(i); h = Math.imul(h, 16777619); } h ^= h >>> 13; h = Math.imul(h, 2246822507); h ^= h >>> 16;   // FNV-1a + trộn: mã khác hẳn nhau
+            var magd = (Object.keys(src).length === 1 ? Object.keys(src)[0] : 'TG') + (h >>> 0).toString(36).toUpperCase().slice(-4).padStart(4, '0');   // vd VQ7F2A: cùng 1 giải luôn ra cùng mã
+            var v = { MA: prefix || 'QDTLH', USER: x.user || '', SOGIAI: wins.length || 1, TIEN: tot >= 1000 ? Math.round(tot / 1000) + 'K' : String(tot), NGAY: p2(d.getDate()) + p2(d.getMonth() + 1), NGUON: Object.keys(src).join(' ') || 'VQ', MAGD: magd };
+            var out = String(tpl || DEF_TPL).replace(/\{(MA|USER|SOGIAI|TIEN|NGAY|NGUON|MAGD)\}/gi, function (m, k) { return v[k.toUpperCase()]; });
+            return fold(out).toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 50);
+        }
+        function refOf(x) { if (typeof x === 'string') x = groups().filter(function (g) { return g.user === x; })[0] || { user: x }; return refBuild(PA.cfg.tpl, PA.cfg.prefix, x); }
+        function sample() { var g = groups().filter(function (x) { return x.wins.length; }); return g[0] || { user: 'binh', wins: [{ col: 'spin_history' }, { col: 'tranhthuong_history' }], total: 70000 }; }
+        var BAD_WORDS = /\b(CA CUOC|DANH BAC|CO BAC|THANG CUOC|XO SO|LO DE|NAP TIEN GAME|VAY|NO|CHUYEN NHAM|LUA DAO)\b/;
+        function badTpl(tpl, pf) { return BAD_WORDS.test(fold(String(tpl || '').replace(/\{[A-Za-z]+\}/g, ' ') + ' ' + (pf || '')).toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ')); }   // chỉ xét chữ BQT gõ, không xét tên thành viên
+        PA.refPreview = function () {
+            var tpl = ($('po-tpl') || {}).value || DEF_TPL, pf = fold(($('po-prefix') || {}).value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) || 'QDTLH';
+            var x = sample(), out = refBuild(tpl, pf, x), n = out.length, el = $('po-ref-len'), pv = $('po-ref-pv'), sub = $('po-ref-pv-sub');
+            if (pv) pv.textContent = out || '(trống)';
+            if (sub) sub.textContent = 'Ví dụ với ' + x.user + ' · ' + (x.wins || []).length + ' giải · ' + vnd(x.total || 0) + (/\{USER\}/i.test(tpl) ? '' : ' — ⚠ mẫu chưa có {USER}, khó đối soát');
+            if (el) {
+                var bad = badTpl(tpl, pf);
+                el.className = 'po-ref-len ' + (bad || !n ? 'bad' : n <= 25 ? 'ok' : 'warn');
+                el.textContent = bad ? '⛔ Có từ dễ bị ngân hàng giữ lệnh' : !n ? 'Trống' : n + ' ký tự · ' + (n <= 25 ? 'an toàn mọi ngân hàng' : 'có ngân hàng sẽ cắt bớt');
+            }
+            document.querySelectorAll('#po-sug .po-chip').forEach(function (c) { c.classList.toggle('on', c.dataset.tpl === tpl.trim()); });
+        };
+        function refChips() {
+            var tk = $('po-tok'), sg = $('po-sug'); if (!tk || !sg || tk.childElementCount) return;
+            tk.innerHTML = TOKENS.map(function (t) { return '<button type="button" class="po-chip tok" data-tok="' + t[0] + '"><code>' + t[0] + '</code>' + esc(t[1]) + '</button>'; }).join('');
+            sg.innerHTML = SUGGEST.map(function (t) { return '<button type="button" class="po-chip" data-tpl="' + esc(t[0]) + '">' + esc(refBuild(t[0], PA.cfg.prefix, sample())) + '<small>' + esc(t[1]) + '</small></button>'; }).join('');
+            tk.addEventListener('click', function (e) {
+                var b = e.target.closest('[data-tok]'); if (!b) return; var inp = $('po-tpl'), v = inp.value, a = inp.selectionStart != null ? inp.selectionStart : v.length, z = inp.selectionEnd != null ? inp.selectionEnd : v.length;
+                var ins = (a > 0 && v[a - 1] !== ' ' ? ' ' : '') + b.dataset.tok + (v[z] && v[z] !== ' ' ? ' ' : '');
+                inp.value = (v.slice(0, a) + ins + v.slice(z)).slice(0, 60); inp.focus(); var c = Math.min(inp.value.length, a + ins.length); inp.setSelectionRange(c, c); PA.refPreview();
+            });
+            sg.addEventListener('click', function (e) { var b = e.target.closest('[data-tpl]'); if (!b) return; $('po-tpl').value = b.dataset.tpl; PA.refPreview(); });
+        }
+        function refRefreshSug() { document.querySelectorAll('#po-sug .po-chip').forEach(function (c, i) { var t = SUGGEST[i]; if (t) c.innerHTML = esc(refBuild(t[0], PA.cfg.prefix, sample())) + '<small>' + esc(t[1]) + '</small>'; }); }
+        function qrUrl(b, amount, ref) {
+            return 'https://img.vietqr.io/image/' + encodeURIComponent(b.bin) + '-' + encodeURIComponent(b.accNo) + '-compact2.png?amount=' + Math.round(amount)
+                + '&addInfo=' + encodeURIComponent(ref) + '&accountName=' + encodeURIComponent(b.accName || '');
+        }
+
+        /* ---------- Dữ liệu ---------- */
+        function pending() {
+            var out = [];
+            SRCS.forEach(function (s) {
+                (PA.wins[s.col] || []).forEach(function (w) {
+                    if (!w.user || isWish(w.prize)) return; var amt = money(w.prize); if (!(amt > 0)) return;
+                    var id = s.col + '_' + w.id, p = PA.pays[id]; if (p && (p.status === 'paid' || p.status === 'rejected')) return;
+                    out.push({ id: id, col: s.col, histId: w.id, user: w.user, prize: w.prize, amount: amt, wonAt: w.ts || 0 });
+                });
+            });
+            return out.sort(function (a, b) { return a.wonAt - b.wonAt; });
+        }
+        function dupMap() { var m = {}; Object.keys(PA.banks).forEach(function (u) { var b = PA.banks[u]; if (b && b.accNo) { var k = b.bin + ':' + b.accNo; (m[k] = m[k] || []).push(u); } }); return m; }
+        function groups() {
+            var g = {}, dups = dupMap(), now = Date.now();
+            pending().forEach(function (w) { (g[w.user] = g[w.user] || { user: w.user, wins: [], total: 0 }); g[w.user].wins.push(w); g[w.user].total += w.amount; });
+            return Object.keys(g).map(function (u) {
+                var x = g[u], b = PA.banks[u] || null, a = PA.accs[u], fl = [];
+                x.bank = b && b.accNo ? b : null; x.acc = a;
+                if (!a) fl.push(['bad', 'Không tìm thấy tài khoản']);
+                else if (a.isBlocked) fl.push(['bad', a.lockReason === 'security' ? 'Bị khóa (nghi gian lận)' : 'Tài khoản đang bị khóa']);
+                if (x.bank) {
+                    if (x.bank.allowEdit === true) fl.push(['', 'Đang cho sửa STK — chờ thành viên sửa xong']);
+                    var ch = +x.bank.changedAt || 0;
+                    if (ch && (x.bank.history || []).length > 1 && now - ch < 864e5) fl.push(['', 'Vừa đổi STK ' + agoS(ch) + ' — hỏi lại']);
+                    var d = (dups[x.bank.bin + ':' + x.bank.accNo] || []).filter(function (o) { return o !== u; });
+                    if (d.length) fl.push(['bad', 'Trùng STK với: ' + d.join(', ')]);
+                }
+                x.flags = fl; x.ready = !!x.bank && !fl.some(function (f) { return f[0] === 'bad'; });
+                return x;
+            }).sort(function (a, b) { return (b.ready - a.ready) || (b.total - a.total); });
+        }
+        PA.groups = groups;
+
+        /* ---------- Vẽ ---------- */
+        function flagsHtml(fl) { return fl.length ? '<div class="po-fl">' + fl.map(function (f) { return '<span class="' + f[0] + '">⚠ ' + esc(f[1]) + '</span>'; }).join('') + '</div>' : ''; }
+        function bankHtml(x) {
+            if (!x.bank) return '<span class="none">Chưa khai số tài khoản</span><div class="text-xs text-muted">Nhắn thành viên vào Túi đồ → "Khai tài khoản nhận thưởng"</div>';
+            return '<b>' + esc(bankOf(x.bank)) + '</b> · <span class="mono">' + esc(x.bank.accNo) + '</span><div class="text-xs text-muted">' + esc(x.bank.accName || '') + '</div>';
+        }
+        function fdt(t) { if (!t) return ''; var d = new Date(t); return p2(d.getHours()) + ':' + p2(d.getMinutes()) + ' ' + p2(d.getDate()) + '/' + p2(d.getMonth() + 1); }
+        function match(x, q) { if (!q) return true; var acc = x.acc || {}, b = x.bank || {}; return fold([x.user, acc.fullName, b.accName, b.accNo].join(' ')).toLowerCase().indexOf(q) >= 0; }
+        function stats(gs) {
+            var box = $('po-stats'); if (!box) return;
+            var wait = 0, nob = 0, nobSum = 0; gs.forEach(function (x) { wait += x.total; if (!x.bank) { nob++; nobSum += x.total; } });
+            var d0 = new Date(); d0.setHours(0, 0, 0, 0); var tod = 0, todN = 0, all = 0;
+            Object.keys(PA.pays).forEach(function (k) { var p = PA.pays[k]; if (p.status !== 'paid') return; all += +p.amount || 0; if ((p.paidAt || 0) >= d0.getTime()) { tod += +p.amount || 0; todN++; } });
+            var c = function (cls, l, n, s) { return '<div class="card po-stat ' + cls + '"><div class="po-stat-lbl">' + l + '</div><div class="po-stat-num">' + n + '</div><div class="po-stat-sub">' + s + '</div></div>'; };
+            box.innerHTML = c(wait ? 'warn' : '', 'Chờ trả', vnd(wait), gs.length + ' người · ' + gs.reduce(function (a, x) { return a + x.wins.length; }, 0) + ' giải')
+                + c(nob ? 'warn' : '', 'Chưa khai STK', nob + ' người', nob ? vnd(nobSum) + ' đang chờ' : 'Mọi người đã khai')
+                + c('ok', 'Đã trả hôm nay', vnd(tod), todN + ' giải')
+                + c('', 'Tổng đã trả', vnd(all), Object.keys(PA.pays).filter(function (k) { return PA.pays[k].status === 'paid'; }).length + ' giải');
+        }
+        /* Danh sách chờ trả: 'split' = TÁCH TỪNG GIẢI (mỗi giải 1 lần chuyển, dễ đối soát) · 'group' = gộp theo người (1 lần chuyển / người) */
+        PA.mode = (function () { try { return localStorage.getItem('po_mode') === 'group' ? 'group' : 'split'; } catch (e) { return 'split'; } })();
+        function units() {
+            var gs = groups();
+            if (PA.mode === 'group') return gs.map(function (g) { g.key = g.user; return g; });
+            var out = [];
+            gs.forEach(function (g) { g.wins.forEach(function (w, i) { out.push({ key: w.id, user: g.user, wins: [w], total: w.amount, bank: g.bank, acc: g.acc, flags: g.flags, ready: g.ready, single: true, idx: i + 1, of: g.wins.length }); }); });
+            return out.sort(function (a, b) { return (b.ready - a.ready) || (a.user < b.user ? -1 : a.user > b.user ? 1 : 0) || (a.wins[0].wonAt - b.wins[0].wonAt); });
+        }
+        function unitOf(key) {   // key = tên đăng nhập (gộp) hoặc mã giải (tách)
+            var gs = groups(), g = gs.filter(function (x) { return x.user === key; })[0];
+            if (g) { g.key = g.user; return g; }
+            for (var i = 0; i < gs.length; i++) { var w = gs[i].wins.filter(function (x) { return x.id === key; })[0]; if (w) { var o = gs[i]; return { key: w.id, user: o.user, wins: [w], total: w.amount, bank: o.bank, acc: o.acc, flags: o.flags, ready: o.ready, single: true }; } }
+            return null;
+        }
+        PA.setMode = function (m) {
+            PA.mode = m === 'group' ? 'group' : 'split'; PA.sel = {}; PA.open = {};
+            try { localStorage.setItem('po_mode', PA.mode); } catch (e) {}
+            document.querySelectorAll('#po-mode button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === PA.mode); });
+            PA.render();
+        };
+        function actBtns(key, x) {
+            return (x.bank ? '<button type="button" class="btn btn-outline" data-k="' + esc(key) + '" onclick="PayoutAdmin.qr(this.dataset.k)"><i class="fa-solid fa-qrcode mr-1"></i> Mã QR</button>' : '')
+                + '<button type="button" class="btn btn-primary" data-k="' + esc(key) + '" onclick="PayoutAdmin.mark(this.dataset.k, this)"><i class="fa-solid fa-check mr-1"></i> Đã chuyển</button>';
+        }
+        PA.render = function () {
+            var list = $('po-list'); if (!list) return;
+            var gs = groups(); stats(gs);
+            var done = Object.keys(PA.pays).length, nWins = gs.reduce(function (a, x) { return a + x.wins.length; }, 0);
+            $('po-n-wait').textContent = gs.length ? '(' + (PA.mode === 'split' ? nWins + ' giải' : gs.length) + ')' : ''; $('po-n-done').textContent = done ? '(' + done + ')' : '';
+            $('po-f').style.display = PA.tab === 'wait' ? '' : 'none';
+            $('po-bar').hidden = PA.tab !== 'wait';
+            document.querySelectorAll('#po-mode button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === PA.mode); });
+            if (!SRCS.every(function (s) { return PA.got[s.col]; })) return;
+            var q = fold(($('po-q') || {}).value || '').toLowerCase().trim();
+            $('po-n-bank').textContent = Object.keys(PA.banks).length ? '(' + Object.keys(PA.banks).length + ')' : '';
+            if (PA.tab === 'done') return renderDone(q);
+            if (PA.tab === 'bank') return renderBanks(q);
+            var f = ($('po-f') || {}).value || '', us = units(), split = PA.mode === 'split';
+            Object.keys(PA.sel).forEach(function (k) { if (!us.some(function (x) { return x.key === k && x.ready; })) delete PA.sel[k]; });
+            var rows = us.filter(function (x) { return (match(x, q) || (split && fold(x.wins[0].prize).toLowerCase().indexOf(q) >= 0)) && (!f || (f === 'ready' ? !!x.bank : f === 'nobank' ? !x.bank : x.flags.length)); });
+            var sel = us.filter(function (x) { return PA.sel[x.key]; }), selSum = sel.reduce(function (a, x) { return a + x.total; }, 0), selPeople = {}; sel.forEach(function (x) { selPeople[x.user] = 1; });
+            $('po-selinfo').textContent = sel.length ? 'Đã chọn ' + (split ? sel.length + ' giải · ' + Object.keys(selPeople).length + ' người' : sel.length + ' người') + ' · ' + vnd(selSum) : (split ? 'Mỗi giải là 1 lần chuyển riêng — chọn giải để xuất file / đánh dấu đã chuyển' : 'Chọn người để xuất file chuyển theo lô / đánh dấu đã chuyển');
+            $('po-all').checked = us.some(function (x) { return x.ready; }) && us.filter(function (x) { return x.ready; }).every(function (x) { return PA.sel[x.key]; });
+            if (!rows.length) { list.innerHTML = '<div class="po-empty">' + (gs.length ? 'Không có giải nào khớp bộ lọc.' : '🎉 Không còn giải tiền mặt nào chờ trả.') + '</div>'; return; }
+            var lastU = '';
+            list.innerHTML = rows.map(function (x) {
+                var k = esc(x.key), u = esc(x.user), acc = x.acc || {}, w0 = x.wins[0];
+                var cb = '<input type="checkbox" data-k="' + k + '" ' + (x.ready ? '' : 'disabled title="Chưa khai STK hoặc có cảnh báo nặng"') + (PA.sel[x.key] ? ' checked' : '') + ' onchange="PayoutAdmin.pick(this.dataset.k, this.checked)">';
+                if (split) {
+                    var head = x.user !== lastU; lastU = x.user;
+                    return '<div class="po-g po-one' + (PA.sel[x.key] ? ' sel' : '') + (head ? ' first' : '') + '" data-k="' + k + '">' + cb
+                        + '<div class="po-u"><b>' + u + '</b><small>' + esc(acc.fullName || '') + (x.of > 1 ? (acc.fullName ? ' · ' : '') + 'giải ' + x.idx + '/' + x.of : '') + '</small></div>'
+                        + '<div class="po-bk"><div class="po-prz"><span class="src">' + SRCN[w0.col] + '</span> <b>' + esc(w0.prize) + '</b> <span class="text-muted">· ' + fdt(w0.wonAt) + '</span></div>' + bankHtml(x) + flagsHtml(x.flags) + '</div>'
+                        + '<div class="po-amt"><b>' + vnd(x.total) + '</b><button type="button" data-id="' + esc(w0.id) + '" onclick="PayoutAdmin.reject(this.dataset.id, this)">Không trả</button></div>'
+                        + '<div class="po-act">' + actBtns(x.key, x) + '</div></div>';
+                }
+                var op = !!PA.open[x.user];
+                return '<div class="po-g' + (PA.sel[x.key] ? ' sel' : '') + '" data-k="' + k + '">' + cb
+                    + '<div class="po-u"><b>' + u + '</b><small>' + esc(acc.fullName || '') + (acc.fullName ? ' · ' : '') + x.wins.length + ' giải · từ ' + fdt(w0.wonAt) + '</small></div>'
+                    + '<div class="po-bk">' + bankHtml(x) + flagsHtml(x.flags) + '</div>'
+                    + '<div class="po-amt"><b>' + vnd(x.total) + '</b><button type="button" data-k="' + k + '" onclick="PayoutAdmin.toggleOpen(this.dataset.k)">' + (op ? 'Ẩn chi tiết' : 'Xem ' + x.wins.length + ' giải') + '</button></div>'
+                    + '<div class="po-act">' + actBtns(x.key, x) + '</div>'
+                    + (op ? '<div class="po-det">' + x.wins.map(function (w) {   // gộp nhưng vẫn chuyển được từng giải
+                        return '<div class="po-w"><span><b>' + esc(w.prize) + '</b> <span class="text-muted">· ' + SRCN[w.col] + '</span></span><span class="t">' + fdt(w.wonAt) + '</span>'
+                            + (x.bank ? '<button type="button" data-k="' + esc(w.id) + '" onclick="PayoutAdmin.qr(this.dataset.k)">QR riêng</button>' : '')
+                            + '<button type="button" data-k="' + esc(w.id) + '" onclick="PayoutAdmin.mark(this.dataset.k, this)">Đã chuyển</button>'
+                            + '<button type="button" data-id="' + esc(w.id) + '" onclick="PayoutAdmin.reject(this.dataset.id, this)">Không trả</button></div>';
+                    }).join('') + '</div>' : '')
+                    + '</div>';
+            }).join('');
+        };
+        function renderDone(q) {
+            var list = $('po-list');
+            var arr = Object.keys(PA.pays).map(function (k) { var p = PA.pays[k]; p._id = k; return p; })
+                .filter(function (p) { return !q || fold([p.user, p.prize, p.ref, p.bank && p.bank.accNo, p.by].join(' ')).toLowerCase().indexOf(q) >= 0; })
+                .sort(function (a, b) { return (b.paidAt || 0) - (a.paidAt || 0); });
+            if (!arr.length) { list.innerHTML = '<div class="po-empty">Chưa có giải nào được xử lý.</div>'; return; }
+            var LIM = 300, last = '', h = '';
+            arr.slice(0, LIM).forEach(function (p) {
+                var t = new Date(p.paidAt || 0), day = t.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+                if (day !== last) { last = day; h += '<div class="po-day">📅 ' + esc(day) + '</div>'; }
+                var M = { qr: 'Quét VietQR', batch: 'Chuyển theo lô', manual: 'Đánh dấu tay' };
+                h += '<div class="po-h" data-id="' + esc(p._id) + '"><span class="text-muted">' + p2(t.getHours()) + ':' + p2(t.getMinutes()) + '</span>'
+                    + '<span><b class="text-main">' + esc(p.user) + '</b><div class="text-xs text-muted">' + esc(p.prize || '') + ' · ' + (SRCN[p.col] || '') + '</div></span>'
+                    + '<span class="bkx text-sm">' + (p.status === 'paid' ? (p.bank ? esc(bankOf(p.bank)) + ' · ' + esc(p.bank.accNo) + ' · ' : '') + esc(M[p.method] || '') + (p.ref ? ' · ND: <b>' + esc(p.ref) + '</b>' : '') + ' · bởi ' + esc(p.by || '') : esc(p.note || 'Không trả') + ' · bởi ' + esc(p.by || '')) + '</span>'
+                    + '<span class="st ' + esc(p.status) + '">' + (p.status === 'paid' ? '✅ ' + vnd(p.amount) : '✖ Không trả') + '</span>'
+                    + '<button type="button" onclick="PayoutAdmin.undo(this.closest(\'.po-h\').dataset.id, this)">Hoàn tác</button></div>';
+            });
+            list.innerHTML = h + (arr.length > LIM ? '<div class="po-empty">Hiện ' + LIM + ' / ' + arr.length + ' bản ghi gần nhất — dùng ô tìm kiếm để lọc.</div>' : '');
+        }
+        function renderBanks(q) {
+            var list = $('po-list'), dups = dupMap(), now = Date.now();
+            var arr = Object.keys(PA.banks).map(function (u) { return PA.banks[u]; }).filter(function (b) { return b && b.accNo; })
+                .filter(function (b) { var a = PA.accs[b.user] || {}; return !q || fold([b.user, a.fullName, b.accName, b.accNo, bankOf(b)].join(' ')).toLowerCase().indexOf(q) >= 0; })
+                .sort(function (a, b) { return (b.allowEdit === true) - (a.allowEdit === true) || (b.updatedAt || 0) - (a.updatedAt || 0); });
+            if (!arr.length) { list.innerHTML = '<div class="po-empty">Chưa có thành viên nào khai số tài khoản.</div>'; return; }
+            list.innerHTML = arr.map(function (b) {
+                var a = PA.accs[b.user] || {}, d = (dups[b.bin + ':' + b.accNo] || []).filter(function (o) { return o !== b.user; }), open = b.allowEdit === true;
+                var fl = []; if (d.length) fl.push(['bad', 'Trùng STK với: ' + d.join(', ')]);
+                if (b.changedAt && (b.history || []).length > 1 && now - b.changedAt < 864e5) fl.push(['', 'Vừa đổi STK ' + agoS(b.changedAt)]);
+                return '<div class="po-b" data-u="' + esc(b.user) + '"><span><b class="text-main">' + esc(b.user) + '</b><div class="text-xs text-muted">' + esc(a.fullName || '') + '</div></span>'
+                    + '<span class="bkx"><b>' + esc(bankOf(b)) + '</b> · <span style="font-family:var(--font-family-mono,monospace)">' + esc(b.accNo) + '</span><div class="text-xs text-muted">' + esc(b.accName || '') + ' · khai ' + fdt(b.firstAt || b.updatedAt) + ((+b.editCount || 0) ? ' · đã sửa ' + b.editCount + ' lần (gần nhất ' + fdt(b.changedAt) + ')' : '') + '</div>' + flagsHtml(fl) + '</span>'
+                    + '<span>' + (open ? '<span class="lk open">✏️ Đang cho sửa' + (b.allowEditBy ? ' · ' + esc(b.allowEditBy) : '') + '</span>' : '<span class="lk lock">🔒 Đã khóa</span>') + '</span>'
+                    + '<span>' + (open ? '<button type="button" class="btn btn-outline" onclick="PayoutAdmin.setEdit(this.closest(\'.po-b\').dataset.u, false, this)"><i class="fa-solid fa-lock mr-1"></i> Khóa lại</button>'
+                        : '<button type="button" class="btn btn-primary" onclick="PayoutAdmin.setEdit(this.closest(\'.po-b\').dataset.u, true, this)"><i class="fa-solid fa-pen-to-square mr-1"></i> Cho sửa lại</button>') + '</span></div>';
+            }).join('');
+        }
+        PA.setEdit = function (u, on, btn) {
+            if (on && !armed('edit:' + u, btn, 'Bấm lần nữa: cho ' + esc(u) + ' sửa')) return;
+            if (btn) btn.disabled = true;
+            db.collection('bank_info').doc(u).set(on ? { allowEdit: true, allowEditAt: Date.now(), allowEditBy: me() } : { allowEdit: false }, { merge: true })
+                .then(function () { toast(on ? 'Đã cho <b>' + esc(u) + '</b> sửa số tài khoản 1 lần (sửa xong tự khóa lại).' : 'Đã khóa lại số tài khoản của <b>' + esc(u) + '</b>.', on ? 'success' : 'info'); log(on ? 'allow_edit' : 'lock_bank', { user: u }); })
+                .catch(function () { toast('Không lưu được (kiểm tra quyền Firestore).', 'error'); if (btn) btn.disabled = false; });
+        };
+        PA.setTab = function (t) { PA.tab = t; document.querySelectorAll('#view-payout .po-tab').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === t); }); PA.render(); };
+        PA.toggleOpen = function (u) { PA.open[u] = !PA.open[u]; PA.render(); };
+        PA.pick = function (k, on) { if (on) PA.sel[k] = 1; else delete PA.sel[k]; PA.render(); };
+        PA.selectAll = function (on) { PA.sel = {}; if (on) units().forEach(function (x) { if (x.ready) PA.sel[x.key] = 1; }); PA.render(); };
+
+        /* ---------- Ghi nhận đã chuyển / không trả / hoàn tác ---------- */
+        function write(gs, method) {
+            var t = Date.now(), batchId = 'b' + t.toString(36), ops = [];
+            gs.forEach(function (x) {
+                var bk = x.bank ? { bin: x.bank.bin, bank: bankOf(x.bank), accNo: x.bank.accNo, accName: x.bank.accName || '' } : null, ref = refOf(x);
+                x.wins.forEach(function (w) { ops.push([db.collection('payouts').doc(w.id), { user: x.user, col: w.col, histId: w.histId, prize: w.prize, amount: w.amount, wonAt: w.wonAt, status: 'paid', paidAt: t, by: me(), method: method, ref: ref, bank: bk, batch: batchId }]); });
+            });
+            var chunks = []; for (var i = 0; i < ops.length; i += 400) chunks.push(ops.slice(i, i + 400));
+            return chunks.reduce(function (pr, ch) { return pr.then(function () { var b = db.batch(); ch.forEach(function (o) { b.set(o[0], o[1]); }); return b.commit(); }); }, Promise.resolve()).then(function () {
+                var sum = gs.reduce(function (a, x) { return a + x.total; }, 0);
+                log('paid', { user: gs.length === 1 ? gs[0].user : '(' + gs.length + ' người)', users: gs.map(function (x) { return x.user; }).slice(0, 200), amount: sum, count: ops.length, method: method, batch: batchId });
+                return { n: ops.length, sum: sum };
+            });
+        }
+        PA.mark = function (key, btn, method) {   // key = mã giải (chỉ giải đó) hoặc tên đăng nhập (mọi giải của người đó)
+            var x = unitOf(key); if (!x) return;
+            var warn = x.flags.length ? ' (có cảnh báo!)' : '';
+            if (btn && !armed('pay:' + key, btn, 'Chắc chắn đã chuyển ' + vnd(x.total) + warn + '?')) return;
+            if (btn) btn.disabled = true;
+            write([x], method || (x.bank ? 'qr' : 'manual')).then(function (r) { toast('Đã ghi nhận chuyển ' + vnd(r.sum) + ' cho <b>' + esc(x.user) + '</b>' + (x.single ? ' (' + esc(x.wins[0].prize) + ')' : '') + '.'); delete PA.sel[key]; UI.closeModal('modal-payout-qr'); })
+                .catch(function (e) { console.warn(e); toast('Không ghi được (kiểm tra quyền Firestore).', 'error'); if (btn) btn.disabled = false; });
+        };
+        PA.markSelected = function (btn) {
+            var gs = units().filter(function (x) { return PA.sel[x.key]; });
+            if (!gs.length) { toast('Chưa chọn giải nào. Tích ô ở đầu mỗi dòng (chỉ người đã khai STK).', 'warning'); return; }
+            var sum = gs.reduce(function (a, x) { return a + x.total; }, 0), lbl = PA.mode === 'split' ? gs.length + ' giải' : gs.length + ' người';
+            if (!armed('paysel', btn, 'Đã chuyển xong ' + lbl + ' · ' + vnd(sum) + '? Bấm lần nữa')) return;
+            btn.disabled = true;
+            var ex = PA.lastExport, viaFile = ex && Date.now() - ex.at < 6 * 36e5 && gs.every(function (x) { return ex.keys[x.key]; });
+            write(gs, viaFile ? 'batch' : 'manual').then(function (r) { toast('Đã ghi nhận ' + lbl + ' · ' + vnd(r.sum) + '.'); PA.sel = {}; })
+                .catch(function () { toast('Không ghi được (kiểm tra quyền Firestore).', 'error'); }).finally(function () { btn.disabled = false; });
+        };
+        PA.reject = function (id, btn) {
+            var w = pending().filter(function (x) { return x.id === id; })[0]; if (!w) return;
+            if (!armed('rej:' + id, btn, 'Bấm lần nữa: không trả')) return;
+            db.collection('payouts').doc(id).set({ user: w.user, col: w.col, histId: w.histId, prize: w.prize, amount: w.amount, wonAt: w.wonAt, status: 'rejected', paidAt: Date.now(), by: me(), note: 'Ban Quản Trị không duyệt giải này' })
+                .then(function () { toast('Đã đánh dấu không trả: ' + esc(w.prize) + ' của ' + esc(w.user) + '.', 'warning'); log('reject', { user: w.user, amount: w.amount, id: id }); })
+                .catch(function () { toast('Không ghi được.', 'error'); });
+        };
+        PA.undo = function (id, btn) {
+            var p = PA.pays[id]; if (!p) return;
+            if (!armed('undo:' + id, btn, 'Bấm lần nữa')) return;
+            db.collection('payouts').doc(id).delete().then(function () { toast('Đã hoàn tác — giải quay lại danh sách Chờ trả.', 'info'); log('undo', { user: p.user, amount: p.amount, id: id, was: p.status }); })
+                .catch(function () { toast('Không hoàn tác được.', 'error'); });
+        };
+
+        /* ---------- Mã VietQR ---------- */
+        PA.qr = function (key) {
+            var x = unitOf(key); if (!x || !x.bank) return; var u = x.user;
+            var ref = refOf(x), b = x.bank, url = qrUrl(b, x.total, ref);
+            var kv = function (k, v, copy) { return '<div class="po-kv"><span>' + k + '</span><b>' + esc(v) + '</b>' + (copy ? '<button type="button" data-copy="' + esc(v) + '">Chép</button>' : '') + '</div>'; };
+            $('po-qr-body').innerHTML = '<h3>Chuyển thưởng cho ' + esc(u) + '</h3><div class="sub">' + (x.single ? '1 giải (chuyển riêng): ' + SRCN[x.wins[0].col] + ' · ' : x.wins.length + ' giải: ') + esc(x.wins.map(function (w) { return w.prize; }).join(', ')) + '</div>'
+                + '<div class="po-qr-img"><img alt="Mã VietQR chuyển ' + esc(vnd(x.total)) + '" src="' + esc(url) + '" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'po-empty\',textContent:\'Không tải được ảnh QR (cần mạng). Chuyển tay theo thông tin bên dưới.\'}))"></div>'
+                + kv('Ngân hàng', bankOf(b)) + kv('Số tài khoản', b.accNo, 1) + kv('Chủ tài khoản', b.accName || '', 1) + kv('Số tiền', String(x.total), 1) + kv('Nội dung', ref, 1)
+                + flagsHtml(x.flags)
+                + '<div class="po-qr-foot"><button type="button" class="btn btn-outline" onclick="UI.closeModal(\'modal-payout-qr\')">Đóng</button>'
+                + '<button type="button" class="btn btn-primary" id="po-qr-done"><i class="fa-solid fa-check mr-2"></i>Đã chuyển xong</button></div>';
+            $('po-qr-done').onclick = function () { PA.mark(key, this, 'qr'); };
+            UI.openModal('modal-payout-qr');
+        };
+        document.addEventListener('click', function (e) {
+            var b = e.target && e.target.closest ? e.target.closest('#po-qr-body [data-copy]') : null; if (!b) return;
+            var v = b.getAttribute('data-copy'), ok = function () { b.textContent = 'Đã chép'; setTimeout(function () { b.textContent = 'Chép'; }, 1500); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(ok, function () {}); else { var t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); ok(); } catch (er) {} t.remove(); }
+        });
+
+        /* ---------- File chuyển theo lô (Internet Banking doanh nghiệp) ---------- */
+        PA.exportBatch = function (fmtx) {
+            var gs = units().filter(function (x) { return PA.sel[x.key] && x.bank; });
+            if (!gs.length) { toast('Chưa chọn giải nào (chỉ chọn được người đã khai STK, không có cảnh báo nặng).', 'warning'); return; }
+            var head = ['STT', 'Số tài khoản', 'Tên người thụ hưởng', 'Ngân hàng', 'Mã ngân hàng (BIN)', 'Số tiền', 'Nội dung', 'Tài khoản web', 'Giải thưởng'];
+            var rows = gs.map(function (x, i) { return [i + 1, x.bank.accNo, x.bank.accName || '', bankOf(x.bank), x.bank.bin, x.total, refOf(x), x.user, x.single ? x.wins[0].prize : x.wins.length + ' giải']; });
+            var sum = gs.reduce(function (a, x) { return a + x.total; }, 0), d = new Date(), stamp = d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' + p2(d.getHours()) + p2(d.getMinutes());
+            var blob;
+            if (fmtx === 'csv') {
+                var q = function (v) { v = String(v == null ? '' : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+                blob = new Blob(['\ufeff' + [head].concat(rows).map(function (r) { return r.map(q).join(','); }).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+            } else {
+                var td = function (v, txt) { return '<td' + (txt ? ' style="mso-number-format:\'\\@\'"' : '') + '>' + esc(v) + '</td>'; };
+                var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">'
+                    + '<tr>' + head.map(function (h) { return '<th style="background:#0f766e;color:#fff">' + esc(h) + '</th>'; }).join('') + '</tr>'
+                    + rows.map(function (r) { return '<tr>' + td(r[0]) + td(r[1], 1) + td(r[2], 1) + td(r[3], 1) + td(r[4], 1) + td(r[5]) + td(r[6], 1) + td(r[7], 1) + td(r[8], 1) + '</tr>'; }).join('')
+                    + '<tr><td></td><td colspan="4"><b>TỔNG ' + gs.length + (PA.mode === 'split' ? ' lệnh chuyển' : ' người') + '</b></td><td><b>' + sum + '</b></td><td colspan="3"></td></tr></table></body></html>';
+                blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            }
+            var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Chuyen_thuong_theo_lo_' + stamp + (fmtx === 'csv' ? '.csv' : '.xls');
+            document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+            var ks = {}; gs.forEach(function (x) { ks[x.key] = 1; }); PA.lastExport = { at: Date.now(), keys: ks };
+            log('export', { user: '(' + gs.length + ' người)', amount: sum, count: gs.length, format: fmtx });
+            toast('Đã xuất ' + gs.length + (PA.mode === 'split' ? ' giải' : ' người') + ' · ' + vnd(sum) + '. Tải file lên Internet Banking (chuyển theo lô / chi lương), chuyển xong bấm <b>Đánh dấu đã chuyển</b>.', 'info');
+        };
+
+        /* ---------- Cấu hình ---------- */
+        function renderCfg() {
+            var t = $('po-on'), s = $('po-on-st'), pf = $('po-prefix');
+            if (t) t.checked = PA.cfg.on; if (s) { s.textContent = PA.cfg.on ? 'ĐANG BẬT' : 'ĐANG TẮT'; s.style.color = PA.cfg.on ? 'var(--color-success)' : 'var(--text-muted)'; }
+            if (pf && document.activeElement !== pf) pf.value = PA.cfg.prefix;
+            var tp = $('po-tpl'); if (tp && document.activeElement !== tp) tp.value = PA.cfg.tpl;
+            refChips(); refRefreshSug(); PA.refPreview();
+        }
+        PA.toggle = function (el) {
+            REF.set({ isEnabled: !!el.checked, updatedAt: Date.now() }, { merge: true }).then(function () { toast(el.checked ? 'Đã BẬT thu thập tài khoản nhận thưởng.' : 'Đã TẮT — thành viên không thấy mục tài khoản nhận thưởng.'); log(el.checked ? 'enable' : 'disable', { user: '(hệ thống)' }); })
+                .catch(function () { el.checked = !el.checked; toast('Không lưu được.', 'error'); });
+        };
+        PA.savePrefix = function () {
+            var v = fold(($('po-prefix') || {}).value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) || 'QDTLH';
+            var tpl = String(($('po-tpl') || {}).value || '').trim().replace(/\s+/g, ' ').slice(0, 60) || DEF_TPL;
+            var ex = refBuild(tpl, v, sample());
+            if (!ex) { toast('Mẫu nội dung đang trống.', 'warning'); return; }
+            if (badTpl(tpl, v)) { toast('Mẫu có từ dễ bị ngân hàng giữ lệnh — hãy đổi mẫu khác.', 'warning'); return; }
+            REF.set({ prefix: v, tpl: tpl, updatedAt: Date.now() }, { merge: true }).then(function () { toast('Đã lưu nội dung chuyển khoản. Ví dụ: <b>' + esc(ex) + '</b>'); log('ref_template', { user: '(hệ thống)', tpl: tpl, prefix: v }); }).catch(function () { toast('Không lưu được.', 'error'); });
+        };
+
+        var rt = null; function later() { clearTimeout(rt); rt = setTimeout(function () { PA.render(); refRefreshSug(); if (document.activeElement !== $('po-tpl')) PA.refPreview(); }, 120); }
+        PA.start = function () {
+            if (PA.started) return; PA.started = true;
+            REF.onSnapshot(function (d) { var c = d.exists ? d.data() : {}; PA.cfg = { on: c.isEnabled !== false, prefix: c.prefix || 'QDTLH', tpl: c.tpl || (c.prefix ? '{MA} {USER}' : DEF_TPL) }; renderCfg(); later(); }, function () {});
+            /* Quay Số: 1 phiên có thể nhiều người trúng -> mỗi người 1 khoản (mã = {phiên}_{tài khoản}), chỉ khoản có tiền mặt */
+            db.collection('lucky_rewards').onSnapshot(function (snap) {
+                var out = [];
+                snap.docs.forEach(function (d) {
+                    var r = d.data() || {}, LRw = window.LuckyReward;
+                    [[r.winners || [], r.each, false], [r.near || [], r.eachNear, true]].forEach(function (g) {
+                        if (!g[1] || !(g[1].cash > 0)) return;
+                        g[0].forEach(function (u) { out.push({ id: d.id + '_' + u, user: u, prize: LRw ? LRw.prize(g[1], r.number, g[2]) : (Number(g[1].cash).toLocaleString('vi-VN') + ' VNĐ · Quay Số (số ' + r.number + ')'), ts: r.at || r.wonAt }); });
+                    });
+                });
+                PA.wins.lucky_rewards = out; PA.got.lucky_rewards = true; later();
+            }, function (e) { console.warn('lucky_rewards', e); PA.got.lucky_rewards = true; later(); });
+            SRCS.forEach(function (s) {
+                if (s.col === 'lucky_rewards') return;
+                db.collection(s.col).onSnapshot(function (snap) {
+                    PA.wins[s.col] = snap.docs.map(function (d) { var x = d.data(); return { id: d.id, user: x.userId || x.user, prize: x.result, ts: x.timestamp }; });
+                    PA.got[s.col] = true; later();
+                }, function (e) { console.warn(s.col, e); PA.got[s.col] = true; later(); });
+            });
+            db.collection('payouts').onSnapshot(function (snap) { PA.pays = {}; snap.docs.forEach(function (d) { PA.pays[d.id] = d.data(); }); later(); }, function (e) { console.warn('payouts', e); });
+            db.collection('bank_info').onSnapshot(function (snap) { PA.banks = {}; snap.docs.forEach(function (d) { var b = d.data(); PA.banks[b.user || d.id] = b; }); later(); }, function (e) { console.warn('bank_info', e); });
+            db.collection('accounts').onSnapshot(function (snap) { PA.accs = {}; snap.docs.forEach(function (d) { var a = d.data(); if (a && a.user) PA.accs[a.user] = a; }); later(); }, function () {});
+            renderCfg();
+            reportSources();
+        };
+
+        /* ---------- Nguồn cho hộp "Xuất Báo Cáo" (Excel / CSV / In PDF, lọc theo ngày + tên) ---------- */
+        function reportSources() {
+            if (!window.QDReport || !QDReport.add || PA.repAdded) return; PA.repAdded = true;
+            var fmt = function (n) { return Number(n || 0).toLocaleString('vi-VN'); };
+            var fDT = function (t) { if (!t) return ''; var x = new Date(t); return p2(x.getHours()) + ':' + p2(x.getMinutes()) + ' ' + p2(x.getDate()) + '/' + p2(x.getMonth() + 1) + '/' + x.getFullYear(); };
+            var M = { qr: 'Quét VietQR', batch: 'Chuyển theo lô', manual: 'Đánh dấu tay' };
+            var full = function (u) { return (PA.accs[u] || {}).fullName || ''; };
+            var paid = function (r) { return r.filter(function (x) { return x.status === 'paid'; }); };
+            QDReport.add({ id: 'payout', view: 'payout', name: 'Chuyển Tiền Thưởng', icon: 'fa-money-bill-transfer', color: '#059669', file: 'Chuyen_Tien_Thuong', col: 'payouts',
+                load: function () { return Promise.resolve(Object.keys(PA.pays).map(function (k) { var p = PA.pays[k], o = {}; for (var f in p) o[f] = p[f]; o.__id = k; return o; }).sort(function (a, b) { return (b.paidAt || 0) - (a.paidAt || 0); })); },
+                time: function (x) { return x.paidAt; }, who: function (x) { return x.user; },
+                cols: [['Thời gian xử lý', function (x) { return fDT(x.paidAt); }], ['Tài khoản', function (x) { return x.user; }], ['Họ tên', function (x) { return full(x.user); }],
+                    ['Giải thưởng', function (x) { return x.prize; }], ['Nguồn', function (x) { return (SRCN[x.col] || '').replace(/^\S+\s/, ''); }], ['Trúng lúc', function (x) { return fDT(x.wonAt); }],
+                    ['Số tiền', function (x) { return x.status === 'paid' ? (+x.amount || 0) : 0; }, 'n'], ['Trạng thái', function (x) { return x.status === 'paid' ? 'Đã chuyển' : 'Không trả'; }],
+                    ['Ngân hàng', function (x) { return x.bank ? bankOf(x.bank) : ''; }], ['Số tài khoản', function (x) { return x.bank ? x.bank.accNo : ''; }, 't'], ['Chủ tài khoản', function (x) { return x.bank ? x.bank.accName : ''; }],
+                    ['Cách chuyển', function (x) { return x.status === 'paid' ? (M[x.method] || x.method || '') : ''; }], ['Nội dung CK', function (x) { return x.ref || ''; }], ['Người thực hiện', function (x) { return x.by || ''; }],
+                    ['Mã lô', function (x) { return x.batch || ''; }, 't'], ['Ghi chú', function (x) { return x.note || ''; }]],
+                kpi: function (r) {
+                    var pd = paid(r), s = pd.reduce(function (a, x) { return a + (+x.amount || 0); }, 0), us = {}; pd.forEach(function (x) { us[x.user] = 1; });
+                    return [['Đã chuyển', fmt(s) + 'đ', pd.length + ' giải · ' + Object.keys(us).length + ' người'], ['Không trả', fmt(r.length - pd.length), 'giải bị từ chối']];
+                },
+                brk: ['Theo cách chuyển', function (x) { return x.status === 'paid' ? (M[x.method] || 'Khác') : 'Không trả'; }, function (x) { return x.status === 'paid' ? (+x.amount || 0) : 0; }],
+                rank: ['Nhận nhiều tiền nhất', 'đ', function (x) { return x.status === 'paid' ? (+x.amount || 0) : 0; }] });
+            QDReport.add({ id: 'payoutwait', view: 'payout', name: 'Giải Tiền Chờ Trả', icon: 'fa-hourglass-half', color: '#d97706', file: 'Giai_Cho_Tra', col: 'spin_history + tranhthuong_history',
+                load: function () { return Promise.resolve(pending().slice().reverse()); }, time: function (x) { return x.wonAt; }, who: function (x) { return x.user; },
+                cols: [['Trúng lúc', function (x) { return fDT(x.wonAt); }], ['Tài khoản', function (x) { return x.user; }], ['Họ tên', function (x) { return full(x.user); }], ['Giải thưởng', function (x) { return x.prize; }],
+                    ['Nguồn', function (x) { return SRCN[x.col].replace(/^\S+\s/, ''); }], ['Số tiền', function (x) { return x.amount; }, 'n'],
+                    ['Ngân hàng', function (x) { var b = PA.banks[x.user]; return b && b.accNo ? bankOf(b) : 'Chưa khai'; }], ['Số tài khoản', function (x) { var b = PA.banks[x.user]; return b && b.accNo ? b.accNo : ''; }, 't'],
+                    ['Chủ tài khoản', function (x) { var b = PA.banks[x.user]; return b ? b.accName || '' : ''; }], ['Nội dung CK', function (x) { return refOf(x.user); }]],
+                kpi: function (r) { var s = r.reduce(function (a, x) { return a + x.amount; }, 0), nob = {}; r.forEach(function (x) { if (!(PA.banks[x.user] || {}).accNo) nob[x.user] = 1; }); return [['Cần trả', fmt(s) + 'đ', r.length + ' giải'], ['Chưa khai STK', fmt(Object.keys(nob).length), 'người']]; },
+                brk: ['Theo giải', function (x) { return x.prize; }, function (x) { return x.amount; }], rank: ['Chờ nhận nhiều nhất', 'đ', function (x) { return x.amount; }] });
+        }
+    })();
+    </script>
+    <style id="lucky-reward-admin-css">
+    .lr-card { padding: 22px 24px !important; border-left: 4px solid #ec4899 !important; display: flex; flex-direction: column; gap: 16px; }
+    .lr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+    .lr-head > div:first-child { flex: 1 1 420px; }
+    .lr-head a { color: #ec4899; font-weight: 700; }
+    .lr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .lr-box { border: 1px solid var(--border-strong); background: var(--bg-elevated); border-radius: 14px; padding: 14px 16px; }
+    .lr-box h4 { margin: 0 0 10px; font-size: 15px; } .lr-box h4 small { font-weight: 600; color: var(--text-muted); font-size: 12px; }
+    .lr-box.off .lr-fields, .lr-box.off .lr-cash { opacity: .45; pointer-events: none; }
+    .lr-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .lr-f { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: var(--text-muted); }
+    .lr-f .form-control { padding: 9px 11px; font-weight: 800; font-family: var(--font-family-mono, monospace); }
+    .lr-in.dirty { border-color: var(--color-warning) !important; box-shadow: 0 0 0 3px var(--color-warning-bg); }
+    .lr-mode { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .lr-radio { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border-strong); border-radius: 12px; cursor: pointer; }
+    .lr-radio:has(input:checked) { border-color: #ec4899; background: rgba(236, 72, 153, .1); }
+    .lr-radio span { display: flex; flex-direction: column; font-size: 13px; } .lr-radio small { color: var(--text-muted); font-size: 11.5px; }
+    .lr-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
+    #lr-pv { flex: 1 1 360px; } #lr-pv b { color: var(--text-main); }
+    @media (max-width: 900px) { .lr-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 520px) { .lr-card { padding: 16px !important; } .lr-foot .btn { width: 100%; } }
+    </style>
+    <script id="lucky-reward-admin-js">
+    /* ===== Admin > Quay số > Phần thưởng khi trúng số (settings/lucky_reward_config). Trao thưởng: window.LuckyReward ===== */
+    (function () {
+        'use strict';
+        if (!document.getElementById('lr-card') || typeof db === 'undefined' || !window.LuckyReward) return;
+        var $ = function (id) { return document.getElementById(id); };
+        var LR = window.LuckyReward, REF = db.collection('settings').doc('lucky_reward_config');
+        var toast = function (m, t) { if (typeof Utils !== 'undefined') Utils.toast(m, t || 'success'); };
+        var me = function () { return (typeof State !== 'undefined' && State.currentUser) || 'admin'; };
+        var A = window.LuckyRewardAdmin = { cfg: LR.norm(null), started: false, tried: {} };
+        function fields() {
+            document.querySelectorAll('#lr-card .lr-fields').forEach(function (box) {
+                if (box.childElementCount) return; var g = box.dataset.g;
+                box.innerHTML = LR.KEYS.map(function (k) { return '<label class="lr-f"><span>' + k[1] + '</span><input type="number" class="form-control lr-in" data-g="' + g + '" data-k="' + k[0] + '" min="0" inputmode="numeric" placeholder="0"></label>'; }).join('');
+            });
+        }
+        function read() {
+            var o = { main: {}, near: {} };
+            document.querySelectorAll('#lr-card input[data-k]').forEach(function (i) { var v = parseInt(i.value, 10); o[i.dataset.g][i.dataset.k] = isNaN(v) || v < 0 ? 0 : v; });
+            var n = function (id) { var v = parseInt(($(id) || {}).value, 10); return isNaN(v) || v < 0 ? 0 : v; };
+            o.cash = n('lr-cash'); o.nearCash = n('lr-near-cash'); o.nearOn = !!($('lr-near-on') || {}).checked;
+            var m = document.querySelector('#lr-card input[name="lr-mode"]:checked'); o.mode = m ? m.value : 'each';
+            return o;
+        }
+        function status() { var st = $('lr-st'), c = A.cfg; $('lr-on').checked = c.on; st.textContent = c.on ? 'ĐANG BẬT' : 'ĐANG TẮT'; st.style.color = c.on ? 'var(--color-success)' : 'var(--text-muted)'; }
+        function fill() {
+            var c = A.cfg; fields();
+            document.querySelectorAll('#lr-card input[data-k]').forEach(function (i) { var v = c[i.dataset.g][i.dataset.k]; i.value = v ? v : ''; });
+            $('lr-cash').value = c.cash || ''; $('lr-near-cash').value = c.nearCash || ''; $('lr-near-on').checked = c.nearOn;
+            document.querySelectorAll('#lr-card input[name="lr-mode"]').forEach(function (r) { r.checked = r.value === c.mode; });
+            document.querySelectorAll('#lr-card .lr-in').forEach(function (i) { i.classList.remove('dirty'); }); $('lr-dirty').classList.add('hidden');
+            status(); preview();
+        }
+        function preview() {
+            var o = read(), main = Object.assign({ cash: o.cash }, o.main), near = Object.assign({ cash: o.nearCash }, o.near);
+            $('lr-near-box').classList.toggle('off', !o.nearOn);
+            var t = LR.text(main), tn = LR.text(near);
+            $('lr-pv').innerHTML = (A.cfg.on ? '' : '<span class="text-warning font-bold">Đang tắt — chưa trao thưởng. </span>')
+                + (t ? 'Trúng đúng số: <b>' + t + '</b>' + (o.mode === 'split' ? ' (chia đều cho số người trúng)' : ' / người') : '<span class="text-muted">Chưa đặt phần thưởng cho giải chính.</span>')
+                + (o.nearOn ? (tn ? ' · Lệch 1 số: <b>' + tn + '</b>' + (o.mode === 'split' ? ' (chia đều)' : ' / người') : ' · <span class="text-muted">Giải phụ chưa có thưởng</span>') : '');
+        }
+        function clean() { document.querySelectorAll('#lr-card .lr-in.dirty').forEach(function (i) { i.classList.remove('dirty'); }); $('lr-dirty').classList.add('hidden'); }
+        function dirty(e) { if (e.target.closest && e.target.closest('#lr-card') && e.target.classList.contains('lr-in')) { e.target.classList.add('dirty'); $('lr-dirty').classList.remove('hidden'); preview(); } }
+        document.addEventListener('input', dirty); document.addEventListener('change', dirty);
+        A.save = function () {
+            var o = read(), b = $('lr-save');
+            if (A.cfg.on && LR.empty(o.main, o.cash) && (!o.nearOn || LR.empty(o.near, o.nearCash))) { toast('Phần thưởng đang trống. Nhập ít nhất 1 mục hoặc TẮT trao thưởng.', 'warning'); return; }
+            b.disabled = true; o.updatedAt = Date.now(); o.updatedBy = me();
+            REF.set(o, { merge: true }).then(function () {
+                clean();
+                toast('Đã lưu phần thưởng Quay Số May Mắn.' + (A.cfg.on ? '' : ' Nhớ BẬT công tắc để bắt đầu trao thưởng.'));
+                db.collection('admin_logs').add({ type: 'lucky_reward', action: 'save', user: '(hệ thống)', by: me(), cfg: o, timestamp: Date.now() }).catch(function () {});
+            }).catch(function () { toast('Không lưu được.', 'error'); }).finally(function () { b.disabled = false; });
+        };
+        A.toggle = function (el) {
+            var on = !!el.checked, o = read(), upd = { isEnabled: on, updatedAt: Date.now(), updatedBy: me() };
+            if (on && LR.empty(o.main, o.cash) && (!o.nearOn || LR.empty(o.near, o.nearCash))) { el.checked = false; toast('Hãy nhập phần thưởng trước khi bật.', 'warning'); return; }
+            if (on) { upd.since = Date.now(); Object.assign(upd, o); }   // chỉ trao cho phiên quay từ lúc bật (không trao bù phiên cũ)
+            REF.set(upd, { merge: true }).then(function () {
+                if (on) clean();   // bật = lưu luôn phần thưởng đang nhập
+                toast(on ? 'Đã BẬT: từ bây giờ, ai trúng số sẽ tự được trao thưởng.' : 'Đã TẮT trao thưởng Quay Số.', on ? 'success' : 'info');
+                db.collection('admin_logs').add({ type: 'lucky_reward', action: on ? 'enable' : 'disable', user: '(hệ thống)', by: me(), timestamp: Date.now() }).catch(function () {});
+            }).catch(function () { el.checked = !on; toast('Không lưu được.', 'error'); });
+        };
+        /* Trao bù: phiên quay sau lúc bật, chưa được trao, trong 3 ngày (vd máy tự quay theo giờ bị đóng giữa chừng). Giao dịch đảm bảo không trao 2 lần. */
+        A.catchUp = function (records) {
+            var c = A.cfg; if (!c.on) return;
+            (records || []).forEach(function (h) {
+                var age = Date.now() - (h.timestamp || 0);
+                if (!h.__id || h.rewarded || A.tried[h.__id] || (h.timestamp || 0) < (c.since || 0) - 60000 || age > 3 * 864e5 || age < 20000) return;
+                A.tried[h.__id] = true;
+                LR.award(h.__id, h.number, { winners: h.winners || [], ts: h.timestamp, round: h.round || null, source: (h.source || 'admin') + '+catchup' });
+            });
+        };
+        A.start = function () {
+            if (A.started) return; A.started = true; fields();
+            REF.onSnapshot(function (d) {
+                A.cfg = LR.norm(d.exists ? d.data() : null);
+                if (!document.querySelector('#lr-card .lr-in.dirty')) fill(); else { status(); preview(); }
+            }, function () {});
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fields); else fields();
     })();
     </script>
     <style id="gift-admin-css">

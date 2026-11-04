@@ -9769,64 +9769,156 @@ html.qd-lite .qd-fx { display: none !important; }
     </div>
 
     <div class="modal-overlay" id="modal-profile">
-        <div class="modal-box text-center">
-            <button class="modal-close-btn" onclick="window.UI.closeModal('modal-profile')"><i class="fa-solid fa-xmark"></i></button>
-            <div class="pf-avt-wrap">
-                <div class="avatar-circle" id="profile-avatar-large" style="width: 100px; height: 100px; font-size: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);" onclick="window.Avatar && window.Avatar.pick()" title="Đổi ảnh đại diện">?</div>
-                <button type="button" class="pf-avt-cam" onclick="window.Avatar && window.Avatar.pick()" aria-label="Đổi ảnh đại diện" title="Đổi ảnh đại diện"><i class="fa-solid fa-camera"></i></button>
-            </div>
-            <div class="pf-avt-acts" id="pf-avt-acts">
-                <button type="button" class="pf-avt-btn" id="pf-avt-change" onclick="window.Avatar && window.Avatar.pick()"><i class="fa-solid fa-image"></i> <span>Đổi ảnh</span></button>
-                <button type="button" class="pf-avt-btn danger" id="pf-avt-del" onclick="window.Avatar && window.Avatar.remove()" hidden><i class="fa-solid fa-trash-can"></i> <span>Xóa ảnh</span></button>
-                <button type="button" class="pf-avt-btn ok" id="pf-avt-save" onclick="window.Avatar && window.Avatar.save()" hidden><i class="fa-solid fa-check"></i> <span>Lưu ảnh</span></button>
-                <button type="button" class="pf-avt-btn" id="pf-avt-cancel" onclick="window.Avatar && window.Avatar.cancel()" hidden><i class="fa-solid fa-xmark"></i> <span>Hủy</span></button>
-            </div>
-            <p class="pf-avt-note" id="pf-avt-note">Ảnh vuông, rõ mặt · JPG / PNG / WEBP</p>
-            <input type="file" id="pf-avt-file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/*" hidden>
-            <h2 class="text-3xl mb-2" id="profile-name-large">User</h2>
-            <div class="badge badge-online mb-8 px-4 py-2 text-sm"><i class="fa-solid fa-shield-check mr-1"></i> Đã Xác Thực</div>
-            
-            <div class="text-left bg-elevated rounded-xl p-5 mb-6 border-strong" style="border: 1px solid var(--border-strong);">
-                <div class="flex justify-between items-center flex-wrap gap-2 mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);">
-                    <span class="text-muted">Nhóm quyền</span>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-primary" id="profile-role">Thành viên</span>
-                        <a href="admin.html" target="_blank" id="admin-access-btn" class="hidden btn-icon" style="width: 28px; height: 28px; font-size: 12px; background: var(--color-danger); color: #fff; border: none; text-decoration: none;" title="Truy Cập Quản Trị"><i class="fa-solid fa-shield-halved"></i></a>
+        <div class="modal-box pf2" role="dialog" aria-labelledby="profile-name-large">
+            <button class="modal-close-btn pf2-x" onclick="window.UI.closeModal('modal-profile')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <!-- Hồ sơ (bản 19): đầu thẻ = ảnh + tên + nhóm quyền; thân = số dư, thông tin, tài khoản nhận thưởng, mã mời -->
+            <div class="pf2-hero">
+                <div class="pf-avt-wrap">
+                    <div class="avatar-circle" id="profile-avatar-large" onclick="window.Avatar && window.Avatar.pick()" title="Đổi ảnh đại diện">?</div>
+                    <button type="button" class="pf-avt-cam" onclick="window.Avatar && window.Avatar.pick()" aria-label="Đổi ảnh đại diện" title="Đổi ảnh đại diện"><i class="fa-solid fa-camera"></i></button>
+                </div>
+                <div class="pf2-id">
+                    <h2 id="profile-name-large">User</h2>
+                    <div class="pf2-full" id="pf2-full"></div>
+                    <div class="pf2-tags">
+                        <span class="pf2-tag ok"><i class="fa-solid fa-shield-halved"></i> Đã xác thực</span>
+                        <span class="pf2-tag role"><span id="profile-role">Thành viên</span>
+                            <a href="admin.html" target="_blank" id="admin-access-btn" class="hidden pf2-adm" title="Mở trang Quản trị"><i class="fa-solid fa-arrow-up-right-from-square"></i></a></span>
                     </div>
+                    <div class="pf-avt-acts" id="pf-avt-acts">
+                        <button type="button" class="pf-avt-btn" id="pf-avt-change" onclick="window.Avatar && window.Avatar.pick()"><i class="fa-solid fa-image"></i> <span>Đổi ảnh</span></button>
+                        <button type="button" class="pf-avt-btn danger" id="pf-avt-del" onclick="window.Avatar && window.Avatar.remove()" hidden><i class="fa-solid fa-trash-can"></i> <span>Xóa ảnh</span></button>
+                        <button type="button" class="pf-avt-btn ok" id="pf-avt-save" onclick="window.Avatar && window.Avatar.save()" hidden><i class="fa-solid fa-check"></i> <span>Lưu ảnh</span></button>
+                        <button type="button" class="pf-avt-btn" id="pf-avt-cancel" onclick="window.Avatar && window.Avatar.cancel()" hidden><i class="fa-solid fa-xmark"></i> <span>Hủy</span></button>
+                    </div>
+                    <p class="pf-avt-note" id="pf-avt-note">Ảnh vuông, rõ mặt · JPG / PNG / WEBP</p>
                 </div>
-                <div class="flex justify-between items-center flex-wrap gap-2 mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);">
-                    <span class="text-muted">Mã ID Khách</span>
-                    <span class="font-bold font-mono text-warning" id="profile-uid" style="letter-spacing: 1px; word-break: break-all;">---</span>
+                <input type="file" id="pf-avt-file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/*" hidden>
+            </div>
+
+            <div class="pf2-body">
+                <div class="pf2-stats">
+                    <button type="button" onclick="window.UI.closeModal('modal-profile'); setTimeout(function(){ window.UI.openModal('modal-inventory'); window.Inventory && window.Inventory.refresh(); }, 250)"><b id="pf2-pts">0</b><span>💰 Điểm lì xì</span></button>
+                    <button type="button" onclick="location.href='tranht.html'" data-resume><b id="pf2-tk">0</b><span>🧧 Lượt rút</span></button>
+                    <button type="button" onclick="location.href='qt.html'" data-resume><b id="pf2-sp">0</b><span>🎡 Lượt quay</span></button>
                 </div>
-                <div class="flex flex-col gap-3 mt-2">
-                    <span class="text-muted">Mã Mời của bạn:</span>
-                    <div class="flex justify-between items-center bg-body rounded-lg p-3" style="border: 1px dashed var(--color-success);">
-                        <span class="font-bold font-mono text-success text-xl" id="my-invite-code" style="letter-spacing: 2px;">---</span>
-                        <button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; background: transparent; color: var(--color-success); border: none;" onclick="window.AppCore.copyInviteCode()" title="Sao Chép"><i class="fa-regular fa-copy"></i></button>
+
+                <section class="pf2-sec">
+                    <h4>👤 Thông tin tài khoản</h4>
+                    <div class="pf2-row"><span>Tên đăng nhập</span><b id="pf2-user">—</b></div>
+                    <div class="pf2-row"><span>Mã ID</span><b class="mono" id="profile-uid">---</b></div>
+                    <div class="pf2-row"><span>Trạng thái</span><b class="pf2-on">● Đang hoạt động</b></div>
+                </section>
+
+                <section class="pf2-sec" id="pf2-bank-sec" hidden>
+                    <h4>💳 Tài khoản nhận thưởng</h4>
+                    <div id="pf2-bank"></div>
+                </section>
+
+                <section class="pf2-sec">
+                    <h4>🎟️ Mã mời của bạn</h4>
+                    <div class="pf2-code">
+                        <span id="my-invite-code">---</span>
+                        <button type="button" onclick="window.AppCore.copyInviteCode()" title="Sao chép"><i class="fa-regular fa-copy"></i> Sao chép</button>
                     </div>
                     <div class="ivu-mine" id="ivu-mine"></div>
-                </div>
-            </div>
+                </section>
 
-            <div class="text-left bg-elevated rounded-xl p-5 mb-8 border-strong" style="border: 1px solid var(--border-strong); background: rgba(245, 158, 11, 0.05);">
-                <h4 class="mb-3 text-warning"><i class="fa-solid fa-envelope-circle-check"></i> Nhập Mã Mời Nhận Quà</h4>
-                <div id="invite-input-area">
-                    <div class="ivu-info" id="ivu-info"><p class="text-sm text-muted mb-3">Nhập mã của đồng đội đã mời bạn để cả 2 cùng nhận quà.</p></div>
-                    <div class="flex gap-2">
-                        <input type="text" id="inp-invite-code" class="form-control" placeholder="Nhập mã mời..." style="padding: 12px 16px; font-family: var(--font-family-mono); text-transform: uppercase; flex: 1; min-width: 0;">
-                        <button class="btn btn-warning" style="padding: 12px 20px; flex-shrink: 0;" onclick="window.AppCore.submitInviteCode()"><i class="fa-solid fa-paper-plane"></i></button>
+                <section class="pf2-sec">
+                    <h4>✉️ Nhập mã mời nhận quà</h4>
+                    <div id="invite-input-area">
+                        <div class="ivu-info" id="ivu-info"><p class="text-sm text-muted mb-3">Nhập mã của đồng đội đã mời bạn để cả 2 cùng nhận quà.</p></div>
+                        <div class="pf2-inv">
+                            <input type="text" id="inp-invite-code" class="form-control" placeholder="Nhập mã mời..." autocomplete="off" spellcheck="false">
+                            <button type="button" onclick="window.AppCore.submitInviteCode()" aria-label="Gửi mã mời"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
                     </div>
-                </div>
-                <div id="invite-success-area" class="hidden mt-2 text-success font-bold text-sm">
-                    <i class="fa-solid fa-circle-check"></i> <span id="ivu-done-text">Chúc mừng! Bạn đã nhận thưởng từ mã mời.</span>
-                    <div class="ivu-chips" id="ivu-done-chips" style="margin-top: 8px;"></div>
-                </div>
+                    <div id="invite-success-area" class="hidden pf2-done">
+                        <i class="fa-solid fa-circle-check"></i> <span id="ivu-done-text">Chúc mừng! Bạn đã nhận thưởng từ mã mời.</span>
+                        <div class="ivu-chips" id="ivu-done-chips" style="margin-top: 8px;"></div>
+                    </div>
+                </section>
             </div>
 
-            <button class="btn btn-outline w-full" onclick="window.UI.closeModal('modal-profile')">Đóng Hồ Sơ</button>
+            <div class="pf2-foot">
+                <button type="button" class="pf2-btn" onclick="window.UI.closeModal('modal-profile')">Đóng</button>
+                <button type="button" class="pf2-btn out" onclick="window.UI.closeModal('modal-profile'); window.UI.openModal('modal-logout')"><i class="fa-solid fa-power-off"></i> Đăng xuất</button>
+            </div>
         </div>
     </div>
-
+    <style id="profile-v2-css">
+    /* ===== HỒ SƠ (bản 19): thẻ giấy kem theo màu chủ đề Tết, gọn trên điện thoại ===== */
+    #modal-profile .modal-box.pf2 { --pa: var(--ts-lq1, #c1121f); --pb: var(--ts-lq2, #8f0a12); --pg: var(--ts-gold, #ffd54a); --pi: var(--ts-ink, #8f0a12);
+        max-width: 460px !important; width: calc(100% - 24px) !important; padding: 0 !important; text-align: left; display: flex; flex-direction: column;
+        max-height: calc(100vh - 32px) !important; max-height: calc(100dvh - 32px) !important; overflow: hidden !important;
+        background: #fffaf0 !important; color: #3b1306 !important; border: 2px solid var(--pg) !important; border-radius: 24px !important; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .6) !important; }
+    .pf2 *, .pf2 h2, .pf2 h4, .pf2 span, .pf2 p, .pf2 b { text-shadow: none !important; }
+    .pf2 .pf2-x { position: absolute !important; top: 12px; right: 12px; z-index: 3; width: 36px !important; height: 36px !important; border-radius: 50% !important;
+        background: rgba(0, 0, 0, .22) !important; color: #fff !important; border: 1px solid rgba(255, 255, 255, .45) !important; }
+    .pf2-hero { position: relative; display: flex; align-items: center; gap: 16px; padding: 22px 56px 18px 20px; flex-shrink: 0;
+        background: linear-gradient(135deg, var(--pa), var(--pb)); color: #fff; }
+    .pf2-hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--pg), transparent); opacity: .8; }
+    .pf2 .pf-avt-wrap { width: 84px !important; height: 84px !important; flex: 0 0 84px; margin: 0 !important; }
+    .pf2 #profile-avatar-large { width: 84px !important; height: 84px !important; font-size: 34px !important; border: 3px solid var(--pg) !important; box-shadow: 0 8px 20px rgba(0, 0, 0, .35) !important; }
+    .pf2-id { min-width: 0; flex: 1 1 auto; }
+    .pf2-id h2 { margin: 0 !important; font-size: 24px !important; line-height: 1.15; color: var(--pg) !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pf2-full { font-size: 13.5px; color: #fde8d2; margin-top: 2px; } .pf2-full:empty { display: none; }
+    .pf2-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .pf2-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .35); color: #fff; }
+    .pf2-tag.ok { background: rgba(34, 197, 94, .25); border-color: rgba(134, 239, 172, .6); color: #dcfce7; }
+    .pf2-tag #profile-role { color: #fff !important; font-weight: 800 !important; }
+    .pf2-adm { display: inline-flex; color: var(--pg); text-decoration: none; font-size: 11px; } .pf2-adm.hidden { display: none !important; }
+    .pf2 .pf-avt-acts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-start !important; margin: 10px 0 0 !important; }
+    .pf2 .pf-avt-btn { padding: 5px 11px !important; font-size: 12px !important; border-radius: 999px !important; background: rgba(0, 0, 0, .2) !important; color: #fff !important; border: 1px solid rgba(255, 255, 255, .45) !important; }
+    .pf2 .pf-avt-btn.ok { background: var(--pg) !important; color: #3b0a0a !important; border-color: var(--pg) !important; }
+    .pf2 .pf-avt-btn[hidden] { display: none !important; }
+    .pf2 .pf-avt-note { margin: 6px 0 0 !important; font-size: 11.5px !important; color: #fde8d2 !important; text-align: left !important; }
+    .pf2-body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 16px 18px 6px; display: flex; flex-direction: column; gap: 12px; }
+    .pf2-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .pf2-stats button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border-radius: 14px; cursor: pointer; font: inherit;
+        background: #fff; border: 1px solid #f0d9a8; color: #6b3a1a; transition: border-color .12s, transform .12s; }
+    .pf2-stats button:active { transform: scale(.97); } .pf2-stats button:hover { border-color: var(--pa); }
+    .pf2-stats b { font-size: 20px; color: var(--pi); font-variant-numeric: tabular-nums; }
+    .pf2-stats span { font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .pf2-sec { background: #fff; border: 1px solid #f0d9a8; border-radius: 16px; padding: 12px 14px; }
+    .pf2-sec[hidden] { display: none; }
+    .pf2-sec h4 { margin: 0 0 8px !important; font-size: 14px !important; color: var(--pi) !important; font-weight: 800; }
+    .pf2-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 7px 0; border-top: 1px dashed #f0d9a8; font-size: 14px; }
+    .pf2-row:first-of-type { border-top: 0; }
+    .pf2-row span { color: #8a5a3a; } .pf2-row b { color: #3b1306; text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .pf2-row b.mono, .pf2 #profile-uid { font-family: var(--font-family-mono, ui-monospace, monospace) !important; letter-spacing: 1px; color: #3b1306 !important; }
+    .pf2-on { color: #15803d !important; }
+    .pf2-code { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1.5px dashed var(--pa); background: #fff8ec; }
+    .pf2-code #my-invite-code { font-family: var(--font-family-mono, ui-monospace, monospace); font-size: 20px; font-weight: 800; letter-spacing: 3px; color: var(--pi) !important; }
+    .pf2-code button, .pf2-bk-btn { border: 0; border-radius: 999px; padding: 8px 13px; font: 800 13px inherit; cursor: pointer; color: #fff; background: linear-gradient(135deg, var(--pa), var(--pb)); white-space: nowrap; }
+    .pf2 .ivu-mine { margin-top: 8px; } .pf2 .ivu-mine:empty { display: none; }
+    .pf2 #ivu-info p, .pf2 #ivu-info { color: #8a5a3a !important; font-size: 13px; }
+    .pf2-inv { display: flex; gap: 8px; }
+    .pf2-inv input { flex: 1 1 auto; min-width: 0; padding: 11px 14px !important; border-radius: 12px !important; background: #fff !important; color: #2a0d0d !important;
+        border: 1.5px solid #e9c98a !important; font-family: var(--font-family-mono, ui-monospace, monospace) !important; text-transform: uppercase; }
+    .pf2-inv input::placeholder { color: #b8957a !important; text-transform: none; }
+    .pf2-inv button { flex: 0 0 46px; height: 46px; border: 0; border-radius: 12px; cursor: pointer; color: #3b0a0a; background: var(--pg); font-size: 16px; }
+    .pf2-inv input:disabled, .pf2-inv button:disabled { opacity: .5; cursor: not-allowed; }
+    .pf2-done { color: #15803d; font-weight: 700; font-size: 14px; }
+    .pf2-bk { display: flex; align-items: center; gap: 12px; }
+    .pf2-bk-ico { width: 42px; height: 42px; flex: 0 0 42px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; background: #fff3d6; }
+    .pf2-bk-t { flex: 1 1 auto; min-width: 0; font-size: 14px; }
+    .pf2-bk-t b { display: block; color: #3b1306; } .pf2-bk-t small { display: block; color: #8a5a3a; font-size: 12.5px; margin-top: 1px; }
+    .pf2-bk-st { display: inline-block; margin-top: 4px; font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+    .pf2-bk-st.lock { background: #f1f5f9; color: #475569; } .pf2-bk-st.open { background: #dcfce7; color: #166534; } .pf2-bk-st.need { background: #fef3c7; color: #92400e; }
+    .pf2-bk-sum { display: flex; gap: 8px; margin-top: 10px; } .pf2-bk-sum div { flex: 1 1 0; padding: 8px 10px; border-radius: 10px; background: #fff8ec; font-size: 12px; color: #8a5a3a; }
+    .pf2-bk-sum b { display: block; font-size: 15px; color: var(--pi); }
+    .pf2-foot { display: flex; gap: 10px; padding: 12px 18px 16px; flex-shrink: 0; border-top: 1px solid #f0d9a8; background: #fffaf0; }
+    .pf2-btn { flex: 1 1 0; padding: 12px; border-radius: 14px; font: 800 14px inherit; cursor: pointer; background: #fff; color: #5c2a04; border: 1.5px solid #e9c98a; }
+    .pf2-btn.out { color: #b91c1c; border-color: #fecaca; background: #fff5f5; }
+    @media (max-width: 480px) {
+        .pf2-hero { padding: 18px 50px 16px 16px; gap: 12px; }
+        .pf2 .pf-avt-wrap, .pf2 #profile-avatar-large { width: 68px !important; height: 68px !important; flex-basis: 68px; font-size: 28px !important; }
+        .pf2-id h2 { font-size: 20px !important; }
+        .pf2-body { padding: 12px 12px 4px; } .pf2-foot { padding: 10px 12px 12px; }
+        .pf2-stats b { font-size: 17px; }
+    }
+    </style>
     <div class="modal-overlay" id="modal-image-viewer" style="z-index: 100000; padding: 0;">
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
             <button class="btn-icon" style="position: absolute; top: 20px; right: 20px; color: white; background: rgba(255,255,255,0.1); border: none; font-size: 20px; z-index: 2;" onclick="window.UI.closeModal('modal-image-viewer')"><i class="fa-solid fa-xmark"></i></button>
@@ -9843,27 +9935,26 @@ html.qd-lite .qd-fx { display: none !important; }
     </div>
 
     <div id="auth-gate">
-        <div class="auth-box">
-            <div class="flex-center mx-auto mb-8 bg-brand-soft" style="width: 90px; height: 90px; border-radius: 24px; background: var(--brand-primary-soft); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px var(--brand-glow); transform: rotate(-10deg);"><i class="fa-solid fa-atom text-primary" style="font-size: 50px; transform: rotate(10deg);"></i></div>
-            <h1 class="mb-2 text-4xl font-bold text-primary" style="letter-spacing: -2px;">HỆ THỐNG QUÂN ĐOÀN</h1>
-            <p class="text-muted mb-10 text-md">   </p>
+        <!-- Đăng nhập (bản 20): huy hiệu Quân Đoàn + khung sơn mài theo màu chủ đề Tết -->
+        <div class="auth-box au2" role="form" aria-labelledby="au2-title">
+            <div class="au2-logo"><img src="data:image/webp;base64,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" alt="Huy hiệu Quân Đoàn T&quot;L&quot;Headshot" width="110" height="110"></div>
+            <h1 class="au2-title" id="au2-title">QĐ TLH</h1>
+            <p class="au2-sub">Hệ thống Quân Đoàn · Xuân Đinh Mùi 2027</p>
 
-            <div class="form-group">
-                <label class="form-label text-left">Tên Đăng Nhập</label>
-                <div class="relative"><i class="fa-solid fa-user absolute text-muted" style="left: 20px; top: 50%; transform: translateY(-50%); font-size: 18px;"></i><input type="text" id="login-usr" class="form-control" style="padding-left: 60px; border-radius: var(--radius-full);" placeholder="Nhập username của bạn..." spellcheck="false" autocomplete="off"></div>
+            <div class="form-group au2-g">
+                <label class="form-label" for="login-usr">Tên đăng nhập</label>
+                <div class="au2-field"><i class="fa-solid fa-user"></i><input type="text" id="login-usr" class="form-control" placeholder="Tên đăng nhập" spellcheck="false" autocomplete="username" autocapitalize="none" onkeypress="if(event.key==='Enter') document.getElementById('login-pwd').focus()"></div>
             </div>
-            
-            <div class="form-group mb-6">
-                <label class="form-label text-left">Mật Khẩu</label>
-                <div class="relative"><i class="fa-solid fa-lock absolute text-muted" style="left: 20px; top: 50%; transform: translateY(-50%); font-size: 18px;"></i><input type="password" id="login-pwd" class="form-control" style="padding-left: 60px; border-radius: var(--radius-full);" placeholder="Nhập password bảo mật..." onkeypress="if(event.key==='Enter') window.Auth.login()"></div>
-            </div>
-
-            <div class="flex items-center gap-2 mb-8 ml-2 cursor-pointer" onclick="const cb = document.getElementById('remember-me'); cb.checked = !cb.checked; cb.dispatchEvent(new Event('change'));">
-                <input type="checkbox" id="remember-me" style="width: 18px; height: 18px; accent-color: var(--brand-primary); cursor: pointer;" onclick="event.stopPropagation()">
-                <label for="remember-me" class="text-sm text-muted cursor-pointer select-none">Ghi nhớ tài khoản</label>
+            <div class="form-group au2-g">
+                <label class="form-label" for="login-pwd">Mật khẩu</label>
+                <div class="au2-field"><i class="fa-solid fa-lock"></i><input type="password" id="login-pwd" class="form-control" placeholder="Mật khẩu" autocomplete="current-password" onkeypress="if(event.key==='Enter') window.Auth.login()">
+                    <button type="button" class="au2-eye" aria-label="Hiện mật khẩu" onclick="const p=document.getElementById('login-pwd'); const sh=p.type==='password'; p.type=sh?'text':'password'; this.setAttribute('aria-label', sh?'Ẩn mật khẩu':'Hiện mật khẩu'); this.innerHTML=sh?'<i class=&quot;fa-solid fa-eye-slash&quot;></i>':'<i class=&quot;fa-solid fa-eye&quot;></i>';"><i class="fa-solid fa-eye"></i></button></div>
             </div>
 
-            <button class="btn btn-primary w-full" style="padding: 20px; font-size: 18px;" id="btn-login" onclick="window.Auth.login()">Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i></button>
+            <label class="au2-rem" for="remember-me"><input type="checkbox" id="remember-me"><span>Ghi nhớ tài khoản trên máy này</span></label>
+
+            <button class="btn btn-primary w-full au2-btn" id="btn-login" onclick="window.Auth.login()">Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i></button>
+            <p class="au2-foot">Chưa có tài khoản? <a href="index.html">Đăng ký tại cổng sự kiện</a></p>
         </div>
     </div>
 
@@ -9916,6 +10007,11 @@ html.qd-lite .qd-fx { display: none !important; }
                     <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                 </button>
 
+                <button type="button" class="inv2-gift inv2-bank" id="inv2-bank" onclick="window.PayoutUser.openForm()" hidden>
+                    <span class="inv2-gift-ico" aria-hidden="true">💳</span>
+                    <span class="inv2-gift-txt"><b id="inv2-bank-t">Khai tài khoản nhận thưởng</b><small id="inv2-bank-sub">Để Ban Quản Trị chuyển giải tiền mặt cho bạn</small></span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
                 <div class="inv2-hist-head">
                     <h3>Lịch sử nhận quà</h3>
                     <div class="inv2-chips" role="tablist">
@@ -9972,17 +10068,17 @@ html.qd-lite .qd-fx { display: none !important; }
 <div id="app-shell">
         
         <aside class="floating-sidebar hidden-mobile">
-            <div class="brand-logo"><i class="fa-solid fa-atom"></i> QĐ TLH</div>
+            <div class="brand-logo"><img class="qd-logo" src="data:image/webp;base64,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" alt="" width="36" height="36"> QĐ TLH</div>
             <nav class="nav-menu">
                 <div class="nav-item active" onclick="window.UI.navigate('dashboard', this)"><i class="fa-solid fa-border-all"></i> <span>Trang Chủ</span></div>
                 <div class="nav-item" onclick="window.UI.navigate('chat', this)"><i class="fa-solid fa-comments"></i> <span>Trò Chuyện Nội Bộ</span></div>
                 <div class="nav-item" onclick="window.UI.navigate('attendance', this)"><i class="fa-solid fa-calendar-check"></i> <span>Điểm Danh </span></div>
                 <div class="nav-item" onclick="window.UI.navigate('news', this)"><i class="fa-solid fa-newspaper"></i> <span>Bản Tin Quân Đoàn</span></div>
                 <div class="nav-item" onclick="window.UI.navigate('tournament', this)"><i class="fa-solid fa-fire"></i> <span>Giải Đấu Máy Chủ</span></div>
-                <div class="nav-item" onclick="window.RegID.open()"><i class="fa-solid fa-id-card"></i> <span>Đăng Ký ID Game</span></div>
-                <div class="nav-item" onclick="window.UI.navigate('rps', this)"><i class="fa-regular fa-hand-scissors"></i> <span>Kéo Búa Bao</span></div>
-                <div class="nav-item" id="nav-gift" onclick="window.GiftUI.open()" hidden><i class="fa-solid fa-gift"></i> <span>Tặng Quà Đồng Đội</span></div>
-                <div class="nav-item" data-resume onclick="location.href='game.html'"><i class="fa-solid fa-bullseye"></i> <span>Ném Còn</span></div>
+                <div class="nav-item qd-off" onclick="window.RegID.open()"><i class="fa-solid fa-id-card"></i> <span>Đăng Ký ID Game</span></div>
+                <div class="nav-item qd-off" onclick="window.UI.navigate('rps', this)"><i class="fa-regular fa-hand-scissors"></i> <span>Kéo Búa Bao</span></div>
+                <div class="nav-item qd-off" id="nav-gift" onclick="window.GiftUI.open()" hidden><i class="fa-solid fa-gift"></i> <span>Tặng Quà Đồng Đội</span></div>
+                <div class="nav-item qd-off" data-resume onclick="location.href='game.html'"><i class="fa-solid fa-bullseye"></i> <span>Ném Còn</span></div>
             </nav>
             
             <div class="sidebar-profile" onclick="window.UI.openModal('modal-profile')">
@@ -9997,7 +10093,7 @@ html.qd-lite .qd-fx { display: none !important; }
         <main class="main-content-wrapper">
             
             <header class="top-navbar">
-                <div class="mobile-header-brand hidden-desktop"><i class="fa-solid fa-atom"></i> QĐ TLH</div>
+                <div class="mobile-header-brand hidden-desktop"><img class="qd-logo" src="data:image/webp;base64,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" alt="" width="30" height="30"> QĐ TLH</div>
                 <div class="hidden-mobile ts-greet"><span aria-hidden="true">🏮</span> Chúc Mừng Năm Mới <span>· Xuân Đinh Mùi 2027</span></div> 
                 <div class="flex items-center gap-3">
                     <button class="btn-icon hidden-desktop" id="nav-profile-btn" style="color: var(--brand-primary); border-color: var(--brand-primary-soft); background: var(--brand-primary-soft);" onclick="window.UI.openModal('modal-profile')" aria-label="Hồ sơ"><i class="fa-solid fa-user"></i></button>
@@ -10759,6 +10855,411 @@ html.qd-lite .qd-fx { display: none !important; }
         }, 500);
     })();
     </script>
+    <!-- ===== QD SESSION: phiên đăng nhập dùng chung TOÀN HỆ THỐNG + trạng thái hoạt động thời gian thực =====
+         Khối dùng chung (index, user, qt, quays, tranht, game, baotri, admin). data-kind: user | mem | public | adm
+         - 1 phiên cho mọi trang & mọi tab (localStorage qd_sess; Admin: qd_sess_adm). Thao tác ở bất kỳ trang nào cũng giữ phiên.
+         - Hết phiên (không thao tác quá X phút, Admin > Quản trị tài khoản) -> đá ra ở MỌI trang đang mở, kể cả tab nền / điện thoại vừa mở lại.
+           Còn 60 giây: hiện nhắc "chạm để tiếp tục".
+         - Đăng xuất ở 1 trang -> mọi trang khác thoát theo. Tài khoản khác đăng nhập trên cùng trình duyệt -> trang của tài khoản cũ thoát.
+         - Admin đá 1 tài khoản (accounts.kickAt) / đăng xuất toàn bộ thành viên (account_config.sessionEpoch) / khóa / xóa tài khoản -> thoát ngay.
+         - Trạng thái: accounts.lastActive + accounts.online. Gửi 45 giây/lần khi đang mở trang VÀ có thao tác trong 5 phút;
+           ẩn trang / đóng tab / để yên 5 phút -> báo offline ngay. Dòng "Hoạt động x phút / giờ trước" tự chạy theo thời gian thực.
+         Không đọc / gửi mật khẩu. -->
+    <script id="qd-session" data-kind="user">
+    (function () {
+        'use strict';
+        var W = window, d = document;
+        if (W.QDSession) return;
+        var cs = d.currentScript, KIND = (cs && cs.getAttribute('data-kind')) || 'mem';   // user | mem | public | adm
+        var ADM = KIND === 'adm', KEY = ADM ? 'qd_sess_adm' : 'qd_sess';
+        var TAB = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        var ONLINE_MS = 120000, PING_MS = 45000, IDLE_MS = 300000, WARN_MS = 60000;
+        var STAFF = { admin: 1, manager: 1 };
+        var MSG = {
+            expired: 'Phiên đăng nhập đã hết hạn do bạn không thao tác trong thời gian dài.',
+            logout: 'Tài khoản đã đăng xuất ở một trang khác.',
+            'switch': 'Một tài khoản khác vừa đăng nhập trên trình duyệt này.',
+            admin: 'Ban Quản Trị đã đăng xuất tài khoản của bạn khỏi hệ thống.',
+            all: 'Ban Quản Trị vừa đăng xuất toàn bộ thành viên.',
+            locked: 'Tài khoản của bạn đã bị khóa.',
+            deleted: 'Tài khoản không còn tồn tại trên hệ thống.'
+        };
+        function now() { return Date.now(); }
+        function ls(k, v) {
+            try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }
+            catch (e) { return null; }
+        }
+        function jget(k) { try { return JSON.parse(ls(k) || 'null'); } catch (e) { return null; } }
+        function jset(k, o) { ls(k, o == null ? null : JSON.stringify(o)); }
+        var DB = null;
+        function db() { if (DB) return DB; try { if (W.firebase && firebase.apps && firebase.apps.length && firebase.firestore) DB = firebase.firestore(); } catch (e) {} return DB; }
+
+        /* ---------- Cấu hình (settings/account_config), nhớ trên máy để kiểm tra ngay khi mở trang ---------- */
+        function norm(c) {
+            c = c || {};
+            var n = function (v, def) { v = parseInt(v, 10); return isNaN(v) ? def : Math.max(0, Math.min(v, 525600)); };
+            return { mem: n(c.sessionMinutes, 360), adm: n(c.staffSessionMinutes, 360), epoch: +c.sessionEpoch || 0 };
+        }
+        var CFG = norm(jget('qd_sess_cfg'));
+        function limit(s) { var m = (ADM || (s && STAFF[s.role])) ? CFG.adm : CFG.mem; return m > 0 ? m * 60000 : 0; }
+
+        /* ---------- Phiên ---------- */
+        function sess() { var s = jget(KEY); return s && s.u ? s : null; }
+        function lastAct() { return +ls('qd_act') || 0; }
+        function since(s) { return Math.max(lastAct(), (s && s.s) || 0); }
+        var had = null;   // phiên mà trang này đang chạy theo
+        (function boot() {
+            var s = sess();
+            if (!ADM && !s && ls('qd_current_username')) { ls('qd_current_username', null); s = null; if (KIND === 'mem') go('expired'); return; }   // phiên bản cũ (không có hạn) -> đăng nhập lại 1 lần
+            if (!s) return;
+            var lim = limit(s);
+            if (lim && now() - since(s) > lim) { clear(s, 'expired'); if (KIND === 'mem') go('expired'); else if (KIND !== 'public') note('expired'); return; }
+            if (KIND !== 'user' && !ADM) had = s;   // user.html / admin.html: chỉ theo phiên sau khi đăng nhập trên trang (QDSession.start)
+        })();
+        function pageState() { try { if (typeof State !== 'undefined' && State) return State; } catch (e) {} return W.State || null; }
+        function active() {
+            if (!had) return false;
+            if (KIND === 'user') { var P = pageState(); return !!(P && P.currentDocId); }
+            if (ADM) { var A = pageState(); return !!(A && A.currentUser); }
+            return true;
+        }
+        function clear(s, reason) {
+            jset('qd_sess_end', { r: reason, at: now(), u: s && s.u, k: ADM ? 'adm' : 'mem' });
+            ls(KEY, null);
+            if (!ADM) { if (!s || ls('qd_current_username') === s.u) ls('qd_current_username', null); try { sessionStorage.removeItem('qd_resume'); } catch (e) {} }
+            else {
+                ls('qd_adm_autologin', 'false');
+                var m = jget('qd_sess');   // Admin hết phiên / thoát -> phiên thành viên của cùng tài khoản (các trang mở từ Admin) thoát theo
+                if (m && s && m.u === s.u) { ls('qd_sess', null); if (ls('qd_current_username') === s.u) ls('qd_current_username', null); }
+            }
+        }
+        function endReason() { var e = jget('qd_sess_end'); return e && now() - e.at < 30000 && e.k === (ADM ? 'adm' : 'mem') ? e.r : ''; }
+
+        function start(o, opt) {
+            o = o || {};
+            var t = now(), rec = { u: String(o.u || ''), id: o.id || null, role: o.role || '', s: t, kack: +o.kickAt || 0, eack: CFG.epoch, sid: TAB };
+            if (!rec.u) return;
+            jset(KEY, rec); ls('qd_act', String(t));
+            if (!ADM) ls('qd_current_username', rec.u);
+            if (ADM && !(opt && opt.member === false)) { var m = {}; for (var k in rec) m[k] = rec[k]; jset('qd_sess', m); ls('qd_current_username', rec.u); }
+            had = rec; idleSent = false; hideWarn(); listen(); ping(true);
+        }
+        function end(reason, silent) {
+            var s = sess() || had; reason = reason || 'logout';
+            if (s) offline(s, true);
+            clear(s, reason); had = null; unlisten(); hideWarn();
+            if (!silent) kicked(reason);
+        }
+
+        /* ---------- Thao tác của người dùng (dùng chung mọi tab) ---------- */
+        var actW = 0;
+        function touch(force) {
+            if (!active() || d.visibilityState === 'hidden') return;
+            var s = sess(); if (!s) return check();
+            var lim = limit(s); if (lim && now() - since(s) > lim) return check();   // đã quá hạn khi tab bị đóng băng: không được "hồi sinh"
+            var t = now(); if (!force && !warnEl && t - actW < 10000) return;
+            actW = t; ls('qd_act', String(t)); hideWarn();
+            if (idleSent && !force) ping(true);   // quay lại sau khi để yên: báo online ngay
+        }
+        ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll', 'mousemove'].forEach(function (ev) {
+            d.addEventListener(ev, function (e) { if (e.isTrusted !== false) touch(false); }, { capture: true, passive: true });
+        });
+
+        /* ---------- Kiểm tra phiên mỗi giây + khi tab khác đổi phiên ---------- */
+        function check() {
+            if (!had) return;
+            var s = sess();
+            if (!s) return gone(endReason() || 'logout');
+            if (s.u !== had.u) return gone('switch');
+            if (s.s !== had.s || s.id !== had.id) { var oldId = had.id; had = s; if (s.id !== oldId) { unlisten(); listen(); } }
+            if (!active()) return;
+            var lim = limit(s); if (!lim) return hideWarn();
+            var left = since(s) + lim - now();
+            if (left <= 0) return end('expired');
+            if (left <= WARN_MS && d.visibilityState === 'visible') showWarn(left); else hideWarn();
+        }
+        function gone(reason) {   // phiên đã bị kết thúc ở trang khác
+            var wasActive = active(); had = null; unlisten(); hideWarn();
+            if (ADM || KIND === 'mem' || wasActive) kicked(reason);
+        }
+        setInterval(check, 1000);
+        W.addEventListener('storage', function (e) { if (!e.key || e.key === KEY || e.key === 'qd_sess_cfg') { if (e.key === 'qd_sess_cfg') CFG = norm(jget('qd_sess_cfg')); check(); } });
+
+        /* ---------- Nghe máy chủ: cấu hình phiên + tài khoản (bị đá / khóa / xóa) ---------- */
+        var unCfg = null, unAcc = null, lookup = false;
+        function listen() {
+            var D = db(); if (!D) return;
+            if (!had && KIND !== 'user' && !ADM) return;   // chưa đăng nhập: trang đăng nhập vẫn nghe cấu hình để có số mới nhất
+            if (!unCfg) unCfg = D.collection('settings').doc('account_config').onSnapshot(function (doc) {
+                var raw = doc.exists ? doc.data() : {};
+                CFG = norm(raw); jset('qd_sess_cfg', { sessionMinutes: raw.sessionMinutes, staffSessionMinutes: raw.staffSessionMinutes, sessionEpoch: raw.sessionEpoch });
+                var s = had; if (!s || ADM || STAFF[s.role] || !active()) return check();
+                if (CFG.epoch && CFG.epoch > Math.max(s.s, s.eack || 0)) return end('all');
+                check();
+            }, function () { unCfg = null; });
+            var s = had; if (!s || unAcc) return;
+            if (!s.id) {
+                if (lookup) return; lookup = true;
+                D.collection('accounts').where('user', '==', s.u).limit(1).get().then(function (q) {
+                    lookup = false; var cur = sess(); if (!cur || cur.u !== s.u || q.empty) return;
+                    cur.id = q.docs[0].id; cur.role = q.docs[0].data().role || cur.role || ''; jset(KEY, cur); had = cur; listen(); ping(true);
+                }, function () { lookup = false; });
+                return;
+            }
+            var id = s.id;
+            unAcc = D.collection('accounts').doc(id).onSnapshot(function (doc) {
+                var c = had; if (!c || c.id !== id) return;
+                if (!doc.exists) { if (!doc.metadata.fromCache) end('deleted'); return; }
+                var a = doc.data() || {};
+                if (a.role !== undefined && (a.role || '') !== (c.role || '')) { c.role = a.role || ''; var cur = sess(); if (cur && cur.u === c.u) { cur.role = c.role; jset(KEY, cur); } }
+                if (+a.kickAt && +a.kickAt > Math.max(c.s, c.kack || 0)) return end('admin');
+                if (!ADM && a.isBlocked === true) return end('locked');
+            }, function () { unAcc = null; });
+        }
+        function unlisten() { if (unAcc) { try { unAcc(); } catch (e) {} unAcc = null; } }
+        var waitN = 0, wait = setInterval(function () { if (db() || ++waitN > 80) { clearInterval(wait); if (DB) { listen(); ping(true); setTimeout(function () { ping(true); }, 5000); } } }, 400);
+
+        /* ---------- Trạng thái hoạt động (online / "hoạt động x phút trước") ---------- */
+        var idleSent = false, lastPing = 0;
+        var noOnline = false;   // Firestore Rules chưa cho ghi trường online -> chỉ ghi lastActive
+        function write(s, data) {
+            var D = db(); if (!D || !s || !s.id) return;
+            if (noOnline) delete data.online;
+            try {
+                D.collection('accounts').doc(s.id).update(data).catch(function (er) {
+                    if (noOnline || !er || er.code !== 'permission-denied' || !('online' in data)) return;
+                    noOnline = true; delete data.online; D.collection('accounts').doc(s.id).update(data).catch(function () {});
+                });
+            } catch (e) {}
+        }
+        function ping(force) {
+            if (!active() || d.visibilityState !== 'visible') return;
+            var s = had, t = now(); if (!s || !s.id) return;
+            if (!force && t - lastPing < PING_MS - 2000) return;
+            var la = since(s);
+            if (t - la > IDLE_MS) { if (!idleSent) { idleSent = true; write(s, { online: false, lastActive: la }); } return; }   // để yên 5 phút: offline, giữ đúng giờ thao tác cuối
+            idleSent = false; lastPing = t; jset('qd_vis', { t: TAB, at: t });
+            write(s, { online: true, lastActive: t });
+        }
+        setInterval(function () { ping(false); }, 15000);
+        function otherTabVisible() { var v = jget('qd_vis'); return !!(v && v.t !== TAB && now() - v.at < PING_MS + 15000); }
+        function offline(s, force) {
+            if (!s || !s.id) return;
+            if (!force && otherTabVisible()) return;   // còn tab khác đang mở -> vẫn online
+            var v = jget('qd_vis'); if (v && v.t === TAB) ls('qd_vis', null);
+            if (idleSent && !force) return;
+            write(s, { online: false, lastActive: idleSent ? since(s) : now() });
+        }
+        d.addEventListener('visibilitychange', function () {
+            if (d.visibilityState === 'visible') { check(); if (active()) { touch(true); ping(true); } tick(); }
+            else if (active()) offline(had, false);
+        });
+        W.addEventListener('pagehide', function (e) {   // đóng tab / rời trang: gửi kèm bản "keepalive" để chắc chắn tới máy chủ
+            if (e.persisted || !active() || otherTabVisible() || !had || !had.id) return;
+            try {
+                var o = firebase.app().options || {};
+                if (!o.projectId || !W.fetch) return;
+                fetch('https://firestore.googleapis.com/v1/projects/' + o.projectId + '/databases/(default)/documents/accounts/' + encodeURIComponent(had.id)
+                    + '?updateMask.fieldPaths=online&updateMask.fieldPaths=lastActive&currentDocument.exists=true' + (o.apiKey ? '&key=' + encodeURIComponent(o.apiKey) : ''), {
+                    method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fields: { online: { booleanValue: false }, lastActive: { integerValue: String(idleSent ? since(had) : now()) } } })
+                }).catch(function () {});
+            } catch (er) {}
+        });
+        W.addEventListener('pageshow', function (e) { if (e.persisted) { check(); ping(true); } });
+
+        function pres(a) {   // a: dữ liệu tài khoản (lastActive, online)
+            var t = +(a && a.lastActive) || 0;
+            if (!t) return { on: false, t: 0, text: 'Chưa từng hoạt động', short: 'Chưa từng hoạt động' };
+            var age = now() - t, on = a.online !== false && age < ONLINE_MS;
+            var sh = on ? 'Đang trực tuyến' : ago(t);
+            return { on: on, t: t, text: on ? sh : (/^Truy cập/.test(sh) ? sh : 'Hoạt động ' + sh), short: sh };
+        }
+        function ago(t) {
+            var s = Math.max(0, Math.floor((now() - t) / 1000));
+            if (s < 60) return 'vừa xong';
+            if (s < 3600) return Math.floor(s / 60) + ' phút trước';
+            if (s < 86400) return Math.floor(s / 3600) + ' giờ trước';
+            if (s < 7 * 86400) return Math.floor(s / 86400) + ' ngày trước';
+            return 'Truy cập ' + new Date(t).toLocaleDateString('vi-VN');
+        }
+        function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        /* Gắn vào phần tử để tự cập nhật: QDSession.attrs(acc, { fmt: 'full'|'short'|'none', on: 'lớp khi online', off: 'lớp khi offline' }) */
+        function attrs(a, o) {
+            o = o || {};
+            return ' data-qd-t="' + (+(a && a.lastActive) || 0) + '" data-qd-o="' + (a && a.online === false ? 0 : 1) + '" data-qd-fmt="' + esc(o.fmt || 'full') + '"'
+                + (o.on ? ' data-qd-on="' + esc(o.on) + '"' : '') + (o.off ? ' data-qd-off="' + esc(o.off) + '"' : '');
+        }
+        function cls(el, list, add) { String(list || '').split(/\s+/).forEach(function (c) { if (c) el.classList.toggle(c, add); }); }
+        function tick(root) {
+            var els = (root || d).querySelectorAll ? (root || d).querySelectorAll('[data-qd-t]') : [];
+            for (var i = 0; i < els.length; i++) {
+                var el = els[i], p = pres({ lastActive: +el.getAttribute('data-qd-t'), online: el.getAttribute('data-qd-o') !== '0' });
+                var f = el.getAttribute('data-qd-fmt') || 'full';
+                if (f !== 'none') { var txt = f === 'short' ? (p.on ? '● Đang hoạt động' : p.short) : p.text; if (el.textContent !== txt) el.textContent = txt; }
+                cls(el, el.getAttribute('data-qd-off'), !p.on); cls(el, el.getAttribute('data-qd-on'), p.on);
+            }
+        }
+        setInterval(function () { if (d.visibilityState !== 'hidden') tick(); }, 5000);
+
+        /* ---------- Giao diện: nhắc sắp hết phiên · màn hình bị đá ra · thông báo ở trang đăng nhập ---------- */
+        function css() {
+            if (d.getElementById('qd-sess-css')) return;
+            var st = d.createElement('style'); st.id = 'qd-sess-css';
+            st.textContent = '#qd-sess-warn{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147483646;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);padding:10px 12px 10px 18px;border-radius:999px;font:600 14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;background:rgba(24,8,8,.94);border:1px solid rgba(255,213,74,.65);box-shadow:0 14px 34px -12px rgba(0,0,0,.65)}'
+                + '#qd-sess-warn b{color:#ffd54a;font-variant-numeric:tabular-nums}#qd-sess-warn button{flex-shrink:0;border:0;border-radius:999px;padding:8px 14px;font:700 13px system-ui,sans-serif;background:#ffd54a;color:#3b0a0a;cursor:pointer}'
+                + '#qd-sess-kick{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,4,4,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}'
+                + '#qd-sess-kick .k{width:100%;max-width:380px;border-radius:20px;padding:28px 24px 22px;text-align:center;background:#fff;color:#2a0d0d;border-top:5px solid #c1121f;box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}'
+                + '#qd-sess-kick .i{font-size:40px;line-height:1;margin-bottom:10px}#qd-sess-kick h3{margin:0 0 8px;font-size:19px;color:#a10f1a}#qd-sess-kick p{margin:0 0 18px;font-size:15px;line-height:1.5;color:#4a2a2a}'
+                + '#qd-sess-kick a{display:block;padding:12px;border-radius:12px;background:#c1121f;color:#fff;font-weight:700;text-decoration:none}#qd-sess-kick small{display:block;margin-top:12px;color:#8a6a6a;font-size:12.5px}'
+                + '#qd-sess-note{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:2147483646;display:flex;align-items:flex-start;gap:10px;width:calc(100vw - 32px);max-width:440px;padding:14px 14px 14px 16px;border-radius:14px;font:600 14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#5c1010;background:#fff5f5;border:1px solid #f0a3a3;box-shadow:0 16px 36px -14px rgba(0,0,0,.45)}'
+                + '#qd-sess-note span{flex:1}#qd-sess-note button{border:0;background:none;font-size:20px;line-height:1;color:#a10f1a;cursor:pointer;padding:0 2px}';
+            (d.head || d.documentElement).appendChild(st);
+        }
+        var warnEl = null;
+        function showWarn(left) {
+            if (!d.body) return; css();
+            if (!warnEl) {
+                warnEl = d.createElement('div'); warnEl.id = 'qd-sess-warn'; warnEl.setAttribute('role', 'alert');
+                warnEl.innerHTML = '<span>⏳ Phiên đăng nhập sẽ hết sau <b></b> do không thao tác</span><button type="button">Tiếp tục</button>';
+                warnEl.querySelector('button').onclick = function () { touch(true); };
+                d.body.appendChild(warnEl);
+            }
+            warnEl.querySelector('b').textContent = Math.ceil(left / 1000) + ' giây';
+        }
+        function hideWarn() { if (warnEl) { warnEl.remove(); warnEl = null; } }
+        function target(reason) { return (ADM ? 'admin.html' : 'user.html') + '?out=' + encodeURIComponent(reason); }
+        function go(reason) { try { location.replace(target(reason)); } catch (e) { location.href = target(reason); } }
+        var kickedOnce = false;
+        function kicked(reason) {
+            if (kickedOnce) return;
+            if (KIND === 'public') return;
+            if (KIND === 'user' && reason === 'locked') return;   // user.html tự hiện hộp "tài khoản bị khóa"
+            kickedOnce = true;
+            try { Array.prototype.forEach.call(d.querySelectorAll('audio,video'), function (m) { try { m.pause(); } catch (e) {} }); } catch (e) {}
+            try { if (W.Music && W.Music.el) W.Music.el.pause(); } catch (e) {}
+            var show = function () {
+                css();
+                var k = d.createElement('div'); k.id = 'qd-sess-kick'; k.setAttribute('role', 'alertdialog'); k.setAttribute('aria-modal', 'true');
+                k.innerHTML = '<div class="k"><div class="i">' + (reason === 'expired' ? '⏰' : reason === 'locked' ? '🔒' : '🚪') + '</div><h3>Phiên đăng nhập đã kết thúc</h3><p>' + esc(MSG[reason] || MSG.expired)
+                    + '</p><a href="' + target(reason) + '">Đăng nhập lại</a><small>Tự chuyển sau <b>5</b> giây…</small></div>';
+                d.body.appendChild(k);
+                var n = 5, b = k.querySelector('small b'), h = setInterval(function () { if (--n <= 0) { clearInterval(h); go(reason); } else b.textContent = n; }, 1000);
+            };
+            if (d.body) show(); else d.addEventListener('DOMContentLoaded', show);
+        }
+        function note(reason) {   // hiện ở trang đăng nhập (user.html / admin.html) sau khi bị đá ra
+            var t = MSG[reason]; if (!t) return;
+            var show = function () {
+                if (d.getElementById('qd-sess-note')) return; css();
+                var n = d.createElement('div'); n.id = 'qd-sess-note'; n.setAttribute('role', 'status');
+                n.innerHTML = '<span>' + (reason === 'expired' ? '⏰ ' : '🚪 ') + esc(t) + ' Vui lòng đăng nhập lại.</span><button type="button" aria-label="Đóng">×</button>';
+                n.querySelector('button').onclick = function () { n.remove(); };
+                d.body.appendChild(n); setTimeout(function () { if (n.parentNode) n.remove(); }, 12000);
+            };
+            if (d.body) show(); else d.addEventListener('DOMContentLoaded', show);
+        }
+        if (KIND === 'user' || ADM) {
+            try {
+                var q = new URLSearchParams(location.search), r = q.get('out');
+                if (r) { note(r); q.delete('out'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); }
+            } catch (e) {}
+        }
+
+        W.QDSession = {
+            kind: KIND, start: start, end: end, touch: function () { touch(true); }, ping: function () { ping(true); }, check: check,
+            get: function () { return had; }, cfg: function () { return CFG; }, minutes: function () { var s = had || sess(); return limit(s) / 60000; },
+            pres: pres, ago: ago, attrs: attrs, tick: tick, ONLINE_MS: ONLINE_MS
+        };
+    })();
+    </script>
+    <script id="qd-lucky-reward">
+    /* ===== THƯỞNG QUAY SỐ MAY MẮN (dùng chung admin.html / user.html / quays.html) =====
+       settings/lucky_reward_config = { isEnabled, since, mode: 'each' | 'split', main: { points, spins, tickets, conThrows }, cash,
+                                        nearOn, near: { ... }, nearCash, updatedAt, updatedBy }
+       Mỗi phiên quay (lucky_number_history/{id}) được trao ĐÚNG 1 LẦN trong 1 giao dịch:
+         lucky_rewards/{id} = { number, histId, winners[], near[], all[], each{}, eachNear{}, cash, nearCash, mode, at, wonAt, round, source }
+         + cộng điểm / lượt vào accounts, ghi point_history, đánh dấu lucky_number_history.rewarded
+       Tiền mặt không cộng tự động: hiện ở Admin > Trả thưởng (nguồn "Quay Số") để BQT chuyển khoản. */
+    window.LuckyReward = (function () {
+        'use strict';
+        var KEYS = [['points', 'Điểm lì xì', 'điểm lì xì'], ['spins', 'Lượt vòng quay', 'lượt quay'], ['tickets', 'Lượt rút lì xì', 'lượt rút lì xì'], ['conThrows', 'Lượt ném còn', 'lượt ném còn']];
+        function D() { try { if (typeof db !== 'undefined' && db) return db; } catch (e) {} try { if (window.firebase && firebase.apps.length) return firebase.firestore(); } catch (e) {} return null; }
+        var n0 = function (v) { v = parseInt(v, 10); return isNaN(v) || v < 0 ? 0 : Math.min(v, 1e9); };
+        var pad = function (x) { return String(x).padStart(2, '0'); };
+        var vnd = function (x) { return Number(x || 0).toLocaleString('vi-VN'); };
+        function norm(c) {
+            c = c || {}; var main = {}, near = {};
+            KEYS.forEach(function (k) { main[k[0]] = n0((c.main || {})[k[0]]); near[k[0]] = n0((c.near || {})[k[0]]); });
+            return { on: c.isEnabled === true, since: +c.since || 0, mode: c.mode === 'split' ? 'split' : 'each', main: main, cash: n0(c.cash), nearOn: c.nearOn === true, near: near, nearCash: n0(c.nearCash) };
+        }
+        function empty(r, cash) { return !cash && KEYS.every(function (k) { return !(r[k[0]] > 0); }); }
+        /* Chia giải: 'each' = mỗi người nhận đủ · 'split' = chia đều tổng giải (tiền làm tròn xuống bội 1.000đ) */
+        function share(part, cash, count, mode) {
+            var o = {}; KEYS.forEach(function (k) { var v = part[k[0]] || 0; o[k[0]] = mode === 'split' && count > 1 ? Math.floor(v / count) : v; });
+            var c = cash || 0; if (mode === 'split' && count > 1) { var e = Math.floor(c / count); c = e >= 1000 ? Math.floor(e / 1000) * 1000 : e; }
+            o.cash = c; return o;
+        }
+        function text(r, sep) {
+            if (!r) return ''; var a = [];
+            if (r.cash > 0) a.push(vnd(r.cash) + 'đ tiền mặt');
+            KEYS.forEach(function (k) { if (r[k[0]] > 0) a.push('+' + vnd(r[k[0]]) + ' ' + k[2]); });
+            return a.join(sep || ' · ');
+        }
+        /* Tên giải cho Túi đồ / Trả thưởng: tiền đứng đầu để đọc được số tiền */
+        function prize(r, num, near) {
+            var tail = (near ? 'Quay Số (giải phụ, số ' : 'Quay Số May Mắn (số ') + pad(num) + ')';
+            if (r && r.cash > 0) { var rest = text(Object.assign({}, r, { cash: 0 })); return vnd(r.cash) + ' VNĐ · ' + tail + (rest ? ' · ' + rest : ''); }
+            return tail + ': ' + (text(r) || 'không có thưởng');
+        }
+        function accountRefs(users) {
+            var d = D(), out = {}, chunks = [];
+            for (var i = 0; i < users.length; i += 10) chunks.push(users.slice(i, i + 10));
+            return Promise.all(chunks.map(function (c) { return d.collection('accounts').where('user', 'in', c).get().then(function (q) { q.forEach(function (x) { out[x.data().user] = x.ref; }); }); })).then(function () { return out; });
+        }
+        /* Trao thưởng cho 1 phiên quay. opt = { winners (đúng danh sách đã ghi lịch sử), ts, round, source } */
+        function award(histId, num, opt) {
+            opt = opt || {}; var d = D(); num = parseInt(num, 10);
+            if (!d || !histId || !(num >= 1 && num <= 100) || !firebase.firestore.FieldValue) return Promise.resolve(null);
+            var FV = firebase.firestore.FieldValue;
+            return d.collection('settings').doc('lucky_reward_config').get().then(function (s) {
+                var c = norm(s.exists ? s.data() : null), ts = +opt.ts || Date.now();
+                if (!c.on || (c.since && ts < c.since - 60000)) return null;
+                if (empty(c.main, c.cash) && (!c.nearOn || empty(c.near, c.nearCash))) return null;
+                return d.collection('lucky_numbers').get().then(function (ls) {
+                    var main = [], near = [];
+                    ls.forEach(function (x) { var v = x.data(), k = parseInt(v.number, 10); if (!v.user || isNaN(k)) return; if (k === num) main.push(v.user); else if (c.nearOn && Math.abs(k - num) === 1) near.push(v.user); });
+                    if (Array.isArray(opt.winners)) main = opt.winners.slice();
+                    near = near.filter(function (u) { return main.indexOf(u) < 0; });
+                    var users = main.concat(near);
+                    return accountRefs(users).then(function (refs) {
+                        var rref = d.collection('lucky_rewards').doc(histId);
+                        return d.runTransaction(function (tx) {
+                            return tx.get(rref).then(function (ex) {
+                                if (ex.exists) return null;   // đã trao rồi (máy khác trao trước)
+                                var now = Date.now(), each = share(c.main, c.cash, main.length, c.mode), eachNear = share(c.near, c.nearCash, near.length, c.mode);
+                                var rec = { number: num, histId: histId, winners: main, near: near, all: users, each: each, eachNear: c.nearOn ? eachNear : null,
+                                    cash: main.length ? each.cash : 0, nearCash: near.length ? eachNear.cash : 0, mode: c.mode, at: now, wonAt: ts, round: opt.round || null, source: opt.source || '' };
+                                tx.set(rref, rec);
+                                tx.set(d.collection('lucky_number_history').doc(histId), { rewarded: true, rewardText: text(each), nearUsers: near, nearText: c.nearOn ? text(eachNear) : '' }, { merge: true });
+                                var give = function (u, r, isNear) {
+                                    var ref = refs[u]; if (!ref) return; var up = {}, any = false;
+                                    KEYS.forEach(function (k) { if (r[k[0]] > 0) { up[k[0]] = FV.increment(r[k[0]]); any = true; } });
+                                    if (any) tx.update(ref, up);
+                                    if (r.points > 0) tx.set(d.collection('point_history').doc(), { user: u, action: 'add', detail: 'Quay Số May Mắn: ' + (isNear ? 'giải phụ (lệch 1 số) — số ' : 'trúng số ') + pad(num), pointsChanged: r.points, timestamp: now });
+                                };
+                                main.forEach(function (u) { give(u, each, false); });
+                                near.forEach(function (u) { give(u, eachNear, true); });
+                                return rec;
+                            });
+                        });
+                    });
+                });
+            }).catch(function (e) { console.warn('LuckyReward', e); return null; });
+        }
+        return { KEYS: KEYS, norm: norm, share: share, text: text, prize: prize, award: award, empty: empty };
+    })();
+    </script>
 
 
     <script>
@@ -10835,7 +11336,10 @@ html.qd-lite .qd-fx { display: none !important; }
                     var w = []; snap.forEach(function (doc) { var x = doc.data(); if (parseInt(x.number, 10) === num) w.push(x.user); });
                     var rec = { number: num, winners: w, timestamp: Date.now(), source: source || 'live' };
                     if (label) rec.round = label;
-                    return d.collection('lucky_number_history').add(rec);
+                    return d.collection('lucky_number_history').add(rec).then(function (ref) {   // trao thưởng theo cấu hình Admin (1 lần / phiên)
+                        if (window.LuckyReward) window.LuckyReward.award(ref.id, num, { winners: w, ts: rec.timestamp, round: label || null, source: rec.source });
+                        return ref;
+                    });
                 }).catch(function (e) { console.warn('LuckySchedule history', e); });
             },
             fmtTime: function (at) {
@@ -10938,11 +11442,15 @@ html.qd-lite .qd-fx { display: none !important; }
             },
             getTodayString: () => new Date().toLocaleDateString('vi-VN'),
             getRoomId: (u1, u2) => [u1, u2].sort().join('_'),
-            timeAgo: (ts) => {
+            // Trạng thái hoạt động thời gian thực (khối QD Session): online = đang mở web + có thao tác, offline ngay khi ẩn / đóng tab
+            timeAgo: (ts, online) => {
+                if (window.QDSession) return window.QDSession.pres({ lastActive: ts, online: online }).text;
                 if(!ts) return "Chưa từng hoạt động"; const s = Math.floor((Date.now() - ts)/1000);
-                if(s < 300) return "Đang trực tuyến"; if(s < 3600) return `Hoạt động ${Math.floor(s/60)} phút trước`; if(s < 86400) return `Hoạt động ${Math.floor(s/3600)} giờ trước`;
+                if(s < 120 && online !== false) return "Đang trực tuyến"; if(s < 60) return "Hoạt động vừa xong"; if(s < 3600) return `Hoạt động ${Math.floor(s/60)} phút trước`; if(s < 86400) return `Hoạt động ${Math.floor(s/3600)} giờ trước`;
                 return `Truy cập: ${new Date(ts).toLocaleDateString('vi-VN')}`;
             },
+            isOnline: (ts, online) => window.QDSession ? window.QDSession.pres({ lastActive: ts, online: online }).on : (online !== false && (Date.now() - (ts || 0)) < 120000),
+            liveAgo: (ts, online, o) => window.QDSession ? window.QDSession.attrs({ lastActive: ts, online: online }, o) : '',
             safeText: (id, text) => { const el = document.getElementById(id); if(el) el.innerText = text; }
         };
 
@@ -11100,8 +11608,10 @@ html.qd-lite .qd-fx { display: none !important; }
                             return; 
                         }
                         
-                        State.currentUser = docData.user; State.currentDocId = snap.docs[0].id;
+                        State.currentUser = docData.user; State.currentDocId = snap.docs[0].id; State.fullName = docData.fullName || docData.name || '';
                         localStorage.setItem('qd_current_username', State.currentUser); 
+                        // Mở phiên dùng chung toàn hệ thống (mọi trang / mọi tab), hết phiên hoặc bị đá ra là thoát ở tất cả
+                        if (window.QDSession) window.QDSession.start({ u: State.currentUser, id: State.currentDocId, role: docData.role || '', kickAt: docData.kickAt });
                         
                         let invCode = docData.inviteCode;
                         let updateAccData = {};
@@ -11272,27 +11782,39 @@ html.qd-lite .qd-fx { display: none !important; }
                 }
             },
 
+            // Đăng xuất: kết thúc phiên ở MỌI trang / tab đang mở (Vòng Quay, Rút Lì Xì, Ném Còn...) + báo offline ngay
             logout: () => { 
                 if(State.heartbeatInterval) clearInterval(State.heartbeatInterval); 
-                if(State.currentDocId) { 
-                    db.collection("accounts").doc(State.currentDocId).update({lastActive: Date.now()}).finally(()=>window.location.reload()); 
+                const docId = State.currentDocId;
+                if (window.QDSession) window.QDSession.end('logout', true);
+                else { try { localStorage.removeItem('qd_current_username'); } catch (e) {} }
+                if(docId) { 
+                    db.collection("accounts").doc(docId).update({lastActive: Date.now(), online: false}).catch(() => {}).finally(()=>window.location.reload()); 
                 } else {
                     window.location.reload(); 
                 }
             },
-            ping: () => { const p = () => { if(State.currentDocId) db.collection("accounts").doc(State.currentDocId).update({lastActive: Date.now()}); }; p(); State.heartbeatInterval = setInterval(p, 60000); }
+            // Báo "đang hoạt động": khối QD Session tự gửi (45 giây / lần khi đang mở trang và có thao tác); bản dự phòng nếu thiếu khối
+            ping: () => {
+                if (window.QDSession) { window.QDSession.ping(); return; }
+                const p = () => { if(State.currentDocId) db.collection("accounts").doc(State.currentDocId).update({lastActive: Date.now()}); }; p(); State.heartbeatInterval = setInterval(p, 60000);
+            }
         };
 
-        /** 5.5 SESSION MANAGEMENT (TỰ ĐỘNG ĐĂNG XUẤT) */
+        /** 5.5 SESSION MANAGEMENT (TỰ ĐỘNG ĐĂNG XUẤT)
+            Nay do khối QD Session đảm nhận cho CẢ HỆ THỐNG: thời gian lấy theo Admin > Quản trị tài khoản > "Hết phiên đăng nhập",
+            thao tác ở bất kỳ trang / tab nào cũng giữ phiên, hết phiên là mọi trang đang mở đều thoát. Phần dưới chỉ là dự phòng khi thiếu khối. */
         window.SessionManager = {
             timeoutLimit: 21600000, // 6 hours (6 * 60 * 60 * 1000)
             timer: null,
             init: () => {
+                if (window.QDSession) return;
                 ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
                     document.addEventListener(evt, window.SessionManager.resetTimer, true);
                 });
             },
             resetTimer: () => {
+                if (window.QDSession) { window.QDSession.touch(); return; }
                 if (window.State && window.State.currentDocId) {
                     clearTimeout(window.SessionManager.timer);
                     window.SessionManager.timer = setTimeout(() => {
@@ -11355,10 +11877,20 @@ html.qd-lite .qd-fx { display: none !important; }
                     const skeleton = ls.querySelector('.skeleton');
                     if (skeleton) skeleton.closest('.contact-card').remove();
 
+                    // Bộ nhớ trạng thái của mọi người (dùng cho đầu khung chat, gợi ý người nhận...)
+                    State.presence = {};
                     snap.docs.forEach(doc => {
-                        const d = doc.data(); 
-                        if(d.user !== State.currentUser) {
-                            State.usersCache[d.user] = d.lastActive; (State.avatars = State.avatars || {})[d.user] = d.avatar || null; const isOn = (Date.now() - (d.lastActive||0)) < 300000;
+                        const d = doc.data(); if (!d || d.user === State.currentUser) return;
+                        State.usersCache[d.user] = d.lastActive; State.presence[d.user] = { lastActive: d.lastActive, online: d.online };
+                        (State.avatars = State.avatars || {})[d.user] = d.avatar || null;
+                    });
+
+                    // Chỉ vẽ lại (và đếm lại tin chưa đọc) cho tài khoản vừa thay đổi, thay vì cả danh sách mỗi lần có người báo online
+                    snap.docChanges().forEach(change => {
+                        const doc = change.doc, d = doc.data(); if (!d || !d.user || d.user === State.currentUser) return;
+                        if (change.type === 'removed') { const old = document.getElementById(`contact-${d.user}`); if (old) old.remove(); return; }
+                        {
+                            const isOn = Utils.isOnline(d.lastActive, d.online);
                             const dN = State.nicknames[d.user] || d.user; const isAct = State.chatTarget === d.user ? 'active' : '';
                             
                             const roomId = Utils.getRoomId(State.currentUser, d.user);
@@ -11377,7 +11909,7 @@ html.qd-lite .qd-fx { display: none !important; }
                                 
                                 card.className = `contact-card ${isAct}`;
                                 card.setAttribute('data-key', dN.toLowerCase());
-                                card.innerHTML = `<div class="avatar-circle" style="position:relative;">${window.Avatar ? window.Avatar.inner(d.avatar, dN) : dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg flex items-center justify-between" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${dN} ${unreadHtml}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}">${Utils.timeAgo(d.lastActive)}</div></div>`;
+                                card.innerHTML = `<div class="avatar-circle" style="position:relative;">${window.Avatar ? window.Avatar.inner(d.avatar, dN) : dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"${Utils.liveAgo(d.lastActive, d.online, { fmt: 'none', on: 'online', off: 'offline' })}></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg flex items-center justify-between" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${dN} ${unreadHtml}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}"${Utils.liveAgo(d.lastActive, d.online, { on: 'text-success', off: 'text-muted' })}>${Utils.timeAgo(d.lastActive, d.online)}</div></div>`;
                             });
                         }
                     });
@@ -11462,15 +11994,20 @@ html.qd-lite .qd-fx { display: none !important; }
                     Utils.safeText('active-name', 'Kênh Chung (Toàn Server)'); 
                     const avt = document.getElementById('active-avt');
                     if(avt) { avt.innerHTML = '<i class="fa-solid fa-users"></i>'; avt.style.background = 'var(--color-info)'; }
-                    const st = document.getElementById('active-status'); if(st) { st.innerText = 'Tất cả thành viên đều có mặt'; st.className = "text-xs text-info font-bold"; }
+                    const st = document.getElementById('active-status'); if(st) { ['data-qd-t', 'data-qd-o', 'data-qd-fmt', 'data-qd-on', 'data-qd-off'].forEach(a => st.removeAttribute(a)); st.innerText = 'Tất cả thành viên đều có mặt'; st.className = "text-xs text-info font-bold"; }
                     return;
                 }
                 
-                const dN = State.nicknames[State.chatTarget] || State.chatTarget; const lP = State.usersCache[State.chatTarget]; const isOn = (Date.now()-(lP||0))<300000;
+                const dN = State.nicknames[State.chatTarget] || State.chatTarget; const pr = (State.presence || {})[State.chatTarget] || { lastActive: State.usersCache[State.chatTarget] }; const lP = pr.lastActive; const isOn = Utils.isOnline(lP, pr.online);
                 Utils.safeText('active-name', dN); 
                 const avt = document.getElementById('active-avt');
                 if(avt) { avt.innerHTML = window.Avatar ? window.Avatar.inner((State.avatars || {})[State.chatTarget], dN) : dN.charAt(0).toUpperCase(); avt.style.background = ''; }
-                const st = document.getElementById('active-status'); if(st) { st.innerText = Utils.timeAgo(lP); st.className = isOn ? "text-xs text-success font-bold" : "text-xs text-muted font-bold"; }
+                const st = document.getElementById('active-status'); if(st) {
+                    st.innerText = Utils.timeAgo(lP, pr.online); st.className = isOn ? "text-xs text-success font-bold" : "text-xs text-muted font-bold";
+                    // "Hoạt động x phút trước" tự chạy theo thời gian thực
+                    st.setAttribute('data-qd-t', lP || 0); st.setAttribute('data-qd-o', pr.online === false ? '0' : '1'); st.setAttribute('data-qd-fmt', 'full');
+                    st.setAttribute('data-qd-on', 'text-success'); st.setAttribute('data-qd-off', 'text-muted');
+                }
             },
             
             testNotification: async () => {
@@ -13036,7 +13573,8 @@ html.qd-lite .qd-fx { display: none !important; }
                     let isF = true;
                     snap.forEach(doc => {
                         const d = doc.data(); 
-                        const ts = new Date(d.time).toLocaleString('vi-VN', {hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'});
+                        const tRaw = Number(d.time || d.timestamp || d.createdAt || d.created_at) || (d.time && d.time.toMillis ? d.time.toMillis() : 0);
+                        const ts = tRaw ? new Date(tRaw).toLocaleString('vi-VN', {hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'}) : 'Không rõ thời gian';   // không còn "Invalid Date"
                         
                         f.insertAdjacentHTML('beforeend', `
                             <div class="card mb-6 p-6 relative overflow-hidden" style="border: none; border-left: 4px solid var(--color-info); background: var(--bg-surface); box-shadow: var(--shadow-sm); border-radius: var(--radius-lg); transition: transform 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
@@ -13691,7 +14229,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     const me = String(State.currentUser || '');
                     G.dir = snap.docs.map(d => d.data()).filter(a => a && a.user && a.user !== me && !a.isBlocked).map(a => ({
                         user: String(a.user), name: String(a.fullName || a.name || ''), avatar: a.avatar || (State.avatars || {})[a.user] || null,
-                        nick: (State.nicknames || {})[a.user] || '', on: (Date.now() - (Number(a.lastActive) || 0)) < 300000, role: a.role || 'user',
+                        nick: (State.nicknames || {})[a.user] || '', on: window.Utils.isOnline(Number(a.lastActive) || 0, a.online), role: a.role || 'user',
                         k: fold(a.user) + ' ' + fold(a.fullName || a.name || '') + ' ' + fold((State.nicknames || {})[a.user] || '')
                     })).sort((x, y) => (y.on - x.on) || x.user.localeCompare(y.user));
                     G.dirAt = Date.now(); return G.dir;
@@ -18251,10 +18789,10 @@ document.addEventListener("DOMContentLoaded", () => {
             var d = new Date(ts), p = function (x) { return String(x).padStart(2, '0'); };
             return p(d.getHours()) + ':' + p(d.getMinutes()) + ' · ' + p(d.getDate()) + '/' + p(d.getMonth() + 1);
         };
-        var SRC = { lixi: '🧧 Rút lì xì', wheel: '🎡 Vòng quay', daily: '💰 Lì xì hằng ngày' };
+        var SRC = { lixi: '🧧 Rút lì xì', wheel: '🎡 Vòng quay', daily: '💰 Lì xì hằng ngày', lucky: '🎯 Quay số may mắn' };
 
         window.Inventory = {
-            owner: null, unsubs: [], data: { lixi: [], wheel: [], daily: [] }, spinTickets: 0, f: 'all', limit: 30, last: {},
+            owner: null, unsubs: [], data: { lixi: [], wheel: [], daily: [], lucky: [] }, spinTickets: 0, f: 'all', limit: 30, last: {},
             // Bắt đầu nghe dữ liệu của tài khoản đang đăng nhập (tự khởi động lại khi đổi tài khoản)
             ensure: function () {
                 var me = window.State && window.State.currentUser;
@@ -18263,16 +18801,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!me || typeof db === 'undefined') return;
                 var self = this, ok = function () { var d = $('inv2-dot'); if (d) d.classList.remove('off'); }, bad = function (e) { console.warn('Inventory', e); var d = document.querySelector('.inv2-dot'); if (d) d.classList.add('off'); };
                 var listen = function (q, key, map) {
-                    self.unsubs.push(q.onSnapshot(function (snap) { self.data[key] = snap.docs.map(function (d) { return map(d.data()); }); ok(); self.renderList(); }, bad));
+                    self.unsubs.push(q.onSnapshot(function (snap) { self.data[key] = snap.docs.map(function (d) { var o = map(d.data()); o.id = d.id; return o; }); ok(); self.renderList(); }, bad));   // o.id: tra trạng thái chuyển khoản (payouts)
                 };
                 listen(db.collection('tranhthuong_history').where('userId', '==', me), 'lixi', function (d) { return { src: 'lixi', prize: d.result, wish: d.wish, ts: d.timestamp }; });
                 listen(db.collection('spin_history').where('userId', '==', me), 'wheel', function (d) { return { src: 'wheel', prize: d.result, wish: d.wish, ts: d.timestamp }; });
+                // Quay Số May Mắn: phần thưởng đã trao (lucky_rewards, có thể nhiều người trúng 1 phiên)
+                self.unsubs.push(db.collection('lucky_rewards').where('all', 'array-contains', me).onSnapshot(function (snap) {
+                    var LRw = window.LuckyReward; self.data.lucky = [];
+                    snap.docs.forEach(function (x) {
+                        var r = x.data() || {}, near = (r.near || []).indexOf(me) >= 0 && (r.winners || []).indexOf(me) < 0, part = near ? r.eachNear : r.each;
+                        if (!part) return;
+                        self.data.lucky.push({ src: 'lucky', id: x.id + '_' + me, ts: r.at || r.wonAt, prize: LRw ? LRw.prize(part, r.number, near) : ('Quay Số May Mắn (số ' + r.number + ')') });
+                    });
+                    ok(); self.renderList();
+                }, bad));
                 listen(db.collection('lixi_history').where('user', '==', me), 'daily', function (d) { return { src: 'daily', prize: '+' + (d.amount || 0) + ' điểm lì xì', ts: d.timestamp, revoked: d.status === 'revoked' }; });
                 this.unsubs.push(db.collection('wheel_questions').where('claimedBy', '==', me).onSnapshot(function (snap) {
                     self.spinTickets = snap.docs.filter(function (d) { return d.data().ticketUsed !== true; }).length; self.refresh();
                 }, bad));
             },
-            stop: function () { this.unsubs.forEach(function (u) { try { u(); } catch (e) {} }); this.unsubs = []; this.data = { lixi: [], wheel: [], daily: [] }; this.spinTickets = 0; this.last = {}; },
+            stop: function () { this.unsubs.forEach(function (u) { try { u(); } catch (e) {} }); this.unsubs = []; this.data = { lixi: [], wheel: [], daily: [], lucky: [] }; this.spinTickets = 0; this.last = {}; },
             setNum: function (id, v) {
                 var el = $(id); if (!el) return;
                 if (this.last[id] !== undefined && this.last[id] !== v) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
@@ -18294,11 +18842,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             },
             all: function () {
-                var d = this.data, arr = d.lixi.concat(d.wheel, d.daily);
+                var d = this.data, arr = d.lixi.concat(d.wheel, d.daily, d.lucky || []);
                 arr.forEach(function (r) { r.money = isWish(r.prize) ? 0 : money(r.prize); r.isWish = r.src !== 'daily' && isWish(r.prize); });
                 return arr.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
             },
             renderList: function () {
+                if (window.PayoutUser) try { window.PayoutUser.render(); } catch (e) {}
                 var list = $('inv2-list'); if (!list) return;
                 var arr = this.all(), f = this.f;
                 var rows = arr.filter(function (r) { return f === 'all' || (f === 'money' ? r.money > 0 : r.src === f); });
@@ -18308,13 +18857,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 var shown = rows.slice(0, this.limit);
                 list.innerHTML = shown.map(function (r) {
-                    var ico = r.money > 0 ? '💵' : (r.isWish ? '🎊' : (r.src === 'daily' ? '💰' : (r.src === 'wheel' ? '🎡' : '🎁')));
+                    var ico = r.money > 0 ? '💵' : (r.isWish ? '🎊' : (r.src === 'daily' ? '💰' : (r.src === 'wheel' ? '🎡' : (r.src === 'lucky' ? '🎯' : '🎁'))));
                     var title = r.isWish ? 'Lời Chúc Tết' : r.prize;
                     return '<div class="inv2-row' + (r.money > 0 ? ' money' : '') + (r.revoked ? ' revoked' : '') + '">' +
                         '<div class="inv2-row-ico">' + ico + '</div><div class="inv2-row-main">' +
                         '<div class="inv2-row-top"><span class="inv2-row-prize">' + esc(title) + '</span><span class="inv2-row-time">' + esc(fmtTime(r.ts)) + '</span></div>' +
                         '<div class="inv2-row-src">' + SRC[r.src] + (r.revoked ? ' · đã bị thu hồi' : '') + '</div>' +
                         (r.wish ? '<div class="inv2-row-wish">“' + esc(r.wish) + '”</div>' : '') +
+                        (r.money > 0 && window.PayoutUser ? window.PayoutUser.badge(r) : '') +
                         '</div></div>';
                 }).join('') + (rows.length > shown.length ? '<button class="inv2-more" onclick="window.Inventory.more()">Xem thêm (' + (rows.length - shown.length) + ')</button>' : '');
             },
@@ -18334,6 +18884,298 @@ document.addEventListener("DOMContentLoaded", () => {
             var t = e.target && e.target.closest ? e.target.closest('[onclick*="modal-inventory"]') : null;
             if (t && !t.closest('#modal-inventory')) { window.Inventory.refresh(); window.Inventory.renderList(); }
         }, true);
+    })();
+    </script>
+    <!-- ===== TÀI KHOẢN NHẬN THƯỞNG + TRẠNG THÁI CHUYỂN KHOẢN (user) ===== -->
+    <div class="modal-overlay" id="modal-bank" style="z-index: 1100;">
+        <div class="modal-content bk2" role="dialog" aria-labelledby="bk2-title">
+            <div class="bk2-head">
+                <div><h2 id="bk2-title">💳 Tài khoản nhận thưởng</h2><small>Ban Quản Trị chuyển giải tiền mặt vào tài khoản này</small></div>
+                <button class="bk2-x" type="button" onclick="window.UI.closeModal('modal-bank')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="bk2-body">
+                <div class="bk2-sum" id="bk2-sum"></div>
+                <label class="bk2-f"><span>Ngân hàng</span>
+                    <input type="search" id="bk2-bank-q" class="bk2-in" placeholder="Gõ tên ngân hàng: MB, Vietcombank, Techcombank..." autocomplete="off" spellcheck="false">
+                    <select id="bk2-bank" class="bk2-in" size="5"></select>
+                </label>
+                <label class="bk2-f"><span>Số tài khoản</span>
+                    <input type="text" id="bk2-acc" class="bk2-in" inputmode="numeric" maxlength="19" placeholder="Chỉ gồm chữ số" autocomplete="off"></label>
+                <label class="bk2-f"><span>Tên chủ tài khoản <em>(viết không dấu, đúng như trên ngân hàng)</em></span>
+                    <input type="text" id="bk2-name" class="bk2-in" maxlength="60" placeholder="VD: NGUYEN VAN A" autocomplete="off" spellcheck="false" style="text-transform: uppercase;"></label>
+                <label class="bk2-f"><span>Mật khẩu đăng nhập <em>(xác nhận là chính bạn)</em></span>
+                    <input type="password" id="bk2-pwd" class="bk2-in" autocomplete="current-password"></label>
+                <div class="bk2-lock" id="bk2-lock" hidden>🔒 <span>Tài khoản nhận thưởng <b>đã khóa</b> sau lần khai đầu. Muốn đổi, hãy nhắn <b>Ban Quản Trị</b> bấm "Cho sửa lại" — sau đó mở lại mục này để sửa.</span></div>
+                <p class="bk2-note" id="bk2-note"></p>
+                <div class="bk2-msg" id="bk2-msg"></div>
+                <button type="button" class="bk2-save" id="bk2-save" onclick="window.PayoutUser.save()">Lưu tài khoản nhận thưởng</button>
+            </div>
+        </div>
+    </div>
+    <style id="payout-user-css">
+    .inv2-bank { background: rgba(255, 215, 0, .12) !important; border-color: rgba(255, 215, 0, .6) !important; color: #fff !important; }
+    .inv2-bank .inv2-gift-txt small { color: #fef08a !important; opacity: .95; }
+    .inv2-bank > i { color: #ffd700 !important; }
+    .inv2-bank.need { background: rgba(255, 215, 0, .22) !important; box-shadow: 0 0 0 2px rgba(255, 215, 0, .35); }
+    .inv2-bank[hidden] { display: none !important; }
+    .inv2-pay { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; line-height: 1.6; }
+    .inv2-pay.ok { background: rgba(34, 197, 94, .22); color: #dcfce7; border: 1px solid rgba(134, 239, 172, .6); }
+    .inv2-pay.wait { background: rgba(255, 215, 0, .14); color: #fde68a; border: 1px solid rgba(255, 215, 0, .45); }
+    .inv2-pay.no { background: rgba(0, 0, 0, .25); color: #fecaca; border: 1px solid rgba(254, 202, 202, .45); }
+    #modal-bank .modal-content.bk2 { padding: 0 !important; overflow: hidden; max-width: 460px; width: calc(100% - 24px); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); display: flex; flex-direction: column;
+        background: #fffaf0 !important; color: #3b1306; border: 2px solid #ffd700 !important; border-radius: 22px !important; box-shadow: 0 30px 60px rgba(0, 0, 0, .55) !important; }
+    .bk2 *, .bk2 span, .bk2 p, .bk2 h2 { text-shadow: none !important; }
+    .bk2-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 14px; background: linear-gradient(135deg, #c1121f, #8f0a12); color: #fff; }
+    .bk2-head h2 { margin: 0 !important; font-size: 19px !important; color: #ffd700 !important; }
+    .bk2-head small { display: block; margin-top: 2px; font-size: 12.5px; color: #fde2e2; }
+    .bk2-x { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 215, 0, .6); background: rgba(0, 0, 0, .2); color: #fff; cursor: pointer; }
+    .bk2-body { padding: 16px 20px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .bk2-sum { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .bk2-sum:empty { display: none; }
+    .bk2-sum div { padding: 10px 12px; border-radius: 12px; background: #fff; border: 1px solid #f3d9a4; }
+    .bk2-sum b { display: block; font-size: 17px; color: #8f0a12; font-variant-numeric: tabular-nums; }
+    .bk2-sum small { font-size: 12px; color: #7a4a2a; }
+    .bk2-f { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: #5c2a04; }
+    .bk2-f em { font-style: normal; font-weight: 600; color: #9a6a4a; }
+    .bk2-in { width: 100%; padding: 11px 13px; border-radius: 12px; border: 1.5px solid #e9c98a; background: #fff; color: #2a0d0d; font: 600 15px/1.35 inherit; outline: none; box-sizing: border-box; }
+    .bk2-in:focus { border-color: #c1121f; box-shadow: 0 0 0 3px rgba(193, 18, 31, .15); }
+    select.bk2-in { padding: 4px; font-size: 14px; }
+    select.bk2-in option { padding: 7px 9px; border-radius: 8px; }
+    select.bk2-in option:checked { background: #c1121f linear-gradient(0deg, #c1121f, #c1121f); color: #fff; }
+    .bk2-note { margin: 0; font-size: 12.5px; line-height: 1.5; color: #7a4a2a; background: #fff3d6; border-radius: 12px; padding: 10px 12px; }
+    .bk2-lock { display: flex; gap: 8px; font-size: 13.5px; line-height: 1.5; color: #334155; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; }
+    .bk2-lock[hidden], .bk2-save[hidden], .bk2-f[hidden] { display: none !important; }
+    .bk2-in:disabled { background: #f8f5ee; color: #5c3a2a; cursor: default; -webkit-text-fill-color: #5c3a2a; opacity: 1; }
+    .bk2-ro select.bk2-in { display: none; }
+    .bk2-msg { font-size: 13.5px; font-weight: 700; min-height: 0; }
+    .bk2-msg:empty { display: none; }
+    .bk2-msg.err { color: #b91c1c; } .bk2-msg.ok { color: #15803d; }
+    .bk2-save { border: 0; border-radius: 14px; padding: 14px; font: 800 15px inherit; color: #ffd700; background: linear-gradient(135deg, #c1121f, #8f0a12); cursor: pointer; }
+    .bk2-save:disabled { opacity: .6; cursor: wait; }
+    </style>
+    <script id="payout-user-js">
+    /* ===== TÀI KHOẢN NHẬN THƯỞNG (user) =====
+       bank_info/{tên đăng nhập}  : { user, bin, bank, accNo, accName, updatedAt, history: [{ at, bin, accNo }], allowEdit }  -> chỉ Admin dùng để chuyển thưởng
+                                    Khai 1 lần là KHÓA; muốn đổi phải được Admin bấm "Cho sửa lại" (allowEdit = true), sửa xong tự khóa lại.
+       payouts/{bộ sưu tập}_{mã}  : Admin ghi khi đã chuyển / từ chối 1 giải tiền mặt { user, amount, status: 'paid'|'rejected', paidAt, note ... }
+       settings/payout_config     : { isEnabled (mặc định BẬT) }
+       Túi đồ: nút "Tài khoản nhận thưởng" + mỗi giải tiền hiện "Đã chuyển khoản / Chờ chuyển / Không hợp lệ". */
+    (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var fmtMoney = function (n) { return Number(n || 0).toLocaleString('vi-VN') + 'đ'; };
+        var p2 = function (x) { return String(x).padStart(2, '0'); };
+        var fold = function (s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D'); };
+        var COL = { lixi: 'tranhthuong_history', wheel: 'spin_history', lucky: 'lucky_rewards' };
+        /* Danh sách ngân hàng (mã BIN theo NAPAS / VietQR). Có mạng: cập nhật thêm từ api.vietqr.io */
+        var BANKS = [
+            ['970436', 'Vietcombank'], ['970415', 'VietinBank'], ['970418', 'BIDV'], ['970405', 'Agribank'], ['970422', 'MB Bank'], ['970407', 'Techcombank'],
+            ['970416', 'ACB'], ['970432', 'VPBank'], ['970423', 'TPBank'], ['970403', 'Sacombank'], ['970437', 'HDBank'], ['970441', 'VIB'], ['970443', 'SHB'],
+            ['970431', 'Eximbank'], ['970426', 'MSB'], ['970448', 'OCB'], ['970440', 'SeABank'], ['970449', 'LPBank'], ['970428', 'Nam A Bank'], ['970409', 'Bac A Bank'],
+            ['970425', 'ABBANK'], ['970427', 'VietABank'], ['970412', 'PVcomBank'], ['970452', 'Kienlongbank'], ['970454', 'BVBank (Viet Capital)'], ['970438', 'BaoViet Bank'],
+            ['970400', 'Saigonbank'], ['970419', 'NCB'], ['970414', 'OceanBank'], ['970430', 'PG Bank'], ['970408', 'GPBank'], ['970406', 'DongA Bank'], ['970429', 'SCB'],
+            ['970421', 'VRB'], ['970442', 'Hong Leong'], ['970424', 'Shinhan Bank'], ['970457', 'Woori Bank'], ['546034', 'Cake by VPBank'], ['963388', 'Timo']
+        ];
+        function loadBanks() {
+            try {
+                if (!window.fetch) return;
+                fetch('https://api.vietqr.io/v2/banks', { cache: 'force-cache' }).then(function (r) { return r.json(); }).then(function (j) {
+                    var have = {}; BANKS.forEach(function (b) { have[b[0]] = 1; });
+                    (j && j.data || []).forEach(function (b) { if (b && b.bin && !have[b.bin] && b.transferSupported !== 0) { BANKS.push([String(b.bin), String(b.shortName || b.name)]); have[b.bin] = 1; } });
+                    fillBanks();
+                }).catch(function () {});
+            } catch (e) {}
+        }
+        function bankName(bin) { for (var i = 0; i < BANKS.length; i++) if (BANKS[i][0] === bin) return BANKS[i][1]; return bin || ''; }
+
+        var PU = window.PayoutUser = { me: null, bank: null, pays: {}, cfg: { on: true }, unsubs: [], firstPays: true };
+        function stop() { PU.unsubs.forEach(function (u) { try { u(); } catch (e) {} }); PU.unsubs = []; PU.bank = null; PU.pays = {}; PU.firstPays = true; }
+        function watch() {
+            var me = window.State && window.State.currentUser;
+            if (me === PU.me) return; stop(); PU.me = me || null;
+            if (!me || typeof db === 'undefined') { render(); return; }
+            PU.unsubs.push(db.collection('bank_info').doc(me).onSnapshot(function (d) { PU.bank = d.exists ? d.data() : null; render(); }, function () {}));
+            PU.unsubs.push(db.collection('payouts').where('user', '==', me).onSnapshot(function (snap) {
+                var first = PU.firstPays; PU.firstPays = false;
+                snap.docs.forEach(function (d) { PU.pays[d.id] = d.data(); });
+                if (!first) snap.docChanges().forEach(function (c) {
+                    var p = c.doc.data(); if (c.type !== 'removed' && p.status === 'paid' && (c.type === 'added' || c.type === 'modified')) {
+                        try { window.Utils.toast('💵 Ban Quản Trị đã chuyển ' + fmtMoney(p.amount) + ' tiền thưởng cho bạn!', 'success'); } catch (e) {}
+                    }
+                    if (c.type === 'removed') delete PU.pays[c.doc.id];
+                });
+                render(); if (window.Inventory) window.Inventory.renderList();
+            }, function () {}));
+        }
+        if (typeof db !== 'undefined') db.collection('settings').doc('payout_config').onSnapshot(function (d) { var c = d.exists ? d.data() : {}; PU.cfg = { on: c.isEnabled !== false }; render(); }, function () {});
+        setInterval(watch, 1500);
+
+        /* ---------- Trạng thái từng giải tiền (dùng trong Túi đồ) ---------- */
+        PU.status = function (r) {
+            if (!r || !(r.money > 0) || !COL[r.src] || !r.id) return null;
+            return PU.pays[COL[r.src] + '_' + r.id] || null;
+        };
+        PU.badge = function (r) {
+            if (!PU.cfg.on || !(r && r.money > 0)) return '';
+            var p = PU.status(r);
+            if (p && p.status === 'paid') { var t = new Date(p.paidAt || 0); return '<span class="inv2-pay ok">✅ Đã chuyển khoản ' + p2(t.getDate()) + '/' + p2(t.getMonth() + 1) + '</span>'; }
+            if (p && p.status === 'rejected') return '<span class="inv2-pay no">✖ Không được trả' + (p.note ? ': ' + esc(p.note) : '') + '</span>';
+            return '<span class="inv2-pay wait">⏳ Chờ BQT chuyển khoản' + (PU.bank ? '' : ' · cần khai tài khoản nhận') + '</span>';
+        };
+        function totals() {
+            var t = { won: 0, paid: 0, wait: 0 };
+            if (!window.Inventory || !window.Inventory.all) return t;
+            window.Inventory.all().forEach(function (r) {
+                if (!(r.money > 0)) return; var p = PU.status(r);
+                if (p && p.status === 'rejected') return;
+                t.won += r.money; if (p && p.status === 'paid') t.paid += r.money; else t.wait += r.money;
+            });
+            return t;
+        }
+        function mask(acc) { acc = String(acc || ''); return acc.length > 4 ? '••' + acc.slice(-4) : acc; }
+        function canEdit() { var b = PU.bank; return !b || !b.accNo || b.allowEdit === true; }
+        PU.canEdit = canEdit;
+        function renderProfile(t) {   // hộp Hồ sơ: số dư + thông tin + tài khoản nhận thưởng
+            var S = window.State || {}, set = function (id, v) { var el = $(id); if (el) el.textContent = v; };
+            set('pf2-user', S.currentUser || '—'); set('pf2-full', S.fullName || '');
+            set('pf2-pts', Number(S.availablePoints || 0).toLocaleString('vi-VN')); set('pf2-tk', Number(S.availableTickets || 0).toLocaleString('vi-VN'));
+            set('pf2-sp', Number(((window.Inventory && window.Inventory.spinTickets) || 0) + (Number(S.availableSpins) || 0)).toLocaleString('vi-VN'));
+            var sec = $('pf2-bank-sec'), box = $('pf2-bank'); if (!sec || !box) return;
+            sec.hidden = !PU.cfg.on || !PU.me;
+            var b = PU.bank, st = !b ? '<span class="pf2-bk-st need">Chưa khai</span>' : canEdit() ? '<span class="pf2-bk-st open">BQT đã cho sửa lại</span>' : '<span class="pf2-bk-st lock">🔒 Đã khóa · muốn đổi nhắn BQT</span>';
+            box.innerHTML = '<div class="pf2-bk"><div class="pf2-bk-ico">🏦</div><div class="pf2-bk-t">'
+                + (b ? '<b>' + esc(bankName(b.bin)) + ' · ' + esc(mask(b.accNo)) + '</b><small>' + esc(b.accName || '') + '</small>' : '<b>Chưa có tài khoản nhận thưởng</b><small>Khai 1 lần để Ban Quản Trị chuyển giải tiền mặt</small>')
+                + st + '</div>' + (canEdit() ? '<button type="button" class="pf2-bk-btn" onclick="window.PayoutUser.openForm()">' + (b ? 'Sửa' : 'Khai ngay') + '</button>' : '<button type="button" class="pf2-bk-btn" onclick="window.PayoutUser.openForm()">Xem</button>') + '</div>'
+                + (t.won ? '<div class="pf2-bk-sum"><div><b>' + fmtMoney(t.paid) + '</b>Đã chuyển khoản</div><div><b>' + fmtMoney(t.wait) + '</b>Chờ chuyển</div></div>' : '');
+        }
+        function render() {
+            var btn = $('inv2-bank'); if (!btn) return;
+            btn.hidden = !PU.cfg.on || !PU.me;
+            var t = totals(), b = PU.bank;
+            btn.classList.toggle('need', !b && t.wait > 0);
+            $('inv2-bank-t').textContent = b ? bankName(b.bin) + ' · ' + mask(b.accNo) + ' · ' + (b.accName || '') : 'Khai tài khoản nhận thưởng';
+            $('inv2-bank-sub').textContent = (t.won ? 'Đã nhận ' + fmtMoney(t.paid) + ' · Chờ chuyển ' + fmtMoney(t.wait) + ' · ' : '') + (!b ? 'Để Ban Quản Trị chuyển giải tiền mặt cho bạn' : canEdit() ? 'BQT đã cho sửa lại — bấm để sửa' : '🔒 Đã khóa · muốn đổi nhắn BQT');
+            renderProfile(t);
+            var s = $('bk2-sum');
+            if (s) s.innerHTML = t.won ? '<div><b>' + fmtMoney(t.paid) + '</b><small>Đã chuyển khoản</small></div><div><b>' + fmtMoney(t.wait) + '</b><small>Chờ chuyển</small></div>' : '';
+        }
+        PU.render = render;
+
+        /* ---------- Hộp khai / đổi tài khoản ---------- */
+        function fillBanks(sel) {
+            var box = $('bk2-bank'); if (!box) return;
+            var q = fold(($('bk2-bank-q') || {}).value || '').toLowerCase().replace(/\s+/g, ''), cur = sel || box.value;
+            var key = function (b) { return fold(b[1]).toLowerCase().replace(/\s+/g, ''); };
+            var list = BANKS.filter(function (b) { return !q || key(b).indexOf(q) >= 0 || b[0].indexOf(q) === 0; });
+            if (q) list.sort(function (x, y) { return (key(x).indexOf(q) === 0 ? 0 : 1) - (key(y).indexOf(q) === 0 ? 0 : 1); });   // tên bắt đầu bằng chữ đã gõ lên đầu
+            box.innerHTML = list.map(function (b) { return '<option value="' + b[0] + '"' + (b[0] === cur ? ' selected' : '') + '>' + esc(b[1]) + '</option>'; }).join('');
+            if (cur && !list.some(function (b) { return b[0] === cur; }) && !q) box.value = '';
+        }
+        function msg(t, cls) { var m = $('bk2-msg'); if (m) { m.textContent = t || ''; m.className = 'bk2-msg ' + (cls || ''); } }
+        PU.openForm = function () {
+            var b = PU.bank || {};
+            $('bk2-bank-q').value = ''; fillBanks(b.bin || ''); if (b.bin) $('bk2-bank').value = b.bin;
+            $('bk2-acc').value = b.accNo || ''; $('bk2-name').value = b.accName || ''; $('bk2-pwd').value = ''; msg('');
+            var ed = canEdit();
+            ['bk2-bank-q', 'bk2-bank', 'bk2-acc', 'bk2-name', 'bk2-pwd'].forEach(function (id) { var el = $(id); if (el) el.disabled = !ed; });
+            var bq = $('bk2-bank-q'); if (bq) { bq.parentNode.classList.toggle('bk2-ro', !ed); if (!ed && b.bin) bq.value = bankName(b.bin); }
+            $('bk2-save').hidden = !ed; $('bk2-pwd').closest('label').hidden = !ed;
+            var lk = $('bk2-lock'); if (lk) { lk.hidden = ed; }
+            var nt = $('bk2-note'); if (nt) nt.innerHTML = PU.bank && PU.bank.accNo && ed
+                ? '✏️ Ban Quản Trị đã cho phép sửa <b>1 lần</b>. Lưu xong tài khoản sẽ tự khóa lại.'
+                : '🔒 Chỉ khai <b>1 lần</b>: lưu xong sẽ khóa lại, muốn đổi phải nhắn Ban Quản Trị cho sửa. Nhập sai số tài khoản / tên, tiền có thể chuyển nhầm và không lấy lại được — hãy kiểm tra kỹ.';
+            render(); window.UI.openModal('modal-bank');
+            if (ed) setTimeout(function () { var f = b.bin ? $('bk2-acc') : $('bk2-bank-q'); if (f) f.focus(); }, 250);
+        };
+        document.addEventListener('input', function (e) {
+            if (e.target.id === 'bk2-bank-q') { fillBanks(); var box = $('bk2-bank'); if (box && box.options.length && e.target.value.trim() && box.selectedIndex < 0) box.selectedIndex = 0; }   // tự chọn ngân hàng khớp nhất
+            if (e.target.id === 'bk2-acc') e.target.value = e.target.value.replace(/\D/g, '');
+            if (e.target.id === 'bk2-name') { var p = e.target.selectionStart; e.target.value = fold(e.target.value).toUpperCase().replace(/[^A-Z ]/g, '').replace(/\s{2,}/g, ' '); try { e.target.setSelectionRange(p, p); } catch (er) {} }
+        });
+        PU.save = function () {
+            var me = window.State && window.State.currentUser, docId = window.State && window.State.currentDocId;
+            if (!me || !docId) { msg('Vui lòng đăng nhập lại.', 'err'); return; }
+            if (!canEdit()) { msg('Tài khoản nhận thưởng đã khóa. Nhắn Ban Quản Trị bấm "Cho sửa lại" để đổi.', 'err'); return; }
+            var bin = $('bk2-bank').value, acc = $('bk2-acc').value.trim(), name = $('bk2-name').value.trim().replace(/\s+/g, ' '), pwd = $('bk2-pwd').value;
+            if (!bin) return msg('Chọn ngân hàng.', 'err');
+            if (!/^\d{6,19}$/.test(acc)) return msg('Số tài khoản gồm 6–19 chữ số.', 'err');
+            if (!/^[A-Z]+( [A-Z]+)+$/.test(name)) return msg('Nhập đủ họ tên chủ tài khoản, viết không dấu (VD: NGUYEN VAN A).', 'err');
+            if (!pwd) return msg('Nhập mật khẩu đăng nhập để xác nhận.', 'err');
+            var btn = $('bk2-save'); btn.disabled = true; msg('Đang kiểm tra...');
+            db.collection('accounts').where('user', '==', me).where('pass', '==', pwd).limit(1).get().then(function (q) {
+                if (q.empty) { throw { code: 'PWD' }; }
+                var old = PU.bank || {}, now = Date.now(), hist = Array.isArray(old.history) ? old.history.slice(-9) : [];
+                var changed = old.accNo && (old.accNo !== acc || old.bin !== bin);
+                if (!old.accNo || changed) hist.push({ at: now, bin: bin, accNo: acc });
+                return db.collection('bank_info').doc(me).set({ user: me, docId: docId, bin: bin, bank: bankName(bin), accNo: acc, accName: name, updatedAt: now, changedAt: (!old.accNo || changed) ? now : (old.changedAt || old.updatedAt || now), history: hist,
+                    allowEdit: false, editCount: (+old.editCount || 0) + (old.accNo ? 1 : 0), firstAt: old.firstAt || old.updatedAt || now }, { merge: true });   // lưu xong -> khóa lại
+            }).then(function () {
+                msg('✓ Đã lưu. Tài khoản nhận thưởng đã được khóa.', 'ok'); $('bk2-pwd').value = '';
+                try { window.Utils.toast('Đã lưu tài khoản nhận thưởng!', 'success'); } catch (e) {}
+                setTimeout(function () { window.UI.closeModal('modal-bank'); }, 900);
+            }).catch(function (e) {
+                msg(e && e.code === 'PWD' ? 'Mật khẩu không đúng.' : 'Không lưu được, thử lại sau.', 'err');
+            }).finally(function () { btn.disabled = false; });
+        };
+        document.addEventListener('DOMContentLoaded', function () { fillBanks(); loadBanks(); });
+        document.addEventListener('click', function (e) {   // mở Túi đồ -> vẽ lại số liệu
+            var t = e.target && e.target.closest ? e.target.closest('[onclick*="modal-inventory"], [onclick*="modal-profile"]') : null;
+            if (t) setTimeout(render, 50);
+        }, true);
+    })();
+    </script>
+    <style id="lucky-reward-user-css">
+    .ln2-prize { margin: 10px 18px 0; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; color: #fff7d6; background: rgba(0, 0, 0, .22); border: 1px dashed rgba(255, 213, 74, .7); }
+    .ln2-prize b { color: #ffd700; } .ln2-prize[hidden] { display: none; }
+    @media (max-width: 480px) { .ln2-prize { margin: 10px 14px 0; } }
+    #lr-win { position: fixed; left: 50%; top: 18px; transform: translateX(-50%); z-index: 9500; width: calc(100vw - 28px); max-width: 420px; display: flex; gap: 12px; align-items: flex-start;
+        padding: 14px 14px 14px 16px; border-radius: 18px; color: #fff; background: linear-gradient(135deg, var(--ts-lq1, #c1121f), var(--ts-lq2, #8f0a12)); border: 2px solid var(--ts-gold, #ffd54a);
+        box-shadow: 0 20px 44px -14px rgba(60, 0, 0, .65); animation: lrIn .4s cubic-bezier(.2, .9, .3, 1.2); font: 600 14px/1.45 "Plus Jakarta Sans", system-ui, sans-serif; }
+    #lr-win .lr-ball { flex: 0 0 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font: 900 20px system-ui; color: #7a0c0c; background: radial-gradient(circle at 35% 30%, #fffbe0, #ffd700 55%, #d99a00); border: 2px solid #fff3a6; }
+    #lr-win b.t { display: block; font-size: 16px; color: #ffd700; margin-bottom: 2px; } #lr-win .g { color: #fff; font-weight: 800; }
+    #lr-win button { margin-left: auto; flex: 0 0 auto; border: 0; background: rgba(0, 0, 0, .2); color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; line-height: 1; }
+    #lr-win * { text-shadow: none !important; }
+    @keyframes lrIn { from { opacity: 0; transform: translate(-50%, -16px) scale(.96); } }
+    </style>
+    <script id="lucky-reward-user-js">
+    /* Quay Số May Mắn (user): hiện phần thưởng Admin đặt trong hộp chọn số + báo "Chúc mừng" khi mình trúng (sau khi màn quay kịp hiện số) */
+    (function () {
+        'use strict';
+        if (typeof db === 'undefined' || !window.LuckyReward) return;
+        var LR = window.LuckyReward, $ = function (id) { return document.getElementById(id); }, pad = function (x) { return String(x).padStart(2, '0'); };
+        var cfg = LR.norm(null), owner = null, unsub = null, seen = {}, first = true;
+        db.collection('settings').doc('lucky_reward_config').onSnapshot(function (d) { cfg = LR.norm(d.exists ? d.data() : null); prizeLine(); }, function () {});
+        function prizeLine() {
+            var el = $('ln2-prize'); if (!el) return;
+            var t = LR.text(Object.assign({ cash: cfg.cash }, cfg.main)), tn = cfg.nearOn ? LR.text(Object.assign({ cash: cfg.nearCash }, cfg.near)) : '';
+            el.hidden = !cfg.on || !t;
+            el.innerHTML = '🎁 Trúng đúng số: <b>' + t + '</b>' + (cfg.mode === 'split' ? ' (chia đều nếu nhiều người trúng)' : '') + (tn ? '<br>🥈 Lệch 1 số: <b>' + tn + '</b>' : '');
+        }
+        function show(r, near) {
+            var part = near ? r.eachNear : r.each, old = $('lr-win'); if (old) old.remove();
+            var w = document.createElement('div'); w.id = 'lr-win'; w.setAttribute('role', 'alert');
+            w.innerHTML = '<div class="lr-ball">' + pad(r.number) + '</div><div><b class="t">🎉 ' + (near ? 'Bạn trúng giải phụ Quay Số!' : 'Chúc mừng! Bạn trúng Quay Số May Mắn!') + '</b>'
+                + (near ? 'Số của bạn chỉ lệch 1 so với số ' + pad(r.number) + '. ' : 'Số ' + pad(r.number) + ' đã về. ') + 'Phần thưởng: <span class="g">' + (LR.text(part) || '—') + '</span>'
+                + (part && part.cash > 0 ? '<br><small>Tiền mặt: Ban Quản Trị sẽ chuyển khoản (xem trong Túi đồ).</small>' : '') + '</div><button type="button" aria-label="Đóng">×</button>';
+            w.querySelector('button').onclick = function () { w.remove(); };
+            document.body.appendChild(w); setTimeout(function () { if (w.parentNode) w.remove(); }, 20000);
+            try { if (window.Sound && window.Sound.rewardAudio) { window.Sound.rewardAudio.currentTime = 0; window.Sound.rewardAudio.play().catch(function () {}); } } catch (e) {}
+        }
+        setInterval(function () {
+            var me = window.State && window.State.currentUser; if (me === owner) return;
+            if (unsub) { try { unsub(); } catch (e) {} unsub = null; } owner = me || null; seen = {}; first = true; if (!me) return;
+            unsub = db.collection('lucky_rewards').where('all', 'array-contains', me).onSnapshot(function (snap) {
+                snap.docChanges().forEach(function (c) {
+                    var id = c.doc.id, r = c.doc.data() || {}; if (c.type !== 'added' || seen[id]) return; seen[id] = 1;
+                    if (first || Date.now() - (r.at || 0) > 10 * 60000) return;   // phiên cũ: không báo lại
+                    var near = (r.winners || []).indexOf(me) < 0;
+                    setTimeout(function () { show(r, near); }, Math.max(0, (r.at || 0) + 15000 - Date.now()));   // chờ màn quay hiện số rồi mới báo
+                });
+                first = false;
+            }, function () {});
+        }, 1500);
+        document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#ln-tab')) setTimeout(prizeLine, 50); }, true);
     })();
     </script>
     <style id="pointshop-v2-style">
@@ -18456,6 +19298,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <i class="fa-solid fa-tower-broadcast"></i>
             </a>
 
+            <div class="ln2-prize" id="ln2-prize" hidden></div>
             <div class="ln2-body">
                 <p class="ln2-hint" id="ln2-hint">Chạm vào một ô số để chọn.</p>
                 <div class="ln2-grid" id="ln2-grid"></div>
@@ -19468,7 +20311,8 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             function fallback() { var t = d.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; d.body.appendChild(t); t.select(); try { d.execCommand('copy'); ok(); } catch (e) {} t.remove(); }
         }
         function fmtDate(ms) { if (!ms) return 'Chưa có dữ liệu'; var x = new Date(+ms); return isNaN(x) ? 'Chưa có dữ liệu' : x.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
-        function fmtAgo(ms) {
+        function fmtAgo(ms, online) {
+            if (window.QDSession) { var pq = window.QDSession.pres({ lastActive: ms, online: online }); return { t: pq.on ? '● Đang hoạt động' : pq.short, on: pq.on }; }
             if (!ms) return { t: 'Chưa từng hoạt động', on: false };
             var s = (Date.now() - ms) / 1000;
             if (s < 300) return { t: '● Đang hoạt động', on: true };
@@ -19528,7 +20372,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 h = row('Họ và tên', a1.fullName || 'Chưa cập nhật') + row('Tên Ingame', mem.ign || '---') + row('Đội', ex.team || (dbl ? e.name : 'Chưa phân đội'))
                     + row('Điểm tích lũy giải', String(ex.points || 0) + ' điểm') + row('Vị trí', s.cfg.format === 'double' ? 'Thành viên ' + (s.mi + 1) + '/' + e.members.length : 'Tuyển thủ');
             } else {
-                var a = acc || {}, ag = fmtAgo(a.lastActive);
+                var a = acc || {}, ag = fmtAgo(a.lastActive, a.online);
                 h = row('Tên tài khoản', mem.u || '---') + row('Vai trò', ROLE[a.role] || 'Thành viên') + row('Ngày tham gia', fmtDate(a.created_at || a.createdAt))
                     + row('Hoạt động', acc ? ag.t : 'Không tìm thấy tài khoản', ag.on ? 'on' : '') + row('Trạng thái', a.isBlocked ? 'Đang bị khóa' : 'Bình thường');
             }
@@ -19634,7 +20478,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 var d = DB(); if (!d) return Promise.resolve(null);
                 return d.collection('accounts').where('user', '==', u).limit(1).get().then(function (s) {
                     if (s.empty) return null; var x = s.docs[0].data();
-                    return { fullName: x.fullName, role: x.role, created_at: x.created_at || x.createdAt, lastActive: x.lastActive, isBlocked: x.isBlocked };
+                    return { fullName: x.fullName, role: x.role, created_at: x.created_at || x.createdAt, lastActive: x.lastActive, online: x.online, isBlocked: x.isBlocked };
                 });
             },
             getExtra: function (u) {
@@ -19890,6 +20734,47 @@ html[data-theme="tet"] .sidebar-profile {
 }
 html[data-theme="tet"] .sidebar-profile #sidebar-name { color: #fff !important; }
 html[data-theme="tet"] .sidebar-profile .text-success { color: #a7f3d0 !important; }
+/* Menu bên (bản 17.1): chỉ MỤC ĐANG MỞ được tô đậm. Rê chuột chỉ ánh nhẹ (không viền, không khối vàng),
+   đổi màu nhanh không để lại vệt mờ; điện thoại / máy tính bảng không bị "dính" ô vừa chạm; thẻ tài khoản dưới cùng dịu lại. */
+html[data-theme="tet"] .floating-sidebar .nav-item { transition: background-color .12s ease, color .12s ease, border-color .12s ease !important; }
+html[data-theme="tet"] .floating-sidebar .nav-item:hover:not(.active) {
+    background: rgba(0, 0, 0, .035) !important; background: color-mix(in srgb, var(--ts-lq1) 7%, transparent) !important;
+    border-color: transparent !important; color: var(--ts-ink) !important;
+}
+html[data-theme="tet"] .floating-sidebar .nav-item:hover i { transform: none !important; }
+html[data-theme="tet"] .sidebar-profile {
+    background: rgba(255, 255, 255, .55) !important; border: 1.5px solid var(--ts-gold-line) !important; box-shadow: none !important;
+}
+html[data-theme="tet"] .sidebar-profile:hover { background: rgba(255, 255, 255, .85) !important; }
+html[data-theme="tet"] .sidebar-profile #sidebar-name { color: var(--ts-ink) !important; text-shadow: none !important; }
+html[data-theme="tet"] .sidebar-profile .text-success { color: #15803d !important; text-shadow: none !important; }
+/* Menu gọn (bản 18.1, 19: hiện lại Giải Đấu): Trang Chủ · Trò Chuyện · Điểm Danh · Bản Tin · Giải Đấu. Các mục gắn lớp qd-off chỉ ẨN khỏi menu,
+   chức năng vẫn còn (mở từ thẻ ở Trang Chủ). Muốn hiện lại: xóa chữ "qd-off" ở mục đó. */
+.nav-item.qd-off, .m-nav-item.qd-off, #nav-gift.qd-off { display: none !important; }
+/* Menu bên (bản 17.2): màn hình thấp / trình duyệt có thanh công cụ -> thẻ tài khoản không bị đẩy tràn ra ngoài khung.
+   Khung menu luôn nằm gọn trong màn hình (100dvh), danh sách mục tự thu gọn khoảng cách, chật quá thì cuộn bên trong; thẻ tài khoản luôn nằm đáy. */
+#app-shell { height: 100vh; height: 100dvh; }
+.floating-sidebar { min-height: 0; max-height: 100%; overflow: hidden; }
+.floating-sidebar .brand-logo, .floating-sidebar .sidebar-profile { flex-shrink: 0; }
+.floating-sidebar .nav-menu { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; margin: 0 -6px 12px; padding: 2px 6px; }
+.floating-sidebar .nav-menu::-webkit-scrollbar { width: 5px; }
+.floating-sidebar .nav-menu::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, .18); border-radius: 9px; }
+@media (max-height: 880px) {
+    .floating-sidebar, html[data-theme="tet"] .floating-sidebar { padding: 18px 14px !important; }
+    .floating-sidebar .brand-logo, html[data-theme="tet"] .floating-sidebar .brand-logo { margin-bottom: 14px !important; }
+    .floating-sidebar .nav-menu, html[data-theme="tet"] .floating-sidebar .nav-menu { gap: 2px !important; }
+    .floating-sidebar .nav-item, html[data-theme="tet"] .floating-sidebar .nav-item { padding: 10px 14px !important; }
+    .floating-sidebar .sidebar-profile, html[data-theme="tet"] .sidebar-profile { padding: 10px 12px !important; gap: 12px !important; }
+    .floating-sidebar .sidebar-profile .avatar-circle { width: 44px !important; height: 44px !important; min-width: 44px; }
+}
+@media (max-height: 720px) {
+    .floating-sidebar .nav-item, html[data-theme="tet"] .floating-sidebar .nav-item { padding: 8px 12px !important; font-size: 14px !important; }
+    .floating-sidebar .brand-logo, html[data-theme="tet"] .floating-sidebar .brand-logo { margin-bottom: 8px !important; font-size: 22px !important; }
+}
+@media (hover: none), (pointer: coarse) {
+    .nav-item:hover:not(.active), html[data-theme="tet"] .floating-sidebar .nav-item:hover:not(.active) { background: transparent !important; border-color: transparent !important; }
+    .nav-item:hover i { transform: none !important; }
+}
 
 /* ---------- 4. Thanh dưới (điện thoại): giấy kem, mục đang chọn = viên đỏ ---------- */
 html[data-theme="tet"] .mobile-nav {
@@ -20637,6 +21522,144 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && window.AppCore && window.AppCore.submitInviteCode) { e.preventDefault(); window.AppCore.submitInviteCode(); } });
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+    })();
+    </script>
+    <style id="qd-ui-v2">
+    /* =====================================================================
+       GIAO DIỆN THÀNH VIÊN (bản 20) — đè lên các lớp cũ, dùng màu chủ đề Tết (--ts-lq1/2/3, --ts-gold...)
+       1. Đăng nhập  2. Trang Chủ gọn  3. Đồng bộ màu (Trò Chuyện)  4. Điểm Danh / Bản Tin / Giải Đấu  5. Nút Hỗ trợ trên điện thoại
+       ===================================================================== */
+    .qd-logo { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; border: 2px solid var(--ts-gold-2, #ffd54a); box-shadow: 0 3px 8px rgba(80, 0, 0, .3); }
+    html[data-theme="tet"] .floating-sidebar .brand-logo { align-items: center; gap: 10px; }
+    html[data-theme="tet"] .mobile-header-brand { display: inline-flex; align-items: center; gap: 8px; }
+    html[data-theme="tet"] .mobile-header-brand .qd-logo { width: 30px; height: 30px; }
+
+    /* ---------- 1. ĐĂNG NHẬP ---------- */
+    html[data-theme="tet"] #auth-gate { padding: 16px; overflow-y: auto; }
+    html[data-theme="tet"] #auth-gate .auth-box.au2 {
+        position: relative; width: 100%; max-width: 400px; margin: 64px auto 24px; padding: 66px 28px 22px; text-align: center;
+        background: radial-gradient(120% 70% at 50% 0%, rgba(255, 255, 255, .12), transparent 60%), linear-gradient(170deg, var(--ts-lq1) 0%, var(--ts-lq2) 68%, var(--ts-lq3) 100%) !important;
+        border: 2px solid var(--ts-gold-2, #ffd54a) !important; border-radius: 26px !important;
+        box-shadow: 0 30px 60px -20px rgba(90, 0, 0, .65), inset 0 0 0 5px rgba(255, 213, 74, .12) !important;
+        -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .au2 *, .au2 h1, .au2 p, .au2 label, .au2 i { text-shadow: none !important; }
+    .au2-logo { position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%); width: 112px; height: 112px; border-radius: 50%; overflow: hidden;
+        border: 4px solid var(--ts-gold, #ffd54a); background: #111; box-shadow: 0 12px 28px rgba(60, 0, 0, .5), 0 0 0 6px rgba(255, 213, 74, .22); }
+    .au2-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    html[data-theme="tet"] .au2 .au2-title { margin: 0 !important; font-size: 30px !important; line-height: 1.1; letter-spacing: 1px !important; color: var(--ts-gold, #ffd54a) !important; }
+    html[data-theme="tet"] .au2 .au2-sub { margin: 6px 0 22px !important; font-size: 14px; color: #ffeeb8 !important; }
+    .au2 .au2-g { margin-bottom: 14px; text-align: left; }
+    html[data-theme="tet"] .au2 .au2-g .form-label { display: block; margin: 0 0 6px 4px; font-size: 12px !important; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #ffe39a !important; }
+    .au2-field { position: relative; }
+    html[data-theme="tet"] .au2-field > i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--ts-gold, #ffd54a) !important; opacity: .9; pointer-events: none; }
+    html[data-theme="tet"] #auth-gate .au2 .au2-field .form-control {
+        width: 100%; height: 52px; padding: 0 48px 0 46px !important; border-radius: 14px !important; font-size: 15.5px !important; font-weight: 600;
+        background: rgba(30, 0, 0, .32) !important; color: #fff !important; border: 1.5px solid rgba(255, 213, 74, .55) !important; box-shadow: none !important; }
+    html[data-theme="tet"] #auth-gate .au2 .au2-field .form-control::placeholder { color: rgba(255, 238, 200, .62) !important; }
+    html[data-theme="tet"] #auth-gate .au2 .au2-field .form-control:focus { border-color: var(--ts-gold, #ffd54a) !important; background: rgba(30, 0, 0, .45) !important; box-shadow: 0 0 0 3px rgba(255, 213, 74, .25) !important; }
+    .au2-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: #ffe39a; cursor: pointer; font-size: 15px; }
+    .au2-eye:hover { background: rgba(255, 213, 74, .15); }
+    html[data-theme="tet"] .au2 .au2-rem { display: flex; align-items: center; gap: 10px; margin: 4px 2px 18px; cursor: pointer; text-align: left; font-size: 14px; color: #ffeeb8 !important; }
+    .au2-rem input { width: 18px; height: 18px; flex: 0 0 18px; accent-color: var(--ts-gold, #ffd54a); cursor: pointer; }
+    html[data-theme="tet"] #auth-gate .au2 .au2-btn { height: 54px; padding: 0 !important; border-radius: 14px !important; font-size: 16.5px !important; font-weight: 900 !important; letter-spacing: .5px;
+        color: #5c0a0a !important; background: linear-gradient(180deg, #ffe37a, #ffc21a) !important; border: 0 !important; box-shadow: 0 10px 22px -8px rgba(255, 180, 0, .65), inset 0 -3px 0 rgba(160, 90, 0, .25) !important; }
+    html[data-theme="tet"] #auth-gate .au2 .au2-btn:disabled { opacity: .75; }
+    html[data-theme="tet"] .au2 .au2-foot { margin: 16px 0 0 !important; font-size: 13px; color: #ffe3c4 !important; }
+    .au2-foot a { color: var(--ts-gold, #ffd54a); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+    @media (max-width: 420px) {
+        html[data-theme="tet"] #auth-gate .auth-box.au2 { margin-top: 56px; padding: 58px 18px 18px; }
+        .au2-logo { width: 96px; height: 96px; }
+        html[data-theme="tet"] .au2 .au2-title { font-size: 26px !important; }
+    }
+
+    /* ---------- 2. TRANG CHỦ GỌN ---------- */
+    html[data-theme="tet"] #view-dashboard .bento-hero { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 24px !important; min-height: 0 !important; }
+    html[data-theme="tet"] #view-dashboard .bento-hero h1 { font-size: clamp(22px, 2.3vw, 30px) !important; line-height: 1.2; margin-bottom: 6px !important; }
+    html[data-theme="tet"] #view-dashboard .bento-hero p { font-size: 15px !important; }
+    html[data-theme="tet"] #view-dashboard .hero-side { gap: 12px; }
+    html[data-theme="tet"] #view-dashboard .hero-video-wrap { width: 260px; border-radius: 14px; }
+    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.qd-span { grid-column: 1 / -1; }
+    @media (min-width: 1200px) {
+        /* Màn rộng: thẻ chào (2 phần) + lì xì hằng ngày (1 phần) chung 1 hàng */
+        html[data-theme="tet"] #view-dashboard .bento-grid > .bento-hero { grid-column: span 2; }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .lixi-card { grid-column: span 1; display: flex; flex-direction: column; justify-content: space-between; }
+        html[data-theme="tet"] #view-dashboard .bento-hero { flex-direction: column; align-items: stretch; justify-content: center; }
+        html[data-theme="tet"] #view-dashboard .bento-hero .hero-side { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+        html[data-theme="tet"] #view-dashboard .bento-hero .hero-side .hero-badges-area { flex-direction: column; align-items: flex-start; justify-content: center; }
+        html[data-theme="tet"] #view-dashboard .hero-video-wrap { width: 250px; }
+    }
+    @media (max-width: 767px) {
+        html[data-theme="tet"] #view-dashboard .bento-hero { flex-direction: column; text-align: center; gap: 14px; padding: 18px 14px 16px !important; border-radius: 22px !important; }
+        html[data-theme="tet"] #view-dashboard .bento-hero h1 { font-size: 22px !important; }
+        html[data-theme="tet"] #view-dashboard .bento-hero p { font-size: 13.5px !important; line-height: 1.45; }
+        html[data-theme="tet"] #view-dashboard .hero-side { width: 100%; gap: 10px; }
+        html[data-theme="tet"] #view-dashboard .hero-badges-area { gap: 8px !important; }
+        html[data-theme="tet"] #view-dashboard .hero-point-pill, html[data-theme="tet"] #view-dashboard .hero-clock { padding: 6px 12px !important; font-size: 13px; }
+        html[data-theme="tet"] #view-dashboard .hero-video-wrap { width: min(100%, 280px); }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.qd-span { min-height: 0; }
+    }
+
+    /* ---------- 3. ĐỒNG BỘ MÀU: Trò Chuyện theo màu chủ đề (trước là nâu đậm cố định) ---------- */
+    html[data-theme="tet"] #view-chat .chat-module { background: var(--ts-lq3) !important; border: 2px solid var(--ts-gold-2, #ffd54a) !important; border-radius: 22px !important; }
+    html[data-theme="tet"] #view-chat .chat-sidebar, html[data-theme="tet"] #view-chat .chat-sidebar .contact-list {
+        background: linear-gradient(175deg, var(--ts-lq1) 0%, var(--ts-lq2) 55%, var(--ts-lq3) 100%) !important; border-right: 1px solid rgba(255, 213, 74, .35) !important; }
+    html[data-theme="tet"] #view-chat .chat-sidebar .contact-list { background: transparent !important; }
+    html[data-theme="tet"] #view-chat .chat-search-wrap { background: transparent !important; border-bottom: 1px solid rgba(255, 213, 74, .3) !important; }
+    html[data-theme="tet"] #view-chat .chat-search-wrap h3 { color: var(--ts-gold, #ffd54a) !important; }
+    html[data-theme="tet"] #view-chat .chat-main { background: linear-gradient(180deg, rgba(0, 0, 0, .12), rgba(0, 0, 0, .28)), var(--ts-lq2) !important; }
+    html[data-theme="tet"] #view-chat .chat-header, html[data-theme="tet"] #view-chat .chat-input-wrapper { background: rgba(0, 0, 0, .18) !important; border-color: rgba(255, 213, 74, .3) !important; }
+    html[data-theme="tet"] #view-chat .contact-card { background: rgba(255, 255, 255, .08) !important; border: 1px solid rgba(255, 213, 74, .18) !important; border-radius: 14px !important; }
+    html[data-theme="tet"] #view-chat .contact-card:hover { background: rgba(255, 255, 255, .14) !important; }
+    html[data-theme="tet"] #view-chat .contact-card.active { background: rgba(255, 213, 74, .2) !important; border-color: var(--ts-gold, #ffd54a) !important; }
+    html[data-theme="tet"] #view-chat .contact-card .text-main { color: #fff !important; }
+    html[data-theme="tet"] #view-chat .chat-empty-state h2 { color: var(--ts-gold, #ffd54a) !important; }
+    html[data-theme="tet"] #view-chat .chat-empty-state p { color: #ffeeb8 !important; }
+
+    /* ---------- 4. ĐIỂM DANH · BẢN TIN · GIẢI ĐẤU: chữ dễ đọc trên nền đỏ ---------- */
+    html[data-theme="tet"] #att-status-title.text-danger { color: var(--ts-gold, #ffd54a) !important; }
+    html[data-theme="tet"] #att-status-title { font-size: clamp(22px, 3vw, 30px) !important; }
+    html[data-theme="tet"] #att-status-desc { color: #ffeeb8 !important; font-size: 15px !important; margin-bottom: 22px !important; }
+    html[data-theme="tet"] #att-status-desc strong { background: var(--ts-gold, #ffd54a) !important; color: #5c0a0a !important; border-radius: 8px; padding: 2px 8px !important; white-space: nowrap; }
+    html[data-theme="tet"] #btn-do-att { max-width: 420px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 20px !important; font-size: 16px !important; }
+    html[data-theme="tet"] #btn-do-att:disabled { opacity: 1 !important; background: rgba(0, 0, 0, .22) !important; color: #ffe39a !important; border: 1.5px dashed rgba(255, 213, 74, .65) !important; box-shadow: none !important; cursor: not-allowed; }
+    html[data-theme="tet"] #view-attendance .card-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 16px 20px !important; }
+    html[data-theme="tet"] #view-attendance .card-header .card-title { font-size: 17px !important; line-height: 1.3; flex: 1 1 220px; }
+    html[data-theme="tet"] #att-badge-date { background: rgba(255, 213, 74, .95) !important; color: #5c0a0a !important; border: 0 !important; }
+    html[data-theme="tet"] #news-feed-list .text-muted { color: #ffe3c4 !important; }
+    html[data-theme="tet"] #news-feed-list h3 { color: var(--ts-gold, #ffd54a) !important; }
+    @media (max-width: 767px) {
+        html[data-theme="tet"] #view-attendance > .card:first-child { padding: 20px 16px !important; }
+        html[data-theme="tet"] #att-status-icon > div { width: 84px !important; height: 84px !important; font-size: 40px !important; }
+        html[data-theme="tet"] #view-attendance .card-header .card-title { font-size: 15.5px !important; }
+    }
+
+    /* ---------- 5. Nút Hỗ trợ: điện thoại chỉ còn biểu tượng tròn, không đè lên thẻ / nút ---------- */
+    @media (max-width: 1023px) {
+        body.qh-user #qd-help-btn { width: 50px; height: 50px; padding: 0; justify-content: center; right: max(10px, env(safe-area-inset-right)); }
+        body.qh-user #qd-help-btn .qh-txt { display: none; }
+        body.qh-user #qd-help-btn .qh-ico { width: 38px; height: 38px; }
+        html[data-theme="tet"] #auth-gate ~ * #qd-help-btn { display: none; }
+    }
+    </style>
+    <script id="qd-ui-v2-js">
+    /* Thẻ trò chơi cuối cùng lẻ hàng -> trải hết hàng cho cân (số thẻ thay đổi khi Admin ẩn / hiện mục) */
+    (function () {
+        'use strict';
+        function fix() {
+            var g = document.querySelector('#view-dashboard .bento-grid'); if (!g) return;
+            var tabs = Array.prototype.filter.call(g.querySelectorAll(':scope > .wheel-tab'), function (t) { return t.offsetParent !== null || t.classList.contains('qd-span'); });
+            tabs.forEach(function (t) { t.classList.remove('qd-span'); });
+            var vis = tabs.filter(function (t) { return t.offsetParent !== null; });
+            var cols = (getComputedStyle(g).gridTemplateColumns || '').split(' ').filter(Boolean).length || 1;
+            if (cols > 1 && vis.length % cols === 1) vis[vis.length - 1].classList.add('qd-span');
+        }
+        var t = null; function later() { clearTimeout(t); t = setTimeout(fix, 150); }
+        window.addEventListener('resize', later);
+        document.addEventListener('DOMContentLoaded', function () {
+            later(); var g = document.querySelector('#view-dashboard .bento-grid');
+            if (g && window.MutationObserver) new MutationObserver(later).observe(g, { attributes: true, subtree: false, childList: true, attributeFilter: ['style', 'hidden', 'class'] });
+            setInterval(fix, 4000);
+        });
     })();
     </script>
 </body>
