@@ -10020,6 +10020,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         <button class="inv2-chip" data-f="lixi" onclick="window.Inventory.filter('lixi')">🧧 Lì xì</button>
                         <button class="inv2-chip" data-f="wheel" onclick="window.Inventory.filter('wheel')">🎡 Vòng quay</button>
                         <button class="inv2-chip" data-f="daily" onclick="window.Inventory.filter('daily')">💰 Điểm</button>
+                        <button class="inv2-chip" data-f="tour" onclick="window.Inventory.filter('tour')">🏆 Giải đấu</button>
                     </div>
                 </div>
                 <div class="inv2-list" id="inv2-list"><div class="inv2-empty">Đang tải...</div></div>
@@ -10070,11 +10071,11 @@ html.qd-lite .qd-fx { display: none !important; }
         <aside class="floating-sidebar hidden-mobile">
             <div class="brand-logo"><img class="qd-logo" src="data:image/webp;base64,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" alt="" width="36" height="36"> QĐ TLH</div>
             <nav class="nav-menu">
-                <div class="nav-item active" onclick="window.UI.navigate('dashboard', this)"><i class="fa-solid fa-border-all"></i> <span>Trang Chủ</span></div>
-                <div class="nav-item" onclick="window.UI.navigate('chat', this)"><i class="fa-solid fa-comments"></i> <span>Trò Chuyện Nội Bộ</span></div>
-                <div class="nav-item" onclick="window.UI.navigate('attendance', this)"><i class="fa-solid fa-calendar-check"></i> <span>Điểm Danh </span></div>
-                <div class="nav-item" onclick="window.UI.navigate('news', this)"><i class="fa-solid fa-newspaper"></i> <span>Bản Tin Quân Đoàn</span></div>
-                <div class="nav-item" onclick="window.UI.navigate('tournament', this)"><i class="fa-solid fa-fire"></i> <span>Giải Đấu Máy Chủ</span></div>
+                <div class="nav-item active" data-nv="dashboard" onclick="window.UI.navigate('dashboard', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1H10v-6h4v6h3.5a1 1 0 0 0 1-1V9.5"/></svg></span><span class="nv-txt"><b>Trang Chủ</b><small>Lì xì · trò chơi · điểm</small></span><span class="nv-badge" hidden></span></div>
+                <div class="nav-item" data-nv="chat" onclick="window.UI.navigate('chat', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 11.7a8 8 0 0 1-11.8 7L3.5 20.5l1.7-4.8a8 8 0 1 1 15.3-4z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg></span><span class="nv-txt"><b>Trò Chuyện</b><small>Kênh chung · nhắn tin</small></span><span class="nv-badge" hidden></span></div>
+                <div class="nav-item" data-nv="attendance" onclick="window.UI.navigate('attendance', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3.5 10h17"/><path d="m8.7 15.2 2.2 2.2 4.4-4.4"/></svg></span><span class="nv-txt"><b>Điểm Danh</b><small>Nhận thưởng mỗi ngày</small></span><span class="nv-badge" hidden></span></div>
+                <div class="nav-item" data-nv="news" onclick="window.UI.navigate('news', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="4" width="13.5" height="16.5" rx="2.2"/><path d="M17 8.5h1.8a1.7 1.7 0 0 1 1.7 1.7v7.6a2.7 2.7 0 0 1-2.7 2.7"/><path d="M7 8.5h6M7 12.2h6M7 16h3.5"/></svg></span><span class="nv-txt"><b>Bản Tin</b><small>Thông báo từ BQT</small></span><span class="nv-badge" hidden></span></div>
+                <div class="nav-item" data-nv="tournament" onclick="window.UI.navigate('tournament', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3.5h8v5.2a4 4 0 0 1-8 0z"/><path d="M8 5.5H5.2a.8.8 0 0 0-.8.9c.3 2.4 1.9 4 3.9 4.2M16 5.5h2.8a.8.8 0 0 1 .8.9c-.3 2.4-1.9 4-3.9 4.2"/><path d="M12 12.8V17M8.5 20.5h7M9.5 17h5"/></svg></span><span class="nv-txt"><b>Giải Đấu</b><small>Lịch đấu · kết quả</small></span><span class="nv-badge" hidden></span></div>
                 <div class="nav-item qd-off" onclick="window.RegID.open()"><i class="fa-solid fa-id-card"></i> <span>Đăng Ký ID Game</span></div>
                 <div class="nav-item qd-off" onclick="window.UI.navigate('rps', this)"><i class="fa-regular fa-hand-scissors"></i> <span>Kéo Búa Bao</span></div>
                 <div class="nav-item qd-off" id="nav-gift" onclick="window.GiftUI.open()" hidden><i class="fa-solid fa-gift"></i> <span>Tặng Quà Đồng Đội</span></div>
@@ -10332,6 +10333,12 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                     </div>
                     
+                    <!-- Giải thưởng giải đấu (bản 24): Admin > Giải đấu > "Tiền Thưởng Giải Đấu" (settings/tournament_prize) -->
+                    <div class="tp-u" id="tp-u" hidden>
+                        <div class="tp-u-head"><span class="tp-u-ico" aria-hidden="true">💰</span><div><h3>Giải Thưởng Giải Đấu</h3><small id="tp-u-note"></small></div></div>
+                        <div class="tp-u-grid" id="tp-u-grid"></div>
+                    </div>
+
                     <div class="flex gap-3 mb-6" id="tournament-team-filters">
                     </div>
                     
@@ -10446,11 +10453,11 @@ html.qd-lite .qd-fx { display: none !important; }
         </main>
 
         <nav class="mobile-nav hidden-desktop">
-            <div class="m-nav-item active" onclick="window.UI.navigate('dashboard', this, true)"><i class="fa-solid fa-house"></i><span>Trang Chủ</span></div>
-            <div class="m-nav-item" onclick="window.UI.navigate('chat', this, true)"><i class="fa-solid fa-comments"></i><span>Trò Chuyện</span></div>
-            <div class="m-nav-item" onclick="window.UI.navigate('attendance', this, true)"><i class="fa-solid fa-fingerprint"></i><span>Điểm Danh</span></div>
-            <div class="m-nav-item" onclick="window.UI.navigate('news', this, true)"><i class="fa-solid fa-newspaper"></i><span>Tin Tức</span></div>
-            <div class="m-nav-item" onclick="window.UI.navigate('tournament', this, true)"><i class="fa-solid fa-fire"></i><span>Giải Đấu</span></div>
+            <div class="m-nav-item active" data-nv="dashboard" onclick="window.UI.navigate('dashboard', this, true)"><span class="mn-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1H10v-6h4v6h3.5a1 1 0 0 0 1-1V9.5"/></svg></span><span class="mn-lb">Trang Chủ</span><span class="nv-badge" hidden></span></div>
+            <div class="m-nav-item" data-nv="chat" onclick="window.UI.navigate('chat', this, true)"><span class="mn-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 11.7a8 8 0 0 1-11.8 7L3.5 20.5l1.7-4.8a8 8 0 1 1 15.3-4z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg></span><span class="mn-lb">Trò Chuyện</span><span class="nv-badge" hidden></span></div>
+            <div class="m-nav-item" data-nv="attendance" onclick="window.UI.navigate('attendance', this, true)"><span class="mn-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3.5 10h17"/><path d="m8.7 15.2 2.2 2.2 4.4-4.4"/></svg></span><span class="mn-lb">Điểm Danh</span><span class="nv-badge" hidden></span></div>
+            <div class="m-nav-item" data-nv="news" onclick="window.UI.navigate('news', this, true)"><span class="mn-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="4" width="13.5" height="16.5" rx="2.2"/><path d="M17 8.5h1.8a1.7 1.7 0 0 1 1.7 1.7v7.6a2.7 2.7 0 0 1-2.7 2.7"/><path d="M7 8.5h6M7 12.2h6M7 16h3.5"/></svg></span><span class="mn-lb">Bản Tin</span><span class="nv-badge" hidden></span></div>
+            <div class="m-nav-item" data-nv="tournament" onclick="window.UI.navigate('tournament', this, true)"><span class="mn-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3.5h8v5.2a4 4 0 0 1-8 0z"/><path d="M8 5.5H5.2a.8.8 0 0 0-.8.9c.3 2.4 1.9 4 3.9 4.2M16 5.5h2.8a.8.8 0 0 1 .8.9c-.3 2.4-1.9 4-3.9 4.2"/><path d="M12 12.8V17M8.5 20.5h7M9.5 17h5"/></svg></span><span class="mn-lb">Giải Đấu</span><span class="nv-badge" hidden></span></div>
         </nav>
     </div>
 
@@ -12040,7 +12047,8 @@ html.qd-lite .qd-fx { display: none !important; }
             toggleMobile: (showSidebar) => { 
                 const s = document.getElementById('chat-sidebar'); const m = document.querySelector('.chat-main'); 
                 if(!s || !m) return; 
-                if(window.innerWidth > 1023) { document.body.classList.remove('in-chat-mode'); s.style.display = 'flex'; m.style.display = 'flex'; return; } 
+                // Máy tính + máy tính bảng dọc (bản 23): danh bạ và khung chat hiện song song (2 cột)
+                if(window.QDChat2Pane ? window.QDChat2Pane() : window.innerWidth > 1023) { document.body.classList.remove('in-chat-mode'); document.body.style.height = ''; s.style.display = 'flex'; m.style.display = 'flex'; return; }
                 if(showSidebar) { 
                     document.body.classList.remove('in-chat-mode');
                     s.style.display = 'flex'; m.style.display = 'none'; 
@@ -18789,7 +18797,7 @@ document.addEventListener("DOMContentLoaded", () => {
             var d = new Date(ts), p = function (x) { return String(x).padStart(2, '0'); };
             return p(d.getHours()) + ':' + p(d.getMinutes()) + ' · ' + p(d.getDate()) + '/' + p(d.getMonth() + 1);
         };
-        var SRC = { lixi: '🧧 Rút lì xì', wheel: '🎡 Vòng quay', daily: '💰 Lì xì hằng ngày', lucky: '🎯 Quay số may mắn' };
+        var SRC = { lixi: '🧧 Rút lì xì', wheel: '🎡 Vòng quay', daily: '💰 Lì xì hằng ngày', lucky: '🎯 Quay số may mắn', tour: '🏆 Giải đấu' };
 
         window.Inventory = {
             owner: null, unsubs: [], data: { lixi: [], wheel: [], daily: [], lucky: [] }, spinTickets: 0, f: 'all', limit: 30, last: {},
@@ -18842,8 +18850,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             },
             all: function () {
-                var d = this.data, arr = d.lixi.concat(d.wheel, d.daily, d.lucky || []);
-                arr.forEach(function (r) { r.money = isWish(r.prize) ? 0 : money(r.prize); r.isWish = r.src !== 'daily' && isWish(r.prize); });
+                var d = this.data, tour = window.TourPrizeUser ? window.TourPrizeUser.mine(this.owner) : [];   // thưởng giải đấu (bản 24)
+                var arr = d.lixi.concat(d.wheel, d.daily, d.lucky || [], tour);
+                arr.forEach(function (r) { if (r.src === 'tour') { r.money = r.cash || 0; r.isWish = false; return; } r.money = isWish(r.prize) ? 0 : money(r.prize); r.isWish = r.src !== 'daily' && isWish(r.prize); });
                 return arr.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
             },
             renderList: function () {
@@ -18857,14 +18866,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 var shown = rows.slice(0, this.limit);
                 list.innerHTML = shown.map(function (r) {
-                    var ico = r.money > 0 ? '💵' : (r.isWish ? '🎊' : (r.src === 'daily' ? '💰' : (r.src === 'wheel' ? '🎡' : (r.src === 'lucky' ? '🎯' : '🎁'))));
+                    var ico = r.money > 0 ? '💵' : (r.isWish ? '🎊' : (r.src === 'daily' ? '💰' : (r.src === 'wheel' ? '🎡' : (r.src === 'lucky' ? '🎯' : (r.src === 'tour' ? '🏆' : '🎁')))));
                     var title = r.isWish ? 'Lời Chúc Tết' : r.prize;
                     return '<div class="inv2-row' + (r.money > 0 ? ' money' : '') + (r.revoked ? ' revoked' : '') + '">' +
                         '<div class="inv2-row-ico">' + ico + '</div><div class="inv2-row-main">' +
                         '<div class="inv2-row-top"><span class="inv2-row-prize">' + esc(title) + '</span><span class="inv2-row-time">' + esc(fmtTime(r.ts)) + '</span></div>' +
                         '<div class="inv2-row-src">' + SRC[r.src] + (r.revoked ? ' · đã bị thu hồi' : '') + '</div>' +
                         (r.wish ? '<div class="inv2-row-wish">“' + esc(r.wish) + '”</div>' : '') +
-                        (r.money > 0 && window.PayoutUser ? window.PayoutUser.badge(r) : '') +
+                        (r.money > 0 && window.PayoutUser ? window.PayoutUser.badge(r) : '') + (r.tag || '') +
                         '</div></div>';
                 }).join('') + (rows.length > shown.length ? '<button class="inv2-more" onclick="window.Inventory.more()">Xem thêm (' + (rows.length - shown.length) + ')</button>' : '');
             },
@@ -18967,7 +18976,7 @@ document.addEventListener("DOMContentLoaded", () => {
         var fmtMoney = function (n) { return Number(n || 0).toLocaleString('vi-VN') + 'đ'; };
         var p2 = function (x) { return String(x).padStart(2, '0'); };
         var fold = function (s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D'); };
-        var COL = { lixi: 'tranhthuong_history', wheel: 'spin_history', lucky: 'lucky_rewards' };
+        var COL = { lixi: 'tranhthuong_history', wheel: 'spin_history', lucky: 'lucky_rewards', tour: 'tournament_prize' };
         /* Danh sách ngân hàng (mã BIN theo NAPAS / VietQR). Có mạng: cập nhật thêm từ api.vietqr.io */
         var BANKS = [
             ['970436', 'Vietcombank'], ['970415', 'VietinBank'], ['970418', 'BIDV'], ['970405', 'Agribank'], ['970422', 'MB Bank'], ['970407', 'Techcombank'],
@@ -20525,6 +20534,327 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
     })();
     </script>
+    <script id="tour-prize-core-js">
+    /* ===== THƯỞNG GIẢI ĐẤU (bản 24 + 25, dùng chung admin + user) =====
+       settings/tournament_prize : { single: { on, split, tiers }, double: { on, split, tiers }, note, updatedAt, updatedBy }
+         tiers = { champ, second, third, fourth, top8 } mỗi hạng { cash (VNĐ), points, spins, tickets, conThrows, gift (quà khác, chữ) }
+         split (Giải Đôi): 'each' = mỗi thành viên nhận đủ · 'team' = tính cho cả đội, chia đều (tiền làm tròn xuống bội 1.000đ, lượt / điểm lấy phần nguyên)
+       Người nhận lấy từ sơ đồ (settings/tournament_bracket, tournament_bracket_double), chỉ chốt khi đã có Nhà Vô Địch:
+         Vô Địch · Á Quân · Hạng Ba (thắng trận tranh hạng 3; không có trận này thì 2 đội thua Bán Kết đồng Hạng Ba) · Hạng Tư · Tứ Kết (4 đội dừng ở Tứ Kết)
+       Mã mỗi khoản = {thể thức}_{createdAt sơ đồ}_{hạng}_{tài khoản}
+       - Tiền mặt -> Admin > Trả thưởng (nguồn "🏆 Giải Đấu", {NGUON} = GD), payouts/tournament_prize_{mã}
+       - Điểm lì xì + lượt (bản 25) -> TỰ CỘNG vào accounts sau khi sơ đồ không đổi kết quả 10 phút (để BQT kịp sửa nhầm; Admin bấm "Trao ngay" để cộng luôn).
+         Mỗi khoản cộng ĐÚNG 1 LẦN trong 1 giao dịch: tournament_rewards/{mã} = { user, fmt, tier, items{}, prize, at, by } + point_history (nếu có điểm).
+         Máy chạy: trang Admin (mọi người đạt giải) và trang thành viên (chỉ khoản của chính mình). */
+    (function () {
+        'use strict';
+        if (window.QDTourPrize) return;
+        var TIERS = [
+            { k: 'champ', i: '🏆', l: 'Vô Địch' },
+            { k: 'second', i: '🥈', l: 'Á Quân' },
+            { k: 'third', i: '🥉', l: 'Hạng Ba' },
+            { k: 'fourth', i: '🎖️', l: 'Hạng Tư' },
+            { k: 'top8', i: '🎗️', l: 'Tứ Kết' }
+        ];
+        // Vật phẩm cộng thẳng vào tài khoản (cùng tên trường với accounts)
+        var ITEMS = [
+            { k: 'points', i: '💰', l: 'Điểm lì xì', u: 'điểm lì xì' },
+            { k: 'spins', i: '🎡', l: 'Lượt vòng quay', u: 'lượt quay' },
+            { k: 'tickets', i: '🧧', l: 'Lượt rút lì xì', u: 'lượt rút lì xì' },
+            { k: 'conThrows', i: '🎯', l: 'Lượt ném còn', u: 'lượt ném còn' }
+        ];
+        var GRACE = 10 * 60000;   // kết quả sơ đồ đứng yên 10 phút mới tự cộng lượt / điểm
+        var TM = {}; TIERS.forEach(function (t) { TM[t.k] = t; });
+        var FMT = { single: 'Giải Đơn', double: 'Giải Đôi' };
+        function num(v, max) { v = Math.floor(Number(v) || 0); return v > 0 ? Math.min(v, max || 1000000000) : 0; }
+        function normTier(o) {
+            o = o || {}; var t = { cash: num(o.cash), gift: String(o.gift || '').replace(/\s+/g, ' ').trim().slice(0, 80) };
+            ITEMS.forEach(function (x) { t[x.k] = num(o[x.k], 1000000); });
+            return t;
+        }
+        function normFmt(c) {
+            c = c || {}; var src = c.tiers || {}, t = {};
+            TIERS.forEach(function (x) { t[x.k] = normTier(src[x.k]); });
+            return { on: c.on === true, split: c.split === 'team' ? 'team' : 'each', tiers: t };
+        }
+        function norm(d) { d = d || {}; return { single: normFmt(d.single), double: normFmt(d.double), note: String(d.note || '').trim().slice(0, 200), updatedAt: d.updatedAt || 0 }; }
+        function hasItems(t) { return !!t && ITEMS.some(function (x) { return t[x.k] > 0; }); }
+        function has(t) { return !!t && (t.cash > 0 || !!t.gift || hasItems(t)); }
+        function any(pc) { return !!pc && pc.on && TIERS.some(function (x) { return has(pc.tiers[x.k]); }); }
+        function vnd(n) { return Number(n || 0).toLocaleString('vi-VN') + 'đ'; }
+        function share(cash, n, split) { return split === 'team' && n > 1 ? Math.floor(cash / n / 1000) * 1000 : cash; }
+        function shareTier(t, n, split) {   // phần của 1 người
+            var o = { cash: share(t.cash, n, split), gift: t.gift };
+            ITEMS.forEach(function (x) { o[x.k] = split === 'team' && n > 1 ? Math.floor(t[x.k] / n) : t[x.k]; });
+            return o;
+        }
+        // "+100 điểm lì xì · +2 lượt quay"
+        function itemsText(t, sep) { var a = []; ITEMS.forEach(function (x) { if (t && t[x.k] > 0) a.push('+' + Number(t[x.k]).toLocaleString('vi-VN') + ' ' + x.u); }); return a.join(sep || ' · '); }
+        // Các phần của 1 hạng để hiện: [tiền, vật phẩm..., quà khác]
+        function parts(t) {
+            var a = []; if (!t) return a;
+            if (t.cash > 0) a.push(vnd(t.cash));
+            ITEMS.forEach(function (x) { if (t[x.k] > 0) a.push('+' + Number(t[x.k]).toLocaleString('vi-VN') + ' ' + x.u); });
+            if (t.gift) a.push('🎁 ' + t.gift);
+            return a;
+        }
+        function size(cfg) { var n = +(cfg && cfg.size) || 8; return [4, 8, 16, 32, 64].indexOf(n) >= 0 ? n : 8; }
+        function hasThirdMatch(cfg) { return !!(cfg && cfg.third) && size(cfg) >= 4; }
+        function slots(cfg) {
+            var n = size(cfg), t3 = hasThirdMatch(cfg), o = { champ: 1, second: 1, third: t3 ? 1 : 2 };
+            if (t3) o.fourth = 1;
+            if (n >= 8) o.top8 = 4;
+            return o;
+        }
+        function tierName(k, cfg) { return k === 'third' && cfg && !hasThirdMatch(cfg) ? 'Đồng Hạng Ba' : (TM[k] || {}).l || k; }
+        function places(cfg) {
+            var Q = window.QDB; if (!Q || !cfg || !(cfg.entries || []).some(Boolean)) return null;
+            var C; try { C = Q.compute(cfg); } catch (e) { return null; }
+            var out = { done: !!(C.champion && C.champion.t === 'e'), live: C.played > 0, list: [] };
+            var put = function (k, s) { if (s && s.t === 'e' && s.e) out.list.push({ k: k, e: s.e }); };
+            if (!out.done) return out;
+            put('champ', C.champion); put('second', C.runnerUp);
+            if (C.third) { put('third', C.thirdPlace); if (C.third.decided === 'play') put('fourth', C.third.sides[1 - C.third.w]); }
+            else if (C.R >= 2) C.rounds[C.R - 2].forEach(function (m) { if (m.decided === 'play') put('third', m.sides[1 - m.w]); });
+            if (C.R >= 3) C.rounds[C.R - 3].forEach(function (m) { if (m.decided === 'play') put('top8', m.sides[1 - m.w]); });
+            return out;
+        }
+        // Tên giải (Trả thưởng đọc số tiền ở đầu chuỗi)
+        function prizeText(fmt, cfg, k, p) {
+            var head = p.cash > 0 ? p.cash.toLocaleString('vi-VN') + ' VNĐ' : '', rest = itemsText(p), extra = [head, rest, p.gift].filter(Boolean).join(' + ');
+            return extra + ' · Giải Đấu: ' + tierName(k, cfg) + ' ' + FMT[fmt] + (cfg && cfg.title ? ' (' + cfg.title + ')' : '');
+        }
+        function awards(fmt, cfg, pc) {
+            if (!pc || !pc.on) return [];
+            var P = places(cfg); if (!P || !P.done) return [];
+            var res = [], key = fmt + '_' + (cfg.createdAt || 0), ts = cfg.doneAt || cfg.updatedAt || 0;
+            P.list.forEach(function (p) {
+                var t = pc.tiers[p.k]; if (!has(t)) return;
+                var mem = (p.e.members || []).filter(function (m) { return m && m.u; }), my = shareTier(t, mem.length, pc.split), items = {};
+                ITEMS.forEach(function (x) { if (my[x.k] > 0) items[x.k] = my[x.k]; });
+                mem.forEach(function (m) {
+                    var o = { id: key + '_' + p.k + '_' + m.u, user: m.u, fmt: fmt, tier: p.k, tierName: tierName(p.k, cfg), team: p.e.name || m.u,
+                        cash: my.cash, gift: my.gift, items: items, hasItems: Object.keys(items).length > 0, ts: ts, readyAt: (cfg.updatedAt || 0) + GRACE,
+                        prize: prizeText(fmt, cfg, p.k, my) };
+                    ITEMS.forEach(function (x) { o[x.k] = my[x.k]; });   // để parts() đọc được
+                    res.push(o);
+                });
+            });
+            return res;
+        }
+
+        /* ---------- Nghe dữ liệu (1 lần cho cả trang) ---------- */
+        var W = { prize: null, raw: {}, seen: {}, subs: [], cbs: [], last: null, given: {}, givenFor: undefined };
+        function D() { try { return typeof db !== 'undefined' ? db : firebase.firestore(); } catch (e) { return null; } }
+        function brackets() { var a = W.raw.single, b = W.raw.double; return { single: a && a.format !== 'double' ? a : null, double: b || (a && a.format === 'double' ? a : null) }; }
+        function emit() {
+            if (!(W.seen.prize && W.seen.single && W.seen.double)) return;
+            var br = brackets(), pc = norm(W.prize), all = [];
+            ['single', 'double'].forEach(function (f) { if (br[f]) all = all.concat(awards(f, br[f], pc[f])); });
+            W.last = { prize: pc, brackets: br, awards: all, given: W.given };
+            W.cbs.forEach(function (cb) { try { cb(W.last); } catch (e) { console.error('QDTourPrize', e); } });
+            autoRun();
+        }
+        function watch(cb) {
+            if (cb) { W.cbs.push(cb); if (W.last) try { cb(W.last); } catch (e) {} }
+            if (W.subs.length) return;
+            var d = D();
+            if (!d) { W.seen = { prize: 1, single: 1, double: 1 }; emit(); return; }
+            var on = function (k, doc) {
+                W.subs.push(d.collection('settings').doc(doc).onSnapshot(function (s) {
+                    var v = s.exists ? s.data() : null; if (k === 'prize') W.prize = v; else W.raw[k] = v; W.seen[k] = 1; emit();
+                }, function (e) { console.warn('tournament_prize', doc, e); W.seen[k] = 1; emit(); }));
+            };
+            on('prize', 'tournament_prize'); on('single', 'tournament_bracket'); on('double', 'tournament_bracket_double');
+        }
+
+        /* ---------- Cộng điểm / lượt (bản 25) ---------- */
+        // Theo dõi khoản đã cộng: user = null -> tất cả (Admin) · 'abc' -> chỉ của tài khoản đó
+        var gsub = null;
+        function watchGiven(user) {
+            if (W.givenFor === user) return; W.givenFor = user;
+            if (gsub) { try { gsub(); } catch (e) {} gsub = null; }
+            W.given = {}; var d = D(); if (!d || user === '') { emit(); return; }
+            var q = d.collection('tournament_rewards'); if (user) q = q.where('user', '==', user);
+            gsub = q.onSnapshot(function (s) { var g = {}; s.forEach(function (x) { g[x.id] = x.data(); }); W.given = g; emit(); }, function (e) { console.warn('tournament_rewards', e); });
+        }
+        var busy = {}, fail = {}, auto = null;
+        function giveOne(a, by) {
+            var d = D(), FV = window.firebase && firebase.firestore && firebase.firestore.FieldValue;
+            if (!d || !FV || !a || !a.hasItems || busy[a.id] || W.given[a.id] || Date.now() - (fail[a.id] || 0) < 300000) return Promise.resolve(false);
+            busy[a.id] = true;
+            return d.collection('accounts').where('user', '==', a.user).limit(1).get().then(function (q) {
+                if (q.empty) throw new Error('Không tìm thấy tài khoản ' + a.user);
+                var aref = q.docs[0].ref, rref = d.collection('tournament_rewards').doc(a.id);
+                return d.runTransaction(function (tx) {
+                    return tx.get(rref).then(function (ex) {
+                        if (ex.exists) return false;   // máy khác đã cộng
+                        var now = Date.now(), up = {};
+                        ITEMS.forEach(function (x) { if (a.items[x.k] > 0) up[x.k] = FV.increment(a.items[x.k]); });
+                        tx.set(rref, { user: a.user, fmt: a.fmt, tier: a.tier, team: a.team, items: a.items, prize: a.prize, at: now, by: by || '' });
+                        tx.update(aref, up);
+                        if (a.items.points > 0) tx.set(d.collection('point_history').doc(), { user: a.user, action: 'add', detail: 'Giải Đấu: ' + a.tierName + ' ' + FMT[a.fmt], pointsChanged: a.items.points, timestamp: now });
+                        return true;
+                    });
+                });
+            }).then(function (ok) { busy[a.id] = false; if (ok) W.given[a.id] = { at: Date.now() }; return ok; }, function (e) { busy[a.id] = false; fail[a.id] = Date.now(); console.warn('Trao thưởng giải đấu', a.id, e); throw e; });
+        }
+        // Cộng tuần tự các khoản (force = bỏ qua 10 phút chờ)
+        function give(list, by, force) {
+            var now = Date.now(), todo = (list || []).filter(function (a) { return a.hasItems && !W.given[a.id] && (force || now >= a.readyAt); }), n = 0;
+            return todo.reduce(function (p, a) { return p.then(function () { return giveOne(a, by).then(function (ok) { if (ok) n++; }, function () {}); }); }, Promise.resolve()).then(function () { return n; });
+        }
+        function autoRun() {
+            if (!auto || !W.last || W.givenFor === undefined) return;
+            var u = auto.user; if (u === '') return;
+            var list = W.last.awards.filter(function (a) { return a.hasItems && (!u || a.user === u); });
+            if (list.length) give(list, auto.by()).then(function (n) { if (n && auto.done) auto.done(n); });
+        }
+        // Bật tự cộng: opt = { user: null (Admin, mọi người) | 'tên' (chỉ mình), by: fn -> tên máy chạy, done: fn(n) }
+        function autoGive(opt) {
+            auto = opt; watchGiven(opt.user == null ? null : opt.user);
+            if (!auto.timer) auto.timer = setInterval(autoRun, 60000);
+            watch(); autoRun();
+        }
+
+        window.QDTourPrize = { TIERS: TIERS, ITEMS: ITEMS, FMT: FMT, GRACE: GRACE, norm: norm, has: has, hasItems: hasItems, any: any, vnd: vnd, share: share, shareTier: shareTier,
+            itemsText: itemsText, parts: parts, slots: slots, tierName: tierName, hasThirdMatch: hasThirdMatch, places: places, awards: awards,
+            watch: watch, watchGiven: watchGiven, give: give, autoGive: autoGive, given: function () { return W.given; }, current: function () { return W.last; } };
+    })();
+    </script>
+    <style id="tour-prize-user-css">
+    /* ===== Giải Đấu > "Giải Thưởng" (bản 24): bảng tiền thưởng theo hạng do Admin thiết lập, theo màu chủ đề Tết ===== */
+    .tp-u { margin: 0 0 22px; padding: 18px; border-radius: 22px; color: #fff3dc;
+        background: radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .1), transparent 60%), linear-gradient(165deg, var(--ts-lq1, #d42330) 0%, var(--ts-lq2, #8f0a12) 70%, var(--ts-lq3, #6a0008) 100%);
+        border: 2px solid var(--ts-gold-2, #f2b705); box-shadow: 0 14px 30px -16px rgba(120, 10, 0, .75), inset 0 0 0 4px rgba(255, 213, 74, .1); }
+    .tp-u[hidden] { display: none !important; }
+    .tp-u *, .tp-u h3, .tp-u b, .tp-u span, .tp-u small { text-shadow: none !important; }
+    .tp-u-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .tp-u-ico { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 24px; background: linear-gradient(135deg, #fff3b0, #ffd54a 60%, #f2b705); box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .5); }
+    .tp-u-head h3 { margin: 0 !important; font-size: 19px !important; font-weight: 900; color: var(--ts-gold, #ffd54a) !important; letter-spacing: .2px; }
+    .tp-u-head small { display: block; margin-top: 2px; font-size: 13px; color: #ffe3c4; line-height: 1.4; }
+    .tp-u-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+    .tp-u-box { border-radius: 18px; padding: 14px; background: rgba(0, 0, 0, .2); border: 1px solid rgba(255, 213, 74, .38); min-width: 0; }
+    .tp-u-bh { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .tp-u-bh b { font-size: 16px; color: #fff; font-weight: 900; } .tp-u-bh b small { font-size: 12px; font-weight: 700; color: #ffd9a8; margin-left: 4px; }
+    .tp-u-st { font-size: 11.5px; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #ffe9b8; border: 1px solid rgba(255, 233, 184, .35); white-space: nowrap; }
+    .tp-u-st.live { background: rgba(239, 68, 68, .3); color: #fff; border-color: rgba(255, 160, 160, .7); }
+    .tp-u-st.done { background: rgba(34, 197, 94, .22); color: #bbf7d0; border-color: rgba(134, 239, 172, .5); }
+    .tp-u-title { margin-top: 4px; font-size: 12.5px; color: #ffd9a8; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tp-u-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .tp-u-grid > *, .tp-u-list > li { min-width: 0; }
+    .tp-u-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 213, 74, .22); }
+    .tp-u-row.champ { background: linear-gradient(90deg, rgba(255, 213, 74, .26), rgba(255, 213, 74, .08)); border-color: rgba(255, 213, 74, .7); }
+    .tp-u-row.mine { box-shadow: 0 0 0 2px #86efac inset; }
+    .tp-u-i { flex: 0 0 auto; font-size: 22px; line-height: 1; }
+    .tp-u-n { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .tp-u-n > b { font-size: 14.5px; color: #fff; font-weight: 800; }
+    .tp-u-n > small { font-size: 12px; color: #ffd9a8; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tp-u-n .tp-u-win { color: #fff3b0; font-weight: 800; }
+    .tp-u-n .tp-u-me { display: inline-block; margin-right: 2px; padding: 0 7px; border-radius: 999px; background: #86efac; color: #064e3b; font-size: 11px; font-weight: 900; }
+    .tp-u-v { flex: 0 0 auto; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 52%; }
+    .tp-u-v > b { font-size: 16px; font-weight: 900; color: var(--ts-gold, #ffd54a); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .tp-u-v > small { font-size: 11.5px; color: #ffe9b8; font-weight: 700; line-height: 1.35; max-width: 100%; overflow-wrap: anywhere; }
+    .tp-u-v > b.it { font-size: 14px; }
+    .tp-u-foot { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255, 213, 74, .35); font-size: 12.5px; color: #ffe3c4; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .tp-u-foot b { color: var(--ts-gold, #ffd54a); }
+    @media (max-width: 480px) {
+        .tp-u { padding: 14px 12px; border-radius: 20px; }
+        .tp-u-grid { grid-template-columns: 1fr; }
+        .tp-u-box { padding: 12px 10px; }
+        .tp-u-row { padding: 9px 10px; gap: 8px; }
+        .tp-u-v > b { font-size: 15px; }
+    }
+    </style>
+    <script id="tour-prize-user-js">
+    /* Trang thành viên: Giải Đấu > khung "Giải Thưởng" (tiền + quà từng hạng, người nhận khi giải kết thúc)
+       + Túi đồ: mỗi khoản thưởng giải đấu của mình 1 dòng 🏆, giải có tiền mặt có nhãn Chờ BQT chuyển khoản / Đã chuyển khoản */
+    (function () {
+        'use strict';
+        var TP = window.QDTourPrize; if (!TP) return;
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var me = function () { return (window.State && window.State.currentUser) || ''; };
+        // Cột phải: tiền (hoặc vật phẩm đầu tiên) chữ to, phần còn lại (điểm, lượt, quà khác) chữ nhỏ bên dưới
+        function valHTML(x, unit) {
+            var p = TP.parts(x); if (!p.length) return '';
+            return '<b' + (x.cash > 0 ? '' : ' class="it"') + '>' + esc(p[0]) + (x.cash > 0 ? unit : '') + '</b>' + (p.length > 1 ? '<small>' + esc(p.slice(1).join(' · ')) + '</small>' : '');
+        }
+        function box(fmt, pc, cfg, st) {
+            var P = cfg ? TP.places(cfg) : null, status = !cfg ? ['', 'Chưa có sơ đồ'] : P && P.done ? ['done', 'Đã kết thúc'] : P && P.live ? ['live', '● Đang diễn ra'] : ['', 'Chưa bắt đầu'];
+            var sl = cfg ? TP.slots(cfg) : null, who = {}, u = me(), total = 0, mult = fmt === 'double' && pc.split === 'each' ? 2 : 1;
+            if (P && P.done) P.list.forEach(function (p) { (who[p.k] = who[p.k] || []).push(p.e); });
+            var rows = TP.TIERS.filter(function (t) { return TP.has(pc.tiers[t.k]) && (!sl || sl[t.k]); }).map(function (t) {
+                var x = pc.tiers[t.k], n = sl ? sl[t.k] : 1, ents = who[t.k] || [];
+                total += x.cash * n * mult;
+                var mine = !!u && ents.some(function (e) { return (e.members || []).some(function (m) { return m && m.u === u; }); });
+                var unit = fmt === 'double' ? (pc.split === 'team' ? ' / đội' : ' / người') : '';
+                var sub = ents.length ? (mine ? '<span class="tp-u-me">Bạn</span> ' : '') + '<span class="tp-u-win">' + esc(ents.map(function (e) { return e.name; }).join(' · ')) + '</span>'
+                    : (n > 1 ? 'Mỗi ' + (fmt === 'double' ? 'đội' : 'người') + ' · ' + n + ' suất' : (P && P.done ? 'Không có' : 'Chờ kết quả'));
+                return '<li class="tp-u-row ' + t.k + (mine ? ' mine' : '') + '"><span class="tp-u-i">' + t.i + '</span>'
+                    + '<span class="tp-u-n"><b>' + esc(TP.tierName(t.k, cfg)) + '</b><small>' + sub + '</small></span>'
+                    + '<span class="tp-u-v">' + valHTML(x, unit) + '</span></li>';
+            });
+            if (!rows.length) return '';
+            var splitTxt = fmt === 'double' ? (pc.split === 'team' ? 'Thưởng tính cho cả đội, chia đều 2 người' : 'Mỗi thành viên trong đội nhận đủ') : '';
+            var itemNote = TP.TIERS.some(function (t) { return TP.hasItems(pc.tiers[t.k]); }) ? '<span>💰 Điểm lì xì + lượt tự cộng vào tài khoản khi giải kết thúc</span>' : '';
+            return '<section class="tp-u-box"><div class="tp-u-bh"><b>' + (fmt === 'double' ? '👥 Giải Đôi<small>2 vs 2</small>' : '👤 Giải Đơn<small>1 vs 1</small>') + '</b><span class="tp-u-st ' + status[0] + '">' + status[1] + '</span></div>'
+                + (cfg && cfg.title ? '<div class="tp-u-title">' + esc(cfg.title) + '</div>' : '')
+                + '<ul class="tp-u-list">' + rows.join('') + '</ul>'
+                + ((cfg && total > 0) || splitTxt || itemNote ? '<div class="tp-u-foot"><span>' + (cfg && total > 0 ? 'Tổng tiền thưởng: <b>' + TP.vnd(total) + '</b>' : '') + '</span><span>' + splitTxt + '</span>' + itemNote + '</div>' : '')
+                + '</section>';
+        }
+        function paint(st) {
+            var el = document.getElementById('tp-u'); if (!el) return;
+            st = st || TP.current(); if (!st) { el.hidden = true; return; }
+            var h = '';
+            ['single', 'double'].forEach(function (f) {
+                var pc = st.prize[f], cfg = st.brackets[f];
+                if (!TP.any(pc)) return;
+                if (cfg && cfg.enabled === false && !(cfg.entries || []).some(Boolean)) cfg = null;
+                h += box(f, pc, cfg, st);
+            });
+            el.hidden = !h;
+            if (!h) return;
+            document.getElementById('tp-u-grid').innerHTML = h;
+            document.getElementById('tp-u-note').textContent = st.prize.note || 'Ban Quản Trị chuyển khoản tiền thưởng sau khi giải kết thúc. Nhớ khai tài khoản nhận thưởng trong Hồ sơ / Túi đồ.';
+        }
+        var lastMine = null;
+        TP.watch(function (st) {
+            paint(st);
+            if (window.Inventory && window.Inventory.owner) try { window.Inventory.renderList(); } catch (e) {}
+            // Báo khi mình vừa có giải (không báo lần đầu mở trang)
+            var u = me(); if (!u) return;
+            var mine = st.awards.filter(function (a) { return a.user === u; }), ids = mine.map(function (a) { return a.id; }).join('|');
+            if (lastMine !== null && lastMine.u === u && ids && ids !== lastMine.ids) {
+                var a = mine[0], pr = TP.parts(a); try { window.Utils.toast('🏆 Chúc mừng! Bạn đạt ' + a.tierName + ' ' + TP.FMT[a.fmt] + (pr.length ? ' — thưởng ' + pr.join(' · ') : '') + '!', 'success'); } catch (e) {}
+            }
+            lastMine = { u: u, ids: ids };
+        });
+        // Đổi tài khoản -> vẽ lại (đánh dấu "Bạn")
+        // Tự cộng điểm / lượt thưởng của chính mình (khoản nào máy Admin chưa cộng)
+        function startAuto(u) {
+            TP.autoGive({ user: u || '', by: function () { return 'user:' + me(); }, done: function () {
+                try { window.Utils.toast('🎁 Đã cộng điểm lì xì / lượt thưởng Giải Đấu vào tài khoản của bạn!', 'success'); } catch (e) {}
+                if (window.Inventory) try { window.Inventory.renderList(); } catch (e) {}
+            } });
+        }
+        var lastU = null; function tick() { var u = me(); if (u !== lastU) { lastU = u; lastMine = null; startAuto(u); paint(); } }
+        tick(); setInterval(tick, 2000);
+        window.TourPrizeUser = {
+            // Các khoản thưởng giải đấu của mình (Túi đồ dùng)
+            mine: function (u) {
+                var st = TP.current(); if (!st || !u) return [];
+                var g = TP.given();
+                return st.awards.filter(function (a) { return a.user === u; }).map(function (a) {
+                    var tag = !a.hasItems ? '' : g[a.id] ? '<span class="inv2-pay ok">✅ Đã cộng ' + esc(TP.itemsText(a.items)) + '</span>'
+                        : '<span class="inv2-pay wait">⏳ Sắp cộng ' + esc(TP.itemsText(a.items)) + ' (sau khi BQT chốt kết quả)</span>';
+                    return { src: 'tour', id: a.id, ts: a.ts, cash: a.cash, tag: tag, prize: TP.parts(a).join(' · ') + ' · ' + a.tierName + ' ' + TP.FMT[a.fmt] };
+                });
+            },
+            paint: paint
+        };
+    })();
+    </script>
     <!-- ===== ĐĂNG KÝ ID GAME: thẻ trang chủ + menu + nút Giải Đấu, trạng thái mở/đóng/hạn chót, xem đơn đã gửi ===== -->
     <style id="regid-css">
         .reg-mini { position: relative; width: 150px; height: 92px; display: flex; align-items: center; justify-content: center; }
@@ -20841,8 +21171,8 @@ html[data-theme="tet"][data-tet-color="chung"] .wheel-mini .wm-a { fill: #06553a
 }
 /* Máy tính bảng / máy tính: 3 cột */
 @media (min-width: 768px) {
-    html[data-theme="tet"] #view-dashboard .bento-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding: 16px 0 24px; }
-    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { grid-column: auto; min-height: 196px; }
+    html[data-theme="tet"] #view-dashboard .bento-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; padding: 16px 0 24px; }   /* 6 rãnh: thẻ thường = 2 rãnh (3 thẻ/hàng), hàng cuối lẻ chia 1/2 hoặc đầy hàng (bản 22.1) */
+    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { grid-column: span 2; min-height: 196px; }
 }
 @media (min-width: 1024px) {
     html[data-theme="tet"] .top-navbar .mobile-header-brand { display: none !important; }
@@ -21578,11 +21908,13 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
     html[data-theme="tet"] #view-dashboard .bento-hero p { font-size: 15px !important; }
     html[data-theme="tet"] #view-dashboard .hero-side { gap: 12px; }
     html[data-theme="tet"] #view-dashboard .hero-video-wrap { width: 260px; border-radius: 14px; }
-    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.qd-span { grid-column: 1 / -1; }
+    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.qd-span, html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.con-tab { grid-column: 1 / -1; }   /* Ném Còn luôn là thẻ ngang cả hàng */
+    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.qd-half { grid-column: span 3; }
+    @media (max-width: 767px) { html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.con-tab { min-height: 0; } }
     @media (min-width: 1200px) {
         /* Màn rộng: thẻ chào (2 phần) + lì xì hằng ngày (1 phần) chung 1 hàng */
-        html[data-theme="tet"] #view-dashboard .bento-grid > .bento-hero { grid-column: span 2; }
-        html[data-theme="tet"] #view-dashboard .bento-grid > .lixi-card { grid-column: span 1; display: flex; flex-direction: column; justify-content: space-between; }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .bento-hero { grid-column: span 4; }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .lixi-card { grid-column: span 2; display: flex; flex-direction: column; justify-content: space-between; }
         html[data-theme="tet"] #view-dashboard .bento-hero { flex-direction: column; align-items: stretch; justify-content: center; }
         html[data-theme="tet"] #view-dashboard .bento-hero .hero-side { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
         html[data-theme="tet"] #view-dashboard .bento-hero .hero-side .hero-badges-area { flex-direction: column; align-items: flex-start; justify-content: center; }
@@ -21641,25 +21973,505 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         html[data-theme="tet"] #auth-gate ~ * #qd-help-btn { display: none; }
     }
     </style>
-    <script id="qd-ui-v2-js">
-    /* Thẻ trò chơi cuối cùng lẻ hàng -> trải hết hàng cho cân (số thẻ thay đổi khi Admin ẩn / hiện mục) */
+    <style id="qd-nav-v3">
+    /* =====================================================================
+       MENU 5 THẺ (bản 22): Trang Chủ · Trò Chuyện · Điểm Danh · Bản Tin · Giải Đấu
+       - Máy tính: mỗi thẻ = ô biểu tượng + tên + dòng mô tả; thẻ đang mở = sơn mài đỏ, ô biểu tượng vàng.
+       - Điện thoại: thanh nổi 5 ô đều nhau; thẻ đang mở = nút tròn đỏ viền vàng nhô lên.
+       - Biểu tượng là SVG tại chỗ (không phụ thuộc thư viện icon). Số tin chưa đọc hiện ở thẻ Trò Chuyện.
+       Màu lấy từ chủ đề (--ts-lq1/2/3, --ts-gold...) nên đổi màu đỏ / đào / xanh vẫn đồng bộ.
+       ===================================================================== */
+    .nv-ico svg, .mn-ico svg { width: 24px; height: 24px; display: block; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .nv-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; font: 800 11.5px/20px "Plus Jakarta Sans", "Be Vietnam Pro", system-ui, sans-serif; text-align: center; color: #fff; background: #e11d2e; box-shadow: 0 0 0 2px #fff6dc; flex: 0 0 auto; }
+    .nv-badge[hidden] { display: none !important; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-badge, html[data-theme="tet"] .mobile-nav .m-nav-item .nv-badge { color: #fff !important; text-shadow: none !important; }
+
+    /* ---------- Máy tính: menu bên ---------- */
+    html[data-theme="tet"] .floating-sidebar .nav-menu { gap: 8px !important; padding: 4px 6px; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item {
+        display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 9px 12px 9px 9px !important; border-radius: 18px !important; overflow: visible;
+        color: #5c2a04 !important; background: transparent !important; border: 1.5px solid transparent !important; border-right-width: 1.5px !important; font-weight: 700;
+        -webkit-tap-highlight-color: transparent; outline: none; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-ico {
+        flex: 0 0 auto; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; z-index: 2;
+        color: var(--ts-lq1) !important; background: rgba(255, 213, 74, .36) !important; border: 1.5px solid var(--ts-gold-line);
+        transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .15s ease; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 auto; text-align: left; line-height: 1.15; z-index: 2; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-txt b { font-size: 16px; font-weight: 800; color: inherit !important; letter-spacing: -.1px; text-shadow: none !important; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-txt small { font-size: 12px; font-weight: 600; color: inherit !important; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: none !important; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item:hover:not(.active) { background: color-mix(in srgb, var(--ts-lq1) 7%, transparent) !important; border-color: transparent !important; color: var(--ts-ink) !important; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item:hover:not(.active) .nv-ico { background: rgba(255, 213, 74, .6) !important; transform: none; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(242, 183, 5, .55) !important; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item.active {
+        color: var(--ts-gold) !important; background: linear-gradient(135deg, var(--ts-lq1), var(--ts-lq2)) !important;
+        border: 1.5px solid var(--ts-gold-2) !important; box-shadow: 0 10px 20px -10px rgba(140, 10, 10, .75) !important; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item.active .nv-ico { color: var(--ts-lq2) !important; background: linear-gradient(135deg, #fff3b0, #ffd54a 60%, #f2b705) !important; border-color: #fff3b0; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item.active .nv-txt small { color: #ffe9b0 !important; opacity: .92; }
+    html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item.active .nv-badge { background: var(--ts-gold); color: #7a0a0a !important; box-shadow: 0 0 0 2px var(--ts-lq2); }
+    @media (min-height: 900px) {   /* màn cao: thẻ to và thoáng hơn để menu không lọt thỏm */
+        html[data-theme="tet"] .floating-sidebar .nav-menu { gap: 10px !important; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item { min-height: 74px; padding: 10px 14px 10px 10px !important; border-radius: 20px !important; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-ico { width: 52px; height: 52px; border-radius: 16px; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-ico svg { width: 26px; height: 26px; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-txt b { font-size: 17px; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-txt small { font-size: 12.5px; }
+    }
+    @media (max-height: 800px) {
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item { min-height: 56px; padding: 7px 10px 7px 8px !important; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-ico { width: 40px; height: 40px; border-radius: 12px; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-ico svg { width: 21px; height: 21px; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-txt b { font-size: 15px; }
+    }
+    @media (max-height: 640px) {
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item { min-height: 46px; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-ico { width: 34px; height: 34px; }
+        html[data-theme="tet"] .floating-sidebar .nav-menu .nav-item .nv-txt small { display: none; }
+    }
+
+    /* ---------- Điện thoại / máy tính bảng: thanh nổi 5 ô ---------- */
+    @media (max-width: 1023px) {
+        html[data-theme="tet"] .main-content-wrapper { padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
+        html[data-theme="tet"] .mobile-nav {
+            left: 50%; right: auto; width: calc(100% - 20px); max-width: 560px; transform: translateX(-50%);
+            bottom: calc(8px + env(safe-area-inset-bottom)); padding: 8px 6px 6px !important; gap: 2px; align-items: flex-end;
+            border-radius: 26px; border: 1.5px solid var(--ts-gold-line) !important; background: var(--ts-paper-solid) !important;
+            -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 14px 28px -10px rgba(120, 30, 0, .55), 0 2px 0 rgba(255, 255, 255, .7) inset !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item {
+            position: relative; flex: 1 1 0; min-width: 0; gap: 3px; padding: 2px 0 0 !important; border-radius: 16px; background: transparent !important; box-shadow: none !important;
+            color: #7a4a14 !important; -webkit-tap-highlight-color: transparent; outline: none; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item .mn-ico { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: var(--ts-lq1) !important; transition: transform .2s ease, background-color .2s ease; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item .mn-lb { font-size: 10.5px; font-weight: 800; line-height: 1.1; color: inherit !important; white-space: nowrap; text-shadow: none !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item:active .mn-ico { transform: scale(.9); }
+        html[data-theme="tet"] .mobile-nav .m-nav-item.active { color: var(--ts-ink) !important; background: transparent !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item.active .mn-ico {
+            width: 50px; height: 50px; margin-top: -26px; margin-bottom: -1px; transform: none; color: var(--ts-gold) !important;
+            background: linear-gradient(160deg, var(--ts-lq1), var(--ts-lq2)) !important; border: 3px solid #fff6dc;
+            box-shadow: 0 0 0 2px var(--ts-gold-2), 0 10px 18px -6px rgba(140, 10, 10, .75); }
+        html[data-theme="tet"] .mobile-nav .m-nav-item.active .mn-ico svg { width: 25px; height: 25px; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item .nv-badge { position: absolute; top: -4px; left: calc(50% + 6px); min-width: 17px; height: 17px; padding: 0 4px; font-size: 10px; line-height: 17px; box-shadow: 0 0 0 2px #fff6dc; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item.active .nv-badge { top: -28px; left: calc(50% + 10px); }
+        /* Nút Hỗ trợ nằm trên thanh menu, không đè lên nút tròn đang chọn */
+        body.qh-user #qd-help-btn { bottom: calc(env(safe-area-inset-bottom) + 108px); }
+    }
+    @media (max-width: 360px) {
+        html[data-theme="tet"] .mobile-nav .m-nav-item .mn-lb { font-size: 9.5px; }
+        html[data-theme="tet"] .mobile-nav { width: calc(100% - 12px); padding: 8px 3px 6px !important; }
+    }
+    @media (prefers-reduced-motion: reduce) { .nv-ico, .mn-ico { transition: none !important; } }
+    </style>
+
+    <script id="qd-nav-v3-js">
+    /* Menu 5 thẻ: số tin chưa đọc ở "Trò Chuyện", bàn phím (Enter / Space) và aria-current cho thẻ đang mở */
     (function () {
         'use strict';
-        function fix() {
-            var g = document.querySelector('#view-dashboard .bento-grid'); if (!g) return;
-            var tabs = Array.prototype.filter.call(g.querySelectorAll(':scope > .wheel-tab'), function (t) { return t.offsetParent !== null || t.classList.contains('qd-span'); });
-            tabs.forEach(function (t) { t.classList.remove('qd-span'); });
-            var vis = tabs.filter(function (t) { return t.offsetParent !== null; });
-            var cols = (getComputedStyle(g).gridTemplateColumns || '').split(' ').filter(Boolean).length || 1;
-            if (cols > 1 && vis.length % cols === 1) vis[vis.length - 1].classList.add('qd-span');
+        var Q = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+        function unread() {
+            var n = 0;
+            Q('#view-chat .unread-badge').forEach(function (b) { var v = parseInt(b.textContent, 10); if (v > 0) n += v; });
+            return n;
         }
-        var t = null; function later() { clearTimeout(t); t = setTimeout(fix, 150); }
-        window.addEventListener('resize', later);
-        document.addEventListener('DOMContentLoaded', function () {
-            later(); var g = document.querySelector('#view-dashboard .bento-grid');
-            if (g && window.MutationObserver) new MutationObserver(later).observe(g, { attributes: true, subtree: false, childList: true, attributeFilter: ['style', 'hidden', 'class'] });
-            setInterval(fix, 4000);
-        });
+        function paint() {
+            var n = unread(), t = n > 99 ? '99+' : String(n);
+            Q('[data-nv="chat"] .nv-badge').forEach(function (b) { b.textContent = t; b.hidden = n <= 0; });
+            Q('[data-nv="chat"]').forEach(function (e) { e.setAttribute('aria-label', 'Trò Chuyện' + (n > 0 ? ', ' + n + ' tin chưa đọc' : '')); });
+        }
+        function aria() { Q('.nav-item[data-nv], .m-nav-item[data-nv]').forEach(function (e) { if (e.classList.contains('active')) e.setAttribute('aria-current', 'page'); else e.removeAttribute('aria-current'); }); }
+        var t1 = null; function later() { clearTimeout(t1); t1 = setTimeout(paint, 250); }
+        function start() {
+            Q('.nav-item[data-nv], .m-nav-item[data-nv]').forEach(function (e) {
+                e.setAttribute('role', 'button'); e.setAttribute('tabindex', '0');
+                e.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); e.click(); } });
+                if (window.MutationObserver) new MutationObserver(aria).observe(e, { attributes: true, attributeFilter: ['class'] });
+            });
+            var c = document.getElementById('view-chat');
+            if (c && window.MutationObserver) new MutationObserver(later).observe(c, { childList: true, subtree: true, characterData: true });
+            aria(); paint(); setInterval(paint, 6000);
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+    })();
+    </script>
+
+    <style id="qd-resp-v23">
+    /* =====================================================================
+       GIAO DIỆN VỪA MỌI MÀN HÌNH (bản 23) — lớp cuối, đè lên các lớp cũ
+       Điện thoại dọc / ngang · máy tính bảng · laptop · màn hình rộng. Màu lấy từ chủ đề Tết (--ts-*).
+       1. Khung chung   2. Trang Chủ (lưới 12 rãnh, thẻ chào)   3. Trò Chuyện   4. Nút Hỗ trợ
+       5. Điện thoại xoay ngang   6. Điểm Danh / Bản Tin / Giải Đấu   7. Hộp thoại
+       ===================================================================== */
+
+    /* ---------- 1. KHUNG CHUNG ---------- */
+    @media (min-width: 1024px) {
+        /* Đầu trang + nội dung cùng bề rộng, màn rất rộng (2K, 4K) không bị lệch trái */
+        html[data-theme="tet"] .main-content-wrapper > .top-navbar,
+        html[data-theme="tet"] .main-content-wrapper > .workspace-area { width: 100%; max-width: 1680px; margin-left: auto !important; margin-right: auto !important; }
+        html[data-theme="tet"] #view-dashboard .bento-grid { max-width: none !important; margin: 0 !important; }
+    }
+    @media (min-width: 1024px) and (max-width: 1365px) {
+        /* Laptop nhỏ: menu bên gọn lại để nhường chỗ cho nội dung */
+        html[data-theme="tet"] .floating-sidebar { width: 248px !important; min-width: 248px; }
+    }
+
+    /* ---------- 2. TRANG CHỦ ---------- */
+    /* Lưới 12 rãnh: điện thoại 2 thẻ / hàng · máy tính bảng + laptop 3 thẻ · màn rộng (≥ 1500 px) 4 thẻ.
+       Hàng cuối bị lẻ được JS bên dưới chia lại cho cân (không còn thẻ trơ trọi). */
+    html[data-theme="tet"] #view-dashboard .bento-grid { grid-template-columns: repeat(12, minmax(0, 1fr)) !important; }
+    html[data-theme="tet"] #view-dashboard .bento-grid > .bento-hero,
+    html[data-theme="tet"] #view-dashboard .bento-grid > .lixi-card,
+    html[data-theme="tet"] #view-dashboard .bento-grid > .ln-live-banner,
+    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.con-tab { grid-column: 1 / -1; }
+    html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { grid-column: span 6; }
+    @media (min-width: 768px) {
+        html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { grid-column: span 4; min-height: 184px !important; }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.con-tab { min-height: 150px !important; }
+    }
+    @media (min-width: 1024px) {
+        html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { min-height: 200px !important; }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab.con-tab { min-height: 160px !important; }
+    }
+    @media (min-width: 1200px) {
+        html[data-theme="tet"] #view-dashboard .bento-grid > .bento-hero { grid-column: span 8; }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .lixi-card { grid-column: span 4; }
+    }
+    @media (min-width: 1500px) {
+        /* Thẻ chào rộng đúng 3 thẻ, lì xì hằng ngày đúng 1 thẻ -> các cột thẳng hàng */
+        html[data-theme="tet"] #view-dashboard .bento-grid > .bento-hero { grid-column: span 9; }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .lixi-card { grid-column: span 3; }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { grid-column: span 3; }
+    }
+
+    /* Đang quay số trực tiếp (bản 23.1): băng "ĐANG QUAY SỐ TRỰC TIẾP" chen giữa thẻ chào và thẻ lì xì làm thẻ lì xì rơi xuống
+       hàng thẻ trò chơi -> lệch hàng, hở ô trống. Màn rộng: băng xếp sau hàng thẻ chào + lì xì, ngay trên các thẻ trò chơi. */
+    @media (min-width: 1200px) {
+        html[data-theme="tet"] #view-dashboard .bento-grid > .ln-live-banner { order: 1; }
+        html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { order: 2; }
+    }
+    /* Thanh đầu trang (dính khi cuộn): nền đặc, không còn lộ chữ của thẻ chào bên dưới */
+    html[data-theme="tet"] .top-navbar { background: rgba(255, 246, 220, .97) !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+
+    /* Thẻ chào - máy tính bảng / laptop nhỏ (768-1199 px): chữ bên trái, video bên phải (trước: video nhỏ lọt thỏm, nửa phải trống) */
+    @media (min-width: 768px) and (max-width: 1199px) {
+        html[data-theme="tet"] #view-dashboard .bento-hero {
+            display: grid !important; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "t v" "b v";
+            column-gap: 24px !important; row-gap: 14px !important; align-items: center; text-align: left; }
+        html[data-theme="tet"] #view-dashboard .hero-title-area { grid-area: t; align-self: end; text-align: left; }
+        html[data-theme="tet"] #view-dashboard .hero-side { display: contents !important; }
+        html[data-theme="tet"] #view-dashboard .hero-badges-area { grid-area: b; align-self: start; display: flex !important; flex-direction: row !important; flex-wrap: wrap; justify-content: flex-start !important; gap: 10px !important; margin: 0 !important; }
+        html[data-theme="tet"] #view-dashboard .hero-video-wrap { grid-area: v; width: 280px !important; margin: 0 !important; }
+    }
+
+    /* Thẻ chào - điện thoại: gọn còn ~2/3 chiều cao, điểm + đồng hồ xếp cột bên trái video -> thấy thẻ trò chơi sớm hơn */
+    @media (max-width: 767px) {
+        html[data-theme="tet"] #view-dashboard .bento-hero {
+            display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); grid-template-areas: "t t" "b v";
+            gap: 12px !important; align-items: center; padding: 16px 14px !important; text-align: center; }
+        html[data-theme="tet"] #view-dashboard .hero-title-area { grid-area: t; }
+        html[data-theme="tet"] #view-dashboard .bento-hero h1 { font-size: 19.5px !important; line-height: 1.22; margin-bottom: 4px !important; }
+        html[data-theme="tet"] #view-dashboard .bento-hero p { font-size: 12.5px !important; line-height: 1.4; }
+        html[data-theme="tet"] #view-dashboard .hero-side { display: contents !important; }
+        html[data-theme="tet"] #view-dashboard .hero-badges-area { grid-area: b; display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: center !important; gap: 8px !important; margin: 0 !important; min-width: 0; }
+        html[data-theme="tet"] #view-dashboard .hero-point-pill,
+        html[data-theme="tet"] #view-dashboard .hero-clock { display: flex !important; align-items: center; justify-content: center; gap: 6px; width: 100%; min-width: 0; min-height: 40px; padding: 6px 8px !important; font-size: 12.5px !important; border-radius: 14px !important; text-align: center; }
+        html[data-theme="tet"] #view-dashboard .hero-point-pill > span { display: inline-flex; flex-wrap: wrap; justify-content: center; column-gap: 4px; line-height: 1.25; }
+        html[data-theme="tet"] #view-dashboard .hero-video-wrap { grid-area: v; width: 100% !important; margin: 0 !important; border-radius: 12px !important; }
+        /* Thẻ trò chơi: cao theo nội dung (trước luôn cao bằng thẻ lì xì) */
+        html[data-theme="tet"] #view-dashboard .bento-grid > .wheel-tab { min-height: 0 !important; }
+        html[data-theme="tet"] #view-dashboard .wheel-tab-stage { min-height: 84px; }
+    }
+
+    /* ---------- 3. TRÒ CHUYỆN ---------- */
+    /* Sửa lỗi (bản 22): đang chat trên điện thoại / máy tính bảng, ô soạn tin bị đẩy khuất dưới đáy màn hình
+       vì vẫn chừa 96 px cho thanh menu (thanh menu đã ẩn khi chat) */
+    @media (max-width: 1023px) {
+        html[data-theme="tet"] body.in-chat-mode .main-content-wrapper { padding: 0 !important; }
+        html[data-theme="tet"] body.in-chat-mode #view-chat .chat-module { height: 100% !important; min-height: 0 !important; }
+    }
+    /* Máy tính bảng dọc (768-1023 px, đủ cao): danh bạ + khung chat song song như máy tính */
+    @media (min-width: 768px) and (max-width: 1023px) and (min-height: 560px) {
+        html[data-theme="tet"] #view-chat .chat-module { height: calc(100vh - 150px - env(safe-area-inset-bottom)) !important; height: calc(100dvh - 150px - env(safe-area-inset-bottom)) !important; min-height: 420px !important; }
+        html[data-theme="tet"] #view-chat .chat-sidebar { position: relative !important; display: flex !important; width: 290px !important; flex: 0 0 290px; height: auto !important; transform: none !important; }
+        html[data-theme="tet"] #view-chat .chat-main { display: flex !important; flex: 1 1 auto; min-width: 0; }
+        html[data-theme="tet"] #view-chat .btn-mobile-back,
+        html[data-theme="tet"] #view-chat .chat-empty-state .btn.hidden-desktop { display: none !important; }
+        html[data-theme="tet"] #view-chat .chat-search-wrap { padding: 16px !important; }
+        html[data-theme="tet"] #view-chat .contact-list { padding: 10px !important; }
+        html[data-theme="tet"] #view-chat .contact-card { padding: 11px 12px !important; gap: 12px !important; }
+        html[data-theme="tet"] #view-chat .msg-row { max-width: 82%; }
+    }
+    /* Dòng trạng thái liên hệ ("Hoạt động 20 phút trước") luôn 1 dòng */
+    html[data-theme="tet"] #view-chat .contact-card .flex-col > div:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Máy tính: ô danh bạ hẹp lại một chút ở laptop nhỏ */
+    @media (min-width: 1024px) and (max-width: 1279px) {
+        html[data-theme="tet"] #view-chat .chat-sidebar { width: 290px !important; }
+    }
+
+    /* ---------- 4. NÚT HỖ TRỢ ---------- */
+    /* Điện thoại / máy tính bảng: thành "tai" nhỏ bám mép phải màn hình -> không còn đè lên thẻ lì xì, thẻ trò chơi, nút đăng nhập */
+    @media (max-width: 1023px) {
+        body.qh-user #qd-help-btn { right: 0 !important; width: 40px !important; height: 46px !important; padding: 0 0 0 5px !important; justify-content: flex-start !important;
+            border-radius: 23px 0 0 23px !important; border-right-width: 0 !important; box-shadow: -4px 6px 16px rgba(60, 0, 0, .35) !important; }
+        body.qh-user #qd-help-btn .qh-ico { width: 32px !important; height: 32px !important; }
+        body.qh-user #qd-help-btn .qh-ico svg { width: 18px; height: 18px; }
+        body.qh-user #qd-help-btn .qh-ico::after { width: 8px; height: 8px; }
+        body.qh-user.qd-out #qd-help-btn { bottom: max(16px, calc(env(safe-area-inset-bottom) + 12px)) !important; }
+    }
+    /* Máy tính: nút tròn gọn (ít che thẻ), rê chuột vào mới hiện chữ "Hỗ trợ" */
+    @media (min-width: 1024px) {
+        body.qh-user #qd-help-btn { padding: 0 7px !important; gap: 0 !important; }
+        body.qh-user #qd-help-btn .qh-txt { display: inline-block; max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; transition: max-width .25s ease, opacity .2s ease, margin .25s ease; }
+        body.qh-user #qd-help-btn:hover .qh-txt, body.qh-user #qd-help-btn:focus-visible .qh-txt { max-width: 90px; opacity: 1; margin: 0 9px 0 7px; }
+    }
+    /* Đang ở Trò Chuyện (mọi màn hình): ẩn để không che nút Gửi */
+    body.qh-user[data-qd-view="chat"]:not(.qd-out) #qd-help-btn { opacity: 0; pointer-events: none; transform: translateY(14px); }
+
+    /* Đăng nhập: khung cao hơn màn hình (điện thoại xoay ngang, bàn phím đang mở) trước bị cắt mất phần đầu (huy hiệu, tên)
+       và không cuộn lên được -> nay luôn cuộn được từ đầu khung; màn đủ cao vẫn nằm giữa như cũ */
+    html[data-theme="tet"] #auth-gate { align-items: flex-start !important; padding-top: 68px !important; padding-bottom: 20px !important; }
+    html[data-theme="tet"] #auth-gate .auth-box.au2 { margin: auto !important; }
+    @media (max-width: 420px) { html[data-theme="tet"] #auth-gate { padding-top: 60px !important; } }
+
+    /* ---------- 5. ĐIỆN THOẠI XOAY NGANG (thấp ≤ 500 px) ---------- */
+    @media (max-width: 1023px) and (max-height: 500px) and (orientation: landscape) {
+        html[data-theme="tet"] .main-content-wrapper { padding-bottom: calc(62px + env(safe-area-inset-bottom)) !important; }
+        html[data-theme="tet"] .top-navbar { padding-top: 6px !important; padding-bottom: 6px !important; }
+        html[data-theme="tet"] .top-navbar .btn-icon { width: 38px !important; height: 38px !important; min-width: 38px; font-size: 15px !important; }
+        html[data-theme="tet"] .workspace-area { padding-left: max(14px, env(safe-area-inset-left)) !important; padding-right: max(14px, env(safe-area-inset-right)) !important; }
+        /* Menu dưới: 1 hàng thấp (biểu tượng + tên nằm ngang), nút đang chọn không nhô lên */
+        html[data-theme="tet"] .mobile-nav { max-width: 600px; padding: 5px 6px !important; bottom: calc(6px + env(safe-area-inset-bottom)); border-radius: 18px; align-items: center !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item { flex-direction: row !important; align-items: center !important; justify-content: center !important; gap: 6px !important; height: 40px; padding: 0 4px !important; border-radius: 12px; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item .mn-ico { width: 26px !important; height: 26px !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item .mn-ico svg { width: 21px !important; height: 21px !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item .mn-lb { font-size: 11.5px !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item.active { background: linear-gradient(160deg, var(--ts-lq1), var(--ts-lq2)) !important; color: var(--ts-gold) !important; box-shadow: 0 0 0 1.5px var(--ts-gold-2) !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item.active .mn-ico { width: 26px !important; height: 26px !important; margin: 0 !important; border: 0 !important; box-shadow: none !important; background: transparent !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item.active .mn-ico svg { width: 21px !important; height: 21px !important; }
+        html[data-theme="tet"] .mobile-nav .m-nav-item.active .nv-badge { top: -6px; left: calc(50% + 2px); }
+        body.qh-user #qd-help-btn { bottom: calc(env(safe-area-inset-bottom) + 66px) !important; }
+        html[data-theme="tet"] #view-dashboard .bento-hero { padding: 14px 18px !important; row-gap: 10px !important; }
+        html[data-theme="tet"] #view-dashboard .hero-video-wrap { width: 220px !important; }
+        /* Đăng nhập: khung thấp lại để không phải cuộn nhiều */
+        html[data-theme="tet"] #auth-gate { padding-top: 50px !important; }
+        html[data-theme="tet"] #auth-gate .auth-box.au2 { padding: 50px 22px 16px; max-width: 420px; }
+        html[data-theme="tet"] #auth-gate .au2-logo { width: 80px; height: 80px; }
+        html[data-theme="tet"] #auth-gate .au2 .au2-title { font-size: 24px !important; }
+        html[data-theme="tet"] #auth-gate .au2 .au2-sub { margin: 4px 0 12px !important; }
+        html[data-theme="tet"] #auth-gate .au2 .au2-g { margin-bottom: 8px; }
+        html[data-theme="tet"] #auth-gate .au2 .au2-field .form-control { height: 44px; }
+        html[data-theme="tet"] #auth-gate .au2 .au2-rem { margin: 2px 2px 12px; }
+        html[data-theme="tet"] #auth-gate .au2 .au2-btn { height: 46px; }
+    }
+
+    /* ---------- 6. ĐIỂM DANH · BẢN TIN · GIẢI ĐẤU ---------- */
+    @media (min-width: 1024px) {
+        /* Màn rộng: cột đọc vừa mắt, 2 thẻ Điểm Danh cùng bề rộng (trước: thẻ trên 800 px, thẻ dưới tràn hết) */
+        html[data-theme="tet"] #view-news > *,
+        html[data-theme="tet"] #view-attendance > * { max-width: 960px !important; margin-left: auto !important; margin-right: auto !important; }
+    }
+    /* Nút lọc Giải Đấu: "Các Đội", "Bảng Điểm Quân Đoàn" trước gần như vô hình (chữ kem trên nền kem) */
+    html[data-theme="tet"] #tournament-team-filters .btn.btn-outline {
+        background: var(--ts-paper-solid, #fff6dc) !important; color: var(--ts-ink, #9b0d19) !important; border: 1.5px solid var(--ts-gold-2, #f2b705) !important;
+        opacity: 1 !important; text-shadow: none !important; box-shadow: 0 6px 14px -10px rgba(120, 30, 0, .6) !important; }
+    html[data-theme="tet"] #tournament-team-filters .btn.btn-outline:hover { background: #fff !important; }
+    html[data-theme="tet"] #tournament-team-filters .btn.btn-outline i { color: var(--ts-gold-2, #f2b705) !important; }
+    /* Mã ID Game: chữ cam trên nền đỏ khó đọc -> chữ vàng nhạt trên nền tối */
+    html[data-theme="tet"] #tournament-display-area .badge-warning { color: #ffe9a0 !important; background: rgba(0, 0, 0, .28) !important; border: 1px solid rgba(255, 213, 74, .6) !important; }
+    /* Điện thoại: bảng thành viên thành thẻ gọn, không phải kéo ngang */
+    @media (max-width: 639px) {
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] { min-width: 0 !important; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] thead { display: none; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] tbody { display: block; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] tr {
+            display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; grid-template-areas: "n u id" "n g team";
+            align-items: center; gap: 4px 10px; padding: 12px 14px; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] td { display: block; padding: 0 !important; min-width: 0; border: 0 !important; text-align: left; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] td:nth-child(1) { grid-area: n; text-align: center; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] td:nth-child(2) { grid-area: u; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] td:nth-child(2) b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] td:nth-child(3) { grid-area: g; padding-left: 48px !important; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] td:nth-child(4) { grid-area: id; justify-self: end; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] td:nth-child(5) { grid-area: team; justify-self: end; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] td.hidden-mobile { display: none !important; }
+        html[data-theme="tet"] #tournament-display-area table[style*="min-width"] .badge { font-size: 12px !important; padding: 3px 9px !important; }
+    }
+
+    /* ---------- 6b. HỒ SƠ THEO MÀU CHỦ ĐỀ TẾT (bản 23.2) ----------
+       Trước: đầu thẻ màu chủ đề nhưng thân là giấy kem trắng, chữ nâu -> lạc tông với Túi Quà, Cài đặt, Trạm Quy Đổi.
+       Nay cả thẻ là sơn mài theo màu đang chọn (Đỏ Lì Xì / Hoa Đào / Bánh Chưng), ô viền vàng, số vàng, chữ kem. */
+    html[data-theme="tet"] #modal-profile .modal-box.pf2 {
+        background: radial-gradient(120% 50% at 50% 0%, rgba(255, 255, 255, .08), transparent 60%), linear-gradient(170deg, var(--ts-lq1) 0%, var(--ts-lq2) 55%, var(--ts-lq3) 100%) !important;
+        color: #fff3dc !important; border: 2px solid var(--ts-gold-2, #f2b705) !important;
+        box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .65), inset 0 0 0 4px rgba(255, 213, 74, .1) !important; }
+    html[data-theme="tet"] #modal-profile .pf2-hero { background: linear-gradient(135deg, rgba(255, 255, 255, .1), rgba(0, 0, 0, .12)); border-bottom: 1px solid rgba(255, 213, 74, .35); }
+    html[data-theme="tet"] #modal-profile .pf2-hero::after { opacity: 1; }
+    html[data-theme="tet"] #modal-profile .pf2-body { scrollbar-width: thin; scrollbar-color: rgba(255, 213, 74, .55) transparent; }
+    html[data-theme="tet"] #modal-profile .pf2-body::-webkit-scrollbar { width: 6px; }
+    html[data-theme="tet"] #modal-profile .pf2-body::-webkit-scrollbar-thumb { background: rgba(255, 213, 74, .55); border-radius: 6px; }
+    /* 3 ô số dư */
+    html[data-theme="tet"] #modal-profile .pf2-stats button { background: rgba(0, 0, 0, .22); border: 1.5px solid rgba(255, 213, 74, .45); color: #ffe9b8; }
+    html[data-theme="tet"] #modal-profile .pf2-stats button:hover { border-color: var(--ts-gold, #ffd54a); background: rgba(0, 0, 0, .3); }
+    html[data-theme="tet"] #modal-profile .pf2-stats b { color: var(--ts-gold, #ffd54a) !important; font-size: 21px; }
+    html[data-theme="tet"] #modal-profile .pf2-stats span { color: #ffe9b8 !important; }
+    /* Các mục */
+    html[data-theme="tet"] #modal-profile .pf2-sec { background: rgba(0, 0, 0, .2); border: 1px solid rgba(255, 213, 74, .38); }
+    html[data-theme="tet"] #modal-profile .pf2-sec h4 { color: var(--ts-gold, #ffd54a) !important; }
+    html[data-theme="tet"] #modal-profile .pf2-row { border-top-color: rgba(255, 213, 74, .25); }
+    html[data-theme="tet"] #modal-profile .pf2-row span { color: #ffd9a8 !important; }
+    html[data-theme="tet"] #modal-profile .pf2-row b, html[data-theme="tet"] #modal-profile #profile-uid { color: #fff !important; }
+    html[data-theme="tet"] #modal-profile .pf2-row b.pf2-on { color: #86efac !important; }
+    @media (max-width: 480px) {   /* điện thoại: nhãn ở đầu thẻ nhỏ lại để nằm chung 1 hàng */
+        html[data-theme="tet"] #modal-profile .pf2-tag, html[data-theme="tet"] #modal-profile .pf-avt-btn { font-size: 11px !important; padding: 3px 8px !important; }
+        html[data-theme="tet"] #modal-profile .pf2-hero { padding-right: 44px; padding-left: 14px; gap: 10px; }
+        /* Tài khoản nhận thưởng: nút Khai ngay / Xem xuống hàng riêng, chữ không bị bóp thành cột hẹp */
+        html[data-theme="tet"] #modal-profile .pf2-bk { flex-wrap: wrap; }
+        html[data-theme="tet"] #modal-profile .pf2-bk-t { flex: 1 1 calc(100% - 54px); }
+        html[data-theme="tet"] #modal-profile .pf2-bk > button { flex: 1 1 100%; padding: 10px 13px; }
+        html[data-theme="tet"] #modal-profile .pf-avt-wrap, html[data-theme="tet"] #modal-profile #profile-avatar-large { width: 60px !important; height: 60px !important; flex-basis: 60px; font-size: 26px !important; }
+    }
+    /* Mã mời */
+    html[data-theme="tet"] #modal-profile .pf2-code { background: rgba(0, 0, 0, .25); border-color: var(--ts-gold-2, #f2b705); }
+    html[data-theme="tet"] #modal-profile .pf2-code #my-invite-code { color: var(--ts-gold, #ffd54a) !important; }
+    html[data-theme="tet"] #modal-profile .pf2-code button, html[data-theme="tet"] #modal-profile .pf2-bk-btn,
+    html[data-theme="tet"] #modal-profile .pf2-inv button { color: #5c0a0a; background: linear-gradient(180deg, #ffe37a, #ffc21a); box-shadow: 0 6px 14px -8px rgba(255, 180, 0, .7); }
+    html[data-theme="tet"] #modal-profile #ivu-info, html[data-theme="tet"] #modal-profile #ivu-info p { color: #ffe3c4 !important; }
+    html[data-theme="tet"] #modal-profile .pf2-inv input { background: rgba(0, 0, 0, .28) !important; color: #fff !important; border: 1.5px solid rgba(255, 213, 74, .55) !important; }
+    html[data-theme="tet"] #modal-profile .pf2-inv input::placeholder { color: rgba(255, 233, 184, .6) !important; }
+    html[data-theme="tet"] #modal-profile .pf2-inv input:focus { border-color: var(--ts-gold, #ffd54a) !important; box-shadow: 0 0 0 3px rgba(255, 213, 74, .22) !important; outline: none; }
+    html[data-theme="tet"] #modal-profile .pf2-done { color: #86efac; }
+    /* Tài khoản nhận thưởng */
+    html[data-theme="tet"] #modal-profile .pf2-bk-ico { background: rgba(255, 213, 74, .18); border: 1px solid rgba(255, 213, 74, .4); }
+    html[data-theme="tet"] #modal-profile .pf2-bk-t b { color: #fff; }
+    html[data-theme="tet"] #modal-profile .pf2-bk-t small { color: #ffd9a8; }
+    html[data-theme="tet"] #modal-profile .pf2-bk-st.lock { background: rgba(255, 255, 255, .14); color: #ffe9b8; border: 1px solid rgba(255, 233, 184, .35); }
+    html[data-theme="tet"] #modal-profile .pf2-bk-st.open { background: rgba(34, 197, 94, .22); color: #bbf7d0; border: 1px solid rgba(134, 239, 172, .5); }
+    html[data-theme="tet"] #modal-profile .pf2-bk-st.need { background: rgba(255, 213, 74, .22); color: #ffe9a0; border: 1px solid rgba(255, 213, 74, .55); }
+    html[data-theme="tet"] #modal-profile .pf2-bk-sum div { background: rgba(0, 0, 0, .22); color: #ffd9a8; border: 1px solid rgba(255, 213, 74, .22); }
+    html[data-theme="tet"] #modal-profile .pf2-bk-sum b { color: var(--ts-gold, #ffd54a); }
+    /* Chân thẻ */
+    html[data-theme="tet"] #modal-profile .pf2-foot { background: rgba(0, 0, 0, .22); border-top: 1px solid rgba(255, 213, 74, .35); }
+    html[data-theme="tet"] #modal-profile .pf2-btn { background: rgba(255, 255, 255, .08); color: #fff3dc; border: 1.5px solid rgba(255, 213, 74, .55); }
+    html[data-theme="tet"] #modal-profile .pf2-btn:hover { background: rgba(255, 255, 255, .14); }
+    html[data-theme="tet"] #modal-profile .pf2-btn.out { background: rgba(0, 0, 0, .25); color: #ffc9c9; border-color: rgba(255, 150, 150, .55); }
+    html[data-theme="tet"] #modal-profile .pf2-btn.out:hover { background: rgba(220, 38, 38, .35); color: #fff; }
+
+    /* ---------- 7. HỘP THOẠI TRÊN ĐIỆN THOẠI ---------- */
+    @media (max-width: 480px) {
+        /* Cài đặt: hàng "Chế độ Sáng/Tối", "Nhạc nền" không còn bị bóp chữ thành 3 dòng */
+        html[data-theme="tet"] #modal-settings .p-5 > .flex.justify-between.items-center,
+        html[data-theme="tet"] #modal-settings .form-group > .flex.justify-between.items-center { flex-wrap: wrap; gap: 10px; }
+        html[data-theme="tet"] #modal-settings .flex.justify-between.items-center > .flex.items-center { white-space: nowrap; }
+        /* Trạm Quy Đổi: số dư không bị ngắt dòng */
+        html[data-theme="tet"] #modal-point-shop .ps2-balance b { white-space: nowrap; }
+    }
+    </style>
+
+    <script id="qd-resp-v23-js">
+    /* Bản 23 — phần JS của lớp giao diện:
+       1. Cân hàng thẻ trò chơi ở Trang Chủ (thay bản 22.1): lưới 12 rãnh, 2 / 3 / 4 thẻ mỗi hàng theo bề rộng màn hình.
+          Số thẻ hiện thay đổi theo Admin ẩn / hiện / khóa mục nên hàng cuối có thể lẻ -> chia lại cho đầy hàng. Ném Còn luôn ngang cả hàng.
+       2. Trò Chuyện 2 cột trên máy tính bảng dọc (QDChat2Pane), xoay / đổi cỡ cửa sổ thì tự chuyển đúng kiểu.
+       3. Đổi mục ở menu -> cuộn về đầu trang; body[data-qd-view] = mục đang mở; body.qd-out = đang ở màn đăng nhập. */
+    (function () {
+        'use strict';
+        var W = window, d = document;
+        var mm = function (q) { return !!(W.matchMedia && W.matchMedia(q).matches); };
+        W.QDChat2Pane = function () { return W.innerWidth > 1023 || (W.innerWidth >= 768 && W.innerHeight >= 560); };
+
+        /* ---------- 1. Cân hàng thẻ ---------- */
+        function seen(el) { return el.getClientRects().length > 0; }
+        function setSpan(el, v) {
+            var cur = el.style.getPropertyValue('grid-column');
+            if (v) { if (cur !== v) el.style.setProperty('grid-column', v, 'important'); }
+            else if (cur) el.style.removeProperty('grid-column');
+        }
+        // Trả về số rãnh (trên 12) cho từng thẻ
+        function plan(n, per) {
+            var base = 12 / per, s = [], i;
+            for (i = 0; i < n; i++) s.push(base);
+            var r = n % per;
+            if (!r) return s;
+            if (n < per) { for (i = 0; i < n; i++) s[i] = 12 / n; return s; }            // ít thẻ hơn 1 hàng: chia đều cả hàng
+            if (per === 2) { s[n - 1] = 12; return s; }                                    // 2 thẻ / hàng: thẻ lẻ cuối ngang cả hàng
+            if (per === 3) {
+                if (r === 2) { s[n - 1] = s[n - 2] = 6; }                                  // 3 + 2
+                else { for (i = n - 4; i < n; i++) s[i] = 6; }                             // dư 1: 4 thẻ cuối xếp 2 + 2
+                return s;
+            }
+            // 4 thẻ / hàng
+            if (r === 2) { s[n - 1] = s[n - 2] = 6; }
+            else if (r === 3) { s[n - 1] = s[n - 2] = s[n - 3] = 4; }
+            else { for (i = n - 5; i < n; i++) s[i] = i < n - 2 ? 4 : 6; }                 // dư 1: 5 thẻ cuối xếp 3 + 2
+            return s;
+        }
+        var busy = false;
+        function fix() {
+            var g = d.querySelector('#view-dashboard .bento-grid'); if (!g || !seen(g) || busy) return;
+            busy = true;
+            var all = Array.prototype.slice.call(g.querySelectorAll(':scope > .wheel-tab'));
+            var tabs = all.filter(function (t) { return !t.classList.contains('con-tab') && seen(t); });
+            var per = mm('(min-width: 1500px)') ? 4 : mm('(min-width: 768px)') ? 3 : 2;
+            var sp = plan(tabs.length, per), base = 12 / per;
+            all.forEach(function (t) {
+                var i = tabs.indexOf(t);
+                if (t.classList.contains('con-tab')) setSpan(t, '1 / -1');
+                else setSpan(t, i < 0 || sp[i] === base ? '' : (sp[i] === 12 ? '1 / -1' : 'span ' + sp[i]));
+                if (t.classList.contains('qd-span')) t.classList.remove('qd-span');   // lớp của bản 22.1, không dùng nữa
+                if (t.classList.contains('qd-half')) t.classList.remove('qd-half');
+            });
+            setTimeout(function () { busy = false; }, 0);
+        }
+        var t1 = 0; function later() { clearTimeout(t1); t1 = setTimeout(fix, 60); }
+
+        /* ---------- 2. Trò Chuyện: đổi kiểu 1 cột / 2 cột khi xoay máy, đổi cỡ cửa sổ ---------- */
+        var lastPane = null;
+        function chatMode() {
+            var two = W.QDChat2Pane(); if (two === lastPane) return; lastPane = two;
+            var v = d.getElementById('view-chat'); if (!v || !v.classList.contains('active') || !W.Chat || !W.Chat.toggleMobile) return;
+            try { W.Chat.toggleMobile(!(W.State && W.State.chatTarget)); } catch (e) {}
+        }
+
+        /* ---------- 3. Mục đang mở, cuộn về đầu trang, trạng thái đăng nhập ---------- */
+        function setView(v) { if (v && d.body.getAttribute('data-qd-view') !== v) d.body.setAttribute('data-qd-view', v); }
+        function wrapNav() {
+            if (!W.UI || !W.UI.navigate || W.UI.navigate.__v23) return;
+            var nav = W.UI.navigate;
+            W.UI.navigate = function (vid) {
+                var before = d.body.getAttribute('data-qd-view');
+                var r = nav.apply(this, arguments);
+                var tgt = d.getElementById('view-' + vid);
+                if (tgt && tgt.classList.contains('active')) {
+                    setView(vid);
+                    if (before && before !== vid) {
+                        var m = d.querySelector('.main-content-wrapper'), ws = d.querySelector('.workspace-area');
+                        try { if (m) m.scrollTop = 0; if (ws) ws.scrollTop = 0; W.scrollTo(0, 0); } catch (e) {}
+                    }
+                    later();
+                }
+                return r;
+            };
+            W.UI.navigate.__v23 = true;
+        }
+        function authState() {
+            var g = d.getElementById('auth-gate');
+            var out = !!g && g.style.display !== 'none' && getComputedStyle(g).display !== 'none';
+            if (d.body.classList.contains('qd-out') !== out) d.body.classList.toggle('qd-out', out);
+        }
+
+        function start() {
+            wrapNav();
+            var act = d.querySelector('.view-section.active'); setView(act ? act.id.replace('view-', '') : 'dashboard');
+            authState(); lastPane = W.QDChat2Pane();
+            var g = d.getElementById('auth-gate'), sh = d.getElementById('app-shell');
+            if (W.MutationObserver) {
+                var mo = new MutationObserver(authState);
+                if (g) mo.observe(g, { attributes: true, attributeFilter: ['style'] });
+                if (sh) mo.observe(sh, { attributes: true, attributeFilter: ['style'] });
+                var grid = d.querySelector('#view-dashboard .bento-grid');
+                if (grid) new MutationObserver(later).observe(grid, { attributes: true, subtree: true, childList: true, attributeFilter: ['style', 'hidden', 'class'] });
+            }
+            W.addEventListener('resize', function () { later(); chatMode(); });
+            W.addEventListener('orientationchange', function () { setTimeout(function () { later(); chatMode(); }, 250); });
+            later(); setInterval(fix, 3000);
+        }
+        if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', start); else start();
     })();
     </script>
 </body>

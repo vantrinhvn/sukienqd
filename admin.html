@@ -1837,6 +1837,43 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="qdb-root qdb-frame" id="qdb-a-tree" style="max-height: 680px;"><div class="qdb-empty">Đang tải sơ đồ...</div></div>
                         </div>
                     </div>
+                    <!-- ===== TIỀN THƯỞNG GIẢI ĐẤU (bản 24): settings/tournament_prize — khối tour-prize-admin-js ===== -->
+                    <div class="card mb-6 tp-card" id="tp-card">
+                        <div class="tp-head">
+                            <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-sack-dollar" style="color:#f59e0b"></i> Tiền Thưởng Giải Đấu</h3>
+                            <p class="text-muted text-sm m-0 mt-1">Mỗi hạng đặt <b>tiền mặt</b>, <b>điểm lì xì</b>, <b>lượt vòng quay / rút lì xì / ném còn</b> và quà khác — Giải Đơn, Giải Đôi riêng. Thành viên xem bảng giải thưởng ở trang <b>Giải Đấu</b>.
+                                Khi sơ đồ có <b>Nhà Vô Địch</b>: điểm + lượt <b>tự cộng vào tài khoản</b> (sau 10 phút để kịp sửa kết quả nhầm, hoặc bấm "Trao ngay"); tiền mặt hiện ở <a href="javascript:void(0)" onclick="UI.navigate('payout')">Trả thưởng</a> (nguồn 🏆 Giải Đấu) để chuyển khoản.</p>
+                        </div>
+                        <div class="tp-grid">
+                            <div class="tp-box" data-f="single">
+                                <h4><span>👤 Giải Đơn <small>— 1 vs 1</small></span><label class="tp-sw">Hiện cho thành viên <label class="switch"><input type="checkbox" class="tp-in" data-k="on"><span class="slider"></span></label></label></h4>
+                                <div class="tp-rows"></div>
+                                <p class="tp-sum"></p>
+                            </div>
+                            <div class="tp-box" data-f="double">
+                                <h4><span>👥 Giải Đôi <small>— 2 vs 2</small></span><label class="tp-sw">Hiện cho thành viên <label class="switch"><input type="checkbox" class="tp-in" data-k="on"><span class="slider"></span></label></label></h4>
+                                <div class="tp-rows"></div>
+                                <div class="tp-split">
+                                    <label class="tp-radio"><input type="radio" name="tp-split" value="each" class="tp-in" checked> <span><b>Mỗi thành viên nhận đủ</b><small>Vô địch 500.000đ = mỗi người 500.000đ</small></span></label>
+                                    <label class="tp-radio"><input type="radio" name="tp-split" value="team" class="tp-in"> <span><b>Tiền cho cả đội, chia đều</b><small>500.000đ = mỗi người 250.000đ</small></span></label>
+                                </div>
+                                <p class="tp-sum"></p>
+                            </div>
+                        </div>
+                        <label class="tp-note"><span>📝 Ghi chú cho thành viên (không bắt buộc)</span><input type="text" class="form-control tp-in" id="tp-note" maxlength="200" placeholder="VD: Tiền thưởng chuyển khoản trong 24 giờ sau trận Chung Kết."></label>
+                        <div class="tp-foot">
+                            <p id="tp-pv"></p>
+                            <div class="flex items-center gap-3">
+                                <span class="text-warning text-sm font-bold hidden" id="tp-dirty"><i class="fa-solid fa-circle-exclamation"></i> Chưa lưu</span>
+                                <button class="btn btn-primary" id="tp-save" onclick="TourPrizeAdmin.save()"><i class="fa-solid fa-save mr-2"></i> Lưu tiền thưởng</button>
+                            </div>
+                        </div>
+                        <div class="tp-res">
+                            <h4>🏅 Người đạt giải</h4>
+                            <div id="tp-res"><div class="tp-res-empty">Đang tải...</div></div>
+                        </div>
+                    </div>
+
                     <div class="bento-grid" style="grid-template-columns: 1fr;">
                         <div class="card p-0 overflow-hidden mb-6">
                             <div class="p-4" style="background: var(--bg-elevated); border-bottom: 1px solid var(--border-strong);">
@@ -2810,7 +2847,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Trả Thưởng Tiền Mặt</h1>
-                            <p class="text-muted">Giải tiền mặt ở Vòng Quay, Rút Lì Xì & Quay Số chưa trả. Quét mã VietQR bằng app ngân hàng, hoặc xuất file chuyển theo lô cho Internet Banking doanh nghiệp, rồi bấm <b>Đã chuyển</b>.</p>
+                            <p class="text-muted">Giải tiền mặt ở Vòng Quay, Rút Lì Xì, Quay Số &amp; Giải Đấu chưa trả. Quét mã VietQR bằng app ngân hàng, hoặc xuất file chuyển theo lô cho Internet Banking doanh nghiệp, rồi bấm <b>Đã chuyển</b>.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
                             <button type="button" class="btn btn-outline btn-report" onclick="QDReport.open('payout')" title="Báo cáo các lần chuyển tiền: Excel / CSV / PDF"><i class="fa-solid fa-file-export"></i> Báo cáo chuyển tiền</button>
@@ -8075,6 +8112,194 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         };
     })();
     </script>
+    <script id="tour-prize-core-js">
+    /* ===== THƯỞNG GIẢI ĐẤU (bản 24 + 25, dùng chung admin + user) =====
+       settings/tournament_prize : { single: { on, split, tiers }, double: { on, split, tiers }, note, updatedAt, updatedBy }
+         tiers = { champ, second, third, fourth, top8 } mỗi hạng { cash (VNĐ), points, spins, tickets, conThrows, gift (quà khác, chữ) }
+         split (Giải Đôi): 'each' = mỗi thành viên nhận đủ · 'team' = tính cho cả đội, chia đều (tiền làm tròn xuống bội 1.000đ, lượt / điểm lấy phần nguyên)
+       Người nhận lấy từ sơ đồ (settings/tournament_bracket, tournament_bracket_double), chỉ chốt khi đã có Nhà Vô Địch:
+         Vô Địch · Á Quân · Hạng Ba (thắng trận tranh hạng 3; không có trận này thì 2 đội thua Bán Kết đồng Hạng Ba) · Hạng Tư · Tứ Kết (4 đội dừng ở Tứ Kết)
+       Mã mỗi khoản = {thể thức}_{createdAt sơ đồ}_{hạng}_{tài khoản}
+       - Tiền mặt -> Admin > Trả thưởng (nguồn "🏆 Giải Đấu", {NGUON} = GD), payouts/tournament_prize_{mã}
+       - Điểm lì xì + lượt (bản 25) -> TỰ CỘNG vào accounts sau khi sơ đồ không đổi kết quả 10 phút (để BQT kịp sửa nhầm; Admin bấm "Trao ngay" để cộng luôn).
+         Mỗi khoản cộng ĐÚNG 1 LẦN trong 1 giao dịch: tournament_rewards/{mã} = { user, fmt, tier, items{}, prize, at, by } + point_history (nếu có điểm).
+         Máy chạy: trang Admin (mọi người đạt giải) và trang thành viên (chỉ khoản của chính mình). */
+    (function () {
+        'use strict';
+        if (window.QDTourPrize) return;
+        var TIERS = [
+            { k: 'champ', i: '🏆', l: 'Vô Địch' },
+            { k: 'second', i: '🥈', l: 'Á Quân' },
+            { k: 'third', i: '🥉', l: 'Hạng Ba' },
+            { k: 'fourth', i: '🎖️', l: 'Hạng Tư' },
+            { k: 'top8', i: '🎗️', l: 'Tứ Kết' }
+        ];
+        // Vật phẩm cộng thẳng vào tài khoản (cùng tên trường với accounts)
+        var ITEMS = [
+            { k: 'points', i: '💰', l: 'Điểm lì xì', u: 'điểm lì xì' },
+            { k: 'spins', i: '🎡', l: 'Lượt vòng quay', u: 'lượt quay' },
+            { k: 'tickets', i: '🧧', l: 'Lượt rút lì xì', u: 'lượt rút lì xì' },
+            { k: 'conThrows', i: '🎯', l: 'Lượt ném còn', u: 'lượt ném còn' }
+        ];
+        var GRACE = 10 * 60000;   // kết quả sơ đồ đứng yên 10 phút mới tự cộng lượt / điểm
+        var TM = {}; TIERS.forEach(function (t) { TM[t.k] = t; });
+        var FMT = { single: 'Giải Đơn', double: 'Giải Đôi' };
+        function num(v, max) { v = Math.floor(Number(v) || 0); return v > 0 ? Math.min(v, max || 1000000000) : 0; }
+        function normTier(o) {
+            o = o || {}; var t = { cash: num(o.cash), gift: String(o.gift || '').replace(/\s+/g, ' ').trim().slice(0, 80) };
+            ITEMS.forEach(function (x) { t[x.k] = num(o[x.k], 1000000); });
+            return t;
+        }
+        function normFmt(c) {
+            c = c || {}; var src = c.tiers || {}, t = {};
+            TIERS.forEach(function (x) { t[x.k] = normTier(src[x.k]); });
+            return { on: c.on === true, split: c.split === 'team' ? 'team' : 'each', tiers: t };
+        }
+        function norm(d) { d = d || {}; return { single: normFmt(d.single), double: normFmt(d.double), note: String(d.note || '').trim().slice(0, 200), updatedAt: d.updatedAt || 0 }; }
+        function hasItems(t) { return !!t && ITEMS.some(function (x) { return t[x.k] > 0; }); }
+        function has(t) { return !!t && (t.cash > 0 || !!t.gift || hasItems(t)); }
+        function any(pc) { return !!pc && pc.on && TIERS.some(function (x) { return has(pc.tiers[x.k]); }); }
+        function vnd(n) { return Number(n || 0).toLocaleString('vi-VN') + 'đ'; }
+        function share(cash, n, split) { return split === 'team' && n > 1 ? Math.floor(cash / n / 1000) * 1000 : cash; }
+        function shareTier(t, n, split) {   // phần của 1 người
+            var o = { cash: share(t.cash, n, split), gift: t.gift };
+            ITEMS.forEach(function (x) { o[x.k] = split === 'team' && n > 1 ? Math.floor(t[x.k] / n) : t[x.k]; });
+            return o;
+        }
+        // "+100 điểm lì xì · +2 lượt quay"
+        function itemsText(t, sep) { var a = []; ITEMS.forEach(function (x) { if (t && t[x.k] > 0) a.push('+' + Number(t[x.k]).toLocaleString('vi-VN') + ' ' + x.u); }); return a.join(sep || ' · '); }
+        // Các phần của 1 hạng để hiện: [tiền, vật phẩm..., quà khác]
+        function parts(t) {
+            var a = []; if (!t) return a;
+            if (t.cash > 0) a.push(vnd(t.cash));
+            ITEMS.forEach(function (x) { if (t[x.k] > 0) a.push('+' + Number(t[x.k]).toLocaleString('vi-VN') + ' ' + x.u); });
+            if (t.gift) a.push('🎁 ' + t.gift);
+            return a;
+        }
+        function size(cfg) { var n = +(cfg && cfg.size) || 8; return [4, 8, 16, 32, 64].indexOf(n) >= 0 ? n : 8; }
+        function hasThirdMatch(cfg) { return !!(cfg && cfg.third) && size(cfg) >= 4; }
+        function slots(cfg) {
+            var n = size(cfg), t3 = hasThirdMatch(cfg), o = { champ: 1, second: 1, third: t3 ? 1 : 2 };
+            if (t3) o.fourth = 1;
+            if (n >= 8) o.top8 = 4;
+            return o;
+        }
+        function tierName(k, cfg) { return k === 'third' && cfg && !hasThirdMatch(cfg) ? 'Đồng Hạng Ba' : (TM[k] || {}).l || k; }
+        function places(cfg) {
+            var Q = window.QDB; if (!Q || !cfg || !(cfg.entries || []).some(Boolean)) return null;
+            var C; try { C = Q.compute(cfg); } catch (e) { return null; }
+            var out = { done: !!(C.champion && C.champion.t === 'e'), live: C.played > 0, list: [] };
+            var put = function (k, s) { if (s && s.t === 'e' && s.e) out.list.push({ k: k, e: s.e }); };
+            if (!out.done) return out;
+            put('champ', C.champion); put('second', C.runnerUp);
+            if (C.third) { put('third', C.thirdPlace); if (C.third.decided === 'play') put('fourth', C.third.sides[1 - C.third.w]); }
+            else if (C.R >= 2) C.rounds[C.R - 2].forEach(function (m) { if (m.decided === 'play') put('third', m.sides[1 - m.w]); });
+            if (C.R >= 3) C.rounds[C.R - 3].forEach(function (m) { if (m.decided === 'play') put('top8', m.sides[1 - m.w]); });
+            return out;
+        }
+        // Tên giải (Trả thưởng đọc số tiền ở đầu chuỗi)
+        function prizeText(fmt, cfg, k, p) {
+            var head = p.cash > 0 ? p.cash.toLocaleString('vi-VN') + ' VNĐ' : '', rest = itemsText(p), extra = [head, rest, p.gift].filter(Boolean).join(' + ');
+            return extra + ' · Giải Đấu: ' + tierName(k, cfg) + ' ' + FMT[fmt] + (cfg && cfg.title ? ' (' + cfg.title + ')' : '');
+        }
+        function awards(fmt, cfg, pc) {
+            if (!pc || !pc.on) return [];
+            var P = places(cfg); if (!P || !P.done) return [];
+            var res = [], key = fmt + '_' + (cfg.createdAt || 0), ts = cfg.doneAt || cfg.updatedAt || 0;
+            P.list.forEach(function (p) {
+                var t = pc.tiers[p.k]; if (!has(t)) return;
+                var mem = (p.e.members || []).filter(function (m) { return m && m.u; }), my = shareTier(t, mem.length, pc.split), items = {};
+                ITEMS.forEach(function (x) { if (my[x.k] > 0) items[x.k] = my[x.k]; });
+                mem.forEach(function (m) {
+                    var o = { id: key + '_' + p.k + '_' + m.u, user: m.u, fmt: fmt, tier: p.k, tierName: tierName(p.k, cfg), team: p.e.name || m.u,
+                        cash: my.cash, gift: my.gift, items: items, hasItems: Object.keys(items).length > 0, ts: ts, readyAt: (cfg.updatedAt || 0) + GRACE,
+                        prize: prizeText(fmt, cfg, p.k, my) };
+                    ITEMS.forEach(function (x) { o[x.k] = my[x.k]; });   // để parts() đọc được
+                    res.push(o);
+                });
+            });
+            return res;
+        }
+
+        /* ---------- Nghe dữ liệu (1 lần cho cả trang) ---------- */
+        var W = { prize: null, raw: {}, seen: {}, subs: [], cbs: [], last: null, given: {}, givenFor: undefined };
+        function D() { try { return typeof db !== 'undefined' ? db : firebase.firestore(); } catch (e) { return null; } }
+        function brackets() { var a = W.raw.single, b = W.raw.double; return { single: a && a.format !== 'double' ? a : null, double: b || (a && a.format === 'double' ? a : null) }; }
+        function emit() {
+            if (!(W.seen.prize && W.seen.single && W.seen.double)) return;
+            var br = brackets(), pc = norm(W.prize), all = [];
+            ['single', 'double'].forEach(function (f) { if (br[f]) all = all.concat(awards(f, br[f], pc[f])); });
+            W.last = { prize: pc, brackets: br, awards: all, given: W.given };
+            W.cbs.forEach(function (cb) { try { cb(W.last); } catch (e) { console.error('QDTourPrize', e); } });
+            autoRun();
+        }
+        function watch(cb) {
+            if (cb) { W.cbs.push(cb); if (W.last) try { cb(W.last); } catch (e) {} }
+            if (W.subs.length) return;
+            var d = D();
+            if (!d) { W.seen = { prize: 1, single: 1, double: 1 }; emit(); return; }
+            var on = function (k, doc) {
+                W.subs.push(d.collection('settings').doc(doc).onSnapshot(function (s) {
+                    var v = s.exists ? s.data() : null; if (k === 'prize') W.prize = v; else W.raw[k] = v; W.seen[k] = 1; emit();
+                }, function (e) { console.warn('tournament_prize', doc, e); W.seen[k] = 1; emit(); }));
+            };
+            on('prize', 'tournament_prize'); on('single', 'tournament_bracket'); on('double', 'tournament_bracket_double');
+        }
+
+        /* ---------- Cộng điểm / lượt (bản 25) ---------- */
+        // Theo dõi khoản đã cộng: user = null -> tất cả (Admin) · 'abc' -> chỉ của tài khoản đó
+        var gsub = null;
+        function watchGiven(user) {
+            if (W.givenFor === user) return; W.givenFor = user;
+            if (gsub) { try { gsub(); } catch (e) {} gsub = null; }
+            W.given = {}; var d = D(); if (!d || user === '') { emit(); return; }
+            var q = d.collection('tournament_rewards'); if (user) q = q.where('user', '==', user);
+            gsub = q.onSnapshot(function (s) { var g = {}; s.forEach(function (x) { g[x.id] = x.data(); }); W.given = g; emit(); }, function (e) { console.warn('tournament_rewards', e); });
+        }
+        var busy = {}, fail = {}, auto = null;
+        function giveOne(a, by) {
+            var d = D(), FV = window.firebase && firebase.firestore && firebase.firestore.FieldValue;
+            if (!d || !FV || !a || !a.hasItems || busy[a.id] || W.given[a.id] || Date.now() - (fail[a.id] || 0) < 300000) return Promise.resolve(false);
+            busy[a.id] = true;
+            return d.collection('accounts').where('user', '==', a.user).limit(1).get().then(function (q) {
+                if (q.empty) throw new Error('Không tìm thấy tài khoản ' + a.user);
+                var aref = q.docs[0].ref, rref = d.collection('tournament_rewards').doc(a.id);
+                return d.runTransaction(function (tx) {
+                    return tx.get(rref).then(function (ex) {
+                        if (ex.exists) return false;   // máy khác đã cộng
+                        var now = Date.now(), up = {};
+                        ITEMS.forEach(function (x) { if (a.items[x.k] > 0) up[x.k] = FV.increment(a.items[x.k]); });
+                        tx.set(rref, { user: a.user, fmt: a.fmt, tier: a.tier, team: a.team, items: a.items, prize: a.prize, at: now, by: by || '' });
+                        tx.update(aref, up);
+                        if (a.items.points > 0) tx.set(d.collection('point_history').doc(), { user: a.user, action: 'add', detail: 'Giải Đấu: ' + a.tierName + ' ' + FMT[a.fmt], pointsChanged: a.items.points, timestamp: now });
+                        return true;
+                    });
+                });
+            }).then(function (ok) { busy[a.id] = false; if (ok) W.given[a.id] = { at: Date.now() }; return ok; }, function (e) { busy[a.id] = false; fail[a.id] = Date.now(); console.warn('Trao thưởng giải đấu', a.id, e); throw e; });
+        }
+        // Cộng tuần tự các khoản (force = bỏ qua 10 phút chờ)
+        function give(list, by, force) {
+            var now = Date.now(), todo = (list || []).filter(function (a) { return a.hasItems && !W.given[a.id] && (force || now >= a.readyAt); }), n = 0;
+            return todo.reduce(function (p, a) { return p.then(function () { return giveOne(a, by).then(function (ok) { if (ok) n++; }, function () {}); }); }, Promise.resolve()).then(function () { return n; });
+        }
+        function autoRun() {
+            if (!auto || !W.last || W.givenFor === undefined) return;
+            var u = auto.user; if (u === '') return;
+            var list = W.last.awards.filter(function (a) { return a.hasItems && (!u || a.user === u); });
+            if (list.length) give(list, auto.by()).then(function (n) { if (n && auto.done) auto.done(n); });
+        }
+        // Bật tự cộng: opt = { user: null (Admin, mọi người) | 'tên' (chỉ mình), by: fn -> tên máy chạy, done: fn(n) }
+        function autoGive(opt) {
+            auto = opt; watchGiven(opt.user == null ? null : opt.user);
+            if (!auto.timer) auto.timer = setInterval(autoRun, 60000);
+            watch(); autoRun();
+        }
+
+        window.QDTourPrize = { TIERS: TIERS, ITEMS: ITEMS, FMT: FMT, GRACE: GRACE, norm: norm, has: has, hasItems: hasItems, any: any, vnd: vnd, share: share, shareTier: shareTier,
+            itemsText: itemsText, parts: parts, slots: slots, tierName: tierName, hasThirdMatch: hasThirdMatch, places: places, awards: awards,
+            watch: watch, watchGiven: watchGiven, give: give, autoGive: autoGive, given: function () { return W.given; }, current: function () { return W.last; } };
+    })();
+    </script>
     <!-- ===== SƠ ĐỒ GIẢI ĐẤU: hộp nhập kết quả + xác nhận (admin) ===== -->
     <div class="modal-overlay" id="modal-qdb-match">
         <div class="modal-content" style="max-width: 460px;">
@@ -9730,6 +9955,220 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             <div id="po-qr-body"></div>
         </div>
     </div>
+    <style id="tour-prize-admin-css">
+    /* ===== Giải đấu > "Tiền Thưởng Giải Đấu" (bản 24) ===== */
+    .tp-card { padding: 22px 24px !important; border-left: 4px solid #f59e0b !important; display: flex; flex-direction: column; gap: 16px; }
+    .tp-head a { color: #f59e0b; font-weight: 700; }
+    .tp-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .tp-box { border: 1px solid var(--border-strong); background: var(--bg-elevated); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+    .tp-box h4 { margin: 0 0 12px; font-size: 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .tp-box h4 small { font-weight: 600; color: var(--text-muted); font-size: 12px; }
+    .tp-sw { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-muted); cursor: pointer; }
+    .tp-box.off .tp-rows, .tp-box.off .tp-split { opacity: .45; }
+    .tp-rows { display: grid; gap: 8px; }
+    .tp-row { display: grid; grid-template-columns: 150px repeat(5, minmax(84px, 1fr)) minmax(150px, 1.6fr); gap: 8px; align-items: center; }
+    .tp-row label { display: contents; } .tp-row label > i { display: none; }
+    .tp-row.hd { font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .tp-t { font-size: 13.5px; font-weight: 800; line-height: 1.25; } .tp-t small { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+    .tp-row .form-control { padding: 9px 11px; font-size: 13.5px; min-width: 0; }
+    .tp-row input[type="number"] { font-weight: 800; font-family: var(--font-family-mono, monospace); }
+    .tp-row .form-control.dirty, .tp-note .form-control.dirty { border-color: #f59e0b !important; box-shadow: 0 0 0 2px rgba(245, 158, 11, .2); }
+    .tp-split { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
+    .tp-radio { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border-strong); border-radius: 12px; cursor: pointer; flex: 1 1 180px; }
+    .tp-radio:has(input:checked) { border-color: #f59e0b; background: rgba(245, 158, 11, .1); }
+    .tp-radio span { display: flex; flex-direction: column; font-size: 13px; } .tp-radio small { color: var(--text-muted); font-size: 11.5px; }
+    .tp-sum { margin-top: 10px; font-size: 12.5px; color: var(--text-muted); } .tp-sum b { color: var(--text-main); }
+    .tp-note { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--text-muted); }
+    .tp-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
+    .tp-foot p { margin: 0; font-size: 13px; }
+    .tp-res h4 { margin: 0 0 10px; font-size: 15px; }
+    .tp-res-empty { padding: 14px; border-radius: 12px; border: 1px dashed var(--border-strong); color: var(--text-muted); font-size: 13px; text-align: center; }
+    .tp-res-list { display: grid; gap: 8px; }
+    .tp-res-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--bg-elevated); font-size: 13px; }
+    .tp-res-row .i { font-size: 20px; } .tp-res-row b { font-weight: 800; } .tp-res-row small { display: block; color: var(--text-muted); font-size: 11.5px; }
+    .tp-res-row .amt { font-weight: 900; font-family: var(--font-family-mono, monospace); text-align: right; }
+    .tp-pay { font-size: 11.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+    .tp-pay.ok { background: rgba(16, 185, 129, .15); color: #10b981; } .tp-pay.wait { background: rgba(245, 158, 11, .15); color: #f59e0b; } .tp-pay.no { background: rgba(239, 68, 68, .15); color: #ef4444; } .tp-pay.gift { background: rgba(99, 102, 241, .15); color: #818cf8; }
+    .tp-res-row .st { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+    @media (max-width: 1100px) {
+        .tp-row { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 10px 0; border-top: 1px dashed var(--border-strong); }
+        .tp-row:nth-child(2) { border-top: 0; }
+        .tp-row .tp-t { grid-column: 1 / -1; } .tp-row.hd { display: none; }
+        .tp-row label { display: flex; flex-direction: column; gap: 4px; min-width: 0; } .tp-row label > i { display: block; font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--text-muted); }
+        .tp-row label.g { grid-column: span 3; }
+    }
+    .tp-give { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(245, 158, 11, .08); border: 1px dashed rgba(245, 158, 11, .5); font-size: 13px; }
+    .tp-give[hidden] { display: none; }
+    @media (max-width: 560px) {
+        .tp-card { padding: 16px !important; } .tp-foot .btn { width: 100%; }
+        .tp-row { grid-template-columns: 1fr 1fr; } .tp-row label.g { grid-column: 1 / -1; }
+        .tp-res-row { grid-template-columns: auto minmax(0, 1fr) auto; } .tp-res-row .tp-pay { grid-column: 2 / -1; justify-self: start; }
+    }
+    </style>
+    <script id="tour-prize-admin-js">
+    /* Admin > Giải đấu > "Tiền Thưởng Giải Đấu": đặt tiền mặt + quà kèm cho từng hạng (Giải Đơn / Giải Đôi riêng),
+       bật / tắt hiện cho thành viên, Giải Đôi chọn "mỗi người nhận đủ" hoặc "chia đều cả đội".
+       Danh sách người đạt giải (khi sơ đồ có Nhà Vô Địch) + trạng thái chuyển khoản lấy từ Trả thưởng. Ghi admin_logs (type: tournament_prize). */
+    (function () {
+        'use strict';
+        var TP = window.QDTourPrize, card = document.getElementById('tp-card');
+        if (!TP || !card || typeof db === 'undefined') return;
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var toast = function (m, t) { if (typeof Utils !== 'undefined' && Utils.toast) Utils.toast(m, t || 'success'); };
+        var me = function () { return (typeof State !== 'undefined' && State.currentUser) || 'admin'; };
+        var REF = db.collection('settings').doc('tournament_prize');
+        var HINT = { champ: '', second: '', third: 'Không có trận hạng 3: 2 đội thua Bán Kết đồng hạng', fourth: 'Chỉ khi có trận tranh Hạng 3', top8: 'Mỗi đội dừng ở Tứ Kết · sơ đồ từ 8' };
+        var GIFT_PH = { champ: 'VD: Cúp + Áo đấu', second: 'VD: Danh hiệu Á Quân', third: 'Không bắt buộc', fourth: 'Không bắt buộc', top8: 'Không bắt buộc' };
+        var A = window.TourPrizeAdmin = { saved: TP.norm(null), st: null };
+        // Ô nhập mỗi hạng: tiền mặt, điểm lì xì, 3 loại lượt, quà khác (chữ)
+        var FIELDS = [{ x: 'cash', h: '💵 Tiền mặt (VNĐ)', s: 1000, ph: '0' }].concat(TP.ITEMS.map(function (it) { return { x: it.k, h: it.i + ' ' + it.l, s: 1, ph: '0' }; }))
+            .concat([{ x: 'gift', h: '🎁 Quà khác (chữ)' }]);
+
+        // Dựng ô nhập cho 2 thể thức
+        card.querySelectorAll('.tp-box').forEach(function (bx) {
+            var f = bx.getAttribute('data-f'), h = '<div class="tp-row hd"><span>Hạng</span>' + FIELDS.map(function (c) { return '<span>' + c.h + '</span>'; }).join('') + '</div>';
+            TP.TIERS.forEach(function (t) {
+                h += '<div class="tp-row"><span class="tp-t">' + t.i + ' ' + t.l + (HINT[t.k] ? '<small>' + HINT[t.k] + '</small>' : '') + '</span>';
+                FIELDS.forEach(function (c) {
+                    var lab = c.h + ' — ' + t.l + ' ' + TP.FMT[f];
+                    h += '<label' + (c.x === 'gift' ? ' class="g"' : '') + '><i>' + c.h + '</i>' + (c.x === 'gift'
+                        ? '<input type="text" class="form-control tp-in" data-f="' + f + '" data-t="' + t.k + '" data-x="gift" maxlength="80" placeholder="' + GIFT_PH[t.k] + '" aria-label="' + lab + '">'
+                        : '<input type="number" class="form-control tp-in" data-f="' + f + '" data-t="' + t.k + '" data-x="' + c.x + '" min="0" step="' + c.s + '" inputmode="numeric" placeholder="0" aria-label="' + lab + '">') + '</label>';
+                });
+                h += '</div>';
+            });
+            bx.querySelector('.tp-rows').innerHTML = h;
+        });
+
+        function read() {
+            var o = { single: { tiers: {} }, double: { tiers: {} }, note: ($('tp-note').value || '').trim().slice(0, 200) };
+            ['single', 'double'].forEach(function (f) {
+                o[f].on = !!card.querySelector('.tp-box[data-f="' + f + '"] input[data-k="on"]').checked;
+                var sp = card.querySelector('input[name="tp-split"]:checked'); o[f].split = f === 'double' && sp ? sp.value : 'each';
+                TP.TIERS.forEach(function (t) {
+                    var o2 = {};
+                    FIELDS.forEach(function (c) { var el = card.querySelector('input[data-f="' + f + '"][data-t="' + t.k + '"][data-x="' + c.x + '"]'); o2[c.x] = c.x === 'gift' ? el.value : Math.max(0, Math.floor(+el.value || 0)); });
+                    o[f].tiers[t.k] = o2;
+                });
+            });
+            return TP.norm(o);
+        }
+        function fill(c) {
+            ['single', 'double'].forEach(function (f) {
+                card.querySelector('.tp-box[data-f="' + f + '"] input[data-k="on"]').checked = c[f].on;
+                TP.TIERS.forEach(function (t) {
+                    var x = c[f].tiers[t.k];
+                    FIELDS.forEach(function (fd) { card.querySelector('input[data-f="' + f + '"][data-t="' + t.k + '"][data-x="' + fd.x + '"]').value = x[fd.x] || ''; });
+                });
+            });
+            var r = card.querySelector('input[name="tp-split"][value="' + c.double.split + '"]'); if (r) r.checked = true;
+            $('tp-note').value = c.note || '';
+            changed();
+        }
+        // Tổng tiền 1 giải theo sơ đồ hiện tại (hoặc 8 đội có trận hạng 3 nếu chưa tạo sơ đồ)
+        function total(f, pc, cfg) {
+            var sl = TP.slots(cfg || { size: 8, third: true }), mult = f === 'double' && pc.split === 'each' ? 2 : 1, s = 0;
+            TP.TIERS.forEach(function (t) { if (sl[t.k]) s += pc.tiers[t.k].cash * sl[t.k] * mult; });
+            return s;
+        }
+        function changed() {
+            var cur = read(), sv = A.saved, dirty = JSON.stringify(cur) !== JSON.stringify(sv);
+            card.querySelectorAll('.tp-in').forEach(function (el) {
+                var f = el.getAttribute('data-f'), t = el.getAttribute('data-t'), x = el.getAttribute('data-x'), d = false;
+                if (f && t && x) d = String(cur[f].tiers[t][x] || '') !== String(sv[f].tiers[t][x] || '');
+                else if (el.id === 'tp-note') d = cur.note !== sv.note;
+                el.classList.toggle('dirty', d);
+            });
+            $('tp-dirty').classList.toggle('hidden', !dirty);
+            var br = A.st ? A.st.brackets : {};
+            ['single', 'double'].forEach(function (f) {
+                var bx = card.querySelector('.tp-box[data-f="' + f + '"]'); bx.classList.toggle('off', !cur[f].on);
+                var cfg = br[f], s = total(f, cur[f], cfg);
+                bx.querySelector('.tp-sum').innerHTML = !cur[f].on ? 'Đang ẩn với thành viên.' : !TP.any(cur[f]) ? 'Chưa nhập tiền / quà cho hạng nào.'
+                    : 'Tổng tiền thưởng ' + (cfg ? '(sơ đồ ' + (+cfg.size || 8) + ' ' + (f === 'double' ? 'đội' : 'người') + (TP.hasThirdMatch(cfg) ? ', có tranh hạng 3' : ', không tranh hạng 3') + ')' : '(ước tính sơ đồ 8, có tranh hạng 3)') + ': <b>' + TP.vnd(s) + '</b>'
+                    + (f === 'double' ? ' · ' + (cur[f].split === 'team' ? 'chia đều 2 người (tiền làm tròn xuống bội 1.000đ, điểm / lượt lấy phần nguyên)' : 'mỗi thành viên nhận đủ') : '')
+                    + (f === 'double' && cur[f].split === 'team' && TP.TIERS.some(function (t) { return TP.ITEMS.some(function (x) { return cur[f].tiers[t.k][x.k] % 2 === 1; }); }) ? ' · <b style="color:#f59e0b">⚠ Có số lượt / điểm lẻ: chia đôi mất phần lẻ (vd 1 lượt → mỗi người 0)</b>' : '')
+                    + (TP.TIERS.some(function (t) { return TP.hasItems(cur[f].tiers[t.k]); }) ? ' · Điểm lì xì + lượt <b>tự cộng</b> vào tài khoản ' + Math.round(TP.GRACE / 60000) + ' phút sau khi sơ đồ chốt kết quả.' : '');
+            });
+            var on = ['single', 'double'].filter(function (f) { return cur[f].on && TP.any(cur[f]); }).map(function (f) { return TP.FMT[f]; });
+            $('tp-pv').innerHTML = on.length ? '✅ Thành viên đang thấy bảng giải thưởng: <b>' + on.join(' · ') + '</b>' + (dirty ? ' (sau khi lưu)' : '') : '<span class="text-muted">Thành viên chưa thấy bảng giải thưởng (bật "Hiện cho thành viên" và nhập tiền / điểm / lượt / quà).</span>';
+        }
+        card.addEventListener('input', changed); card.addEventListener('change', changed);
+
+        A.save = function () {
+            var c = read(), btn = $('tp-save');
+            var bad = ['single', 'double'].some(function (f) { return c[f].on && !TP.any(c[f]); });
+            if (bad) { toast('Thể thức đang bật nhưng chưa có hạng nào có tiền / điểm / lượt / quà.', 'warning'); return; }
+            btn.disabled = true;
+            REF.set({ single: c.single, double: c.double, note: c.note, updatedAt: Date.now(), updatedBy: me() }).then(function () {
+                toast('Đã lưu tiền thưởng giải đấu. Thành viên thấy ngay ở trang Giải Đấu.');
+                try { db.collection('admin_logs').add({ type: 'tournament_prize', action: 'save', by: me(), timestamp: Date.now(), single: c.single, double: c.double }).catch(function () {}); } catch (e) {}
+            }).catch(function (e) { console.error(e); toast('Không lưu được tiền thưởng.', 'error'); }).then(function () { btn.disabled = false; });
+        };
+
+        // Người đạt giải + trạng thái chuyển khoản
+        var hm = function (t) { var d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+        function itemOf(a) {
+            if (!a.hasItems) return '';
+            var g = TP.given()[a.id];
+            if (g) return '<span class="tp-pay ok">✅ Đã cộng điểm / lượt</span>';
+            return '<span class="tp-pay wait">⏳ ' + (Date.now() >= a.readyAt ? 'Đang cộng điểm / lượt...' : 'Tự cộng lúc ' + hm(a.readyAt)) + '</span>';
+        }
+        function payOf(a) {
+            if (!(a.cash > 0)) return a.gift && !a.hasItems ? '<span class="tp-pay gift">🎁 Quà — BQT tự trao</span>' : '';
+            var p = window.PayoutAdmin && PayoutAdmin.pays ? PayoutAdmin.pays['tournament_prize_' + a.id] : null;
+            if (p && p.status === 'paid') return '<span class="tp-pay ok">✅ Đã chuyển</span>';
+            if (p && p.status === 'rejected') return '<span class="tp-pay no">✖ Không trả</span>';
+            return '<span class="tp-pay wait">⏳ Chờ chuyển</span>';
+        }
+        function renderRes() {
+            var box = $('tp-res'); if (!box || !A.st) return;
+            var list = A.st.awards.slice(), order = {}; TP.TIERS.forEach(function (t, i) { order[t.k] = i; });
+            list.sort(function (a, b) { return (a.fmt === b.fmt ? 0 : a.fmt === 'single' ? -1 : 1) || order[a.tier] - order[b.tier]; });
+            if (!list.length) {
+                var br = A.st.brackets, st = ['single', 'double'].map(function (f) { var P = br[f] ? TP.places(br[f]) : null; return TP.FMT[f] + ': ' + (!br[f] ? 'chưa có sơ đồ' : P && P.done ? (A.st.prize[f].on ? 'đã kết thúc' : 'đã kết thúc (tiền thưởng đang tắt)') : 'chưa có Nhà Vô Địch'); });
+                box.innerHTML = '<div class="tp-res-empty">Chưa có người đạt giải. Danh sách tự hiện khi sơ đồ có <b>Nhà Vô Địch</b>.<br><small>' + esc(st.join(' · ')) + '</small></div>';
+                return;
+            }
+            var ico = {}; TP.TIERS.forEach(function (t) { ico[t.k] = t.i; });
+            var sum = list.reduce(function (s, a) { return s + (a.cash || 0); }, 0), g = TP.given();
+            var wait = list.filter(function (a) { return a.hasItems && !g[a.id]; });
+            var giveBar = wait.length ? '<div class="tp-give"><span>⏳ <b>' + wait.length + '</b> khoản điểm / lượt chưa cộng'
+                + (wait.some(function (a) { return Date.now() < a.readyAt; }) ? ' — tự cộng 10 phút sau lần sửa kết quả cuối (để kịp sửa nhầm)' : '') + '.</span>'
+                + '<button type="button" class="btn btn-warning" id="tp-give-now" onclick="TourPrizeAdmin.giveNow(this)"><i class="fa-solid fa-gift mr-2"></i>Trao ngay</button></div>' : '';
+            box.innerHTML = giveBar + '<div class="tp-res-list">' + list.map(function (a) {
+                var pr = TP.parts(a), first = a.cash > 0 ? pr.shift() : '';
+                return '<div class="tp-res-row"><span class="i">' + ico[a.tier] + '</span><span><b>' + esc(a.user) + '</b><small>' + esc(a.tierName + ' · ' + TP.FMT[a.fmt] + (a.fmt === 'double' ? ' · đội ' + a.team : '')) + '</small></span>'
+                    + '<span class="amt">' + esc(first) + (pr.length ? '<small>' + esc(pr.join(' · ')) + '</small>' : '') + '</span><span class="st">' + payOf(a) + itemOf(a) + '</span></div>';
+            }).join('') + '</div><p class="text-sm text-muted" style="margin: 10px 0 0;">Tổng tiền mặt: <b>' + TP.vnd(sum) + '</b> · ' + list.length + ' khoản. Chuyển khoản ở mục <a href="javascript:void(0)" onclick="UI.navigate(\'payout\')" style="color:#f59e0b;font-weight:700;">Trả thưởng</a> (nguồn 🏆 Giải Đấu).</p>';
+        }
+        A.giveNow = function (btn) {
+            if (!A.st) return; if (btn) btn.disabled = true;
+            TP.give(A.st.awards, me(), true).then(function (n) {
+                toast(n ? 'Đã cộng điểm / lượt thưởng cho ' + n + ' khoản.' : 'Không có khoản nào cần cộng (máy khác đã cộng).', n ? 'success' : 'info');
+                if (n) try { db.collection('admin_logs').add({ type: 'tournament_prize', action: 'give', by: me(), count: n, timestamp: Date.now() }).catch(function () {}); } catch (e) {}
+                renderRes();
+            }).catch(function () { toast('Không cộng được — kiểm tra kết nối.', 'error'); }).then(function () { if (btn) btn.disabled = false; });
+        };
+        // Tự cộng điểm / lượt cho mọi người đạt giải khi Ban Quản Trị đã đăng nhập trang này
+        var autoOn = setInterval(function () {
+            if (typeof State === 'undefined' || !State.currentUser) return;
+            clearInterval(autoOn);
+            TP.autoGive({ user: null, by: me, done: function (n) { toast('🏆 Đã tự cộng điểm / lượt thưởng Giải Đấu cho ' + n + ' khoản.'); renderRes(); } });
+        }, 2000);
+        var first = true;
+        TP.watch(function (st) {
+            A.st = st;
+            var wasDirty = JSON.stringify(read()) !== JSON.stringify(A.saved);
+            A.saved = st.prize;
+            if (first || !wasDirty) fill(st.prize); else changed();   // đang sửa dở thì không ghi đè ô nhập
+            first = false;
+            renderRes();
+        });
+        setInterval(function () { if (card.offsetParent) renderRes(); }, 4000);   // trạng thái chuyển khoản (Trả thưởng)
+    })();
+    </script>
     <style id="payout-admin-css">
     /* ===== TRẢ THƯỞNG TIỀN MẶT (admin) ===== */
     .po-cfg { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px 24px !important; }
@@ -9841,7 +10280,8 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
     </style>
     <script id="payout-admin-js">
     /* ===== TRẢ THƯỞNG TIỀN MẶT (admin, bán tự động) =====
-       Nguồn giải tiền: spin_history (Vòng Quay), tranhthuong_history (Rút Lì Xì), lucky_rewards (Quay Số, mỗi người trúng 1 khoản) — số tiền đọc từ tên giải.
+       Nguồn giải tiền: spin_history (Vòng Quay), tranhthuong_history (Rút Lì Xì), lucky_rewards (Quay Số, mỗi người trúng 1 khoản),
+                        tournament_prize (Giải Đấu, bản 24: tính từ sơ đồ + settings/tournament_prize, không có bộ sưu tập riêng) — số tiền đọc từ tên giải.
        bank_info/{tên đăng nhập} : thành viên tự khai trong Túi đồ { bin, bank, accNo, accName, updatedAt, changedAt, history[] }
        payouts/{bộ sưu tập}_{mã} : { user, col, histId, prize, amount, wonAt, status: 'paid'|'rejected', paidAt, by, method: 'qr'|'batch'|'manual', ref, bank{}, note, batch }
        settings/payout_config    : { isEnabled (mặc định BẬT), prefix (mã sự kiện), tpl (mẫu nội dung CK, vd "{MA} {USER} THUONG TET") }
@@ -9865,8 +10305,8 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         var isWish = function (t) { return !t || /chuc may man|loi chuc|chuc tet|ti nua|them ti/.test(fold(t).toLowerCase()); };
         var me = function () { return (typeof State !== 'undefined' && State.currentUser) || 'admin'; };
         var agoS = function (t) { var m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : Math.round(m / 60) + ' giờ trước'; };
-        var SRCS = [{ col: 'spin_history', name: '🎡 Vòng Quay' }, { col: 'tranhthuong_history', name: '🧧 Rút Lì Xì' }, { col: 'lucky_rewards', name: '🎯 Quay Số' }];
-        var SRCN = { spin_history: '🎡 Vòng Quay', tranhthuong_history: '🧧 Rút Lì Xì', lucky_rewards: '🎯 Quay Số' };
+        var SRCS = [{ col: 'spin_history', name: '🎡 Vòng Quay' }, { col: 'tranhthuong_history', name: '🧧 Rút Lì Xì' }, { col: 'lucky_rewards', name: '🎯 Quay Số' }, { col: 'tournament_prize', name: '🏆 Giải Đấu' }];
+        var SRCN = { spin_history: '🎡 Vòng Quay', tranhthuong_history: '🧧 Rút Lì Xì', lucky_rewards: '🎯 Quay Số', tournament_prize: '🏆 Giải Đấu' };
         var BIN = { '970436': 'Vietcombank', '970415': 'VietinBank', '970418': 'BIDV', '970405': 'Agribank', '970422': 'MB Bank', '970407': 'Techcombank', '970416': 'ACB', '970432': 'VPBank', '970423': 'TPBank', '970403': 'Sacombank', '970437': 'HDBank', '970441': 'VIB', '970443': 'SHB', '970431': 'Eximbank', '970426': 'MSB', '970448': 'OCB', '970440': 'SeABank', '970449': 'LPBank', '970428': 'Nam A Bank', '970409': 'Bac A Bank', '970425': 'ABBANK', '970427': 'VietABank', '970412': 'PVcomBank', '970452': 'Kienlongbank', '970454': 'BVBank', '970438': 'BaoViet Bank', '970400': 'Saigonbank', '970419': 'NCB', '970414': 'OceanBank', '970430': 'PG Bank', '970408': 'GPBank', '970406': 'DongA Bank', '970429': 'SCB', '970421': 'VRB', '970442': 'Hong Leong', '970424': 'Shinhan Bank', '970457': 'Woori Bank', '546034': 'Cake by VPBank', '963388': 'Timo' };
         var bankOf = function (b) { return b ? (b.bank || BIN[b.bin] || b.bin) : ''; };
         var PA = window.PayoutAdmin = { wins: {}, got: {}, pays: {}, banks: {}, accs: {}, cfg: { on: true, prefix: 'QDTLH', tpl: '{MA} {USER} THUONG TET' }, sel: {}, open: {}, arm: null, tab: 'wait', started: false, lastExport: null };
@@ -9892,13 +10332,13 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             ['{MA} TRA THUONG {USER}', 'Rõ mục đích'],
             ['{MA} {USER} {SOGIAI} GIAI {TIEN}', 'Kèm số giải + số tiền, dễ đối soát'],
             ['{MA} {USER} {NGAY}', 'Kèm ngày chuyển'],
-            ['{MA} {USER} {NGUON}', 'Kèm nguồn: VQ = Vòng Quay, RLX = Rút Lì Xì, QS = Quay Số'],
+            ['{MA} {USER} {NGUON}', 'Kèm nguồn: VQ = Vòng Quay, RLX = Rút Lì Xì, QS = Quay Số, GD = Giải Đấu'],
             ['LI XI TET {USER} {MA}', 'Thân thiện, đúng không khí Tết'],
             ['{MA} {USER} {MAGD}', 'Mỗi giải 1 mã riêng — đối soát từng lệnh chuyển']
         ];
         function refBuild(tpl, prefix, x) {
             x = x || {}; var wins = x.wins || [], tot = +x.total || 0, d = new Date();
-            var src = {}; wins.forEach(function (w) { src[w.col === 'spin_history' ? 'VQ' : w.col === 'lucky_rewards' ? 'QS' : 'RLX'] = 1; });
+            var src = {}; wins.forEach(function (w) { src[w.col === 'spin_history' ? 'VQ' : w.col === 'lucky_rewards' ? 'QS' : w.col === 'tournament_prize' ? 'GD' : 'RLX'] = 1; });
             var h = 2166136261, idk = wins.map(function (w) { return w.id || ''; }).join('|'); for (var i = 0; i < idk.length; i++) { h ^= idk.charCodeAt(i); h = Math.imul(h, 16777619); } h ^= h >>> 13; h = Math.imul(h, 2246822507); h ^= h >>> 16;   // FNV-1a + trộn: mã khác hẳn nhau
             var magd = (Object.keys(src).length === 1 ? Object.keys(src)[0] : 'TG') + (h >>> 0).toString(36).toUpperCase().slice(-4).padStart(4, '0');   // vd VQ7F2A: cùng 1 giải luôn ra cùng mã
             var v = { MA: prefix || 'QDTLH', USER: x.user || '', SOGIAI: wins.length || 1, TIEN: tot >= 1000 ? Math.round(tot / 1000) + 'K' : String(tot), NGAY: p2(d.getDate()) + p2(d.getMonth() + 1), NGUON: Object.keys(src).join(' ') || 'VQ', MAGD: magd };
@@ -10240,8 +10680,15 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 });
                 PA.wins.lucky_rewards = out; PA.got.lucky_rewards = true; later();
             }, function (e) { console.warn('lucky_rewards', e); PA.got.lucky_rewards = true; later(); });
+            /* Giải Đấu (bản 24): người đạt giải có tiền mặt, tính từ sơ đồ + settings/tournament_prize */
+            if (window.QDTourPrize) QDTourPrize.watch(function (st) {
+                PA.wins.tournament_prize = st.awards.filter(function (a) { return a.cash > 0; }).map(function (a) { return { id: a.id, user: a.user, prize: a.prize, ts: a.ts }; });
+                PA.got.tournament_prize = true; later();
+            });
+            else PA.got.tournament_prize = true;
+            setTimeout(function () { if (!PA.got.tournament_prize) { PA.got.tournament_prize = true; later(); } }, 8000);   // không đọc được cấu hình -> vẫn hiện các nguồn khác
             SRCS.forEach(function (s) {
-                if (s.col === 'lucky_rewards') return;
+                if (s.col === 'lucky_rewards' || s.col === 'tournament_prize') return;
                 db.collection(s.col).onSnapshot(function (snap) {
                     PA.wins[s.col] = snap.docs.map(function (d) { var x = d.data(); return { id: d.id, user: x.userId || x.user, prize: x.result, ts: x.timestamp }; });
                     PA.got[s.col] = true; later();
