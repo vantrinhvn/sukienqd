@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi" data-theme="dark">
 <head>
+    <script id="qd-gfx-boot">try{var g=localStorage.getItem("qd_gfx_eff");if(/^(high|mid|low)$/.test(g||""))document.documentElement.setAttribute("data-gfx",g);}catch(e){}</script>
     <meta charset="UTF-8">
     <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
     <link rel="dns-prefetch" href="https://firestore.googleapis.com">
@@ -954,6 +955,35 @@ html.qd-lite .qd-fx { display: none !important; }
                 <textarea id="news-content" class="form-control" rows="6" placeholder="Nhập nội dung bản tin sẽ được phát hành tới toàn bộ hệ thống..."></textarea>
                 <p class="text-xs text-muted mt-2">Định dạng văn bản thuần túy. Hỗ trợ xuống dòng.</p>
             </div>
+            <div class="form-group mb-6">
+                <div class="rb-tgl">
+                    <span class="em">📢</span>
+                    <div class="t"><b>Hiện thông báo khi thành viên đăng nhập</b><span>Bản tin hiện lên giữa màn hình Trang Chủ ngay sau khi đăng nhập (vẫn có trong mục Bản Tin như thường).</span></div>
+                    <label class="switch"><input type="checkbox" id="news-popup" onchange="NewsPopup.sync()"><span class="slider"></span></label>
+                </div>
+                <div id="news-pop-opts" style="display: none;">
+                    <div class="rb-grid mt-4">
+                        <div>
+                            <label class="form-label" for="news-pop-title">Tiêu đề thông báo</label>
+                            <input type="text" id="news-pop-title" class="form-control" maxlength="80" placeholder="Bản tin mới">
+                        </div>
+                        <div>
+                            <label class="form-label" for="news-pop-mode">Hiện bao nhiêu lần</label>
+                            <select id="news-pop-mode" class="form-control">
+                                <option value="every">Mỗi lần đăng nhập</option>
+                                <option value="daily">1 lần mỗi ngày</option>
+                                <option value="once">Chỉ 1 lần mỗi người</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" for="news-pop-until">Hiện đến hết ngày</label>
+                            <input type="date" id="news-pop-until" class="form-control">
+                        </div>
+                    </div>
+                    <p class="text-xs text-muted mt-2">Để trống ngày = hiện mãi đến khi tắt. Nhiều thông báo cùng bật: hiện lần lượt, mới nhất trước (tối đa 5).</p>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm mt-3" id="news-pop-reset-wrap" style="display: none;"><input type="checkbox" id="news-pop-reset"> Hiện lại cho cả người đã xem</label>
+                </div>
+            </div>
             <div class="flex justify-end gap-4">
                 <button class="btn btn-outline" onclick="UI.closeModal('modal-news')">Hủy bỏ</button>
                 <button class="btn btn-primary" onclick="AdminActions.saveNews()"><i class="fa-solid fa-paper-plane mr-2"></i> Phát hành Bản tin</button>
@@ -981,6 +1011,11 @@ html.qd-lite .qd-fx { display: none !important; }
                     </div>
                     <button class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;" onclick="Theme.toggle()"><i class="fa-solid fa-rotate"></i> Chuyển đổi</button>
                 </div>
+            </div>
+
+            <div class="form-group mb-6">
+                <label class="form-label">Mức đồ họa (máy này)</label>
+                <div data-qd-gfx-panel></div>
             </div>
 
             <div class="form-group mb-6 p-5 rounded-xl border-strong" style="border: 1px solid var(--color-danger); background: rgba(239, 68, 68, 0.05);">
@@ -1074,6 +1109,8 @@ html.qd-lite .qd-fx { display: none !important; }
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="payout"> Trả Thưởng</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="security"> Chống Gian Lận</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="news"> Bản Tin</label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="reportbot"> Bot Báo Cáo</label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="gifts"> Quà Toàn Hệ Thống</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="approvals"> Phê Duyệt TK</label>
                 </div>
             </div>
@@ -1196,6 +1233,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('nemcon')" style="--tone: #f97316;"><div class="m-menu-icon"><i class="fa-solid fa-bullseye"></i></div><span>Ném còn</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('invite')" style="--tone: var(--brand-primary);"><div class="m-menu-icon"><i class="fa-solid fa-handshake"></i></div><span>Mã mời</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('transfer')" style="--tone: var(--color-info);"><div class="m-menu-icon"><i class="fa-solid fa-gift"></i></div><span>Tặng lượt</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('gifts')" style="--tone: #e11d48;"><div class="m-menu-icon"><i class="fa-solid fa-box-open"></i></div><span>Quà toàn hệ thống</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('payout')" style="--tone: var(--color-success);"><div class="m-menu-icon"><i class="fa-solid fa-money-bill-transfer"></i></div><span>Trả thưởng</span></div>
                 </div>
             </div>
@@ -1205,6 +1243,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div class="m-menu-grid">
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('tournament')" style="--tone: #818cf8;"><div class="m-menu-icon"><i class="fa-solid fa-trophy"></i></div><span>Giải đấu</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('news')" style="--tone: var(--color-info);"><div class="m-menu-icon"><i class="fa-solid fa-newspaper"></i></div><span>Bản tin</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('reportbot')" style="--tone: #f59e0b;"><div class="m-menu-icon"><i class="fa-solid fa-robot"></i></div><span>Bot báo cáo</span></div>
                 </div>
             </div>
 
@@ -1285,12 +1324,14 @@ html.qd-lite .qd-fx { display: none !important; }
                     <button type="button" title="Ném còn" class="nav-item" onclick="UI.navigate('nemcon', this)" style="--tone: #f97316;"><i class="fa-solid fa-bullseye"></i><span>Ném còn</span></button>
                     <button type="button" title="Mã mời" class="nav-item" onclick="UI.navigate('invite', this)" style="--tone: var(--brand-primary);"><i class="fa-solid fa-handshake"></i><span>Mã mời</span></button>
                     <button type="button" title="Tặng lượt" class="nav-item" onclick="UI.navigate('transfer', this)" style="--tone: var(--color-info);"><i class="fa-solid fa-gift"></i><span>Tặng lượt</span></button>
+                    <button type="button" title="Quà toàn hệ thống" class="nav-item" onclick="UI.navigate('gifts', this)" style="--tone: #e11d48;"><i class="fa-solid fa-box-open"></i><span>Quà toàn hệ thống</span></button>
                     <button type="button" title="Trả thưởng tiền mặt" class="nav-item" onclick="UI.navigate('payout', this)" style="--tone: var(--color-success);"><i class="fa-solid fa-money-bill-transfer"></i><span>Trả thưởng</span></button>
                 </div>
                 <div class="nav-group">
                     <p class="nav-label">Thi đấu &amp; tin tức</p>
                     <button type="button" title="Giải đấu" class="nav-item" onclick="UI.navigate('tournament', this)" style="--tone: #818cf8;"><i class="fa-solid fa-trophy"></i><span>Giải đấu</span></button>
                     <button type="button" title="Bản tin" class="nav-item" onclick="UI.navigate('news', this)" style="--tone: var(--color-info);"><i class="fa-solid fa-newspaper"></i><span>Bản tin</span></button>
+                    <button type="button" title="Bot báo cáo" class="nav-item" onclick="UI.navigate('reportbot', this)" style="--tone: #f59e0b;"><i class="fa-solid fa-robot"></i><span>Bot báo cáo</span></button>
                 </div>
             </nav>
             <div class="sb-foot">
@@ -1434,6 +1475,10 @@ html.qd-lite .qd-fx { display: none !important; }
                                 <span class="mod-ico"><i class="fa-solid fa-gift"></i></span>
                                 <div><h4>Tặng lượt</h4><p>Đóng / mở tặng quà đồng đội, loại được tặng, giới hạn và lịch sử tặng.</p></div>
                             </div>
+                            <div class="card mod-card" onclick="UI.navigate('gifts')" style="--tone: #e11d48;">
+                                <span class="mod-ico"><i class="fa-solid fa-box-open"></i></span>
+                                <div><h4>Quà toàn hệ thống</h4><p>Tặng quà cho mọi thành viên theo ngày giờ, thành viên mở hộp quà nhận ngay, có báo cáo.</p></div>
+                            </div>
                             <div class="card mod-card" onclick="UI.navigate('payout')" style="--tone: var(--color-success);">
                                 <span class="mod-ico"><i class="fa-solid fa-money-bill-transfer"></i></span>
                                 <div><h4>Trả thưởng</h4><p>Giải tiền mặt chờ trả, mã VietQR, file chuyển theo lô, lịch sử đã chuyển.</p></div>
@@ -1451,6 +1496,10 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="card mod-card" onclick="UI.navigate('news')" style="--tone: var(--color-info);">
                                 <span class="mod-ico"><i class="fa-solid fa-newspaper"></i></span>
                                 <div><h4>Bản tin</h4><p>Phát hành thông báo tới toàn bộ người dùng.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('reportbot')" style="--tone: #f59e0b;">
+                                <span class="mod-ico"><i class="fa-solid fa-robot"></i></span>
+                                <div><h4>Bot báo cáo</h4><p>Tự báo điểm danh &amp; đăng nhập vào Kênh Chung, gắn @tên. Bật / tắt, đặt ngày giờ.</p></div>
                             </div>
                         </div>
                     </div>
@@ -2899,6 +2948,43 @@ html.qd-lite .qd-fx { display: none !important; }
                             ⛔ Tránh từ dễ bị ngân hàng giữ lệnh / hỏi lại: "CA CUOC", "DANH BAC", "THANG CUOC", "XO SO", "NAP TIEN GAME", "VAY", "NO".</p>
                     </div>
 
+                    <div class="card mb-6 pn-card" id="pn-card">
+                        <div class="pn-head">
+                            <span class="pn-ico">🤖</span>
+                            <div style="flex: 1; min-width: 0;">
+                                <h3 class="text-lg m-0">Bot báo "Đã chuyển tiền thưởng"</h3>
+                                <p class="text-muted text-sm m-0">Bấm <b>Đã chuyển</b> (từng giải, cả người, hay theo lô) xong, bot dùng tài khoản Ban Quản Trị nhắn riêng cho người nhận: số tiền, giải, tài khoản nhận, nội dung CK.</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-sm" id="pn-on-st">ĐANG TẮT</span>
+                                <label class="switch"><input type="checkbox" id="pn-on" onchange="PayNotify.toggle(this)"><span class="slider"></span></label>
+                            </div>
+                        </div>
+                        <div class="pn-body">
+                            <div class="pn-l">
+                                <label class="form-label" for="pn-sender">Nhắn bằng tài khoản</label>
+                                <select id="pn-sender" class="form-control" onchange="PayNotify.dirty()"></select>
+                                <p class="text-xs text-muted mt-1 mb-4">Người nhận thấy tin trong Trò Chuyện (riêng) với tài khoản này, có nhãn "🤖 Tin tự động · Trả thưởng" và thông báo + chuông.</p>
+                                <label class="form-label" for="pn-tpl">Nội dung tin nhắn</label>
+                                <textarea id="pn-tpl" class="form-control" rows="9" maxlength="1200" oninput="PayNotify.dirty()" style="resize: vertical; font-size: 14px; line-height: 1.5;"></textarea>
+                                <div class="pn-vars" id="pn-vars"></div>
+                                <div class="flex gap-2 flex-wrap mt-4 items-center">
+                                    <button type="button" class="btn btn-primary" id="pn-save" onclick="PayNotify.save()"><i class="fa-solid fa-save mr-2"></i> Lưu</button>
+                                    <button type="button" class="btn btn-outline" onclick="PayNotify.reset()">Dùng mẫu mặc định</button>
+                                    <span class="text-sm font-bold" id="pn-dirty" style="color: #d97706; display: none;">● Chưa lưu</span>
+                                </div>
+                            </div>
+                            <div class="pn-r">
+                                <span class="form-label">Xem trước (dữ liệu mẫu)</span>
+                                <div class="pn-chat">
+                                    <div class="pn-chat-h"><span class="pn-avt" id="pn-avt">A</span><b id="pn-from">admin</b><small>→ binh</small></div>
+                                    <div class="pn-bubble"><div class="pn-tag">🤖 Tin tự động · Trả thưởng</div><div id="pn-pv"></div></div>
+                                </div>
+                                <div class="pn-last" id="pn-last"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="po-stats mb-6" id="po-stats"></div>
 
                     <div class="card po-card mb-6">
@@ -3318,6 +3404,311 @@ html.qd-lite .qd-fx { display: none !important; }
                                 <tbody id="tb-acc-list">
                                     <tr><td colspan="5" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
                                 </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- VIEW BOT BÁO CÁO (lịch + nội dung + xem trước + lịch sử, tất cả ngay trong Admin) -->
+                <section id="view-reportbot" class="view-section">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Bot Báo Cáo</h1>
+                            <p class="text-muted">Tự gửi báo cáo điểm danh &amp; đăng nhập trong ngày vào Kênh Chung, gắn @tên tài khoản.</p>
+                        </div>
+                        <button type="button" class="btn btn-warning" id="rb-now" onclick="RBAdmin.sendNow(this)"><i class="fa-solid fa-paper-plane mr-2"></i> Gửi báo cáo ngay</button>
+                    </div>
+
+                    <div class="card mb-8 rb-status" id="rb-status" style="padding: 24px;">
+                        <div class="flex justify-between items-start flex-wrap gap-6">
+                            <div style="flex: 1 1 320px; min-width: 0;">
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-robot" style="color:#f59e0b"></i> Bật / tắt gửi theo lịch</h3>
+                                <p class="text-muted text-sm">Bật = tới giờ hẹn bot tự gửi vào Kênh Chung. Máy nào đang mở web (trang Admin, hoặc máy thành viên nếu cho phép) sẽ gửi — mỗi mốc giờ chỉ gửi <b>1 lần</b>.</p>
+                                <div class="mt-4 flex items-center gap-3">
+                                    <span class="text-sm font-bold" id="rb-sw-txt" style="color: var(--text-muted);">ĐANG TẮT</span>
+                                    <label class="switch"><input type="checkbox" id="rb-sw" onchange="RBAdmin.toggle(this)"><span class="slider"></span></label>
+                                </div>
+                            </div>
+                            <div class="rb-info">
+                                <div><small>Lần gửi kế tiếp</small><b id="rb-next">—</b><span id="rb-next-sub"></span></div>
+                                <div><small>Lần gửi gần nhất</small><b id="rb-last">—</b><span id="rb-last-sub"></span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rb-cols">
+                        <div class="rb-col">
+                            <!-- NGÀY GIỜ -->
+                            <div class="card rb-card" style="border-left: 4px solid #f59e0b;">
+                                <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-calendar-days" style="color:#f59e0b"></i> Ngày giờ báo cáo</h3>
+                                <p class="text-muted text-sm mt-2 mb-4">Theo giờ Việt Nam. Mỗi ngày được chọn sẽ gửi ở tất cả các mốc giờ. Lịch mới chỉ áp dụng cho các mốc từ lúc lưu (không gửi bù mốc đã qua).</p>
+
+                                <div class="rb-block">
+                                    <label class="form-label">Giờ gửi trong ngày</label>
+                                    <div class="rb-chips" id="rb-times"></div>
+                                    <div class="flex items-center gap-2 flex-wrap mt-3">
+                                        <input type="time" class="form-control" id="rb-time-new" value="21:00" style="width: 140px;" aria-label="Giờ mới">
+                                        <button type="button" class="btn btn-primary" onclick="RBAdmin.addTime()"><i class="fa-solid fa-plus mr-1"></i> Thêm giờ</button>
+                                    </div>
+                                    <div class="rb-pres mt-3">
+                                        <button type="button" onclick="RBAdmin.addTime('08:00')">+08:00</button>
+                                        <button type="button" onclick="RBAdmin.addTime('10:30')">+10:30</button>
+                                        <button type="button" onclick="RBAdmin.addTime('12:00')">+12:00</button>
+                                        <button type="button" onclick="RBAdmin.addTime('20:00')">+20:00</button>
+                                        <button type="button" onclick="RBAdmin.addTime('22:00')">+22:00</button>
+                                    </div>
+                                </div>
+
+                                <div class="rb-block">
+                                    <label class="form-label">Ngày trong tuần</label>
+                                    <div class="rb-days" id="rb-days"></div>
+                                    <div class="rb-pres mt-3">
+                                        <button type="button" onclick="RBAdmin.setDays([0,1,2,3,4,5,6])">Hằng ngày</button>
+                                        <button type="button" onclick="RBAdmin.setDays([1,2,3,4,5])">Thứ 2 – Thứ 6</button>
+                                        <button type="button" onclick="RBAdmin.setDays([0,6])">Cuối tuần</button>
+                                    </div>
+                                </div>
+
+                                <div class="rb-block rb-grid">
+                                    <div>
+                                        <label class="form-label" for="rb-from">Áp dụng từ ngày</label>
+                                        <input type="date" class="form-control" id="rb-from" oninput="RBAdmin.set('from', this.value)">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="rb-to">Đến hết ngày</label>
+                                        <input type="date" class="form-control" id="rb-to" oninput="RBAdmin.set('to', this.value)">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="rb-grace">Gửi bù khi trễ (phút)</label>
+                                        <input type="number" class="form-control" id="rb-grace" min="5" max="720" step="5" oninput="RBAdmin.set('grace', +this.value)">
+                                    </div>
+                                </div>
+                                <p class="text-muted text-xs mt-2">Để trống khoảng ngày = áp dụng mãi. Gửi 1 ngày cụ thể: chọn "Từ" và "Đến" cùng 1 ngày. Tới giờ mà không máy nào mở web, máy đầu tiên mở lại trong thời gian "gửi bù" sẽ gửi.</p>
+
+                                <div class="rb-block">
+                                    <div class="rb-tgl"><span class="em">📱</span><div class="t"><b>Máy thành viên gửi thay</b><span>Không có trang Admin nào mở lúc tới giờ thì máy thành viên đang mở web sẽ gửi (đợi 30–90 giây để Admin được ưu tiên).</span></div><label class="switch"><input type="checkbox" id="rb-memberRun" onchange="RBAdmin.set('memberRun', this.checked)"><span class="slider"></span></label></div>
+                                </div>
+                            </div>
+
+                            <!-- NỘI DUNG -->
+                            <div class="card rb-card" style="border-left: 4px solid var(--brand-primary);">
+                                <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-pen-to-square" style="color: var(--brand-primary);"></i> Nội dung báo cáo</h3>
+                                <p class="text-muted text-sm mt-2 mb-4">Bật / tắt mục nào, sửa chữ nào là khung <b>Xem trước</b> đổi theo ngay.</p>
+
+                                <div class="rb-block">
+                                    <label class="form-label">Các mục trong báo cáo</label>
+                                    <div class="rb-tgl"><span class="em">✅</span><div class="t"><b>Đã điểm danh</b><span>Ai đã điểm danh hôm nay, xếp theo người điểm danh sớm nhất.</span></div><label class="switch"><input type="checkbox" id="rb-sec-att" onchange="RBAdmin.setSec('att', this.checked)"><span class="slider"></span></label></div>
+                                    <div class="rb-tgl"><span class="em">🔐</span><div class="t"><b>Đăng nhập hôm nay</b><span>Mọi tài khoản đã đăng nhập / vào web trong ngày.</span></div><label class="switch"><input type="checkbox" id="rb-sec-login" onchange="RBAdmin.setSec('login', this.checked)"><span class="slider"></span></label></div>
+                                    <div class="rb-tgl"><span class="em">⚠️</span><div class="t"><b>Đã vào nhưng chưa điểm danh</b><span>Nhắc đúng người quên điểm danh.</span></div><label class="switch"><input type="checkbox" id="rb-sec-loginNoAtt" onchange="RBAdmin.setSec('loginNoAtt', this.checked)"><span class="slider"></span></label></div>
+                                    <div class="rb-tgl"><span class="em">😴</span><div class="t"><b>Chưa đăng nhập</b><span>Tài khoản chưa vào web hôm nay.</span></div><label class="switch"><input type="checkbox" id="rb-sec-noLogin" onchange="RBAdmin.setSec('noLogin', this.checked)"><span class="slider"></span></label></div>
+                                    <div class="rb-tgl"><span class="em">🔒</span><div class="t"><b>Tài khoản bị khóa</b><span>Các tài khoản đang bị khóa (khóa tay, tự khóa, nghi gian lận). Không tính vào tổng thành viên.</span></div><label class="switch"><input type="checkbox" id="rb-sec-locked" onchange="RBAdmin.setSec('locked', this.checked)"><span class="slider"></span></label></div>
+                                </div>
+
+                                <div class="rb-block">
+                                    <label class="form-label">Cách ghi tên</label>
+                                    <div class="rb-tgl"><span class="em">📣</span><div class="t"><b>Gắn @tên tài khoản</b><span>Như Zalo: tên hiện màu, người được nhắc nhận thông báo "Bot nhắc đến bạn".</span></div><label class="switch"><input type="checkbox" id="rb-tag" onchange="RBAdmin.set('tag', this.checked)"><span class="slider"></span></label></div>
+                                    <div class="rb-tgl"><span class="em">🕘</span><div class="t"><b>Kèm giờ điểm danh</b><span>Ví dụ: @binh (09:02).</span></div><label class="switch"><input type="checkbox" id="rb-showTime" onchange="RBAdmin.set('showTime', this.checked)"><span class="slider"></span></label></div>
+                                    <div class="rb-tgl"><span class="em">🛡️</span><div class="t"><b>Bỏ qua Ban Quản Trị</b><span>Không tính Quản trị viên / Quản lý vào báo cáo.</span></div><label class="switch"><input type="checkbox" id="rb-excludeStaff" onchange="RBAdmin.set('excludeStaff', this.checked)"><span class="slider"></span></label></div>
+                                    <div class="rb-tgl"><span class="em">🙈</span><div class="t"><b>Không gửi khi chưa ai đăng nhập</b><span>Mốc giờ đó được ghi "Bỏ qua" (gửi tay vẫn gửi).</span></div><label class="switch"><input type="checkbox" id="rb-skipEmpty" onchange="RBAdmin.set('skipEmpty', this.checked)"><span class="slider"></span></label></div>
+                                </div>
+
+                                <div class="rb-block rb-grid">
+                                    <div>
+                                        <label class="form-label" for="rb-botName">Tên Bot trong Kênh Chung</label>
+                                        <input type="text" class="form-control" id="rb-botName" maxlength="40" oninput="RBAdmin.set('botName', this.value)">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="rb-maxNames">Tối đa tên mỗi mục</label>
+                                        <input type="number" class="form-control" id="rb-maxNames" min="10" max="500" step="10" oninput="RBAdmin.set('maxNames', +this.value)">
+                                    </div>
+                                </div>
+
+                                <div class="rb-block">
+                                    <label class="form-label" for="rb-title">Dòng tiêu đề</label>
+                                    <input type="text" class="form-control" id="rb-title" maxlength="300" oninput="RBAdmin.set('title', this.value)">
+                                    <div class="rb-vars" data-for="rb-title" data-key="title"></div>
+                                </div>
+
+                                <div class="rb-block">
+                                    <label class="form-label" for="rb-footer">Lời kết</label>
+                                    <textarea class="form-control" id="rb-footer" rows="3" maxlength="300" oninput="RBAdmin.set('footer', this.value)" style="resize: vertical;"></textarea>
+                                    <div class="rb-vars" data-for="rb-footer" data-key="footer"></div>
+                                </div>
+
+                                <div class="rb-block">
+                                    <label class="form-label">Tài khoản không đưa vào báo cáo</label>
+                                    <div class="rb-chips" id="rb-exclude"></div>
+                                    <div class="flex items-center gap-2 flex-wrap mt-3">
+                                        <input type="text" class="form-control" id="rb-ex-new" list="rb-dl-users" placeholder="Tên tài khoản (vd: test01)" autocomplete="off" style="flex: 1 1 200px; min-width: 0;" onkeydown="if(event.key==='Enter'){event.preventDefault();RBAdmin.addEx();}">
+                                        <button type="button" class="btn btn-primary" onclick="RBAdmin.addEx()"><i class="fa-solid fa-plus mr-1"></i> Thêm</button>
+                                    </div>
+                                    <datalist id="rb-dl-users"></datalist>
+                                    <p class="text-muted text-xs mt-2">Tài khoản đang bị khóa tự động không có trong báo cáo.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- XEM TRƯỚC -->
+                        <div class="rb-col rb-side">
+                            <div class="card rb-card" id="rb-pv-card">
+                                <div class="flex items-center justify-between gap-3 flex-wrap">
+                                    <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-eye" style="color: var(--color-info);"></i> Xem trước</h3>
+                                    <button type="button" class="btn btn-outline" style="padding: 8px 14px;" onclick="RBAdmin.refresh(true)"><i class="fa-solid fa-rotate mr-1" id="rb-pv-spin"></i> Làm mới số liệu</button>
+                                </div>
+                                <p class="text-muted text-sm mt-2 mb-4" id="rb-pv-sub">Số liệu thật của hôm nay.</p>
+                                <div class="rb-stats">
+                                    <div class="g"><b id="rb-s-att">–</b><span>Đã điểm danh</span></div>
+                                    <div class="b"><b id="rb-s-login">–</b><span>Đăng nhập hôm nay</span></div>
+                                    <div class="w"><b id="rb-s-lna">–</b><span>Vào, chưa điểm danh</span></div>
+                                    <div class="r"><b id="rb-s-no">–</b><span>Chưa đăng nhập</span></div>
+                                    <div class="k"><b id="rb-s-lock">–</b><span>Bị khóa</span></div>
+                                </div>
+                                <div class="rb-chat">
+                                    <div class="rb-chat-h"><i class="fa-solid fa-users"></i> Kênh Chung (Toàn Server)</div>
+                                    <div id="rb-pv"><div class="rb-pv-empty"><i class="fa-solid fa-spinner fa-spin"></i> Đang lấy số liệu…</div></div>
+                                </div>
+                                <p class="text-muted text-sm mt-3" id="rb-pv-note"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden mt-8">
+                        <div class="card-header bg-elevated border-strong m-0 p-6" style="background: var(--bg-elevated); border-bottom: 1px solid var(--border-strong);">
+                            <h3 class="card-title text-lg m-0">Lịch sử gửi báo cáo (20 lần gần nhất · bấm 1 dòng để xem nội dung đã gửi)</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="w-full rb-table">
+                                <thead>
+                                    <tr><th>Thời gian</th><th>Kiểu</th><th>Trạng thái</th><th>Đã điểm danh</th><th>Đăng nhập</th><th>Chưa điểm danh</th><th>Máy gửi</th></tr>
+                                </thead>
+                                <tbody id="rb-hist">
+                                    <tr><td colspan="7" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="rb-savebar" id="rb-savebar" style="display: none;">
+                        <div class="m"><b>● Có thay đổi chưa lưu</b><small id="rb-sb-sub"></small></div>
+                        <button type="button" class="btn btn-outline rb-jump" onclick="RBAdmin.jump()" title="Xem bản xem trước">👁<span class="t"> Xem trước</span></button>
+                        <button type="button" class="btn btn-outline" onclick="RBAdmin.revert()">Hoàn tác</button>
+                        <button type="button" class="btn btn-warning" id="rb-save" onclick="RBAdmin.save()"><i class="fa-solid fa-save mr-2"></i> Lưu thiết lập</button>
+                    </div>
+                </section>
+
+
+                <!-- VIEW QUÀ TOÀN HỆ THỐNG -->
+                <section id="view-gifts" class="view-section">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Quà Toàn Hệ Thống</h1>
+                            <p class="text-muted">Tặng quà cho mọi thành viên theo ngày giờ. Thành viên bấm mở quà là nhận ngay vào tài khoản.</p>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-success" style="padding: 14px 24px;" onclick="QDReport.open('giftsys')"><i class="fa-solid fa-file-export mr-2"></i> Xuất Báo Cáo</button>
+                            <button type="button" class="btn btn-primary" style="padding: 14px 24px;" onclick="GiftAdmin.edit()"><i class="fa-solid fa-plus mr-2"></i> Tạo quà mới</button>
+                        </div>
+                    </div>
+
+                    <div class="gf-stats mb-8">
+                        <div><small>Đang phát</small><b id="gf-s-live">–</b></div>
+                        <div><small>Sắp mở</small><b id="gf-s-soon">–</b></div>
+                        <div><small>Lượt nhận hôm nay</small><b id="gf-s-today">–</b></div>
+                        <div><small>Tổng lượt đã nhận</small><b id="gf-s-all">–</b></div>
+                    </div>
+
+                    <!-- Soạn quà -->
+                    <div class="card mb-8 gf-editor" id="gf-editor" style="display: none;">
+                        <div class="flex items-center justify-between gap-3 flex-wrap mb-2">
+                            <h3 class="text-lg m-0 flex items-center gap-2"><span style="font-size: 22px;">🎁</span> <span id="gf-ed-title">Tạo quà mới</span></h3>
+                            <button type="button" class="btn btn-outline" onclick="GiftAdmin.cancel()">Đóng</button>
+                        </div>
+                        <p class="text-muted text-sm mb-4" id="gf-ed-note">Thành viên thấy nút quà 🎁 ở Trang Chủ trong khoảng thời gian bạn đặt, mỗi người nhận đúng 1 lần.</p>
+                        <input type="hidden" id="gf-id">
+
+                        <div class="gf-grid">
+                            <div class="gf-col">
+                                <div class="rb-block">
+                                    <label class="form-label" for="gf-title">Tên món quà</label>
+                                    <input type="text" class="form-control" id="gf-title" maxlength="60" placeholder="vd: Lì xì mừng Xuân Đinh Mùi">
+                                    <div class="gf-icons mt-3" id="gf-icons"></div>
+                                </div>
+                                <div class="rb-block">
+                                    <label class="form-label" for="gf-msg">Lời nhắn kèm quà</label>
+                                    <textarea class="form-control" id="gf-msg" rows="3" maxlength="240" placeholder="vd: Chúc anh em năm mới an khang, bắn đâu trúng đó!" style="resize: vertical;"></textarea>
+                                </div>
+                                <div class="rb-block">
+                                    <label class="form-label">Vật phẩm trong quà (để 0 = không tặng món đó)</label>
+                                    <div class="gf-items">
+                                        <label class="gf-item"><span>💰</span><b>Điểm lì xì</b><input type="number" class="form-control" id="gf-i-points" min="0" max="1000000" step="10" value="0"></label>
+                                        <label class="gf-item"><span>🧧</span><b>Lượt rút lì xì</b><input type="number" class="form-control" id="gf-i-tickets" min="0" max="1000" value="0"></label>
+                                        <label class="gf-item"><span>🎡</span><b>Lượt vòng quay</b><input type="number" class="form-control" id="gf-i-spins" min="0" max="1000" value="0"></label>
+                                        <label class="gf-item"><span>🎯</span><b>Lượt ném còn</b><input type="number" class="form-control" id="gf-i-conThrows" min="0" max="1000" value="0"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="gf-col">
+                                <div class="rb-block">
+                                    <label class="form-label">Thời gian nhận quà (giờ Việt Nam)</label>
+                                    <div class="rb-grid">
+                                        <div><span class="text-muted text-xs">Mở từ</span><input type="datetime-local" class="form-control" id="gf-start"></div>
+                                        <div><span class="text-muted text-xs">Đóng lúc</span><input type="datetime-local" class="form-control" id="gf-end"></div>
+                                    </div>
+                                    <div class="rb-pres mt-3">
+                                        <button type="button" onclick="GiftAdmin.preset('now')">Mở ngay</button>
+                                        <button type="button" onclick="GiftAdmin.preset('today')">Hết hôm nay</button>
+                                        <button type="button" onclick="GiftAdmin.preset('3d')">3 ngày</button>
+                                        <button type="button" onclick="GiftAdmin.preset('7d')">7 ngày</button>
+                                        <button type="button" onclick="GiftAdmin.preset('tet')">Mùng 1 – Mùng 3 Tết</button>
+                                    </div>
+                                </div>
+                                <div class="rb-block rb-grid">
+                                    <div>
+                                        <label class="form-label" for="gf-max">Giới hạn số người nhận</label>
+                                        <input type="number" class="form-control" id="gf-max" min="0" max="100000" value="0">
+                                        <span class="text-muted text-xs">0 = không giới hạn. Đặt số = ai mở quà nhanh nhất mới có.</span>
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="gf-who">Ai được nhận</label>
+                                        <select class="form-control" id="gf-who">
+                                            <option value="all">Mọi thành viên</option>
+                                            <option value="old">Tài khoản tạo trước lúc mở quà</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="rb-block">
+                                    <div class="rb-tgl"><span class="em">🔔</span><div class="t"><b>Bật quà</b><span>Tắt = thành viên không thấy quà (không mất lượt đã nhận).</span></div><label class="switch"><input type="checkbox" id="gf-on" checked><span class="slider"></span></label></div>
+                                </div>
+                                <div class="gf-preview" id="gf-preview"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2 mt-6 flex-wrap">
+                            <button type="button" class="btn btn-outline" onclick="GiftAdmin.cancel()">Hủy</button>
+                            <button type="button" class="btn btn-primary" id="gf-save" onclick="GiftAdmin.save()"><i class="fa-solid fa-paper-plane mr-2"></i> Lưu &amp; phát quà</button>
+                        </div>
+                    </div>
+
+                    <!-- Danh sách quà -->
+                    <div class="gf-list" id="gf-list"><div class="card text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải...</div></div>
+
+                    <!-- Báo cáo nhận quà -->
+                    <div class="card p-0 overflow-hidden mt-8" id="gf-report" style="display: none;">
+                        <div class="card-header m-0 p-6 flex items-center justify-between gap-3 flex-wrap" style="background: var(--bg-elevated); border-bottom: 1px solid var(--border-strong);">
+                            <h3 class="card-title text-lg m-0" id="gf-rp-title">Báo cáo nhận quà</h3>
+                            <div class="flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-outline" id="gf-rp-tab-got" onclick="GiftAdmin.rpTab('got')">✅ Đã nhận</button>
+                                <button type="button" class="btn btn-outline" id="gf-rp-tab-not" onclick="GiftAdmin.rpTab('not')">⏳ Chưa nhận</button>
+                                <button type="button" class="btn btn-success" onclick="GiftAdmin.exportCsv()"><i class="fa-solid fa-file-export mr-1"></i> Xuất Excel</button>
+                                <button type="button" class="btn btn-outline" onclick="GiftAdmin.closeReport()">Đóng</button>
+                            </div>
+                        </div>
+                        <div class="gf-rp-sum p-6" id="gf-rp-sum"></div>
+                        <div class="px-6 pb-4"><input type="text" class="form-control" id="gf-rp-q" placeholder="Tìm tên tài khoản / họ tên..." oninput="GiftAdmin.rpDraw()"></div>
+                        <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                            <table class="w-full">
+                                <thead id="gf-rp-head"></thead>
+                                <tbody id="gf-rp-body"></tbody>
                             </table>
                         </div>
                     </div>
@@ -5255,7 +5646,7 @@ const QVis = {
                                 return;
                             }
 
-                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals'];
+                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals', 'reportbot', 'gifts'];
                             
                             // 2. NẾU LÀ MANAGER THÌ ẨN/HIỆN CHỨC NĂNG THEO QUYỀN
                             if (myRole === 'manager') {
@@ -6006,7 +6397,7 @@ const QVis = {
                     if(snap.empty) { listRender.innerHTML = `<div class="card p-10 text-center border-strong bg-elevated mb-0"><h4 class="text-muted font-normal m-0">Hệ thống chưa có bản tin nào được phát hành.</h4></div>`; return; }
                     snap.forEach(doc => {
                         const d = doc.data(); const timeFmt = new Date(d.time).toLocaleString('vi-VN');
-                        listRender.insertAdjacentHTML('beforeend', `<div class="card mb-0 p-6 border-l-4 border-info" style="border-left: 4px solid var(--color-info);"><div class="flex justify-between items-start mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-3"><div class="flex-center rounded-full bg-info-bg text-info" style="width: 36px; height: 36px; background: var(--color-info-bg); color: var(--color-info); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-bullhorn"></i></div><div class="flex-col"><span class="text-xs font-bold text-muted uppercase tracking-wide">THÔNG BÁO TỪ HỆ THỐNG</span><span class="text-xs text-muted"><i class="fa-regular fa-clock mr-1"></i> Phát hành: ${timeFmt}</span></div></div><div class="flex gap-2"><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px;" onclick="AdminActions.openNewsEditor('${doc.id}', '${encodeURIComponent(d.content)}')" title="Chỉnh Sửa"><i class="fa-solid fa-pen"></i></button><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px; color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('news', '${doc.id}', 'Bạn có chắc chắn muốn gỡ bỏ bản tin này khỏi máy chủ?')" title="Xóa Bản Tin"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="text-main" style="font-size: 15px; line-height: 1.7; white-space: pre-wrap;">${d.content}</div></div>`);
+                        listRender.insertAdjacentHTML('beforeend', `<div class="card mb-0 p-6 border-l-4 border-info" style="border-left: 4px solid var(--color-info);"><div class="flex justify-between items-start mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-3"><div class="flex-center rounded-full bg-info-bg text-info" style="width: 36px; height: 36px; background: var(--color-info-bg); color: var(--color-info); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-bullhorn"></i></div><div class="flex-col"><span class="text-xs font-bold text-muted uppercase tracking-wide">THÔNG BÁO TỪ HỆ THỐNG</span><span class="text-xs text-muted"><i class="fa-regular fa-clock mr-1"></i> Phát hành: ${timeFmt}</span>${d.popup ? `<span class="text-xs font-bold" style="color:#d97706">📢 Hiện khi đăng nhập · ${({ every: 'mỗi lần', daily: '1 lần / ngày', once: '1 lần / người' })[d.popupMode] || 'mỗi lần'}${d.popupUntil ? ' · đến ' + d.popupUntil.split('-').reverse().join('/') : ''}</span>` : ''}</div></div><div class="flex gap-2"><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px;" onclick="AdminActions.openNewsEditor('${doc.id}', '${encodeURIComponent(d.content)}')" title="Chỉnh Sửa"><i class="fa-solid fa-pen"></i></button><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px; color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('news', '${doc.id}', 'Bạn có chắc chắn muốn gỡ bỏ bản tin này khỏi máy chủ?')" title="Xóa Bản Tin"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="text-main" style="font-size: 15px; line-height: 1.7; white-space: pre-wrap;">${d.content}</div></div>`);
                     });
                 });
             }
@@ -7233,7 +7624,12 @@ exportAttendanceExcel: () => {
             nemcon: ['Giải trí & thưởng', 'Ném còn'],
             invite: ['Giải trí & thưởng', 'Mã mời'],
             tournament: ['Thi đấu & tin tức', 'Giải đấu'],
-            news: ['Thi đấu & tin tức', 'Bản tin']
+            news: ['Thi đấu & tin tức', 'Bản tin'],
+            reportbot: ['Thi đấu & tin tức', 'Bot báo cáo'],
+            gifts: ['Giải trí & thưởng', 'Quà toàn hệ thống'],
+            transfer: ['Giải trí & thưởng', 'Tặng lượt'],
+            payout: ['Giải trí & thưởng', 'Trả thưởng tiền mặt'],
+            security: ['Thành viên', 'Chống gian lận']
         };
         function $(s, r) { return (r || document).querySelector(s); }
         function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -9274,7 +9670,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             { id: 'history', icon: 'fa-clock-rotate-left', name: 'Lịch sử điểm, quay, rút lì xì, giao dịch', cols: ['point_history', 'spin_history', 'tranhthuong_history', 'lixi_history', 'rps_history', 'con_history', 'invite_history', 'transfer_history', 'lucky_number_history', 'shop_orders', 'admin_logs'] },
             { id: 'daily', icon: 'fa-calendar-check', name: 'Điểm danh, số may mắn, BXH & dữ liệu hằng ngày', cols: ['attendance', 'lucky_numbers', 'con_stats', 'lixi_daily', 'point_shop_daily', 'rps_rooms'] },
             { id: 'stock', icon: 'fa-boxes-stacked', name: 'Kho giải đã phát (số giải đã trúng)', cols: ['wheel_stock', 'tranhthuong_stock', 'point_shop_stock'] },
-            { id: 'chat', icon: 'fa-comments', name: 'Tin nhắn trò chuyện', cols: ['private_chat'] },
+            { id: 'chat', icon: 'fa-comments', name: 'Tin nhắn trò chuyện & lịch sử Bot báo cáo', cols: ['private_chat', 'bot_reports'] },
             { id: 'quiz', icon: 'fa-circle-question', name: 'Câu hỏi vòng quay & đáp án', cols: ['wheel_questions', 'wheel_question_keys'] },
             { id: 'event', icon: 'fa-trophy', name: 'Giải đấu (danh sách) & bản tin', cols: ['tournament', 'news'] },
             { id: 'ai', icon: 'fa-robot', name: 'Câu hỏi chưa trả lời của Quân Sư AI', cols: ['ai_unanswered'] },
@@ -10562,6 +10958,12 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             return chunks.reduce(function (pr, ch) { return pr.then(function () { var b = db.batch(); ch.forEach(function (o) { b.set(o[0], o[1]); }); return b.commit(); }); }, Promise.resolve()).then(function () {
                 var sum = gs.reduce(function (a, x) { return a + x.total; }, 0);
                 log('paid', { user: gs.length === 1 ? gs[0].user : '(' + gs.length + ' người)', users: gs.map(function (x) { return x.user; }).slice(0, 200), amount: sum, count: ops.length, method: method, batch: batchId });
+                try {   // Bot báo "Đã chuyển tiền thưởng": nhắn riêng cho từng người nhận bằng tài khoản BQT (Trả thưởng > thẻ Bot báo)
+                    if (window.QDPayNotify) QDPayNotify.send(gs.map(function (x) {
+                        return { user: x.user, total: x.total, ref: refOf(x), bank: x.bank ? { bank: bankOf(x.bank), accNo: x.bank.accNo, accName: x.bank.accName || '' } : null,
+                            wins: x.wins.map(function (w) { return { col: w.col, prize: w.prize, amount: w.amount, wonAt: w.wonAt }; }) };
+                    }), { method: method, paidAt: t, by: me(), batch: batchId });
+                } catch (e) { console.warn('[Bot báo chuyển tiền]', e); }
                 return { n: ops.length, sum: sum };
             });
         }
@@ -12640,6 +13042,1258 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 kpi: function (r) { return [['Tổng lượt lỗi', fmt(r.reduce(function (a, x) { return a + (x.count || 1); }, 0)), 'lần xảy ra'], ['Đang mở', fmt(r.filter(function (x) { return x.status !== 'fixed'; }).length), 'lỗi']]; },
                 brk: ['Theo trang', function (x) { return x.page || '?'; }, function (x) { return x.count || 1; }] });
         }
+    })();
+    </script>
+    <!-- ===== QD REPORT BOT: bộ máy Bot Báo Cáo (khối dùng chung bot.html · admin.html · user.html) =====
+         Cấu hình: settings/report_bot (Admin > Bot báo cáo hoặc trang bot.html). Lịch sử gửi: bot_reports/{YYYY-MM-DD_HHMM}.
+         Tới giờ hẹn (giờ Việt Nam), máy nào đang mở web sẽ giành quyền gửi bằng giao dịch máy chủ -> mỗi mốc giờ chỉ gửi ĐÚNG 1 LẦN
+         vào Kênh Chung, dù nhiều máy cùng mở. Trang Bot / Admin gửi ngay, máy thành viên đợi 30-90 giây (chỉ khi Admin cho phép).
+         Báo cáo: đã điểm danh · đăng nhập hôm nay · đã vào nhưng chưa điểm danh · chưa đăng nhập · tài khoản bị khóa, gắn @tên tài khoản. -->
+    <script id="qd-report-bot">
+    (function () {
+        'use strict';
+        var W = window;
+        if (W.QDReportBot) return;
+        var VN = 7 * 3600e3, BOT = 'qd_bot', CFG_DOC = 'report_bot', DAY = 864e5;
+        var WD = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        var DEF = {
+            isEnabled: false, enabledAt: 0, schedAt: 0,
+            times: ['20:00'], days: [0, 1, 2, 3, 4, 5, 6], from: '', to: '',
+            grace: 60, memberRun: true,
+            botName: 'Bot Báo Cáo',
+            title: '📋 BÁO CÁO HOẠT ĐỘNG — {thu}, {ngay}',
+            footer: 'Cảm ơn anh em đã có mặt hôm nay! Ai chưa điểm danh nhớ vào đúng giờ nhé 💪',
+            sec: { att: true, login: true, loginNoAtt: true, noLogin: false, locked: true },
+            tag: true, showTime: true, excludeStaff: true, exclude: [], maxNames: 100, skipEmpty: false
+        };
+        var DB = null;
+        function db() { if (DB) return DB; try { if (W.firebase && firebase.apps && firebase.apps.length && firebase.firestore) DB = firebase.firestore(); } catch (e) {} return DB; }
+        function pad(n) { return (n < 10 ? '0' : '') + n; }
+        function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+        /* ---------- Giờ Việt Nam (UTC+7, không đổi giờ mùa hè) ---------- */
+        function vnParts(t) {
+            var d = new Date((t == null ? Date.now() : t) + VN);
+            return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate(), wd: d.getUTCDay(), h: d.getUTCHours(), mi: d.getUTCMinutes() };
+        }
+        function dateKey(p) { return p.y + '-' + pad(p.m) + '-' + pad(p.d); }
+        function dateVN(p) { return p.d + '/' + p.m + '/' + p.y; }              // giống toLocaleDateString('vi-VN') ở trang Điểm Danh
+        function dateShow(p) { return pad(p.d) + '/' + pad(p.m) + '/' + p.y; }
+        function dayStart(p) { return Date.UTC(p.y, p.m - 1, p.d) - VN; }
+        function hm(t) { var p = vnParts(t); return pad(p.h) + ':' + pad(p.mi); }
+
+        /* ---------- Chuẩn hóa cấu hình ---------- */
+        function norm(c) {
+            c = c || {};
+            var o = JSON.parse(JSON.stringify(DEF)), n = function (v, def, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? def : Math.max(lo, Math.min(hi, v)); };
+            o.isEnabled = c.isEnabled === true; o.enabledAt = +c.enabledAt || 0; o.schedAt = +c.schedAt || 0;
+            if (Array.isArray(c.times)) {
+                var seen = {};
+                o.times = c.times.map(function (t) { var m = /^(\d{1,2}):(\d{2})$/.exec(String(t).trim()); if (!m || +m[1] > 23 || +m[2] > 59) return null; return pad(+m[1]) + ':' + m[2]; })
+                    .filter(function (t) { if (!t || seen[t]) return false; seen[t] = 1; return true; }).sort().slice(0, 12);
+            }
+            if (Array.isArray(c.days)) { var sd = {}; o.days = c.days.map(Number).filter(function (x) { if (!(x >= 0 && x <= 6) || sd[x]) return false; sd[x] = 1; return true; }).sort(); }
+            var dk = /^\d{4}-\d{2}-\d{2}$/;
+            o.from = dk.test(c.from || '') ? c.from : ''; o.to = dk.test(c.to || '') ? c.to : '';
+            o.grace = n(c.grace, DEF.grace, 5, 720); o.memberRun = c.memberRun !== false;
+            ['botName', 'title', 'footer'].forEach(function (k) { if (typeof c[k] === 'string') o[k] = c[k].slice(0, k === 'botName' ? 40 : 300); });
+            if (!o.botName.trim()) o.botName = DEF.botName;
+            if (c.sec && typeof c.sec === 'object') Object.keys(o.sec).forEach(function (k) { if (typeof c.sec[k] === 'boolean') o.sec[k] = c.sec[k]; });
+            ['tag', 'showTime', 'excludeStaff', 'skipEmpty'].forEach(function (k) { if (typeof c[k] === 'boolean') o[k] = c[k]; });
+            if (Array.isArray(c.exclude)) o.exclude = c.exclude.map(function (u) { return String(u).replace(/^@/, '').trim(); }).filter(Boolean).slice(0, 300);
+            o.maxNames = n(c.maxNames, DEF.maxNames, 10, 500);
+            o.updatedAt = +c.updatedAt || 0; o.updatedBy = c.updatedBy || '';
+            return o;
+        }
+
+        /* ---------- Lịch: các mốc giờ của 1 ngày, mốc kế tiếp, mốc đang tới hạn ---------- */
+        function dayOk(cfg, p) {
+            if (cfg.days.indexOf(p.wd) < 0) return false;
+            var k = dateKey(p);
+            return !(cfg.from && k < cfg.from) && !(cfg.to && k > cfg.to);
+        }
+        function slotsFor(cfg, p) {
+            if (!dayOk(cfg, p)) return [];
+            var k = dateKey(p), st = dayStart(p);
+            return cfg.times.map(function (t) { var a = t.split(':'); return { time: t, key: k, ts: st + (+a[0]) * 3600e3 + (+a[1]) * 60e3, runId: k + '_' + a[0] + a[1] }; });
+        }
+        function nextRun(cfg, now) {
+            now = now || Date.now(); if (!cfg || !cfg.times.length || !cfg.days.length) return null;
+            for (var i = 0; i < 400; i++) {
+                var p = vnParts(now + i * DAY);
+                if (cfg.to && dateKey(p) > cfg.to) return null;
+                var s = slotsFor(cfg, p).filter(function (x) { return x.ts > now; })[0];
+                if (s) { s.p = p; return s; }
+            }
+            return null;
+        }
+        function dueSlots(cfg, now, delay) {
+            var floor = Math.max(cfg.enabledAt || 0, cfg.schedAt || 0) - 60000;
+            return slotsFor(cfg, vnParts(now)).filter(function (s) { return s.ts <= now - (delay || 0) && now - s.ts <= cfg.grace * 60000 && s.ts >= floor; });
+        }
+
+        /* ---------- Thu số liệu: tài khoản, điểm danh, đăng nhập hôm nay ---------- */
+        async function collect(cfg, at) {
+            var D = db(); if (!D) throw new Error('Chưa kết nối được máy chủ.');
+            cfg = cfg || norm(null); at = at || Date.now();
+            var p = vnParts(at), start = dayStart(p), key = dateKey(p), d1 = dateVN(p), d2 = dateShow(p);
+            var ex = {}; cfg.exclude.forEach(function (u) { ex[u.toLowerCase()] = 1; });
+            var res = await Promise.all([
+                D.collection('accounts').get(),
+                D.collection('attendance').where('date', 'in', d1 === d2 ? [d1] : [d1, d2]).get()
+            ]);
+            var accs = [], by = {}, all = [], locked = [];
+            res[0].forEach(function (doc) {
+                var a = doc.data() || {}, u = String(a.user || '').trim();
+                if (u && u !== BOT) all.push(u);
+                if (!u || u === BOT || ex[u.toLowerCase()]) return;
+                var role = a.role || (u === 'admin' ? 'admin' : 'user');
+                if (cfg.excludeStaff && (role === 'admin' || role === 'manager')) return;
+                if (a.isBlocked === true) { locked.push({ u: u, name: a.fullName || a.name || '', role: role, why: a.lockReason === 'security' ? 'nghi gian lận' : '', at: +a.lockedAt || 0 }); return; }
+                var o = { u: u, name: a.fullName || a.name || '', role: role, la: +a.lastActive || 0, online: a.online !== false, ll: a.lastLoginDate === key ? (+a.lastLoginAt || 0) : 0 };
+                accs.push(o); by[u] = o;
+            });
+            var att = {};
+            res[1].forEach(function (doc) {
+                var x = doc.data() || {}, u = x.userName; if (!u || !by[u]) return;
+                var ts = +x.timestamp || 0; if (!att[u] || ts < att[u].ts) att[u] = { ts: ts, time: x.time || '' };
+            });
+            var cmpName = function (a, b) { return a.u.localeCompare(b.u, 'vi', { sensitivity: 'base' }); };
+            var attended = accs.filter(function (a) { return att[a.u]; }).sort(function (a, b) { return att[a.u].ts - att[b.u].ts; });
+            var logged = accs.filter(function (a) { return att[a.u] || a.ll || a.la >= start; }).sort(cmpName);
+            var inLog = {}; logged.forEach(function (a) { inLog[a.u] = 1; });
+            return {
+                at: at, p: p, key: key, total: accs.length, att: att, by: by, allUsers: all.sort(),
+                attended: attended, loggedIn: logged,
+                loginNoAtt: logged.filter(function (a) { return !att[a.u]; }),
+                noLogin: accs.filter(function (a) { return !inLog[a.u]; }).sort(cmpName),
+                locked: locked.sort(cmpName),
+                online: accs.filter(function (a) { return a.online && at - a.la < 120000; }).length
+            };
+        }
+
+        /* ---------- Soạn tin nhắn ---------- */
+        function fill(tpl, v) { return String(tpl || '').replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); }
+        function compose(cfg, d) {
+            cfg = cfg || norm(null);
+            var men = {};
+            function list(arr, withTime, empty) {
+                if (!arr.length) return empty || '— Chưa có ai —';
+                var shown = arr.slice(0, cfg.maxNames);
+                var s = shown.map(function (a) {
+                    if (cfg.tag) men[a.u] = 1;
+                    return (cfg.tag ? '@' : '') + a.u + (withTime && cfg.showTime && d.att[a.u] && d.att[a.u].ts ? ' (' + hm(d.att[a.u].ts) + ')' : '') + (a.why ? ' (' + a.why + ')' : '');
+                }).join(', ');
+                if (arr.length > shown.length) s += ' … và ' + (arr.length - shown.length) + ' người khác';
+                return s;
+            }
+            var pct = d.total ? Math.round(d.attended.length * 1000 / d.total) / 10 : 0;
+            var v = { ngay: dateShow(d.p), thu: WD[d.p.wd], gio: hm(d.at), diemdanh: d.attended.length, dangnhap: d.loggedIn.length,
+                chuadiemdanh: d.loginNoAtt.length, chuavao: d.noLogin.length, bikhoa: (d.locked || []).length, tong: d.total, tile: String(pct).replace('.', ',') + '%', bot: cfg.botName };
+            var out = [], t = fill(cfg.title, v).trim();
+            if (t) out.push(t);
+            out.push('⏰ Chốt số liệu lúc ' + v.gio + ' · ' + d.total + ' thành viên');
+            if (cfg.sec.att) out.push('', '✅ ĐÃ ĐIỂM DANH: ' + d.attended.length + '/' + d.total + ' (' + v.tile + ')', list(d.attended, true));
+            if (cfg.sec.login) out.push('', '🔐 ĐĂNG NHẬP HÔM NAY: ' + d.loggedIn.length + '/' + d.total, list(d.loggedIn));
+            if (cfg.sec.loginNoAtt) out.push('', '⚠️ ĐÃ VÀO NHƯNG CHƯA ĐIỂM DANH: ' + d.loginNoAtt.length, list(d.loginNoAtt));
+            if (cfg.sec.noLogin) out.push('', '😴 CHƯA ĐĂNG NHẬP: ' + d.noLogin.length, list(d.noLogin));
+            if (cfg.sec.locked) out.push('', '🔒 TÀI KHOẢN BỊ KHÓA: ' + (d.locked || []).length, list(d.locked || [], false, '— Không có tài khoản nào bị khóa —'));
+            var f = fill(cfg.footer, v).trim(); if (f) out.push('', f);
+            return {
+                text: out.join('\n').slice(0, 30000), mentions: Object.keys(men), vars: v,
+                counts: { total: d.total, att: d.attended.length, login: d.loggedIn.length, loginNoAtt: d.loginNoAtt.length, noLogin: d.noLogin.length, locked: (d.locked || []).length, online: d.online }
+            };
+        }
+
+        /* ---------- @nhắc tên: tô màu + tách danh sách người được nhắc ---------- */
+        // resolve(token) -> tên tài khoản đúng (hoặc null nếu không có ai tên đó)
+        function scan(raw, resolve, cb) {
+            var re = /@([^\s@<>"'`,;:!?()[\]{}]+)/g, m;
+            while ((m = re.exec(raw))) {
+                var prev = m.index ? raw.charAt(m.index - 1) : '';
+                if (prev && !/[\s(\[,;:]/.test(prev)) continue;                 // a@b.com không phải nhắc tên
+                var tok = m[1], u = null;
+                if (/^(all|tatca|tấtcả)$/i.test(tok)) u = 'all';
+                else u = resolve(tok) || (/[.\-_]+$/.test(tok) ? resolve(tok.replace(/[.\-_]+$/, '')) : null);
+                if (!u) continue;
+                var len = u === 'all' ? tok.length : (resolve(tok) ? tok.length : tok.replace(/[.\-_]+$/, '').length);
+                cb(m.index, len + 1, u);
+                re.lastIndex = m.index + len + 1;
+            }
+        }
+        function renderText(raw, o) {
+            raw = String(raw == null ? '' : raw); o = o || {};
+            var resolve = o.resolve || function () { return null; }, out = '', last = 0;
+            scan(raw, resolve, function (i, len, u) {
+                out += esc(raw.slice(last, i));
+                var mine = u === 'all' || (o.me && u === o.me);
+                out += '<span class="qd-mention' + (mine ? ' me' : '') + '" data-u="' + esc(u) + '" role="button" tabindex="0">@' + esc(u === 'all' ? 'All' : u) + '</span>';
+                last = i + len;
+            });
+            out += esc(raw.slice(last));
+            return out.replace(/\n/g, '<br>');
+        }
+        function mentionsIn(raw, resolve) { var s = {}; scan(String(raw || ''), resolve, function (i, len, u) { s[u] = 1; }); return Object.keys(s); }
+
+        /* ---------- Gửi: giành quyền (giao dịch) -> thu số liệu -> ghi tin Kênh Chung + lịch sử cùng lúc ---------- */
+        async function send(slot, opt) {
+            var D = db(); if (!D) throw new Error('Chưa kết nối được máy chủ.');
+            opt = opt || {}; var cfg = opt.cfg || CFG || norm(null), who = String(opt.by || '?');
+            var ref = D.collection('bot_reports').doc(slot.runId);
+            var got = await D.runTransaction(function (tx) {
+                return tx.get(ref).then(function (s) {
+                    var x = s.exists ? s.data() : null, t = Date.now();
+                    if (x) {
+                        if (x.status === 'sent' || x.status === 'skipped') return 'done';
+                        if ((x.tries || 0) >= 3) return 'done';
+                        if (x.status === 'sending' && t - (+x.at || 0) < 180000) return 'busy';
+                    }
+                    tx.set(ref, { runId: slot.runId, slot: slot.time, dateKey: slot.key, due: slot.ts, status: 'sending', by: who, byRole: opt.role || '', at: t, tries: ((x && x.tries) || 0) + 1, manual: !!opt.manual }, { merge: true });
+                    return 'ok';
+                });
+            });
+            if (got !== 'ok') return { ok: false, reason: got };
+            try {
+                var data = await collect(cfg, Date.now()), comp = compose(cfg, data);
+                if (cfg.skipEmpty && !opt.manual && !data.loggedIn.length) {
+                    await ref.set({ status: 'skipped', note: 'Hôm nay chưa ai đăng nhập', doneAt: Date.now(), counts: comp.counts }, { merge: true });
+                    return { ok: false, reason: 'done', skipped: true };
+                }
+                var mref = D.collection('private_chat').doc(), t = Date.now();
+                var msg = { conversationId: 'general_room', from: BOT, to: 'all', text: comp.text, imageUrl: null, time: t, read: false, heart: false, hearts: [], readBy: [],
+                    bot: true, botName: cfg.botName, mentions: comp.mentions, reportId: slot.runId };
+                var b = D.batch();
+                b.set(mref, msg);
+                b.set(ref, { status: 'sent', msgId: mref.id, sentAt: t, counts: comp.counts, text: comp.text.slice(0, 6000) }, { merge: true });
+                await b.commit();
+                emit({ type: 'sent', runId: slot.runId });
+                return { ok: true, msgId: mref.id, comp: comp };
+            } catch (e) {
+                ref.set({ status: 'error', err: String((e && (e.message || e.code)) || e).slice(0, 200), errAt: Date.now() }, { merge: true }).catch(function () {});
+                emit({ type: 'error', runId: slot.runId });
+                throw e;
+            }
+        }
+        function sendNow(by, role, cfg) {
+            var now = Date.now(), p = vnParts(now);
+            return send({ runId: 'manual_' + dateKey(p) + '_' + now.toString(36), time: hm(now), key: dateKey(p), ts: now }, { by: by, role: role, manual: true, cfg: cfg });
+        }
+
+        /* ---------- Lưu cấu hình (đổi lịch -> chỉ gửi các mốc từ lúc lưu, không gửi bù mốc cũ) ---------- */
+        async function save(patch, by, action) {
+            var D = db(); if (!D) throw new Error('Chưa kết nối được máy chủ.');
+            var t = Date.now(), cur = CFG || norm(null), p = {};
+            Object.keys(patch || {}).forEach(function (k) { p[k] = patch[k]; });
+            if (p.isEnabled === true && !cur.isEnabled) p.enabledAt = t;
+            var sched = ['times', 'days', 'from', 'to'].some(function (k) { return k in p && JSON.stringify(p[k]) !== JSON.stringify(cur[k]); });
+            if (sched) p.schedAt = t;
+            p.updatedAt = t; p.updatedBy = by || '';
+            await D.collection('settings').doc(CFG_DOC).set(p, { merge: true });
+            D.collection('admin_logs').add({ type: 'report_bot', action: action || 'save', user: '(bot báo cáo)', by: by || '', timestamp: t,
+                detail: 'isEnabled' in p ? (p.isEnabled ? 'Bật' : 'Tắt') : JSON.stringify({ times: p.times, days: p.days, from: p.from, to: p.to }).slice(0, 300) }).catch(function () {});
+        }
+
+        /* ---------- Trực gửi theo lịch ---------- */
+        var CFG = null, RAW = null, ROLE = '', ME = null, DELAY = 0, unsub = null, timer = null, tried = {}, subs = [];
+        function emit(ev) { subs.forEach(function (f) { try { f(ev || { type: 'cfg' }, CFG); } catch (e) {} }); }
+        function on(fn) { subs.push(fn); if (CFG) { try { fn({ type: 'cfg' }, CFG); } catch (e) {} } return function () { subs = subs.filter(function (x) { return x !== fn; }); }; }
+        function listen() {
+            var D = db(); if (!D || unsub) return !!unsub;
+            unsub = D.collection('settings').doc(CFG_DOC).onSnapshot(function (s) {
+                RAW = s.exists ? s.data() : null; CFG = norm(RAW); emit({ type: 'cfg', fromCache: s.metadata.fromCache }); tick();
+            }, function () { unsub = null; });
+            return true;
+        }
+        function tick() {
+            if (!CFG || !CFG.isEnabled || !ROLE) return;
+            if (ROLE === 'member' && !CFG.memberRun) return;
+            var me = ME ? ME() : ''; if (!me) return;
+            var now = Date.now();
+            dueSlots(CFG, now, DELAY).forEach(function (s) {
+                var t = tried[s.runId]; if (t === true || (t && now - t < 60000)) return;
+                tried[s.runId] = now;
+                send(s, { by: me, role: ROLE, cfg: CFG }).then(function (r) { if (r.ok || r.reason === 'done') tried[s.runId] = true; })
+                    .catch(function (e) { console.warn('[Bot báo cáo] Gửi chưa được, sẽ thử lại:', e && e.message); });
+            });
+        }
+        function start(o) {
+            o = o || {}; ROLE = o.role || 'member'; ME = o.me || null;
+            DELAY = ROLE === 'member' ? 30000 + Math.floor(Math.random() * 60000) : ROLE === 'admin' ? 1500 + Math.floor(Math.random() * 4000) : 0;
+            if (!listen()) { var n = 0, w = setInterval(function () { if (listen() || ++n > 60) clearInterval(w); }, 500); }
+            if (!timer) timer = setInterval(tick, 15000);
+            setTimeout(tick, 2500);
+        }
+        // Trang nào cũng nghe cấu hình để hiển thị (không gửi khi chưa start)
+        function watch() { if (!listen()) { var n = 0, w = setInterval(function () { if (listen() || ++n > 60) clearInterval(w); }, 500); } }
+
+        W.QDReportBot = {
+            BOT: BOT, DEF: DEF, WD: WD, norm: norm, vnParts: vnParts, dateKey: dateKey, dateShow: dateShow, dayStart: dayStart, hm: hm, pad: pad, esc: esc,
+            slotsFor: slotsFor, nextRun: nextRun, dueSlots: dueSlots, collect: collect, compose: compose, fill: fill,
+            renderText: renderText, mentionsIn: mentionsIn, send: send, sendNow: sendNow, save: save,
+            start: start, watch: watch, on: on, cfg: function () { return CFG; }, raw: function () { return RAW; }, role: function () { return ROLE; }
+        };
+    })();
+    </script>
+    <style id="qd-rb-admin-css">
+        .rb-status { border-left: 4px solid var(--text-muted); }
+        .rb-status.on { border-left-color: var(--color-success); }
+        .rb-info { flex: 1 1 340px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; min-width: 0; }
+        .rb-info > div { padding: 12px 14px; border-radius: 12px; background: var(--bg-base); border: 1px solid var(--border-strong); min-width: 0; }
+        .rb-info small { display: block; font-size: 11px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--text-muted); }
+        .rb-info b { display: block; font-size: 15px; font-weight: 800; color: var(--text-main); margin-top: 3px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+        .rb-info span { display: block; font-size: 12.5px; color: var(--text-muted); margin-top: 2px; overflow-wrap: anywhere; }
+        .rb-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+        .rb-col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+        .rb-card { margin: 0 !important; padding: 24px !important; }
+        @media (min-width: 1280px) {
+            .rb-cols { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); }
+            .rb-side { position: sticky; top: calc(var(--header-h, 64px) + 16px); }
+        }
+        .rb-block { padding: 16px 0; border-top: 1px dashed var(--border-strong); }
+        .rb-block:first-of-type { border-top: 0; padding-top: 0; }
+        .rb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+        .rb-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .rb-chip { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 6px 0 14px; border-radius: 999px; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums;
+            color: #92400e; background: rgba(245, 158, 11, .14); border: 1.5px solid rgba(245, 158, 11, .6); }
+        .rb-chip.sm { height: 32px; font-size: 13.5px; padding-left: 12px; }
+        [data-theme="dark"] .rb-chip { color: #fcd34d; }
+        .rb-chip button { width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgba(0, 0, 0, .08); color: inherit; cursor: pointer; font-size: 11px; }
+        .rb-chip button:hover { background: var(--color-danger); color: #fff; }
+        .rb-days { display: flex; flex-wrap: wrap; gap: 8px; }
+        .rb-day { min-width: 50px; height: 40px; padding: 0 10px; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; color: var(--text-muted); background: var(--bg-base); border: 1.5px solid var(--border-strong); }
+        .rb-day.on { color: #fff; background: #d97706; border-color: #d97706; }
+        .rb-pres, .rb-vars { display: flex; flex-wrap: wrap; gap: 6px; }
+        .rb-vars { margin-top: 8px; }
+        .rb-pres button, .rb-vars button { height: 30px; padding: 0 11px; border-radius: 999px; font-size: 12.5px; font-weight: 700; cursor: pointer; color: var(--text-main); background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+        .rb-vars button { border-radius: 8px; height: 28px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; border-style: dashed; }
+        .rb-pres button:hover, .rb-vars button:hover { border-color: #f59e0b; }
+        .rb-empty { font-size: 13px; font-weight: 700; color: var(--color-danger); padding: 8px 0; }
+        .rb-tgl { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 12px; background: var(--bg-base); border: 1px solid var(--border-strong); }
+        .rb-tgl + .rb-tgl { margin-top: 8px; }
+        .rb-tgl .em { flex: 0 0 auto; width: 26px; text-align: center; font-size: 19px; }
+        .rb-tgl .t { flex: 1; min-width: 0; }
+        .rb-tgl .t b { display: block; font-size: 14px; font-weight: 800; color: var(--text-main); }
+        .rb-tgl .t span { display: block; font-size: 12.5px; color: var(--text-muted); line-height: 1.45; margin-top: 1px; }
+        .rb-tgl .switch { flex: 0 0 auto; }
+        /* Xem trước: giống Kênh Chung bên trang thành viên */
+        .rb-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+        .rb-stats > div { border-radius: 12px; padding: 10px 6px; text-align: center; background: var(--bg-base); border: 1px solid var(--border-strong); min-width: 0; }
+        .rb-stats b { display: block; font-size: 22px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+        .rb-stats span { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 3px; line-height: 1.3; }
+        .rb-stats .g b { color: var(--color-success); } .rb-stats .b b { color: var(--color-info); } .rb-stats .w b { color: #d97706; } .rb-stats .r b { color: var(--color-danger); } .rb-stats .k b { color: var(--text-muted); }
+        @media (max-width: 600px) { .rb-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        .rb-chat { border-radius: 16px; padding: 14px; background: linear-gradient(180deg, rgba(0, 0, 0, .1), rgba(0, 0, 0, .28)), linear-gradient(160deg, #8f0a12, #6a0008); border: 1.5px solid rgba(255, 213, 74, .45); }
+        .rb-chat-h { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: #fde68a; margin-bottom: 12px; }
+        .rb-bubble { padding: 13px 16px; border-radius: 20px; border-bottom-left-radius: 6px; font-size: 14.5px; line-height: 1.6; color: #fff; word-wrap: break-word; background: rgba(0, 0, 0, .32); border: 1.5px solid rgba(255, 213, 74, .6); }
+        .rb-bubble .snd { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: #ffe066; margin-bottom: 6px; }
+        .rb-bubble .bdg { display: inline-flex; align-items: center; height: 16px; padding: 0 5px; border-radius: 4px; font-size: 9.5px; font-weight: 900; letter-spacing: .5px; color: #6a0008; background: #ffd54a; }
+        .rb-bubble .qd-mention { font-weight: 800; color: #9fd3ff; background: rgba(120, 190, 255, .16); border-radius: 6px; padding: 0 3px; }
+        .rb-bubble .tm { font-size: 11.5px; color: #fde68a; opacity: .8; margin-top: 6px; font-weight: 700; }
+        .rb-pv-empty { color: #ffe8b8; font-size: 13.5px; text-align: center; padding: 26px 10px; }
+        .rb-pv-off { opacity: .55; }
+        .rb-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+        .rb-pill.sent { color: #15803d; background: rgba(34, 197, 94, .14); } .rb-pill.sending { color: #b45309; background: rgba(245, 158, 11, .16); }
+        .rb-pill.error { color: #dc2626; background: rgba(239, 68, 68, .14); } .rb-pill.skipped { color: var(--text-muted); background: var(--bg-elevated); }
+        .rb-table tr.rb-row { cursor: pointer; }
+        .rb-table tr.rb-row:hover td { background: var(--bg-elevated); }
+        .rb-table td.rb-text { white-space: pre-wrap; font-size: 13px; line-height: 1.55; color: var(--text-main); background: var(--bg-base); }
+        .rb-savebar { position: sticky; bottom: 20px; z-index: 40; margin: 24px auto 0; max-width: 620px; display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 18px; border-radius: 16px;
+            background: var(--bg-surface); border: 1.5px solid #f59e0b; box-shadow: 0 18px 40px -14px rgba(0, 0, 0, .55); }
+        .rb-savebar .m { flex: 1; min-width: 0; }
+        .rb-savebar .m b { display: block; color: #d97706; font-size: 14px; }
+        .rb-savebar .m small { display: block; color: var(--text-muted); font-size: 12px; }
+        @media (max-width: 1023px) { .rb-savebar { bottom: calc(84px + env(safe-area-inset-bottom)); } }
+        @media (max-width: 480px) { .rb-savebar .m small { display: none; } .rb-savebar .btn { padding: 10px 12px; } }
+        #rb-pv-card { scroll-margin-top: calc(var(--header-h, 64px) + 12px); }
+        .rb-jump { display: none; } @media (max-width: 1279px) { .rb-jump { display: inline-flex; } }
+        @media (max-width: 600px) { .rb-jump .t { display: none; } }
+        #rb-now.arm { filter: brightness(1.12); box-shadow: 0 0 0 3px rgba(245, 158, 11, .45); }
+    </style>
+    <script id="qd-rb-admin">
+    /* ===== ADMIN > BOT BÁO CÁO: bật / tắt, ngày giờ, nội dung (bật / tắt từng mục), xem trước tức thì, gửi ngay, lịch sử.
+       Trang Admin đang mở cũng trực gửi theo lịch. ===== */
+    window.RBAdmin = (function () {
+        'use strict';
+        var R = window.QDReportBot, $ = function (id) { return document.getElementById(id); }, esc = R.esc;
+        var SCHED = ['times', 'days', 'from', 'to', 'grace', 'memberRun'];
+        var KEYS = SCHED.concat(['botName', 'title', 'footer', 'sec', 'tag', 'showTime', 'excludeStaff', 'skipEmpty', 'exclude', 'maxNames']);
+        var DAYS = [[1, 'T2'], [2, 'T3'], [3, 'T4'], [4, 'T5'], [5, 'T6'], [6, 'T7'], [0, 'CN']];
+        var VARS = [['{thu}', 'Thứ'], ['{ngay}', 'Ngày'], ['{gio}', 'Giờ chốt'], ['{diemdanh}', 'Số đã điểm danh'], ['{dangnhap}', 'Số đăng nhập'], ['{chuadiemdanh}', 'Số chưa điểm danh'], ['{tong}', 'Tổng thành viên'], ['{tile}', 'Tỉ lệ %'], ['{bikhoa}', 'Số bị khóa'], ['{bot}', 'Tên bot']];
+        var C = null, F = null, DATA = null, LASTX = null, started = false, armT = 0, pvT = 0;
+        function me() { try { return (typeof State !== 'undefined' && State.currentUser) || ''; } catch (e) { return ''; } }
+        function toast(m, k) { try { Utils.toast(m, k); } catch (e) {} }
+        function pick(o) { var r = {}; KEYS.forEach(function (k) { r[k] = JSON.parse(JSON.stringify(o[k])); }); return r; }
+        function dirty() { return !!(C && F) && JSON.stringify(pick(F)) !== JSON.stringify(pick(C)); }
+        function live() { return R.norm(Object.assign({}, C || {}, F || {})); }
+        function when(ts) { var p = R.vnParts(ts); return R.WD[p.wd] + ', ' + R.pad(p.d) + '/' + R.pad(p.m) + ' lúc ' + R.hm(ts); }
+        function left(ms) {
+            if (ms <= 0) return 'đang tới giờ';
+            var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+            return 'còn ' + (d ? d + ' ngày ' : '') + (d || h ? h + ' giờ ' : '') + (d ? '' : m + ' phút') + (!d && !h && m < 1 ? (s % 60) + ' giây' : '');
+        }
+        function viewOn() { var v = $('view-reportbot'); return !!(v && v.classList.contains('active')) && !document.hidden; }
+
+        /* ---------- Cấu hình từ máy chủ ---------- */
+        function onCfg(ev, cfg) {
+            if (!cfg || ev.type !== 'cfg') return;
+            var wd = dirty(); C = cfg;
+            if (!F || !wd) { F = pick(cfg); fill(); }
+            else toast('Thiết lập Bot vừa được đổi ở máy khác — bấm Hoàn tác để lấy bản mới.', 'info');
+            status(); mark(); preview();
+        }
+        function status() {
+            if (!C) return;
+            var on = C.isEnabled;
+            $('rb-sw').checked = on;
+            $('rb-sw-txt').textContent = on ? 'ĐANG BẬT' : 'ĐANG TẮT'; $('rb-sw-txt').style.color = on ? 'var(--color-success)' : 'var(--text-muted)';
+            $('rb-status').classList.toggle('on', on);
+            clock();
+        }
+        function clock() {
+            if (!C || !$('rb-next')) return;
+            if (!C.isEnabled) { $('rb-next').textContent = 'Đang tắt'; $('rb-next-sub').textContent = 'Bật công tắc để gửi theo lịch'; return; }
+            var n = R.nextRun(C, Date.now());
+            if (!n) { $('rb-next').textContent = 'Không có'; $('rb-next-sub').textContent = !C.times.length ? 'Chưa có giờ gửi' : !C.days.length ? 'Chưa chọn ngày' : 'Đã hết khoảng ngày áp dụng'; return; }
+            $('rb-next').textContent = when(n.ts); $('rb-next-sub').textContent = left(n.ts - Date.now());
+        }
+
+        /* ---------- Biểu mẫu ---------- */
+        function fill() {
+            if (!F) return;
+            $('rb-times').innerHTML = F.times.length ? F.times.map(function (t) { return '<span class="rb-chip">' + t + '<button type="button" aria-label="Bỏ ' + t + '" onclick="RBAdmin.delTime(\'' + t + '\')"><i class="fa-solid fa-xmark"></i></button></span>'; }).join('') : '<span class="rb-empty">Chưa có giờ gửi nào.</span>';
+            $('rb-days').innerHTML = DAYS.map(function (d) { var on = F.days.indexOf(d[0]) >= 0; return '<button type="button" class="rb-day' + (on ? ' on' : '') + '" aria-pressed="' + on + '" onclick="RBAdmin.toggleDay(' + d[0] + ')">' + d[1] + '</button>'; }).join('');
+            $('rb-exclude').innerHTML = F.exclude.length ? F.exclude.map(function (u, i) { return '<span class="rb-chip sm">@' + esc(u) + '<button type="button" aria-label="Bỏ" onclick="RBAdmin.delEx(' + i + ')"><i class="fa-solid fa-xmark"></i></button></span>'; }).join('') : '<span class="text-muted text-sm">Chưa loại trừ tài khoản nào.</span>';
+            var sv = function (id, v) { var el = $(id); if (el && document.activeElement !== el) el.value = v; };
+            sv('rb-from', F.from); sv('rb-to', F.to); sv('rb-grace', F.grace); sv('rb-botName', F.botName); sv('rb-maxNames', F.maxNames); sv('rb-title', F.title); sv('rb-footer', F.footer);
+            ['memberRun', 'tag', 'showTime', 'excludeStaff', 'skipEmpty'].forEach(function (k) { $('rb-' + k).checked = !!F[k]; });
+            Object.keys(F.sec).forEach(function (k) { $('rb-sec-' + k).checked = !!F.sec[k]; });
+        }
+        function mark() {
+            var d = dirty(); $('rb-savebar').style.display = d ? '' : 'none';
+            if (d) {
+                var sched = SCHED.some(function (k) { return JSON.stringify(F[k]) !== JSON.stringify(C[k]); });
+                $('rb-sb-sub').textContent = sched ? 'Lịch mới chỉ áp dụng cho các mốc giờ từ lúc lưu.' : 'Nội dung mới dùng cho lần gửi kế tiếp.';
+            }
+        }
+        function changed(refill) { if (refill) fill(); mark(); preview(); }
+        function set(k, v) { if (F) { F[k] = v; changed(false); } }
+        function setSec(k, v) { if (F) { F.sec[k] = v; changed(false); } }
+        function addTime(t) {
+            if (!F) return; t = t || $('rb-time-new').value; var m = /^(\d{1,2}):(\d{2})/.exec(t || ''); if (!m) return toast('Chọn giờ hợp lệ.', 'warning');
+            t = R.pad(+m[1]) + ':' + m[2];
+            if (F.times.indexOf(t) >= 0) return toast('Đã có mốc ' + t + '.', 'info');
+            if (F.times.length >= 12) return toast('Tối đa 12 mốc giờ mỗi ngày.', 'warning');
+            F.times = F.times.concat(t).sort(); changed(true);
+        }
+        function delTime(t) { F.times = F.times.filter(function (x) { return x !== t; }); changed(true); }
+        function toggleDay(d) { var i = F.days.indexOf(d); if (i >= 0) F.days.splice(i, 1); else F.days.push(d); F.days.sort(); changed(true); }
+        function setDays(a) { F.days = a.slice().sort(); changed(true); }
+        function addEx() {
+            var el = $('rb-ex-new'), u = el.value.replace(/^@/, '').trim(); if (!u || !F) return;
+            if (F.exclude.some(function (x) { return x.toLowerCase() === u.toLowerCase(); })) return toast('Đã có trong danh sách.', 'info');
+            F.exclude = F.exclude.concat(u); el.value = ''; changed(true);
+        }
+        function delEx(i) { F.exclude = F.exclude.filter(function (x, j) { return j !== i; }); changed(true); }
+        function revert() { F = pick(C); fill(); mark(); preview(); }
+        function valid(f) {
+            if (!f.times.length) return 'Thêm ít nhất 1 giờ gửi.';
+            if (!f.days.length) return 'Chọn ít nhất 1 ngày trong tuần.';
+            if (f.from && f.to && f.from > f.to) return '"Từ ngày" đang sau "Đến ngày".';
+            if (!Object.keys(f.sec).some(function (k) { return f.sec[k]; })) return 'Bật ít nhất 1 mục báo cáo.';
+            return '';
+        }
+        async function save() {
+            var err = valid(F); if (err) return toast(err, 'warning');
+            var b = $('rb-save'); b.disabled = true;
+            try { await R.save(pick(live()), me(), 'save'); toast('Đã lưu thiết lập Bot báo cáo.', 'success'); }
+            catch (e) { toast('Lưu không được: ' + (e.message || e.code || e), 'error'); }
+            finally { b.disabled = false; }
+        }
+        async function toggle(el) {
+            var on = el.checked;
+            if (on) { var err = valid(dirty() ? F : C); if (err) { el.checked = false; return toast(err, 'warning'); } }
+            el.disabled = true;
+            try {
+                var patch = { isEnabled: on };
+                if (on && dirty()) Object.assign(patch, pick(live()));   // bật kèm lưu luôn phần đang sửa
+                await R.save(patch, me(), on ? 'enable' : 'disable');
+                toast(on ? 'Đã BẬT Bot báo cáo.' : 'Đã TẮT Bot báo cáo.', on ? 'success' : 'info');
+            } catch (e) { el.checked = !on; toast('Không đổi được: ' + (e.message || e.code || e), 'error'); }
+            finally { el.disabled = false; }
+        }
+
+        /* ---------- Xem trước (đổi ngay theo biểu mẫu, chưa cần lưu) ---------- */
+        async function refresh(manual) {
+            var sp = $('rb-pv-spin'); if (sp) sp.classList.add('fa-spin');
+            try {
+                DATA = await R.collect(live(), Date.now()); LASTX = null;
+                $('rb-dl-users').innerHTML = (DATA.allUsers || []).map(function (u) { return '<option value="' + esc(u) + '">'; }).join('');
+                preview(true);
+                if (manual) toast('Đã cập nhật số liệu lúc ' + R.hm(DATA.at) + '.', 'success');
+            } catch (e) { $('rb-pv').innerHTML = '<div class="rb-pv-empty">⚠️ Không lấy được số liệu: ' + esc(e.message || e.code || e) + '</div>'; }
+            finally { if (sp) sp.classList.remove('fa-spin'); }
+        }
+        function preview(now) {
+            clearTimeout(pvT);
+            pvT = setTimeout(function () {
+                if (!C || !F) return;
+                if (!DATA) { if (started) refresh(false); return; }
+                var cfg = live(), d = DATA, ex = {}, x = JSON.stringify([cfg.exclude, cfg.excludeStaff]);
+                // Bỏ bớt người khỏi danh sách -> lọc ngay trên số liệu có sẵn; thêm lại người đã bỏ -> đọc lại máy chủ
+                if (LASTX && x !== LASTX) {
+                    var prev = JSON.parse(LASTX), grew = prev[0].some(function (u) { return cfg.exclude.indexOf(u) < 0; }) || (prev[1] && !cfg.excludeStaff);
+                    if (grew) { LASTX = x; return refresh(false); }
+                }
+                LASTX = x;
+                cfg.exclude.forEach(function (u) { ex[u.toLowerCase()] = 1; });
+                var keep = function (a) { return !ex[a.u.toLowerCase()] && !(cfg.excludeStaff && (a.role === 'admin' || a.role === 'manager')); };
+                var dd = { at: d.at, p: d.p, att: d.att, online: d.online, attended: d.attended.filter(keep), loggedIn: d.loggedIn.filter(keep), loginNoAtt: d.loginNoAtt.filter(keep), noLogin: d.noLogin.filter(keep), locked: (d.locked || []).filter(keep) };
+                dd.total = dd.loggedIn.length + dd.noLogin.length;
+                var c = R.compose(cfg, dd), known = {};
+                Object.keys(d.by).forEach(function (u) { known[u.toLowerCase()] = u; });
+                var st = function (id, n, on) { var el = $(id); el.textContent = n; el.parentNode.classList.toggle('rb-pv-off', !on); };
+                st('rb-s-att', c.counts.att, cfg.sec.att); st('rb-s-login', c.counts.login, cfg.sec.login); st('rb-s-lna', c.counts.loginNoAtt, cfg.sec.loginNoAtt); st('rb-s-no', c.counts.noLogin, cfg.sec.noLogin); st('rb-s-lock', c.counts.locked, cfg.sec.locked);
+                $('rb-pv').innerHTML = '<div class="rb-bubble"><div class="snd">🤖 ' + esc(cfg.botName) + ' <span class="bdg">BOT</span></div>'
+                    + R.renderText(c.text, { resolve: function (t) { return known[t.toLowerCase()] || null; } })
+                    + '<div class="tm">' + R.hm(Date.now()) + ' · Kênh Chung</div></div>';
+                $('rb-pv-sub').textContent = 'Số liệu thật hôm nay, tính tới ' + R.hm(d.at) + ' (tự cập nhật 5 phút / lần khi đang mở mục này).';
+                $('rb-pv-note').innerHTML = cfg.tag ? '📣 Lần gửi này sẽ nhắc tên <b>' + c.mentions.length + '</b> tài khoản — mỗi người nhận 1 thông báo.' : 'Đang tắt gắn @ — tên chỉ hiện dạng chữ, không ai nhận thông báo riêng.';
+            }, now === true ? 0 : 80);
+        }
+        function bindVars() {
+            Array.prototype.forEach.call(document.querySelectorAll('#view-reportbot .rb-vars'), function (box) {
+                var inputId = box.getAttribute('data-for'), key = box.getAttribute('data-key');
+                box.innerHTML = VARS.map(function (v) { return '<button type="button" title="' + v[1] + '" data-v="' + v[0] + '">' + v[0] + '</button>'; }).join('');
+                box.addEventListener('click', function (e) {
+                    var b = e.target.closest('button'); if (!b) return;
+                    var el = $(inputId), s = el.selectionStart == null ? el.value.length : el.selectionStart, en = el.selectionEnd == null ? s : el.selectionEnd, v = b.getAttribute('data-v');
+                    el.value = el.value.slice(0, s) + v + el.value.slice(en); el.focus();
+                    try { el.setSelectionRange(s + v.length, s + v.length); } catch (er) {}
+                    set(key, el.value);
+                });
+            });
+        }
+
+        /* ---------- Gửi ngay (bấm 2 lần) — gửi đúng như khung Xem trước ---------- */
+        async function sendNow(b) {
+            var now = Date.now();
+            if (!(armT && now - armT < 4000)) {
+                armT = now; b.classList.add('arm'); b.innerHTML = '<i class="fa-solid fa-hand-pointer mr-2"></i> Bấm lần nữa để gửi';
+                setTimeout(function () { if (armT === now) { armT = 0; b.classList.remove('arm'); b.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Gửi báo cáo ngay'; } }, 4000);
+                return;
+            }
+            var err = valid(live()); if (err) return toast(err, 'warning');
+            armT = 0; b.classList.remove('arm'); b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang gửi...';
+            try {
+                var r = await R.sendNow(me(), 'admin', live());
+                if (r.ok) { toast('Đã gửi báo cáo vào Kênh Chung.', 'success'); firebase.firestore().collection('admin_logs').add({ type: 'report_bot', action: 'send_now', user: '(bot báo cáo)', by: me(), timestamp: Date.now() }).catch(function () {}); }
+                else toast('Chưa gửi được, thử lại.', 'error');
+            } catch (e) { toast('Gửi không được: ' + (e.message || e.code || e), 'error'); }
+            finally { b.disabled = false; b.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Gửi báo cáo ngay'; }
+        }
+
+        /* ---------- Lịch sử ---------- */
+        var ST = { sent: ['sent', '✅ Đã gửi'], sending: ['sending', '⏳ Đang gửi'], error: ['error', '⚠️ Lỗi'], skipped: ['skipped', '⏭ Bỏ qua'] };
+        var WHO = { bot: '🤖 Trạm Bot', admin: '🛡️ Trang Admin', member: '📱 Thành viên' };
+        var openRow = {};
+        function history() {
+            firebase.firestore().collection('bot_reports').orderBy('at', 'desc').limit(20).onSnapshot(function (snap) {
+                var rows = snap.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }), last = rows.filter(function (x) { return x.status === 'sent'; })[0];
+                $('rb-last').textContent = last ? when(last.sentAt || last.at) : 'Chưa có';
+                $('rb-last-sub').textContent = last ? (last.manual ? 'Gửi tay' : 'Theo lịch') + ' · ' + (last.by || '?') : '';
+                $('rb-hist').innerHTML = rows.length ? rows.map(function (x) {
+                    var st = ST[x.status] || ['sending', esc(x.status || '?')], c = x.counts || {}, ok = x.status === 'sent' || x.status === 'skipped';
+                    var body = x.text ? esc(x.text) : esc(x.err || x.note || 'Không có nội dung.');
+                    return '<tr class="rb-row" data-id="' + esc(x.id) + '" title="Bấm để xem nội dung đã gửi"><td>' + esc(when(x.sentAt || x.at || x.due || 0)) + '</td><td>' + (x.manual ? '✋ Gửi tay' : '⏰ ' + esc(x.slot || '')) + '</td>'
+                        + '<td><span class="rb-pill ' + st[0] + '" title="' + esc(x.err || x.note || '') + '">' + st[1] + '</span></td>'
+                        + '<td>' + (ok ? (c.att || 0) + '/' + (c.total || 0) : '—') + '</td><td>' + (ok ? (c.login || 0) : '—') + '</td><td>' + (ok ? (c.loginNoAtt || 0) : '—') + '</td>'
+                        + '<td>' + (WHO[x.byRole] || '') + (x.by ? ' · ' + esc(x.by) : '') + '</td></tr>'
+                        + '<tr data-for="' + esc(x.id) + '"' + (openRow[x.id] ? '' : ' style="display:none"') + '><td colspan="7" class="rb-text">' + body + '</td></tr>';
+                }).join('') : '<tr><td colspan="7" class="text-center text-muted py-8">Chưa gửi báo cáo nào.</td></tr>';
+            }, function (e) { $('rb-hist').innerHTML = '<tr><td colspan="7" class="text-center text-muted py-8">Không đọc được lịch sử: ' + esc(e.message || e.code) + '</td></tr>'; });
+            $('rb-hist').addEventListener('click', function (e) {
+                var tr = e.target.closest('tr.rb-row'); if (!tr) return;
+                var id = tr.getAttribute('data-id'), row = tr.nextElementSibling; if (!row) return;
+                openRow[id] = row.style.display === 'none'; row.style.display = openRow[id] ? '' : 'none';
+            });
+        }
+
+        function start() {
+            if (started || !me()) return; started = true;
+            bindVars();
+            R.start({ role: 'admin', me: me });   // trang Admin đang mở cũng trực gửi theo lịch
+            R.on(onCfg); history();
+            setInterval(function () { if (viewOn()) clock(); }, 1000);
+            setInterval(function () { if (viewOn() && DATA && Date.now() - DATA.at > 5 * 60000) refresh(false); }, 30000);
+            if (typeof UI !== 'undefined' && UI.navigate) {   // mở mục Bot -> lấy số liệu mới cho khung Xem trước
+                var nav = UI.navigate;
+                UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'reportbot' && (!DATA || Date.now() - DATA.at > 60000)) refresh(false); return r; };
+            }
+            window.addEventListener('beforeunload', function (e) { if (dirty()) { e.preventDefault(); e.returnValue = ''; } });
+        }
+        // Chờ đăng nhập Admin xong rồi mới bắt đầu
+        var w = setInterval(function () { var sh = $('app-shell'); if (me() && sh && sh.style.display === 'flex') { start(); if (started) clearInterval(w); } }, 1000);
+
+        function jump() { var c = $('rb-pv-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+        return { jump: jump, start: start, toggle: toggle, save: save, revert: revert, set: set, setSec: setSec, addTime: addTime, delTime: delTime, toggleDay: toggleDay, setDays: setDays,
+            addEx: addEx, delEx: delEx, refresh: refresh, sendNow: sendNow };
+    })();
+    </script>
+    <script id="qd-news-popup-admin">
+    /* ===== ADMIN > BẢN TIN: tùy chọn "Hiện thông báo khi thành viên đăng nhập" (news.popup, popupMode, popupTitle, popupUntil, popupRev) ===== */
+    window.NewsPopup = (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); }, OLD = null;
+        function sync() {
+            var on = $('news-popup').checked;
+            $('news-pop-opts').style.display = on ? '' : 'none';
+            $('news-pop-reset-wrap').style.display = on && OLD && OLD.popup ? '' : 'none';
+        }
+        function fill(n) {
+            OLD = n || null; n = n || {};
+            $('news-popup').checked = n.popup === true; $('news-pop-title').value = n.popupTitle || '';
+            $('news-pop-mode').value = ['every', 'daily', 'once'].indexOf(n.popupMode) >= 0 ? n.popupMode : 'every';
+            $('news-pop-until').value = n.popupUntil || ''; $('news-pop-reset').checked = false; sync();
+        }
+        if (typeof AdminActions !== 'undefined') {
+            var openOrig = AdminActions.openNewsEditor;
+            AdminActions.openNewsEditor = function (docId) {
+                openOrig.apply(this, arguments); fill(null);
+                if (docId) db.collection('news').doc(docId).get().then(function (s) { if ($('news-id').value === docId) fill(s.exists ? s.data() : null); }).catch(function () {});
+            };
+            AdminActions.saveNews = function () {
+                var docId = $('news-id').value, body = $('news-content').value.trim();
+                if (!body) return Utils.toast('Nội dung không được bỏ trống.', 'error');
+                var on = $('news-popup').checked, until = $('news-pop-until').value, t = Date.now();
+                var data = { content: body, popup: on, popupMode: $('news-pop-mode').value, popupTitle: $('news-pop-title').value.trim().slice(0, 80), popupUntil: /^\d{4}-\d{2}-\d{2}$/.test(until) ? until : '' };
+                if (on && (!docId || !OLD || !OLD.popup || $('news-pop-reset').checked || OLD.content !== body || OLD.popupMode !== data.popupMode)) data.popupRev = t;   // bản mới / sửa nội dung -> hiện lại cho mọi người
+                var job = docId ? db.collection('news').doc(docId).update(data) : db.collection('news').add(Object.assign({ time: t }, data));
+                job.then(function () {
+                    Utils.toast(docId ? 'Đã cập nhật bản tin.' : 'Bản tin mới đã được phát hành.', 'success');
+                    if (on) Utils.toast('📢 Thành viên sẽ thấy thông báo này khi đăng nhập.', 'info');
+                    UI.closeModal('modal-news');
+                }).catch(function () { Utils.toast(docId ? 'Lỗi cập nhật CSDL.' : 'Lỗi phát hành bản tin.', 'error'); });
+            };
+        }
+        return { sync: sync };
+    })();
+    </script>
+    <style id="qd-gift-admin-css">
+        .gf-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+        .gf-stats > div { padding: 14px 16px; border-radius: 14px; background: var(--bg-surface); border: 1px solid var(--border-strong); }
+        .gf-stats small { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--text-muted); }
+        .gf-stats b { display: block; font-size: 26px; font-weight: 800; color: var(--text-main); margin-top: 2px; font-variant-numeric: tabular-nums; }
+        @media (max-width: 700px) { .gf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .gf-editor { padding: 24px !important; border-left: 4px solid #e11d48; }
+        .gf-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 28px; }
+        @media (min-width: 1100px) { .gf-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+        .gf-col { min-width: 0; }
+        .gf-icons { display: flex; flex-wrap: wrap; gap: 6px; }
+        .gf-icons button { width: 42px; height: 42px; border-radius: 12px; font-size: 22px; cursor: pointer; background: var(--bg-base); border: 1.5px solid var(--border-strong); }
+        .gf-icons button.on { border-color: #e11d48; box-shadow: 0 0 0 3px rgba(225, 29, 72, .2); }
+        .gf-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .gf-item { display: grid; grid-template-columns: 28px minmax(0, 1fr) 92px; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: var(--bg-base); border: 1px solid var(--border-strong); cursor: text; }
+        .gf-item span { font-size: 20px; text-align: center; } .gf-item b { font-size: 13.5px; color: var(--text-main); }
+        .gf-item input { text-align: right; font-weight: 800; padding: 8px 10px !important; }
+        .gf-preview { margin-top: 8px; padding: 14px 16px; border-radius: 14px; background: linear-gradient(150deg, #b3122a, #6a0008); color: #fff; border: 1.5px solid rgba(255, 213, 74, .6); }
+        .gf-preview .h { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; }
+        .gf-preview .h i { font-style: normal; font-size: 26px; }
+        .gf-preview p { margin: 6px 0 8px; font-size: 13px; color: #ffe8b8; line-height: 1.5; }
+        .gf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .gf-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 800; white-space: nowrap; }
+        .gf-preview .gf-chip { color: #5a0000; background: #ffd54a; }
+        .gf-card .gf-chip { color: #b45309; background: rgba(245, 158, 11, .14); }
+        [data-theme="dark"] .gf-card .gf-chip { color: #fcd34d; }
+        .gf-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
+        .gf-card { margin: 0 !important; padding: 18px !important; display: flex; flex-direction: column; gap: 10px; border-left: 4px solid var(--border-strong); }
+        .gf-card.live { border-left-color: var(--color-success); } .gf-card.soon { border-left-color: var(--color-info); } .gf-card.done, .gf-card.off { border-left-color: var(--text-muted); opacity: .85; }
+        .gf-card .top { display: flex; align-items: flex-start; gap: 12px; }
+        .gf-card .ic { font-size: 30px; line-height: 1; }
+        .gf-card h4 { margin: 0; font-size: 16px; font-weight: 800; color: var(--text-main); }
+        .gf-card .when { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+        .gf-st { margin-left: auto; flex: 0 0 auto; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+        .gf-st.live { color: #15803d; background: rgba(34, 197, 94, .14); } .gf-st.soon { color: #1d4ed8; background: rgba(59, 130, 246, .14); }
+        .gf-st.done, .gf-st.off, .gf-st.full { color: var(--text-muted); background: var(--bg-elevated); }
+        .gf-bar { height: 8px; border-radius: 999px; background: var(--bg-elevated); overflow: hidden; }
+        .gf-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #f59e0b, #e11d48); }
+        .gf-meta { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-muted); font-weight: 700; }
+        .gf-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+        .gf-acts .btn { padding: 7px 12px !important; font-size: 13px !important; }
+        .gf-acts .btn.arm { background: var(--color-danger) !important; color: #fff !important; }
+        .gf-empty { grid-column: 1 / -1; }
+        .gf-rp-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .gf-rp-sum > div { padding: 12px 14px; border-radius: 12px; background: var(--bg-base); border: 1px solid var(--border-strong); }
+        .gf-rp-sum small { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); }
+        .gf-rp-sum b { display: block; font-size: 20px; font-weight: 800; color: var(--text-main); margin-top: 2px; }
+        #gf-rp-tab-got.on, #gf-rp-tab-not.on { border-color: #e11d48 !important; color: #e11d48 !important; }
+    </style>
+    <script id="qd-gift-admin">
+    /* ===== ADMIN > QUÀ TOÀN HỆ THỐNG =====
+       gifts/{id}: title, icon, msg, items{points,tickets,spins,conThrows}, startAt, endAt (ms), enabled, maxClaims, who ('all'|'old'),
+                   claimCount, sum{...}, createdAt, createdBy, updatedAt, updatedBy
+       gift_claims/{giftId__accountId}: giftId, giftTitle, user, userId, fullName, items, at  (thành viên tự tạo khi mở quà, mỗi người 1 lần) */
+    window.GiftAdmin = (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); }, VN = 7 * 3600e3;
+        var ICONS = ['🎁', '🧧', '🏮', '🎆', '🌸', '💰', '🏆', '🎉'];
+        var ITEMS = [['points', '💰', 'điểm lì xì'], ['tickets', '🧧', 'lượt rút lì xì'], ['spins', '🎡', 'lượt vòng quay'], ['conThrows', '🎯', 'lượt ném còn']];
+        var G = [], icon = '🎁', started = false, armDel = {}, RP = { id: null, tab: 'got', claims: [], accs: null, unsub: null };
+        function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        function me() { try { return (typeof State !== 'undefined' && State.currentUser) || 'admin'; } catch (e) { return 'admin'; } }
+        function toast(m, k) { try { Utils.toast(m, k); } catch (e) {} }
+        function pad(n) { return (n < 10 ? '0' : '') + n; }
+        function toInput(ts) { var d = new Date(ts + VN); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()) + 'T' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+        function fromInput(v) { var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(v || ''); return m ? Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5]) - VN : 0; }
+        function fmt(ts) { if (!ts) return '—'; var d = new Date(ts + VN); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ' ' + pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear(); }
+        function dayStart(ts) { var d = new Date(ts + VN); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - VN; }
+        function itemsOf(o) { var r = {}; ITEMS.forEach(function (it) { var n = Math.max(0, Math.floor(+((o || {})[it[0]]) || 0)); if (n) r[it[0]] = n; }); return r; }
+        function chips(items) { var h = ITEMS.filter(function (it) { return items[it[0]]; }).map(function (it) { return '<span class="gf-chip">' + it[1] + ' +' + Number(items[it[0]]).toLocaleString('vi-VN') + ' ' + it[2] + '</span>'; }).join(''); return h || '<span class="text-muted text-sm">Chưa có vật phẩm</span>'; }
+        function state(g, now) {
+            now = now || Date.now();
+            if (g.enabled === false) return ['off', 'Đã tắt'];
+            if (g.maxClaims && (g.claimCount || 0) >= g.maxClaims) return ['full', 'Hết quà'];
+            if (now < g.startAt) return ['soon', 'Sắp mở'];
+            if (now > g.endAt) return ['done', 'Đã kết thúc'];
+            return ['live', 'Đang phát'];
+        }
+        function log(action, g) { try { db.collection('admin_logs').add({ type: 'gift', action: action, user: '(quà toàn hệ thống)', detail: (g && g.title) || '', by: me(), timestamp: Date.now() }).catch(function () {}); } catch (e) {} }
+
+        /* ---------- Danh sách ---------- */
+        function draw() {
+            var now = Date.now(), live = 0, soon = 0, all = 0;
+            G.forEach(function (g) { var s = state(g, now)[0]; if (s === 'live') live++; if (s === 'soon') soon++; all += g.claimCount || 0; });
+            $('gf-s-live').textContent = live; $('gf-s-soon').textContent = soon; $('gf-s-all').textContent = all.toLocaleString('vi-VN');
+            if (!G.length) { $('gf-list').innerHTML = '<div class="card text-center text-muted py-8 gf-empty">Chưa có món quà nào. Bấm <b>Tạo quà mới</b> để tặng quà cho toàn hệ thống.</div>'; return; }
+            $('gf-list').innerHTML = G.map(function (g) {
+                var st = state(g, now), n = g.claimCount || 0, pct = g.maxClaims ? Math.min(100, Math.round(n * 100 / g.maxClaims)) : 0;
+                return '<div class="card gf-card ' + st[0] + '"><div class="top"><span class="ic">' + esc(g.icon || '🎁') + '</span><div style="min-width:0;flex:1"><h4>' + esc(g.title || 'Quà') + '</h4>'
+                    + '<div class="when">🕘 ' + fmt(g.startAt) + ' → ' + fmt(g.endAt) + (g.who === 'old' ? ' · tài khoản cũ' : '') + '</div></div><span class="gf-st ' + st[0] + '">' + st[1] + '</span></div>'
+                    + (g.msg ? '<div class="text-sm text-muted" style="line-height:1.5">' + esc(g.msg) + '</div>' : '')
+                    + '<div class="gf-chips">' + chips(g.items || {}) + '</div>'
+                    + '<div class="gf-meta"><span>🎉 ' + n.toLocaleString('vi-VN') + ' người đã nhận</span><span>' + (g.maxClaims ? 'giới hạn ' + g.maxClaims.toLocaleString('vi-VN') : 'không giới hạn') + '</span></div>'
+                    + (g.maxClaims ? '<div class="gf-bar"><i style="width:' + pct + '%"></i></div>' : '')
+                    + '<div class="gf-acts"><button type="button" class="btn btn-primary" onclick="GiftAdmin.report(\'' + g.id + '\')"><i class="fa-solid fa-chart-column mr-1"></i> Báo cáo</button>'
+                    + '<button type="button" class="btn btn-outline" onclick="GiftAdmin.edit(\'' + g.id + '\')"><i class="fa-solid fa-pen mr-1"></i> Sửa</button>'
+                    + '<button type="button" class="btn btn-outline" onclick="GiftAdmin.toggle(\'' + g.id + '\')">' + (g.enabled === false ? '▶ Bật' : '⏸ Tắt') + '</button>'
+                    + '<button type="button" class="btn btn-outline" data-del="' + g.id + '" onclick="GiftAdmin.del(\'' + g.id + '\', this)"><i class="fa-solid fa-trash mr-1"></i> Xóa</button></div></div>';
+            }).join('');
+        }
+        function listen() {
+            db.collection('gifts').onSnapshot(function (snap) {
+                G = snap.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }).sort(function (a, b) { return (b.startAt || 0) - (a.startAt || 0); });
+                draw(); if (RP.id) rpSum();
+            }, function (e) { $('gf-list').innerHTML = '<div class="card text-center text-muted py-8 gf-empty">Không đọc được danh sách quà: ' + esc(e.message || e.code) + '</div>'; });
+            db.collection('gift_claims').where('at', '>=', dayStart(Date.now())).onSnapshot(function (s) { $('gf-s-today').textContent = s.size.toLocaleString('vi-VN'); }, function () {});
+            setInterval(function () { var v = $('view-gifts'); if (v && v.classList.contains('active')) draw(); }, 30000);
+        }
+
+        /* ---------- Soạn / sửa ---------- */
+        function drawIcons() { $('gf-icons').innerHTML = ICONS.map(function (i) { return '<button type="button" class="' + (i === icon ? 'on' : '') + '" onclick="GiftAdmin.icon(\'' + i + '\')" aria-label="Biểu tượng ' + i + '">' + i + '</button>'; }).join(''); }
+        function readForm() {
+            var items = {}; ITEMS.forEach(function (it) { items[it[0]] = $('gf-i-' + it[0]).value; });
+            return { title: $('gf-title').value.trim().slice(0, 60), msg: $('gf-msg').value.trim().slice(0, 240), icon: icon, items: itemsOf(items),
+                startAt: fromInput($('gf-start').value), endAt: fromInput($('gf-end').value), maxClaims: Math.max(0, parseInt($('gf-max').value, 10) || 0), who: $('gf-who').value, enabled: $('gf-on').checked };
+        }
+        function preview() {
+            var f = readForm();
+            $('gf-preview').innerHTML = '<div class="h"><i>' + esc(f.icon) + '</i><span>' + esc(f.title || 'Tên món quà') + '</span></div>' + (f.msg ? '<p>' + esc(f.msg) + '</p>' : '<p>Thành viên thấy hộp quà này ở Trang Chủ.</p>') + '<div class="gf-chips">' + chips(f.items) + '</div>';
+        }
+        function edit(id) {
+            var g = id ? G.filter(function (x) { return x.id === id; })[0] : null, now = Date.now();
+            $('gf-id').value = g ? g.id : '';
+            $('gf-ed-title').textContent = g ? 'Sửa quà: ' + (g.title || '') : 'Tạo quà mới';
+            $('gf-ed-note').innerHTML = g && g.claimCount ? '⚠️ Đã có <b>' + g.claimCount + '</b> người nhận. Đổi vật phẩm chỉ áp dụng cho người nhận sau; người đã nhận không nhận lại.' : 'Thành viên thấy nút quà 🎁 ở Trang Chủ trong khoảng thời gian bạn đặt, mỗi người nhận đúng 1 lần.';
+            $('gf-title').value = g ? g.title || '' : ''; $('gf-msg').value = g ? g.msg || '' : '';
+            icon = g && g.icon ? g.icon : '🎁'; drawIcons();
+            ITEMS.forEach(function (it) { $('gf-i-' + it[0]).value = g && g.items ? g.items[it[0]] || 0 : (it[0] === 'points' ? 100 : 0); });
+            $('gf-start').value = toInput(g ? g.startAt : Math.ceil(now / 300000) * 300000);
+            $('gf-end').value = toInput(g ? g.endAt : dayStart(now) + 7 * 864e5 + 86340000);
+            $('gf-max').value = g ? g.maxClaims || 0 : 0; $('gf-who').value = g && g.who === 'old' ? 'old' : 'all'; $('gf-on').checked = !g || g.enabled !== false;
+            $('gf-save').innerHTML = g ? '<i class="fa-solid fa-save mr-2"></i> Lưu thay đổi' : '<i class="fa-solid fa-paper-plane mr-2"></i> Lưu &amp; phát quà';
+            $('gf-editor').style.display = ''; preview();
+            $('gf-editor').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(function () { $('gf-title').focus(); }, 350);
+        }
+        function cancel() { $('gf-editor').style.display = 'none'; }
+        function preset(k) {
+            var now = Date.now(), ds = dayStart(now);
+            if (k === 'now') { $('gf-start').value = toInput(Math.floor(now / 60000) * 60000); if (fromInput($('gf-end').value) <= now) $('gf-end').value = toInput(ds + 86340000); }
+            else if (k === 'today') { $('gf-start').value = toInput(Math.floor(now / 60000) * 60000); $('gf-end').value = toInput(ds + 86340000); }
+            else if (k === '3d' || k === '7d') { $('gf-start').value = toInput(Math.floor(now / 60000) * 60000); $('gf-end').value = toInput(ds + (k === '3d' ? 2 : 6) * 864e5 + 86340000); }
+            else if (k === 'tet') { var t = Date.UTC(2027, 1, 6) - VN; $('gf-start').value = toInput(t); $('gf-end').value = toInput(t + 2 * 864e5 + 86340000); }   // Mùng 1 Tết Đinh Mùi = 06/02/2027
+            preview();
+        }
+        async function save() {
+            var f = readForm(), id = $('gf-id').value;
+            if (!f.title) return toast('Nhập tên món quà.', 'warning');
+            if (!Object.keys(f.items).length) return toast('Quà cần ít nhất 1 vật phẩm (điểm hoặc lượt).', 'warning');
+            if (!f.startAt || !f.endAt) return toast('Chọn đủ thời gian mở và đóng.', 'warning');
+            if (f.endAt <= f.startAt) return toast('Thời gian đóng phải sau thời gian mở.', 'warning');
+            if (f.endAt < Date.now()) return toast('Thời gian đóng đã qua — quà sẽ không ai nhận được.', 'warning');
+            var b = $('gf-save'); b.disabled = true;
+            try {
+                f.updatedAt = Date.now(); f.updatedBy = me();
+                if (id) await db.collection('gifts').doc(id).update(f);
+                else { f.createdAt = f.updatedAt; f.createdBy = me(); f.claimCount = 0; await db.collection('gifts').add(f); }
+                log(id ? 'update' : 'create', f);
+                toast(id ? 'Đã lưu thay đổi quà.' : (f.startAt <= Date.now() ? '🎁 Đã phát quà — thành viên đang online thấy ngay.' : '🎁 Đã hẹn giờ phát quà lúc ' + fmt(f.startAt) + '.'), 'success');
+                cancel();
+            } catch (e) { toast('Lưu không được: ' + (e.message || e.code || e), 'error'); }
+            finally { b.disabled = false; }
+        }
+        async function toggle(id) {
+            var g = G.filter(function (x) { return x.id === id; })[0]; if (!g) return;
+            try { await db.collection('gifts').doc(id).update({ enabled: g.enabled === false, updatedAt: Date.now(), updatedBy: me() }); log(g.enabled === false ? 'enable' : 'disable', g); toast(g.enabled === false ? 'Đã bật quà.' : 'Đã tắt quà.', 'success'); }
+            catch (e) { toast('Không đổi được: ' + (e.message || e.code), 'error'); }
+        }
+        async function del(id, b) {
+            var g = G.filter(function (x) { return x.id === id; })[0]; if (!g) return;
+            var now = Date.now();
+            if (!(armDel[id] && now - armDel[id] < 4000)) {
+                armDel[id] = now; b.classList.add('arm'); b.innerHTML = 'Bấm lần nữa để xóa';
+                setTimeout(function () { if (armDel[id] === now) { armDel[id] = 0; b.classList.remove('arm'); b.innerHTML = '<i class="fa-solid fa-trash mr-1"></i> Xóa'; } }, 4000);
+                return;
+            }
+            try { await db.collection('gifts').doc(id).delete(); log('delete', g); toast('Đã xóa quà. Lịch sử nhận quà vẫn giữ trong báo cáo xuất trước đó.', 'success'); if (RP.id === id) closeReport(); }
+            catch (e) { toast('Không xóa được: ' + (e.message || e.code), 'error'); }
+        }
+
+        /* ---------- Báo cáo ---------- */
+        function report(id) {
+            if (RP.unsub) { RP.unsub(); RP.unsub = null; }
+            RP.id = id; RP.claims = []; RP.tab = 'got'; $('gf-rp-q').value = '';
+            $('gf-report').style.display = ''; rpSum(); rpDraw();
+            RP.unsub = db.collection('gift_claims').where('giftId', '==', id).onSnapshot(function (s) {
+                RP.claims = s.docs.map(function (d) { return d.data(); }).sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
+                rpSum(); rpDraw();
+            }, function (e) { $('gf-rp-body').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-8">Không đọc được: ' + esc(e.message || e.code) + '</td></tr>'; });
+            if (!RP.accs) db.collection('accounts').get().then(function (s) { RP.accs = s.docs.map(function (d) { var a = d.data() || {}; return { u: a.user, name: a.fullName || a.name || '', role: a.role || '', blocked: a.isBlocked === true, created: +a.created_at || 0, la: +a.lastActive || 0 }; }).filter(function (a) { return a.u; }); rpSum(); rpDraw(); });
+            setTimeout(function () { $('gf-report').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+        }
+        function closeReport() { if (RP.unsub) { RP.unsub(); RP.unsub = null; } RP.id = null; $('gf-report').style.display = 'none'; }
+        function eligible(g) {
+            return (RP.accs || []).filter(function (a) { return !a.blocked && !(g.who === 'old' && a.created && a.created >= g.startAt); });   // mọi tài khoản đang hoạt động (kể cả BQT) — giống bên thành viên
+        }
+        function rpSum() {
+            var g = G.filter(function (x) { return x.id === RP.id; })[0]; if (!g) return;
+            var c = RP.claims, tot = {}; c.forEach(function (x) { Object.keys(x.items || {}).forEach(function (k) { tot[k] = (tot[k] || 0) + (+x.items[k] || 0); }); });
+            var el = RP.accs ? eligible(g) : null, got = {}; c.forEach(function (x) { got[x.user] = 1; });
+            var notN = el ? el.filter(function (a) { return !got[a.u]; }).length : null;
+            $('gf-rp-title').textContent = 'Báo cáo: ' + (g.icon || '🎁') + ' ' + (g.title || '');
+            $('gf-rp-sum').innerHTML = '<div><small>Đã nhận</small><b>' + c.length.toLocaleString('vi-VN') + (el ? ' / ' + el.length.toLocaleString('vi-VN') : '') + '</b></div>'
+                + '<div><small>Chưa nhận</small><b>' + (notN == null ? '…' : notN.toLocaleString('vi-VN')) + '</b></div>'
+                + '<div><small>Người nhận đầu tiên</small><b style="font-size:15px">' + (c[0] ? esc(c[0].user) + ' · ' + fmt(c[0].at).slice(0, 5) : '—') + '</b></div>'
+                + ITEMS.filter(function (it) { return tot[it[0]]; }).map(function (it) { return '<div><small>Đã phát ' + it[2] + '</small><b>' + it[1] + ' ' + tot[it[0]].toLocaleString('vi-VN') + '</b></div>'; }).join('');
+            $('gf-rp-tab-got').classList.toggle('on', RP.tab === 'got'); $('gf-rp-tab-not').classList.toggle('on', RP.tab === 'not');
+            $('gf-rp-tab-got').textContent = '✅ Đã nhận (' + c.length + ')'; $('gf-rp-tab-not').textContent = '⏳ Chưa nhận' + (notN == null ? '' : ' (' + notN + ')');
+        }
+        function rows() {
+            var g = G.filter(function (x) { return x.id === RP.id; })[0]; if (!g) return [];
+            var q = $('gf-rp-q').value.trim().toLowerCase(), m = function (u, n) { return !q || String(u).toLowerCase().indexOf(q) >= 0 || String(n || '').toLowerCase().indexOf(q) >= 0; };
+            if (RP.tab === 'got') return RP.claims.filter(function (x) { return m(x.user, x.fullName); }).map(function (x, i) { return [i + 1, fmt(x.at), x.user, x.fullName || '', ITEMS.filter(function (it) { return (x.items || {})[it[0]]; }).map(function (it) { return it[1] + ' +' + x.items[it[0]]; }).join('  '), '']; });
+            var got = {}; RP.claims.forEach(function (x) { got[x.user] = 1; });
+            return eligible(g).filter(function (a) { return !got[a.u] && m(a.u, a.name); }).sort(function (a, b) { return b.la - a.la; }).map(function (a, i) { return [i + 1, '', a.u, a.name, '', a.la ? fmt(a.la) : 'Chưa từng hoạt động']; });
+        }
+        function rpDraw() {
+            if (!RP.id) return;
+            var got = RP.tab === 'got';
+            $('gf-rp-head').innerHTML = got ? '<tr><th>#</th><th>Thời gian nhận</th><th>Tài khoản</th><th>Họ tên</th><th>Vật phẩm đã nhận</th></tr>' : '<tr><th>#</th><th>Tài khoản</th><th>Họ tên</th><th>Hoạt động gần nhất</th></tr>';
+            if (!got && !RP.accs) { $('gf-rp-body').innerHTML = '<tr><td colspan="4" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải danh sách thành viên...</td></tr>'; return; }
+            var r = rows();
+            $('gf-rp-body').innerHTML = r.length ? r.map(function (x) { return got ? '<tr><td>' + x[0] + '</td><td>' + esc(x[1]) + '</td><td><b>' + esc(x[2]) + '</b></td><td>' + esc(x[3]) + '</td><td>' + esc(x[4]) + '</td></tr>' : '<tr><td>' + x[0] + '</td><td><b>' + esc(x[2]) + '</b></td><td>' + esc(x[3]) + '</td><td>' + esc(x[5]) + '</td></tr>'; }).join('')
+                : '<tr><td colspan="5" class="text-center text-muted py-8">' + (got ? 'Chưa có ai nhận quà này.' : 'Tất cả thành viên đã nhận quà 🎉') + '</td></tr>';
+        }
+        function rpTab(t) { RP.tab = t; rpSum(); rpDraw(); }
+        function exportCsv() {
+            var g = G.filter(function (x) { return x.id === RP.id; })[0]; if (!g) return;
+            var got = RP.tab === 'got', r = rows(), q = function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; };
+            var head = got ? ['STT', 'Thời gian nhận', 'Tài khoản', 'Họ tên', 'Vật phẩm'] : ['STT', 'Tài khoản', 'Họ tên', 'Hoạt động gần nhất'];
+            var lines = [head.map(q).join(',')].concat(r.map(function (x) { return (got ? [x[0], x[1], x[2], x[3], x[4]] : [x[0], x[2], x[3], x[5]]).map(q).join(','); }));
+            var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = 'qua_' + (g.title || 'qua').replace(/[^\wÀ-ỹ]+/g, '_').slice(0, 40) + '_' + (got ? 'da_nhan' : 'chua_nhan') + '.csv';
+            document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+            toast('Đã xuất file ' + (got ? 'danh sách đã nhận' : 'danh sách chưa nhận') + '.', 'success');
+        }
+
+        function start() {
+            if (started) return; started = true; listen(); drawIcons();
+            ['gf-title', 'gf-msg', 'gf-i-points', 'gf-i-tickets', 'gf-i-spins', 'gf-i-conThrows'].forEach(function (id) { $(id).addEventListener('input', preview); });
+        }
+        var w = setInterval(function () { var sh = $('app-shell'); try { if (State.currentUser && sh && sh.style.display === 'flex') { clearInterval(w); start(); } } catch (e) {} }, 1000);
+
+        /* ---------- Hộp "Xuất Báo Cáo" dùng chung (giống các mục quản lý khác): lọc ngày, tìm thành viên, tóm tắt, biểu đồ, xếp hạng, Excel / CSV / PDF ---------- */
+        if (window.QDReport && QDReport.add) {
+            var n0 = function (v) { return Number(v) || 0; }, fv = function (n) { return Number(n || 0).toLocaleString('vi-VN'); };
+            var sumK = function (r, k) { return r.reduce(function (a, x) { return a + n0((x.items || {})[k]); }, 0); };
+            QDReport.add({ id: 'giftsys', view: 'gifts', name: 'Quà Toàn Hệ Thống', icon: 'fa-box-open', color: '#e11d48', file: 'Qua_Toan_He_Thong', col: 'gift_claims',
+                load: function () { return db.collection('gift_claims').get().then(function (s) { var a = []; s.forEach(function (x) { var v = x.data(); v.__id = x.id; a.push(v); }); return a.sort(function (x, y) { return n0(y.at) - n0(x.at); }); }); },
+                time: function (x) { return x.at; }, who: function (x) { return x.user; },
+                cols: [['Thời gian nhận', function (x) { return fmt(x.at); }], ['Thành viên', function (x) { return x.user; }], ['Họ tên', function (x) { return x.fullName || ''; }], ['Món quà', function (x) { return x.giftTitle || ''; }],
+                    ['Điểm lì xì', function (x) { return n0((x.items || {}).points); }, 'n'], ['Lượt rút lì xì', function (x) { return n0((x.items || {}).tickets); }, 'n'],
+                    ['Lượt vòng quay', function (x) { return n0((x.items || {}).spins); }, 'n'], ['Lượt ném còn', function (x) { return n0((x.items || {}).conThrows); }, 'n']],
+                kpi: function (r) {
+                    var gifts = {}; r.forEach(function (x) { gifts[x.giftId] = 1; });
+                    return [['Điểm lì xì đã phát', fv(sumK(r, 'points')), 'qua ' + fv(r.length) + ' lượt nhận'],
+                        ['Lượt đã phát', fv(sumK(r, 'tickets') + sumK(r, 'spins') + sumK(r, 'conThrows')), fv(sumK(r, 'tickets')) + ' rút · ' + fv(sumK(r, 'spins')) + ' quay · ' + fv(sumK(r, 'conThrows')) + ' ném'],
+                        ['Số món quà', fv(Object.keys(gifts).length), 'có người nhận trong kỳ']];
+                },
+                brk: ['Theo món quà', function (x) { return x.giftTitle || '—'; }], rank: ['Nhận nhiều quà nhất', 'lần'] });
+        }
+
+        return { edit: edit, cancel: cancel, save: save, toggle: toggle, del: del, preset: preset, report: report, closeReport: closeReport, rpTab: rpTab, rpDraw: rpDraw, exportCsv: exportCsv,
+            icon: function (i) { icon = i; drawIcons(); preview(); } };
+    })();
+    </script>
+    <style id="qd-paynotify-css">
+        .pn-card { padding: 22px !important; border-left: 4px solid #8b5cf6; }
+        .pn-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+        .pn-ico { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: rgba(139, 92, 246, .14); flex: 0 0 auto; }
+        .pn-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--border-strong); }
+        @media (min-width: 1100px) { .pn-body { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); } }
+        .pn-card.off .pn-body { opacity: .6; }
+        .pn-vars { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .pn-vars button { height: 28px; padding: 0 9px; border-radius: 8px; font-size: 12px; font-weight: 700; font-family: ui-monospace, Menlo, Consolas, monospace; cursor: pointer; color: var(--text-main); background: var(--bg-elevated); border: 1px dashed var(--border-strong); }
+        .pn-vars button:hover { border-color: #8b5cf6; }
+        .pn-chat { border-radius: 16px; padding: 14px; background: linear-gradient(180deg, rgba(0, 0, 0, .1), rgba(0, 0, 0, .28)), linear-gradient(160deg, #8f0a12, #6a0008); border: 1.5px solid rgba(255, 213, 74, .45); }
+        .pn-chat-h { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #fde68a; font-size: 13px; }
+        .pn-chat-h b { color: #fff; } .pn-chat-h small { color: #ffcf9e; }
+        .pn-avt { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #5a0000; background: #ffd54a; }
+        .pn-bubble { padding: 12px 15px; border-radius: 18px; border-bottom-left-radius: 6px; font-size: 14px; line-height: 1.6; color: #fff; background: rgba(0, 0, 0, .32); border: 1px solid rgba(255, 213, 74, .45); word-wrap: break-word; }
+        .pn-tag { display: inline-block; margin-bottom: 6px; padding: 1px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; color: #5a0000; background: #ffd54a; }
+        .pn-last { margin-top: 10px; font-size: 12.5px; color: var(--text-muted); }
+    </style>
+    <script id="qd-paynotify">
+    /* ===== TRẢ THƯỞNG: BOT BÁO "ĐÃ CHUYỂN TIỀN THƯỞNG" =====
+       settings/payout_notify: { on, sender ('@me' = tài khoản đang bấm "Đã chuyển" | tên tài khoản BQT), tpl, updatedAt, updatedBy }
+       Gọi từ PayoutAdmin (hàm ghi "đã chuyển") sau khi lưu thành công: QDPayNotify.send(danh sách, { method, paidAt, by, batch })
+       Mỗi người nhận 1 tin riêng (gộp mọi giải vừa chuyển của người đó) trong private_chat, from = tài khoản BQT, auto: 'payout'. */
+    window.PayNotify = window.QDPayNotify = (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); }, VN = 7 * 3600e3;
+        var DEF_TPL = '🎉 Chúc mừng {HOTEN}!\nBan Quản Trị đã chuyển tiền thưởng cho bạn:\n💵 Số tiền: {TIEN}\n🏆 Giải thưởng:\n{DSGIAI}\n🏦 Tài khoản nhận: {NGANHANG} · {STK} · {CHUTK}\n📝 Nội dung chuyển khoản: {NOIDUNG}\n🕘 Thời gian: {GIO} {NGAY}\nBạn kiểm tra tài khoản ngân hàng giúp BQT nhé. Có sai sót gì nhắn lại ngay tại đây! 🧧';
+        var VARS = [['{HOTEN}', 'Họ tên (không có thì tên đăng nhập)'], ['{USER}', 'Tên đăng nhập'], ['{TIEN}', 'Tổng tiền'], ['{SOGIAI}', 'Số giải'], ['{DSGIAI}', 'Danh sách giải (mỗi giải 1 dòng)'],
+            ['{GIAI}', 'Tên giải (gộp 1 dòng)'], ['{NGANHANG}', 'Ngân hàng'], ['{STK}', 'Số TK (che, 4 số cuối)'], ['{CHUTK}', 'Chủ tài khoản'], ['{NOIDUNG}', 'Nội dung chuyển khoản'],
+            ['{CACH}', 'Cách chuyển'], ['{GIO}', 'Giờ chuyển'], ['{NGAY}', 'Ngày chuyển'], ['{NGUOICHUYEN}', 'Người bấm Đã chuyển']];
+        var SRC = { spin_history: '🎡 Vòng Quay', tranhthuong_history: '🧧 Rút Lì Xì', lucky_rewards: '🎯 Quay Số', tournament_prize: '🏆 Giải Đấu' };
+        var METHOD = { qr: 'Quét mã VietQR', batch: 'Chuyển theo lô', manual: 'Chuyển tay' };
+        var CFG = { on: true, sender: '@me', tpl: DEF_TPL }, STAFF = [], staffLoaded = false, LOADED = false, started = false, isDirty = false;
+        function me() { try { return (typeof State !== 'undefined' && State.currentUser) || 'admin'; } catch (e) { return 'admin'; } }
+        function toast(m, k) { try { Utils.toast(m, k); } catch (e) {} }
+        function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        function pad(n) { return (n < 10 ? '0' : '') + n; }
+        function vnd(n) { return Number(n || 0).toLocaleString('vi-VN') + 'đ'; }
+        function hm(t) { var d = new Date(t + VN); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+        function dmy(t) { var d = new Date(t + VN); return pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear(); }
+        function dm(t) { var d = new Date(t + VN); return pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1); }
+        function mask(no) { no = String(no || '').replace(/\s+/g, ''); return no ? (no.length > 4 ? '••••' + no.slice(-4) : no) : '(chưa khai)'; }
+        function room(a, b) { return [a, b].sort().join('_'); }
+
+        /* ---------- Soạn nội dung ---------- */
+        function compose(tpl, x, meta, acc) {
+            var wins = x.wins || [];
+            var v = {
+                HOTEN: (acc && (acc.fullName || acc.name)) || x.user, USER: x.user, TIEN: vnd(x.total), SOGIAI: wins.length,
+                DSGIAI: wins.map(function (w) { return '• ' + (SRC[w.col] || 'Giải') + ': ' + (w.prize || '') + (w.amount && !/\d/.test(w.prize || '') ? ' — ' + vnd(w.amount) : '') + (w.wonAt ? ' (trúng ' + dm(w.wonAt) + ')' : ''); }).join('\n'),
+                GIAI: wins.map(function (w) { return w.prize || ''; }).join(', '),
+                NGANHANG: (x.bank && x.bank.bank) || '(chưa khai)', STK: mask(x.bank && x.bank.accNo), CHUTK: (x.bank && x.bank.accName) || '',
+                NOIDUNG: x.ref || '', CACH: METHOD[meta.method] || meta.method || '', GIO: hm(meta.paidAt), NGAY: dmy(meta.paidAt), NGUOICHUYEN: meta.by || ''
+            };
+            return String(tpl || DEF_TPL).replace(/\{([A-Z]+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }).slice(0, 3000);
+        }
+        function senderFor(meta) {
+            var s = CFG.sender || '@me';
+            if (s === '@me') return meta.by || me();
+            return !staffLoaded || STAFF.some(function (a) { return a.u === s; }) ? s : (meta.by || me());   // tài khoản đã chọn không còn là BQT -> dùng người bấm
+        }
+
+        /* ---------- Gửi sau khi ghi "Đã chuyển" ---------- */
+        async function send(list, meta) {
+            if (!LOADED) { try { var cs = await db.collection('settings').doc('payout_notify').get(), cd = cs.exists ? cs.data() : {}; CFG.on = cd.on !== false; CFG.sender = cd.sender || '@me'; CFG.tpl = cd.tpl || DEF_TPL; } catch (e) {} }
+            if (!CFG.on || !list || !list.length) return;
+            meta = meta || {}; meta.paidAt = meta.paidAt || Date.now(); meta.by = meta.by || me();
+            var by = {};   // gộp theo người nhận
+            list.forEach(function (x) {
+                var g = by[x.user] = by[x.user] || { user: x.user, total: 0, wins: [], bank: x.bank, ref: x.ref };
+                g.total += +x.total || 0; g.wins = g.wins.concat(x.wins || []); if (!g.bank && x.bank) g.bank = x.bank; if (!g.ref && x.ref) g.ref = x.ref;
+            });
+            var users = Object.keys(by), from = senderFor(meta), accs = {};
+            try {
+                for (var i = 0; i < users.length; i += 10) {   // đọc họ tên (truy vấn "in" tối đa 10 tên / lần)
+                    var q = await db.collection('accounts').where('user', 'in', users.slice(i, i + 10)).get();
+                    q.forEach(function (d) { var a = d.data() || {}; accs[a.user] = a; });
+                }
+            } catch (e) {}
+            var ops = users.filter(function (u) { return u !== from; }).map(function (u) {
+                var x = by[u], t = Date.now();
+                return [db.collection('private_chat').doc(), { conversationId: room(from, u), from: from, to: u, text: compose(CFG.tpl, x, meta, accs[u]), imageUrl: null, time: t, read: false, heart: false, hearts: [], readBy: [],
+                    auto: 'payout', autoBy: meta.by, payoutBatch: meta.batch || '', amount: x.total }];
+            });
+            if (!ops.length) return;
+            try {
+                for (var j = 0; j < ops.length; j += 400) { var b = db.batch(); ops.slice(j, j + 400).forEach(function (o) { b.set(o[0], o[1]); }); await b.commit(); }
+                db.collection('admin_logs').add({ type: 'payout', action: 'notify', user: ops.length === 1 ? ops[0][1].to : '(' + ops.length + ' người)', users: ops.map(function (o) { return o[1].to; }).slice(0, 200), from: from, by: meta.by, batch: meta.batch || '', timestamp: Date.now() }).catch(function () {});
+                db.collection('settings').doc('payout_notify').set({ lastAt: Date.now(), lastCount: ops.length, lastBy: meta.by }, { merge: true }).catch(function () {});
+                toast('🤖 Bot đã nhắn báo chuyển tiền cho ' + (ops.length === 1 ? '<b>' + esc(ops[0][1].to) + '</b>' : ops.length + ' người') + ' (từ tài khoản <b>' + esc(from) + '</b>).', 'info');
+            } catch (e) { console.warn('[Bot báo chuyển tiền]', e); toast('Đã ghi nhận chuyển tiền, nhưng bot chưa nhắn được tin báo (kiểm tra quyền Firestore).', 'warning'); }
+        }
+
+        /* ---------- Giao diện thiết lập ---------- */
+        function fill() {
+            $('pn-on').checked = CFG.on; $('pn-on-st').textContent = CFG.on ? 'ĐANG BẬT' : 'ĐANG TẮT'; $('pn-on-st').style.color = CFG.on ? 'var(--color-success)' : 'var(--text-muted)';
+            $('pn-card').classList.toggle('off', !CFG.on);
+            if (!isDirty) { $('pn-tpl').value = CFG.tpl || DEF_TPL; opts(); }
+            $('pn-last').textContent = CFG.lastAt ? 'Lần gửi gần nhất: ' + hm(CFG.lastAt) + ' ' + dmy(CFG.lastAt) + ' · ' + CFG.lastCount + ' người · bởi ' + (CFG.lastBy || '?') : 'Chưa gửi tin báo nào.';
+            preview();
+        }
+        function opts() {
+            var sel = $('pn-sender'), cur = isDirty ? sel.value : (CFG.sender || '@me');
+            sel.innerHTML = '<option value="@me">Tài khoản đang bấm "Đã chuyển"</option>' + STAFF.map(function (a) { return '<option value="' + esc(a.u) + '">' + esc(a.u) + (a.name ? ' — ' + esc(a.name) : '') + (a.role === 'admin' ? ' (Quản trị viên)' : ' (Quản lý)') + '</option>'; }).join('');
+            if (cur !== '@me' && !STAFF.some(function (a) { return a.u === cur; })) sel.insertAdjacentHTML('beforeend', '<option value="' + esc(cur) + '">' + esc(cur) + ' (không còn là BQT → dùng người bấm)</option>');
+            sel.value = cur;
+        }
+        function preview() {
+            var from = $('pn-sender').value === '@me' ? me() : $('pn-sender').value, t = Date.now();
+            $('pn-from').textContent = from; $('pn-avt').textContent = String(from || '?').charAt(0).toUpperCase();
+            var sample = { user: 'binh', total: 70000, ref: 'QDTLH BINH THUONG TET', bank: { bank: 'Vietcombank', accNo: '0123456789', accName: 'NGUYEN VAN BINH' },
+                wins: [{ col: 'spin_history', prize: '50.000 VNĐ', amount: 50000, wonAt: t - 864e5 }, { col: 'tranhthuong_history', prize: 'Lì xì 20K', amount: 20000, wonAt: t - 3600e3 }] };
+            $('pn-pv').innerHTML = esc(compose($('pn-tpl').value, sample, { method: 'qr', paidAt: t, by: me() }, { fullName: 'Nguyễn Văn Bình' })).replace(/\n/g, '<br>');
+        }
+        function dirty() { isDirty = true; $('pn-dirty').style.display = ''; preview(); }
+        async function save() {
+            var tpl = $('pn-tpl').value.trim(); if (!tpl) return toast('Nội dung tin nhắn không được để trống.', 'warning');
+            var b = $('pn-save'); b.disabled = true;
+            try {
+                await db.collection('settings').doc('payout_notify').set({ sender: $('pn-sender').value, tpl: tpl, updatedAt: Date.now(), updatedBy: me() }, { merge: true });
+                isDirty = false; $('pn-dirty').style.display = 'none'; toast('Đã lưu tin báo chuyển tiền.', 'success');
+                db.collection('admin_logs').add({ type: 'payout', action: 'notify_cfg', user: '(bot báo chuyển tiền)', by: me(), timestamp: Date.now() }).catch(function () {});
+            } catch (e) { toast('Lưu không được: ' + (e.message || e.code), 'error'); }
+            finally { b.disabled = false; }
+        }
+        async function toggle(el) {
+            var on = el.checked; el.disabled = true;
+            try {
+                var p = { on: on, updatedAt: Date.now(), updatedBy: me() };
+                if (on && isDirty) { p.sender = $('pn-sender').value; p.tpl = $('pn-tpl').value.trim() || DEF_TPL; }
+                await db.collection('settings').doc('payout_notify').set(p, { merge: true });
+                if (on && isDirty) { isDirty = false; $('pn-dirty').style.display = 'none'; }
+                toast(on ? '🤖 Đã BẬT: bấm "Đã chuyển" là bot nhắn báo cho người nhận.' : 'Đã TẮT bot báo chuyển tiền.', on ? 'success' : 'info');
+                db.collection('admin_logs').add({ type: 'payout', action: on ? 'notify_on' : 'notify_off', user: '(bot báo chuyển tiền)', by: me(), timestamp: Date.now() }).catch(function () {});
+            } catch (e) { el.checked = !on; toast('Không đổi được: ' + (e.message || e.code), 'error'); }
+            finally { el.disabled = false; }
+        }
+        function reset() { $('pn-tpl').value = DEF_TPL; dirty(); }
+
+        function start() {
+            if (started || !$('pn-card')) return; started = true;
+            $('pn-vars').innerHTML = VARS.map(function (v) { return '<button type="button" title="' + esc(v[1]) + '" data-v="' + v[0] + '">' + v[0] + '</button>'; }).join('');
+            $('pn-vars').addEventListener('click', function (e) {
+                var b = e.target.closest('button'); if (!b) return;
+                var el = $('pn-tpl'), s = el.selectionStart == null ? el.value.length : el.selectionStart, en = el.selectionEnd == null ? s : el.selectionEnd, v = b.getAttribute('data-v');
+                el.value = el.value.slice(0, s) + v + el.value.slice(en); el.focus(); try { el.setSelectionRange(s + v.length, s + v.length); } catch (er) {} dirty();
+            });
+            db.collection('settings').doc('payout_notify').onSnapshot(function (s) {
+                var d = s.exists ? s.data() : {};
+                LOADED = true; CFG = { on: d.on !== false, sender: d.sender || '@me', tpl: d.tpl || DEF_TPL, lastAt: d.lastAt || 0, lastCount: d.lastCount || 0, lastBy: d.lastBy || '' }; fill();
+            }, function () { fill(); });
+            db.collection('accounts').where('role', 'in', ['admin', 'manager']).onSnapshot(function (s) {
+                STAFF = s.docs.map(function (d) { var a = d.data() || {}; return { u: a.user, name: a.fullName || a.name || '', role: a.role }; }).filter(function (a) { return a.u && !a.blocked; }).sort(function (a, b) { return a.role === b.role ? a.u.localeCompare(b.u) : a.role === 'admin' ? -1 : 1; });
+                staffLoaded = true; opts(); preview();
+            }, function () {});
+        }
+        var w = setInterval(function () { var sh = $('app-shell'); try { if (State.currentUser && sh && sh.style.display === 'flex') { clearInterval(w); start(); } } catch (e) {} }, 1000);
+
+        return { send: send, toggle: toggle, save: save, reset: reset, dirty: dirty, compose: compose, cfg: function () { return CFG; } };
+    })();
+    </script>
+    <!-- ===== QD GFX: MỨC ĐỒ HỌA (khối dùng chung index · user · admin) =====
+         Người dùng chọn ở Cài đặt: ⚡ Tự động (mặc định) · ✨ Cao · ⚖️ Cân bằng · 🍃 Tiết kiệm. Lưu trên máy: localStorage qd_gfx.
+         Tự động: chọn mức theo máy (số nhân CPU, RAM), mạng (2G/3G/4G, Tiết kiệm dữ liệu), pin yếu, "giảm chuyển động" của hệ điều hành,
+         rồi đo FPS thật: rớt khung -> hạ 1 mức; mượt lâu -> nâng lại (không vượt mức máy chịu được).
+         Cân bằng: bỏ kính mờ (blur), bớt nửa hoa rơi. Tiết kiệm: tắt hoa rơi / pháo / hiệu ứng lặp, bỏ bóng đổ, video không tự chạy.
+         Ghép với QD Smooth có sẵn (html.qd-lite = Tiết kiệm). -->
+    <style id="qd-gfx-css">
+        /* ---------- Cân bằng + Tiết kiệm: không kính mờ (tốn GPU nhất trên điện thoại) ---------- */
+        html[data-gfx="mid"] *, html[data-gfx="mid"] *::before, html[data-gfx="mid"] *::after,
+        html[data-gfx="low"] *, html[data-gfx="low"] *::before, html[data-gfx="low"] *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+        html[data-gfx="mid"] .hoa-mai:nth-of-type(2n), html[data-gfx="mid"] .petal:nth-child(2n) { display: none !important; }
+        html[data-gfx="mid"] .modal-overlay { background-color: rgba(10, 2, 2, .82); }
+        /* ---------- Tiết kiệm ---------- */
+        html[data-gfx="low"] .qd-fx, html[data-gfx="low"] .hoa-mai, html[data-gfx="low"] .petal, html[data-gfx="low"] #decor, html[data-gfx="low"] #fx,
+        html[data-gfx="low"] .tet-lantern, html[data-gfx="low"] .gf-rays { display: none !important; }
+        html[data-gfx="low"] *:not([class*="spin"]):not([class*="Spin"]):not(.skeleton):not(.fa-spinner):not(.fa-circle-notch),
+        html[data-gfx="low"] *::before, html[data-gfx="low"] *::after { animation-iteration-count: 1 !important; }
+        html[data-gfx="low"] *, html[data-gfx="low"] *::before, html[data-gfx="low"] *::after { box-shadow: none !important; }
+        html[data-gfx="low"] * { scroll-behavior: auto !important; }
+        html[data-gfx="low"] .modal-overlay { background-color: rgba(10, 2, 2, .88); }
+        /* Đang mở tab khác / ẩn trang: dừng mọi hiệu ứng lặp (đỡ pin, đỡ nóng máy) */
+        html.qd-hidden *, html.qd-hidden *::before, html.qd-hidden *::after { animation-play-state: paused !important; }
+
+        /* ---------- Khung chọn mức đồ họa (dùng trong Cài đặt) ---------- */
+        .qg { --qg-ac: #d42330; --qg-bd: rgba(214, 158, 30, .45); --qg-bg: rgba(255, 255, 255, .06); font-family: inherit; }
+        [data-theme="light"] .qg, .qg.light { --qg-bg: rgba(0, 0, 0, .03); }
+        .qg-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        @media (max-width: 420px) { .qg-opts { grid-template-columns: minmax(0, 1fr); } }
+        .qg-opt { position: relative; display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px; border-radius: 14px; text-align: left; cursor: pointer; color: inherit; font: inherit;
+            background: var(--qg-bg); border: 1.5px solid var(--qg-bd); transition: border-color .15s, background .15s; }
+        .qg-opt:hover { border-color: #f2b705; }
+        .qg-opt.on { border-color: #f2b705; background: rgba(255, 213, 74, .14); box-shadow: 0 0 0 3px rgba(255, 213, 74, .18) !important; }
+        .qg-opt .e { flex: 0 0 auto; font-size: 20px; line-height: 1.2; }
+        .qg-opt b { display: block; font-size: 14.5px; font-weight: 800; }
+        .qg-opt small { display: block; font-size: 12px; line-height: 1.4; opacity: .78; margin-top: 2px; }
+        .qg-opt .ck { position: absolute; top: 8px; right: 9px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--qg-bd); }
+        .qg-opt.on .ck { border-color: #f2b705; background: radial-gradient(circle, #f2b705 45%, transparent 50%); }
+        .qg-stat { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding: 9px 12px; border-radius: 12px; font-size: 12.5px; background: var(--qg-bg); border: 1px dashed var(--qg-bd); }
+        .qg-stat b { font-weight: 800; }
+        .qg-fps { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; font-weight: 800; font-variant-numeric: tabular-nums; color: #fff; background: #16a34a; }
+        .qg-fps.mid { background: #d97706; } .qg-fps.bad { background: #dc2626; }
+        .qg-why { flex: 1 1 200px; min-width: 0; opacity: .85; }
+        /* Hộp nổi (trang không có Cài đặt, vd index) */
+        #qg-pop { position: fixed; inset: 0; z-index: 2147482000; display: none; align-items: flex-start; justify-content: flex-end; padding: calc(70px + env(safe-area-inset-top)) 14px 14px; background: rgba(20, 2, 2, .35); }
+        #qg-pop.on { display: flex; }
+        #qg-pop .qg-card { width: 100%; max-width: 440px; border-radius: 20px; padding: 16px; color: #3b1a00; background: #fffaf0; border: 2px solid #ffd54a; box-shadow: 0 24px 50px -18px rgba(40, 0, 0, .7) !important; }
+        #qg-pop .qg-card h3 { margin: 0 0 10px; font-size: 17px; font-weight: 800; color: #8f0a12; display: flex; align-items: center; gap: 8px; }
+        #qg-pop .qg-card h3 button { margin-left: auto; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid rgba(214, 158, 30, .55); background: #fff; color: #8a5a2b; font-size: 18px; cursor: pointer; }
+        #qg-pop .qg { --qg-bg: rgba(255, 255, 255, .9); }
+        @media (max-width: 480px) { #qg-pop { align-items: flex-end; padding: 14px; } }
+    </style>
+    <script id="qd-gfx-js">
+    window.QDGfx = (function () {
+        'use strict';
+        var W = window, d = document, html = d.documentElement, nav = navigator;
+        if (W.QDGfx) return W.QDGfx;
+        var LEVELS = ['low', 'mid', 'high'];
+        var INFO = {
+            auto: ['⚡', 'Tự động', 'Tự cân bằng theo máy, mạng, pin và FPS thực tế'],
+            high: ['✨', 'Cao', 'Đầy đủ: hoa rơi, kính mờ, ánh sáng, chuyển động'],
+            mid: ['⚖️', 'Cân bằng', 'Bỏ kính mờ, bớt hoa rơi — mượt hơn, vẫn đẹp'],
+            low: ['🍃', 'Tiết kiệm', 'Tắt hiệu ứng lặp, bóng đổ, hoa rơi; video không tự chạy. Hợp máy yếu, mạng chậm, tiết kiệm pin']
+        };
+        var NAME = { high: 'Cao', mid: 'Cân bằng', low: 'Tiết kiệm' };
+        function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+        var choice = /^(auto|high|mid|low)$/.test(ls('qd_gfx') || '') ? ls('qd_gfx') : 'auto';
+        var ceil = 'high', why = [], level = null, fps = 0, jank = 0, battLow = false, subs = [], ups = 0;
+
+        /* ---------- Mức tối đa máy + mạng chịu được ---------- */
+        function detect() {
+            var c = nav.connection || nav.mozConnection || nav.webkitConnection || {}, et = c.effectiveType || '', mem = nav.deviceMemory || 0, cores = nav.hardwareConcurrency || 0;
+            var reduce = W.matchMedia && W.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(nav.userAgent || '');
+            why = []; var lv = 2;
+            if (cores) why.push(cores + ' nhân'); if (mem) why.push(mem + ' GB RAM'); why.push(et ? 'mạng ' + et.toUpperCase() : 'mạng ?');
+            if (reduce) { lv = 0; why.push('máy bật giảm chuyển động'); }
+            if (c.saveData) { lv = 0; why.push('đang tiết kiệm dữ liệu'); }
+            if (/^(slow-2g|2g)$/.test(et)) lv = 0; else if (et === '3g') lv = Math.min(lv, 1);
+            if ((mem && mem <= 2) || (cores && cores <= 2)) lv = 0; else if ((mem && mem <= 4) || (cores && cores <= 4) || (mobile && !mem && !cores)) lv = Math.min(lv, 1);
+            if (battLow) { lv = 0; why.push('pin yếu'); }
+            ceil = LEVELS[lv];
+        }
+        function apply(lv, from) {
+            if (!NAME[lv]) lv = 'mid';
+            if (lv === level) return;
+            level = lv; html.setAttribute('data-gfx', lv); ls('qd_gfx_eff', lv);
+            try { if (W.QDSmooth && W.QDSmooth.setLite) W.QDSmooth.setLite(lv === 'low'); } catch (e) {}   // QD Smooth cũ: chế độ nhẹ = Tiết kiệm
+            videos();
+            subs.forEach(function (f) { try { f(lv, from); } catch (e) {} });
+            draw();
+        }
+        function want() { return choice === 'auto' ? ceil : choice; }
+
+        /* ---------- Video tự chạy: Tiết kiệm / mạng chậm thì không tự phát ---------- */
+        function videos() {
+            Array.prototype.forEach.call(d.querySelectorAll('video[autoplay], video[muted], video.hero-video'), function (v) {
+                if (level === 'low') { if (!v.paused) { v.__qgPaused = true; try { v.pause(); } catch (e) {} } v.preload = 'none'; }
+                else if (v.__qgPaused) { v.__qgPaused = false; try { var p = v.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+            });
+        }
+
+        /* ---------- Đo FPS thật ---------- */
+        function sample(cb) {
+            if (!W.requestAnimationFrame) return;
+            var t = [], last = 0, end = performance.now() + 2000;
+            requestAnimationFrame(function step(now) {
+                if (d.hidden) return cb(null);
+                if (last) t.push(now - last); last = now;
+                if (now < end) return requestAnimationFrame(step);
+                if (t.length < 15) return cb(null);
+                var s = t.slice().sort(function (a, b) { return a - b; }), vs = Math.max(6.5, s[Math.floor(s.length * .1)]), bad = 0, sum = 0;
+                t.forEach(function (x) { sum += x; if (x > vs * 1.8) bad++; });
+                cb({ fps: Math.round(1000 / (sum / t.length)), jank: bad / t.length, hz: Math.round(1000 / vs) });
+            });
+        }
+        var strikes = 0, good = 0, mon = 0;
+        function monitor() {
+            clearTimeout(mon);
+            mon = setTimeout(function () {
+                if (d.hidden) return monitor();
+                sample(function (r) {
+                    if (r) {
+                        fps = r.fps; jank = r.jank; draw();
+                        if (choice === 'auto') {
+                            var i = LEVELS.indexOf(level);
+                            if (r.jank > .2 || r.fps < Math.min(45, r.hz * .75)) { good = 0; if (++strikes >= 2 && i > 0) { strikes = 0; apply(LEVELS[i - 1], 'fps'); } }
+                            else if (r.jank < .05) { strikes = 0; if (++good >= 6 && i < LEVELS.indexOf(ceil) && ups < 2) { good = 0; ups++; apply(LEVELS[i + 1], 'fps'); } }
+                            else { strikes = 0; good = 0; }
+                        }
+                    }
+                    monitor();
+                });
+            }, panelOpen() ? 600 : (strikes ? 2500 : 9000));
+        }
+
+        /* ---------- Khung chọn trong Cài đặt ---------- */
+        function panelOpen() { return Array.prototype.some.call(d.querySelectorAll('[data-qd-gfx-panel]'), function (p) { return p.offsetParent !== null; }); }
+        function render(box) {
+            box.innerHTML = '<div class="qg"><div class="qg-opts" role="radiogroup" aria-label="Mức đồ họa">' + ['auto', 'high', 'mid', 'low'].map(function (k) {
+                var i = INFO[k]; return '<button type="button" class="qg-opt" role="radio" data-qg="' + k + '"><span class="e">' + i[0] + '</span><span><b>' + i[1] + '</b><small>' + i[2] + '</small></span><span class="ck"></span></button>';
+            }).join('') + '</div><div class="qg-stat"><span class="qg-fps">– FPS</span><span class="qg-why"></span></div></div>';
+            box.addEventListener('click', function (e) { var b = e.target.closest('[data-qg]'); if (b) set(b.getAttribute('data-qg')); });
+        }
+        function draw() {
+            Array.prototype.forEach.call(d.querySelectorAll('[data-qd-gfx-panel]'), function (box) {
+                if (!box.firstChild) render(box);
+                Array.prototype.forEach.call(box.querySelectorAll('.qg-opt'), function (b) { var on = b.getAttribute('data-qg') === choice; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+                var f = box.querySelector('.qg-fps'); if (f) { f.textContent = fps ? fps + ' FPS' : '– FPS'; f.className = 'qg-fps' + (!fps ? '' : jank > .2 || fps < 40 ? ' bad' : jank > .06 || fps < 55 ? ' mid' : ''); }
+                var w = box.querySelector('.qg-why');
+                if (w) w.innerHTML = (choice === 'auto' ? 'Tự động đang dùng <b>' + NAME[level] + '</b>' + (level !== ceil ? ' (hạ vì FPS thấp)' : '') : 'Đang dùng <b>' + NAME[level] + '</b>') + ' · ' + why.join(' · ');
+            });
+        }
+        function set(k) {
+            if (!INFO[k]) return; choice = k; ls('qd_gfx', k); strikes = 0; good = 0; ups = 0;
+            ls('qd_fx', k === 'auto' ? 'auto' : k === 'low' ? 'lite' : 'full');   // QD Smooth cũ
+            apply(want(), 'user'); draw(); monitor();
+            try { if (W.Utils && W.Utils.toast) W.Utils.toast(INFO[k][0] + ' Mức đồ họa: ' + INFO[k][1] + (k === 'auto' ? ' (' + NAME[level] + ')' : ''), 'success'); } catch (e) {}
+        }
+
+        /* ---------- Hộp nổi cho trang không có Cài đặt ---------- */
+        function popover() {
+            var p = d.getElementById('qg-pop');
+            if (!p) {
+                p = d.createElement('div'); p.id = 'qg-pop'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', 'Mức đồ họa');
+                p.innerHTML = '<div class="qg-card"><h3>🎛️ Mức đồ họa <button type="button" aria-label="Đóng">×</button></h3><div data-qd-gfx-panel></div></div>';
+                p.addEventListener('click', function (e) { if (e.target === p || e.target.closest('h3 button')) { p.classList.remove('on'); } });
+                d.addEventListener('keydown', function (e) { if (e.key === 'Escape') p.classList.remove('on'); });
+                d.body.appendChild(p);
+            }
+            p.classList.add('on'); draw(); monitor();
+        }
+
+        /* ---------- Khởi động ---------- */
+        detect();
+        if (nav.getBattery) nav.getBattery().then(function (b) {
+            var chk = function () { var was = battLow; battLow = !b.charging && b.level <= .2; if (was !== battLow) { detect(); if (choice === 'auto') apply(want(), 'battery'); } };
+            b.addEventListener('levelchange', chk); b.addEventListener('chargingchange', chk); chk();
+        }).catch(function () {});
+        var cn = nav.connection; if (cn && cn.addEventListener) cn.addEventListener('change', function () { detect(); if (choice === 'auto') apply(want(), 'net'); });
+        apply(want(), 'boot');
+        try { if (W.QDSmooth && W.QDSmooth.onLite) W.QDSmooth.onLite(function (on) { if (on && choice === 'auto' && level === 'high') apply('mid', 'fps'); }); } catch (e) {}
+        d.addEventListener('visibilitychange', function () { html.classList.toggle('qd-hidden', d.hidden); if (!d.hidden) monitor(); });
+        if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', function () { videos(); draw(); }); else { videos(); draw(); }
+        setTimeout(monitor, 4000);
+        var wasOpen = false;   // mở Cài đặt -> đo FPS nhanh hơn để hiện số trực tiếp (chỉ kiểm tra khi trang có khung chọn)
+        setInterval(function () { if (d.hidden || !d.querySelector('[data-qd-gfx-panel]')) return; var o = panelOpen(); if (o && !wasOpen) { draw(); monitor(); } wasOpen = o; }, 1500);
+        d.addEventListener('play', function (e) { var v = e.target; if (level === 'low' && v && v.tagName === 'VIDEO' && (v.muted || v.classList.contains('hero-video'))) { v.__qgPaused = true; try { v.pause(); } catch (er) {} } }, true);
+
+        return { set: set, level: function () { return level; }, choice: function () { return choice; }, on: function (f) { subs.push(f); }, popover: popover, draw: draw };
     })();
     </script>
 </body>

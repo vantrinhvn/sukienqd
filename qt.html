@@ -427,9 +427,6 @@ html.qd-lite .qd-fx { display: none !important; }
             <button class="btn btn-outline" onclick="History.openModal()" style="border-radius: var(--radius-full);">
                 <i class="fa-solid fa-clock-rotate-left"></i> <span class="hidden-mobile">Lịch Sử</span>
             </button>
-            <button class="btn btn-outline" onclick="window.location.href='user.html'" style="border-radius: var(--radius-full);" title="Về trang chủ">
-                <i class="fa-solid fa-house"></i> <span class="hidden-mobile">Trang Chủ</span>
-            </button>
         </div>
     </header>
 
@@ -2349,8 +2346,8 @@ html[data-theme="tet"] body::before { content: ''; position: fixed; inset: 0; z-
        - Nút tròn góc trái dưới: bấm để Bật / Tắt nhạc */
     (function () {
         'use strict';
-        if (window.QDMusic || document.getElementById('bg-music')) return;
-        try { if (window.top !== window && /admin\.html/i.test(window.top.location.pathname)) return; } catch (e) {}
+        return;   // bản 28: trang trò chơi không phát nhạc nền (bỏ cả nút nhạc). Khối bên dưới giữ lại để bật lại khi cần: xóa dòng này.
+        try { if (window.top !== window && /(admin|user)\.html/i.test(window.top.location.pathname)) return; } catch (e) {}   // nằm trong khung Admin / trang thành viên: dùng nhạc của trang đó
         var d = document, W = window;
         var TRACKS = [
             { src: 'nhac-tet.mp3', name: 'Xuân Về Phơi Phới' },

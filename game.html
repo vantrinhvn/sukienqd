@@ -347,7 +347,6 @@ html.qd-lite .qd-fx { display: none !important; }
     <div id="stage" aria-label="Sân ném còn: vuốt lên để ném"><canvas id="cv"></canvas></div>
 
     <header class="topbar">
-        <a class="ic-btn" href="user.html" title="Về trang chủ" aria-label="Về trang chủ"><i class="fa-solid fa-house"></i></a>
         <div class="tb-title"><b>🎯 Ném Còn</b><small>Xuân Đinh Mùi 2027 · <span id="me-name">...</span></small></div>
         <button type="button" class="ic-btn" id="shop-btn" title="Đổi điểm lấy lượt ném" aria-label="Đổi điểm lấy lượt ném"><i class="fa-solid fa-store"></i></button>
         <button type="button" class="ic-btn" id="sfx-btn" title="Bật / tắt tiếng ném" aria-label="Bật / tắt tiếng ném"><i class="fa-solid fa-volume-high"></i></button>
@@ -1564,11 +1563,11 @@ html.qd-lite .qd-fx { display: none !important; }
             var shopOn = S.cfg.shopEnabled !== false; $('shop-btn').style.display = shopOn ? '' : 'none';
             var hint = $('hint');
             if (!ME) gate('🔐 Bạn chưa đăng nhập', 'Vui lòng đăng nhập ở Trang Chủ rồi quay lại sân Ném Còn.', '<a class="g-btn" href="user.html"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>');
-            else if (S.accLoaded && !S.docId) gate('⚠️ Không tìm thấy tài khoản', 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.', '<a class="g-btn" href="user.html">Về Trang Chủ</a>');
-            else if (S.cfgLoaded && !S.cfg.enabled) gate('🔒 Sân Ném Còn đang tạm đóng', esc(S.cfg.closedMsg || 'Ban Quản Trị đang chuẩn bị sân. Bạn quay lại sau nhé!') + (t > 0 ? '<br>Bạn vẫn còn <b>' + t + ' lượt ném</b> được giữ nguyên.' : ''), '<a class="g-btn" href="user.html"><i class="fa-solid fa-house"></i> Về Trang Chủ</a>');
+            else if (S.accLoaded && !S.docId) gate('⚠️ Không tìm thấy tài khoản', 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.', '');
+            else if (S.cfgLoaded && !S.cfg.enabled) gate('🔒 Sân Ném Còn đang tạm đóng', esc(S.cfg.closedMsg || 'Ban Quản Trị đang chuẩn bị sân. Bạn quay lại sau nhé!') + (t > 0 ? '<br>Bạn vẫn còn <b>' + t + ' lượt ném</b> được giữ nguyên.' : ''), '');
             else if (!S.busy && S.accLoaded && t <= 0) {
                 var b = (fa ? '<button type="button" class="g-btn" data-act="free"><i class="fa-solid fa-gift"></i> Nhận ' + S.cfg.freePerDay + ' lượt miễn phí hôm nay</button>' : '')
-                    + (shopOn ? '<button type="button" class="g-btn' + (fa ? ' ghost' : '') + '" data-act="shop"><i class="fa-solid fa-store"></i> Đổi điểm lấy lượt</button>' : '<a class="g-btn' + (fa ? ' ghost' : '') + '" href="user.html"><i class="fa-solid fa-house"></i> Về Trang Chủ</a>');
+                    + (shopOn ? '<button type="button" class="g-btn' + (fa ? ' ghost' : '') + '" data-act="shop"><i class="fa-solid fa-store"></i> Đổi điểm lấy lượt</button>' : '');
                 gate('🎯 Bạn đã hết lượt ném', (fa ? 'Hôm nay bạn được tặng <b>' + S.cfg.freePerDay + ' lượt</b> miễn phí. ' : 'Lượt miễn phí hôm nay đã nhận. ')
                     + (shopOn ? 'Đổi <b>điểm lì xì</b> lấy lượt ném ngay tại đây' + (S.points != null ? ' (bạn đang có <b>' + Number(S.points).toLocaleString('vi-VN') + ' điểm</b>)' : '') + ', hoặc chờ Ban Quản Trị tặng lượt.' : 'Chờ Ban Quản Trị tặng lượt, hoặc đổi điểm ở Trạm Quy Đổi (Trang Chủ) nếu đang mở.'), b);
             } else gate(null);
@@ -1919,8 +1918,8 @@ html.qd-lite .qd-fx { display: none !important; }
        - Nút tròn góc trái dưới: bấm để Bật / Tắt nhạc */
     (function () {
         'use strict';
-        if (window.QDMusic || document.getElementById('bg-music')) return;
-        try { if (window.top !== window && /admin\.html/i.test(window.top.location.pathname)) return; } catch (e) {}
+        return;   // bản 28: trang trò chơi không phát nhạc nền (bỏ cả nút nhạc). Khối bên dưới giữ lại để bật lại khi cần: xóa dòng này.
+        try { if (window.top !== window && /(admin|user)\.html/i.test(window.top.location.pathname)) return; } catch (e) {}   // nằm trong khung Admin / trang thành viên: dùng nhạc của trang đó
         var d = document, W = window;
         var TRACKS = [
             { src: 'nhac-tet.mp3', name: 'Xuân Về Phơi Phới' },

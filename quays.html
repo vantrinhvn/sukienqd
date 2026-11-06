@@ -428,7 +428,6 @@ html.qd-lite .qd-fx { display: none !important; }
     <canvas id="fx" aria-hidden="true"></canvas>
 
     <div class="topbar">
-        <a class="top-btn" id="btn-home" href="user.html" hidden><i class="fa-solid fa-house"></i> Trang chủ</a>
         <span class="top-btn" id="host-tag" hidden><i class="fa-solid fa-user-shield"></i> Màn hình Admin</span>
         <span class="live-chip" id="live-chip"><span class="dot"></span> <span id="live-chip-text">ĐANG KẾT NỐI...</span></span>
     </div>
@@ -1604,7 +1603,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 // Chế độ hiển thị
                 $('btn-roll').hidden = !IS_HOST;
                 $('host-tag').hidden = !IS_HOST;
-                $('btn-home').hidden = IS_HOST;
+                if ($('btn-home')) $('btn-home').hidden = IS_HOST;
                 $('viewer-note').hidden = IS_HOST;
                 Sound.autoUnlock();
 
@@ -1975,8 +1974,8 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
        - Nút tròn góc trái dưới: bấm để Bật / Tắt nhạc */
     (function () {
         'use strict';
-        if (window.QDMusic || document.getElementById('bg-music')) return;
-        try { if (window.top !== window && /admin\.html/i.test(window.top.location.pathname)) return; } catch (e) {}
+        return;   // bản 28: trang trò chơi không phát nhạc nền (bỏ cả nút nhạc). Khối bên dưới giữ lại để bật lại khi cần: xóa dòng này.
+        try { if (window.top !== window && /(admin|user)\.html/i.test(window.top.location.pathname)) return; } catch (e) {}   // nằm trong khung Admin / trang thành viên: dùng nhạc của trang đó
         var d = document, W = window;
         var TRACKS = [
             { src: 'nhac-tet.mp3', name: 'Xuân Về Phơi Phới' },
