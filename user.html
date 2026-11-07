@@ -11980,7 +11980,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     // @nhắc tên: họ tên + nhóm quyền của mọi tài khoản
                     const qdAcc = {};
                     snap.docs.forEach(doc => { const d = doc.data(); if (d && d.user) qdAcc[d.user] = { fullName: d.fullName || d.name || '', role: d.role || (d.user === 'admin' ? 'admin' : 'user'), blocked: d.isBlocked === true }; });
-                    State.accInfo = qdAcc;
+                    State.accInfo = qdAcc; if (window.QDStaff) window.QDStaff.paint();
                     snap.docs.forEach(doc => {
                         const d = doc.data(); if (!d || d.user === State.currentUser) return;
                         State.usersCache[d.user] = d.lastActive; State.presence[d.user] = { lastActive: d.lastActive, online: d.online };
@@ -12011,7 +12011,7 @@ html.qd-lite .qd-fx { display: none !important; }
                                 
                                 card.className = `contact-card ${isAct}`;
                                 card.setAttribute('data-key', dN.toLowerCase());
-                                card.innerHTML = `<div class="avatar-circle" style="position:relative;">${window.Avatar ? window.Avatar.inner(d.avatar, dN) : dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"${Utils.liveAgo(d.lastActive, d.online, { fmt: 'none', on: 'online', off: 'offline' })}></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg flex items-center justify-between" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${dN} ${unreadHtml}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}"${Utils.liveAgo(d.lastActive, d.online, { on: 'text-success', off: 'text-muted' })}>${Utils.timeAgo(d.lastActive, d.online)}</div></div>`;
+                                card.innerHTML = `<div class="avatar-circle" style="position:relative;">${window.Avatar ? window.Avatar.inner(d.avatar, dN) : dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"${Utils.liveAgo(d.lastActive, d.online, { fmt: 'none', on: 'online', off: 'offline' })}></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg flex items-center justify-between" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${window.QDStaff ? window.QDStaff.name(d.user, dN) : dN} ${unreadHtml}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}"${Utils.liveAgo(d.lastActive, d.online, { on: 'text-success', off: 'text-muted' })}>${Utils.timeAgo(d.lastActive, d.online)}</div></div>`;
                             });
                         }
                     });
@@ -12101,7 +12101,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 if(!State.chatTarget) return; 
                 
                 if(State.chatTarget === 'general') {
-                    Utils.safeText('active-name', 'Kênh Chung (Toàn Server)'); 
+                    Utils.safeText('active-name', 'Kênh Chung (Toàn Server)'); if (window.QDStaff) window.QDStaff.header(); 
                     const avt = document.getElementById('active-avt');
                     if(avt) { avt.innerHTML = '<i class="fa-solid fa-users"></i>'; avt.style.background = 'var(--color-info)'; }
                     const st = document.getElementById('active-status'); if(st) { ['data-qd-t', 'data-qd-o', 'data-qd-fmt', 'data-qd-on', 'data-qd-off'].forEach(a => st.removeAttribute(a)); st.innerText = 'Tất cả thành viên đều có mặt'; st.className = "text-xs text-info font-bold"; }
@@ -12109,7 +12109,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 }
                 
                 const dN = State.nicknames[State.chatTarget] || State.chatTarget; const pr = (State.presence || {})[State.chatTarget] || { lastActive: State.usersCache[State.chatTarget] }; const lP = pr.lastActive; const isOn = Utils.isOnline(lP, pr.online);
-                Utils.safeText('active-name', dN); 
+                Utils.safeText('active-name', dN); if (window.QDStaff) window.QDStaff.header(); 
                 const avt = document.getElementById('active-avt');
                 if(avt) { avt.innerHTML = window.Avatar ? window.Avatar.inner((State.avatars || {})[State.chatTarget], dN) : dN.charAt(0).toUpperCase(); avt.style.background = ''; }
                 const st = document.getElementById('active-status'); if(st) {
@@ -12305,7 +12305,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         
                         let senderNameHtml = '';
                         if (State.chatTarget === 'general' && !isM) {
-                             senderNameHtml = m.bot && window.QDMention ? window.QDMention.senderHtml(m) : `<div class="msg-sender" style="color: var(--color-info);">${String(State.nicknames[m.from] || m.from).replace(/</g, '&lt;')}</div>`;
+                             senderNameHtml = m.bot && window.QDMention ? window.QDMention.senderHtml(m) : (window.QDStaff ? window.QDStaff.sender(m.from, State.nicknames[m.from] || m.from) : `<div class="msg-sender" style="color: var(--color-info);">${String(State.nicknames[m.from] || m.from).replace(/</g, '&lt;')}</div>`);
                         }
                         if (atMe && !m.bot) senderNameHtml = `<div class="qd-at-tag">@ Nhắc đến bạn</div>` + senderNameHtml;
                         if (m.auto === 'payout' && !m.revoked) senderNameHtml = `<div class="qd-auto-tag">🤖 Tin tự động · Trả thưởng</div>` + senderNameHtml;
@@ -23879,6 +23879,42 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         d.addEventListener('play', function (e) { var v = e.target; if (level === 'low' && v && v.tagName === 'VIDEO' && (v.muted || v.classList.contains('hero-video'))) { v.__qgPaused = true; try { v.pause(); } catch (er) {} } }, true);
 
         return { set: set, level: function () { return level; }, choice: function () { return choice; }, on: function (f) { subs.push(f); }, popover: popover, draw: draw };
+    })();
+    </script>
+
+    <!-- ===== QD QUẢN LÝ: tài khoản admin / quản lý hiện chữ xanh + dấu tích trong phần Tin nhắn ===== -->
+    <style id="qd-staff-css">
+        .qd-staff-tick { margin-left: 5px; font-size: .88em; vertical-align: -1px; }
+        html .msg-row.them .msg-bubble .msg-sender.is-staff,
+        html #view-chat .contact-card .qd-nm.is-staff,
+        html #view-chat #active-name.is-staff { color: #15803d !important; -webkit-text-fill-color: #15803d !important; }
+        html[data-theme="tet"] .msg-row.them .msg-bubble .msg-sender.is-staff,
+        html[data-theme="tet"] #view-chat .contact-card .qd-nm.is-staff,
+        html[data-theme="tet"] #view-chat #active-name.is-staff { color: #4ade80 !important; -webkit-text-fill-color: #4ade80 !important; }
+        html[data-theme="tet"][data-tet-color="chung"] .msg-row.them .msg-bubble .msg-sender.is-staff,
+        html[data-theme="tet"][data-tet-color="chung"] #view-chat .contact-card .qd-nm.is-staff,
+        html[data-theme="tet"][data-tet-color="chung"] #view-chat #active-name.is-staff { color: #a7f3c0 !important; -webkit-text-fill-color: #a7f3c0 !important; }
+    </style>
+    <script id="qd-staff-js">
+    window.QDStaff = (function () {
+        var TICK = '<i class="fa-solid fa-circle-check qd-staff-tick" title="Tài khoản quản lý" aria-label="Quản lý"></i>';
+        function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function is(u) {
+            if (!u || u === 'general' || u === 'all') return false;
+            if (u === 'admin') return true;
+            var a = ((window.State || {}).accInfo || {})[u];
+            return !!a && (a.role === 'admin' || a.role === 'manager');
+        }
+        function mark(el, on) {
+            el.classList.toggle('is-staff', on);
+            var t = el.querySelector('.qd-staff-tick');
+            if (on && !t) el.insertAdjacentHTML('beforeend', TICK); else if (!on && t) t.remove();
+        }
+        function sender(u, nm) { var on = is(u); return '<div class="msg-sender' + (on ? ' is-staff' : '') + '" data-staff-u="' + esc(u) + '" style="color: var(--color-info);">' + esc(nm) + (on ? TICK : '') + '</div>'; }
+        function name(u, nm) { var on = is(u); return '<span class="qd-nm' + (on ? ' is-staff' : '') + '" data-staff-u="' + esc(u) + '">' + esc(nm) + (on ? TICK : '') + '</span>'; }
+        function header() { var el = document.getElementById('active-name'); if (el) mark(el, is((window.State || {}).chatTarget)); }
+        function paint() { document.querySelectorAll('[data-staff-u]').forEach(function (el) { mark(el, is(el.getAttribute('data-staff-u'))); }); header(); }
+        return { is: is, sender: sender, name: name, header: header, paint: paint };
     })();
     </script>
 </body>
