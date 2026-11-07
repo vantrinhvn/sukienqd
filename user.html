@@ -11965,7 +11965,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div id="contact-general" class="contact-card ${isGeneralAct}" data-key="kênh chung" onclick="window.Chat.selectTarget('general')">
                                 <div class="avatar-circle" style="background: var(--color-info); font-size: 18px;"><i class="fa-solid fa-users"></i></div>
                                 <div class="flex-col flex-1 overflow-hidden">
-                                    <div class="font-bold text-main text-lg flex items-center justify-between">Kênh Chung <span id="general-unread-badge"></span></div>
+                                    <div class="font-bold text-main text-lg flex items-center justify-between"><span class="qd-kc">Kênh Chung</span> <span id="general-unread-badge"></span></div>
                                     <div class="text-sm font-semibold text-muted">Trò chuyện toàn Server</div>
                                 </div>
                             </div>
@@ -23894,6 +23894,11 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         html[data-theme="tet"][data-tet-color="chung"] .msg-row.them .msg-bubble .msg-sender.is-staff,
         html[data-theme="tet"][data-tet-color="chung"] #view-chat .contact-card .qd-nm.is-staff,
         html[data-theme="tet"][data-tet-color="chung"] #view-chat #active-name.is-staff { color: #9ccbff !important; -webkit-text-fill-color: #9ccbff !important; }
+        /* Chữ "Kênh Chung" màu đỏ (danh bạ + đầu khung chat) */
+        html #view-chat .contact-card .qd-kc,
+        html #view-chat #active-name.qd-kc { color: #dc2626 !important; -webkit-text-fill-color: #dc2626 !important; }
+        html[data-theme="tet"] #view-chat .contact-card .qd-kc,
+        html[data-theme="tet"] #view-chat #active-name.qd-kc { color: #ff4d4d !important; -webkit-text-fill-color: #ff4d4d !important; text-shadow: 0 1px 2px rgba(0, 0, 0, .85), 0 0 6px rgba(0, 0, 0, .5) !important; }
     </style>
     <script id="qd-staff-js">
     window.QDStaff = (function () {
@@ -23912,7 +23917,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         }
         function sender(u, nm) { var on = is(u); return '<div class="msg-sender' + (on ? ' is-staff' : '') + '" data-staff-u="' + esc(u) + '" style="color: var(--color-info);">' + esc(nm) + (on ? TICK : '') + '</div>'; }
         function name(u, nm) { var on = is(u); return '<span class="qd-nm' + (on ? ' is-staff' : '') + '" data-staff-u="' + esc(u) + '">' + esc(nm) + (on ? TICK : '') + '</span>'; }
-        function header() { var el = document.getElementById('active-name'); if (el) mark(el, is((window.State || {}).chatTarget)); }
+        function header() { var el = document.getElementById('active-name'); if (!el) return; var t = (window.State || {}).chatTarget; mark(el, is(t)); el.classList.toggle('qd-kc', t === 'general'); }
         function paint() { document.querySelectorAll('[data-staff-u]').forEach(function (el) { mark(el, is(el.getAttribute('data-staff-u'))); }); header(); }
         return { is: is, sender: sender, name: name, header: header, paint: paint };
     })();
