@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#b91c1c">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Bot Báo Cáo - QĐ TLH</title>
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>try{var _tc=localStorage.getItem("qd_tet_color");if(_tc==="dao"||_tc==="chung")document.documentElement.setAttribute("data-tet-color",_tc);}catch(e){}</script>
+    <style>
+        /* =====================================================================
+           BOT BÁO CÁO - QĐ TLH
+           Trạm trực gửi báo cáo điểm danh / đăng nhập vào Kênh Chung theo lịch.
+           Màu theo chủ đề Tết đã chọn ở trang user: Đỏ Lì Xì / Hoa Đào / Bánh Chưng
+           ===================================================================== */
+        :root {
+            --lq1: #d42330; --lq2: #8f0a12; --lq3: #6a0008; --ink: #9b0d19;
+            --gold: #ffd54a; --gold-2: #f2b705; --gold-line: rgba(214, 158, 30, .5);
+            --paper: rgba(255, 250, 236, .96); --cream: #fffdf6; --sand: #fbf1d9;
+            --text: #3b1a00; --muted: #8a5a2b; --ok: #15803d; --ok-bg: #e7f7ec; --bad: #c81e1e; --bad-bg: #fdecec; --warn: #b45309; --warn-bg: #fff3d6;
+            --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --r: 18px;
+        }
+        html[data-tet-color="dao"] { --lq1: #d93a72; --lq2: #8e1442; --lq3: #650c30; --ink: #9d1748; }
+        html[data-tet-color="chung"] { --lq1: #14965b; --lq2: #06553a; --lq3: #033d29; --ink: #0b6b40; }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: var(--font); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100vh; min-height: 100dvh;
+            background: #fff0cf url('nen-tet-ngang.jpg') center top / cover no-repeat fixed;
+        }
+        @media (orientation: portrait) { body { background-image: url('nen-tet-doc.jpg'); } }
+        button, input, textarea, select { font: inherit; color: inherit; }
+        button { border: none; background: none; cursor: pointer; }
+        a { color: inherit; }
+        [hidden] { display: none !important; }
+
+        /* ---------- Thanh trên ---------- */
+        .top {
+            position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px;
+            padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));
+            background: linear-gradient(160deg, var(--lq1), var(--lq2)); color: #fff; border-bottom: 2px solid var(--gold-2);
+            box-shadow: 0 8px 24px -14px rgba(60, 0, 0, .7);
+        }
+        .bot-avt { position: relative; flex: 0 0 auto; width: 46px; height: 46px; }
+        .bot-avt img, .bot-avt .fb { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); background: #2a0000; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .bot-avt .tag {
+            position: absolute; right: -8px; bottom: -5px; padding: 0 5px; border-radius: 999px; font-size: 9px; font-weight: 800; letter-spacing: .5px;
+            color: var(--lq3); background: linear-gradient(135deg, #fff6c8, var(--gold) 55%, var(--gold-2)); border: 1.5px solid #fff;
+        }
+        .ttl { flex: 1 1 auto; min-width: 0; line-height: 1.25; }
+        .ttl b { display: block; font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ttl small { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: #fde68a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; background: #9ca3af; }
+        .dot.on { background: #4ade80; box-shadow: 0 0 0 3px rgba(74, 222, 128, .28); animation: beat 2s infinite; }
+        .dot.off { background: #fca5a5; }
+        @keyframes beat { 50% { box-shadow: 0 0 0 6px rgba(74, 222, 128, .05); } }
+        .top-btn {
+            flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 999px; text-decoration: none;
+            font-size: 13.5px; font-weight: 700; color: var(--gold); background: rgba(0, 0, 0, .2); border: 1.5px solid rgba(255, 213, 74, .6);
+        }
+        .top-btn:hover { background: rgba(0, 0, 0, .3); }
+        .who { font-size: 12.5px; color: #fde68a; font-weight: 600; white-space: nowrap; }
+        @media (max-width: 640px) { .top-btn span, .who { display: none; } .top-btn { width: 40px; padding: 0; justify-content: center; } }
+
+        /* ---------- Bố cục ---------- */
+        .wrap { max-width: 1200px; margin: 0 auto; padding: 20px 16px 120px; display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); }
+        @media (min-width: 1000px) {
+            .wrap { grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); align-items: start; padding: 26px 24px 120px; }
+            .col-r { position: sticky; top: 86px; max-height: calc(100vh - 106px); overflow: auto; scrollbar-width: thin; padding-right: 2px; }
+        }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+        .card {
+            background: var(--paper); border: 1.5px solid var(--gold-line); border-radius: var(--r); padding: 20px;
+            box-shadow: 0 18px 40px -28px rgba(110, 30, 0, .55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+        }
+        .card-h { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+        .card-h h2 { font-size: 17px; font-weight: 800; color: var(--ink); flex: 1; min-width: 0; }
+        .card-h .ic { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; color: #fff; background: linear-gradient(150deg, var(--lq1), var(--lq2)); box-shadow: inset 0 0 0 1.5px rgba(255, 213, 74, .55); }
+        .sub { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
+        .row { padding: 14px 0; border-top: 1px dashed rgba(180, 120, 40, .35); }
+        .row:first-of-type { border-top: 0; padding-top: 4px; }
+        .lbl { display: block; font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+        .hint { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-top: 7px; }
+
+        /* ---------- Thẻ trạng thái ---------- */
+        .hero { position: relative; overflow: hidden; color: #fff; border: 1.5px solid rgba(255, 213, 74, .7);
+            background: radial-gradient(120% 140% at 100% 0%, rgba(255, 213, 74, .28), transparent 55%), linear-gradient(150deg, var(--lq1), var(--lq2) 70%, var(--lq3)); }
+        .hero.off { background: radial-gradient(120% 140% at 100% 0%, rgba(255, 255, 255, .12), transparent 55%), linear-gradient(150deg, #6b4a3a, #3e2a20); }
+        .hero-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .hero-state { flex: 1 1 220px; min-width: 0; }
+        .hero-state small { display: block; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: #fde68a; }
+        .hero-state b { display: block; font-size: 24px; font-weight: 800; line-height: 1.2; margin-top: 2px; }
+        .big-switch { display: inline-flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; border-radius: 999px; background: rgba(0, 0, 0, .22); border: 1.5px solid rgba(255, 213, 74, .55); font-weight: 800; font-size: 14px; color: #fff; }
+        .next { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .next > div { background: rgba(0, 0, 0, .2); border: 1px solid rgba(255, 213, 74, .35); border-radius: 14px; padding: 11px 13px; min-width: 0; }
+        .next small { display: block; font-size: 11.5px; font-weight: 700; color: #fde68a; text-transform: uppercase; letter-spacing: .4px; }
+        .next b { display: block; font-size: 16px; font-weight: 800; margin-top: 3px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+        .next span { display: block; font-size: 12.5px; color: #ffe8b8; margin-top: 2px; overflow-wrap: anywhere; }
+        .hero-act { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .duty { margin-top: 14px; display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; line-height: 1.5; color: #ffe8b8; }
+        .duty i { color: var(--gold); margin-top: 3px; }
+        .duty label { display: inline-flex; gap: 6px; align-items: center; color: #fff; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
+        /* ---------- Nút ---------- */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 18px; border-radius: 12px; font-weight: 800; font-size: 14px; transition: transform .12s, filter .15s; white-space: nowrap; }
+        .btn:active { transform: scale(.97); }
+        .btn:disabled { opacity: .55; cursor: not-allowed; }
+        .btn-gold { color: var(--lq3); background: linear-gradient(135deg, #fff6c8, var(--gold) 55%, var(--gold-2)); box-shadow: 0 6px 16px -8px rgba(120, 60, 0, .8); }
+        .btn-gold:hover { filter: brightness(1.05); }
+        .btn-red { color: #fff; background: linear-gradient(150deg, var(--lq1), var(--lq2)); box-shadow: inset 0 0 0 1.5px rgba(255, 213, 74, .5); }
+        .btn-ghost { color: var(--ink); background: var(--cream); border: 1.5px solid var(--gold-line); }
+        .btn-ghost-w { color: #fff; background: rgba(0, 0, 0, .2); border: 1.5px solid rgba(255, 213, 74, .5); }
+        .btn-sm { min-height: 34px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
+        .btn.arm { animation: arm .5s ease-in-out infinite alternate; }
+        @keyframes arm { to { filter: brightness(1.18); box-shadow: 0 0 0 4px rgba(255, 213, 74, .45); } }
+
+        /* ---------- Công tắc ---------- */
+        .sw { position: relative; display: inline-block; width: 52px; height: 30px; flex: 0 0 auto; }
+        .sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .sw i { position: absolute; inset: 0; border-radius: 999px; background: #cdb89a; transition: .2s; cursor: pointer; }
+        .sw i::before { content: ''; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(0, 0, 0, .3); transition: .2s; }
+        .sw input:checked + i { background: linear-gradient(135deg, #22c55e, #15803d); }
+        .sw input:checked + i::before { transform: translateX(22px); }
+        .sw input:focus-visible + i { outline: 3px solid rgba(242, 183, 5, .7); outline-offset: 2px; }
+        .tgl { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 14px; background: var(--cream); border: 1px solid rgba(214, 158, 30, .35); }
+        .tgl + .tgl { margin-top: 8px; }
+        .tgl .t { flex: 1; min-width: 0; }
+        .tgl .t b { display: block; font-size: 14px; font-weight: 800; }
+        .tgl .t span { display: block; font-size: 12.5px; color: var(--muted); line-height: 1.45; margin-top: 1px; }
+        .tgl .em { font-size: 20px; flex: 0 0 auto; width: 28px; text-align: center; }
+
+        /* ---------- Ô nhập ---------- */
+        .in, .ta { width: 100%; min-height: 44px; padding: 10px 13px; border-radius: 12px; border: 1.5px solid rgba(214, 158, 30, .45); background: #fff; color: var(--text); font-size: 15px; outline: none; transition: border-color .15s, box-shadow .15s; }
+        .ta { min-height: 76px; resize: vertical; line-height: 1.5; }
+        .in:focus, .ta:focus { border-color: var(--gold-2); box-shadow: 0 0 0 3px rgba(242, 183, 5, .22); }
+        .in.sm { width: auto; min-width: 0; }
+        .inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .inline .in { flex: 1 1 140px; }
+
+        /* ---------- Chip giờ / ngày ---------- */
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px 0 14px; border-radius: 999px; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums;
+            color: var(--lq3); background: linear-gradient(135deg, #fff8d6, #ffe58a); border: 1.5px solid var(--gold-2); }
+        .chip button { width: 26px; height: 26px; border-radius: 50%; color: var(--lq2); background: rgba(255, 255, 255, .7); font-size: 12px; }
+        .chip button:hover { background: #fff; color: var(--bad); }
+        .chip-empty { font-size: 13px; color: var(--bad); font-weight: 700; padding: 8px 0; }
+        .day { min-width: 50px; height: 42px; padding: 0 10px; border-radius: 12px; font-weight: 800; font-size: 14px; color: var(--muted); background: var(--cream); border: 1.5px solid rgba(214, 158, 30, .4); }
+        .day.on { color: #fff; background: linear-gradient(150deg, var(--lq1), var(--lq2)); border-color: var(--gold-2); box-shadow: 0 6px 14px -10px rgba(120, 0, 0, .9); }
+        .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .pre { height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--ink); background: rgba(255, 213, 74, .22); border: 1px solid rgba(214, 158, 30, .45); }
+        .pre:hover { background: rgba(255, 213, 74, .4); }
+        .vars { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .var { height: 28px; padding: 0 10px; border-radius: 8px; font-size: 12px; font-weight: 700; font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--ink); background: var(--sand); border: 1px dashed rgba(214, 158, 30, .6); }
+        .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+        .ex-chip { height: 32px; font-size: 13px; padding: 0 4px 0 12px; background: #fff; border-color: rgba(214, 158, 30, .55); }
+
+        /* ---------- Xem trước (giống Kênh Chung) ---------- */
+        .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+        .stat { border-radius: 14px; padding: 10px 8px; text-align: center; background: var(--cream); border: 1px solid rgba(214, 158, 30, .35); min-width: 0; }
+        .stat b { display: block; font-size: 22px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+        .stat span { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+        .stat.g b { color: var(--ok); } .stat.b b { color: #1d4ed8; } .stat.w b { color: var(--warn); } .stat.r b { color: var(--bad); }
+        .stat.k b { color: #6b7280; }
+        @media (max-width: 560px) { .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        .chat { border-radius: 16px; padding: 16px 14px; background: linear-gradient(180deg, rgba(0, 0, 0, .1), rgba(0, 0, 0, .26)), linear-gradient(160deg, var(--lq2), var(--lq3)); border: 1.5px solid rgba(255, 213, 74, .45); }
+        .chat-h { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: #fde68a; margin-bottom: 12px; }
+        .chat-h i { color: var(--gold); }
+        .bubble { position: relative; max-width: 100%; padding: 13px 16px; border-radius: 20px; border-bottom-left-radius: 6px; font-size: 14.5px; line-height: 1.6; color: #fff; word-wrap: break-word;
+            background: rgba(0, 0, 0, .32); border: 1.5px solid rgba(255, 213, 74, .6); box-shadow: 0 4px 12px rgba(0, 0, 0, .25); }
+        .bubble .snd { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: #ffe066; margin-bottom: 6px; }
+        .bot-badge { display: inline-flex; align-items: center; height: 17px; padding: 0 6px; border-radius: 5px; font-size: 10px; font-weight: 800; letter-spacing: .5px; color: var(--lq3); background: var(--gold); }
+        .qd-mention { font-weight: 800; color: #9fd3ff; background: rgba(120, 190, 255, .16); border-radius: 6px; padding: 0 3px; }
+        .bubble-t { font-size: 11.5px; color: #fde68a; opacity: .8; margin-top: 6px; font-weight: 700; }
+        .pv-empty { color: #ffe8b8; font-size: 13.5px; text-align: center; padding: 26px 10px; }
+        .pv-note { font-size: 12.5px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+        /* Khung Xem trước kéo lên xuống ĐỘC LẬP: chỉ phần tin nhắn cuộn, tiêu đề + 5 ô số liệu đứng yên */
+        #pv { max-height: min(62vh, 560px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-right: 4px; scrollbar-width: thin; scrollbar-color: rgba(255, 213, 74, .6) transparent; }
+        #pv::-webkit-scrollbar { width: 6px; } #pv::-webkit-scrollbar-thumb { background: rgba(255, 213, 74, .55); border-radius: 6px; } #pv::-webkit-scrollbar-track { background: transparent; }
+        @media (min-width: 1000px) { #pv { max-height: max(240px, calc(100dvh - 400px)); } }
+
+        /* ---------- Lịch sử ---------- */
+        .hist { display: flex; flex-direction: column; gap: 8px; }
+        .h-item { border-radius: 14px; background: var(--cream); border: 1px solid rgba(214, 158, 30, .35); overflow: hidden; }
+        .h-row { width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 13px; text-align: left; }
+        .h-row .when { flex: 1; min-width: 0; }
+        .h-row .when b { display: block; font-size: 14px; font-weight: 800; }
+        .h-row .when span { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pill { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; }
+        .pill.sent { color: var(--ok); background: var(--ok-bg); } .pill.sending { color: var(--warn); background: var(--warn-bg); }
+        .pill.error { color: var(--bad); background: var(--bad-bg); } .pill.skipped { color: #6b7280; background: #f1f1f1; }
+        .h-body { padding: 0 13px 13px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-wrap: break-word; color: #4a2a10; border-top: 1px dashed rgba(214, 158, 30, .4); padding-top: 10px; }
+        .h-empty { font-size: 13.5px; color: var(--muted); text-align: center; padding: 18px; }
+
+        /* ---------- Thanh lưu ---------- */
+        .savebar {
+            position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 30;
+            display: flex; align-items: center; gap: 10px; width: calc(100vw - 32px); max-width: 560px; padding: 10px 10px 10px 18px; border-radius: 18px;
+            color: #fff; background: rgba(40, 6, 6, .95); border: 1.5px solid rgba(255, 213, 74, .7); box-shadow: 0 20px 40px -16px rgba(0, 0, 0, .65);
+        }
+        .savebar .m { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; }
+        .savebar .m small { display: block; font-size: 12px; color: #fde68a; font-weight: 600; }
+        @media (min-width: 1000px) { .pv-jump { display: none; } }
+        @media (max-width: 460px) { .savebar .m small { display: none; } .savebar .btn { padding: 0 12px; } }
+
+        /* ---------- Cổng đăng nhập ---------- */
+        .gate { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(40, 6, 6, .55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+        .gate-box { width: 100%; max-width: 400px; border-radius: 22px; padding: 26px 22px 22px; background: var(--paper); border: 1.5px solid var(--gold-line); box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .6); text-align: center; }
+        .gate-box .bot-avt { margin: 0 auto 12px; width: 70px; height: 70px; }
+        .gate-box .bot-avt img, .gate-box .bot-avt .fb { width: 70px; height: 70px; font-size: 32px; }
+        .gate-box h1 { font-size: 21px; font-weight: 800; color: var(--ink); }
+        .gate-box p { font-size: 13.5px; color: var(--muted); margin: 6px 0 18px; line-height: 1.5; }
+        .gate-box form { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+        .gate-msg { font-size: 13px; font-weight: 700; color: var(--bad); min-height: 18px; text-align: center; }
+        .gate-alt { display: block; margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--ink); }
+
+        /* ---------- Thông báo nhỏ ---------- */
+        #toast { position: fixed; left: 50%; top: 18px; transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; width: calc(100vw - 32px); max-width: 440px; }
+        .tst { pointer-events: auto; padding: 11px 16px; border-radius: 14px; font-size: 14px; font-weight: 700; color: #fff; background: rgba(30, 6, 6, .94); border: 1px solid rgba(255, 213, 74, .6); box-shadow: 0 14px 30px -14px rgba(0, 0, 0, .6); animation: tin .25s ease; }
+        .tst.ok { border-color: #4ade80; } .tst.bad { border-color: #f87171; }
+        @keyframes tin { from { opacity: 0; transform: translateY(-8px); } }
+        .spin { animation: sp 1s linear infinite; } @keyframes sp { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .dot.on, .btn.arm, .tst { animation: none; } }
+    </style>
+</head>
+<body>
+    <header class="top">
+        <div class="bot-avt"><img src="logo.jpg" alt="" onerror="this.outerHTML='<span class=&quot;fb&quot;>🤖</span>'"><span class="tag">BOT</span></div>
+        <div class="ttl">
+            <b id="t-name">Bot Báo Cáo</b>
+            <small><span class="dot" id="t-dot"></span><span id="t-state">Đang kết nối máy chủ…</span></small>
+        </div>
+        <span class="who" id="t-who"></span>
+        <a class="top-btn" href="admin.html" title="Về trang Quản trị"><i class="fa-solid fa-shield-halved"></i><span>Quản trị</span></a>
+    </header>
+
+    <main class="wrap" id="app" hidden>
+        <div class="col">
+            <!-- TRẠNG THÁI -->
+            <section class="card hero" id="hero">
+                <div class="hero-top">
+                    <div class="hero-state">
+                        <small>Bot báo cáo Kênh Chung</small>
+                        <b id="h-state">—</b>
+                    </div>
+                    <label class="big-switch" title="Bật / tắt gửi theo lịch (lưu ngay)">
+                        <span id="h-sw-txt">TẮT</span>
+                        <span class="sw"><input type="checkbox" id="h-sw" onchange="Bot.toggle(this)"><i></i></span>
+                    </label>
+                </div>
+                <div class="next">
+                    <div><small>Lần gửi kế tiếp</small><b id="h-next">—</b><span id="h-next-sub"></span></div>
+                    <div><small>Lần gửi gần nhất</small><b id="h-last">—</b><span id="h-last-sub"></span></div>
+                </div>
+                <div class="hero-act">
+                    <button type="button" class="btn btn-gold" id="btn-now" onclick="Bot.sendNow(this)"><i class="fa-solid fa-paper-plane"></i> Gửi báo cáo ngay</button>
+                    <button type="button" class="btn btn-ghost-w" onclick="Bot.refresh(true)"><i class="fa-solid fa-rotate"></i> Làm mới số liệu</button>
+                </div>
+                <div class="duty">
+                    <i class="fa-solid fa-tower-broadcast"></i>
+                    <div>Tới giờ <b>máy chủ tự gửi</b> vào Kênh Chung, không cần ai mở web. Trang này (và trang Admin) đang mở thì gửi dự phòng — mỗi mốc giờ chỉ gửi 1 lần. Máy thành viên không gửi.
+                        <br><label><input type="checkbox" id="wake" onchange="Bot.wake(this.checked)"> Giữ màn hình sáng (máy trực riêng)</label></div>
+                </div>
+            </section>
+
+            <!-- LỊCH -->
+            <section class="card">
+                <div class="card-h"><span class="ic"><i class="fa-solid fa-calendar-days"></i></span><h2>Lịch báo cáo</h2></div>
+                <p class="sub">Giờ Việt Nam. Mỗi ngày được chọn sẽ gửi ở tất cả các mốc giờ bên dưới.</p>
+
+                <div class="row">
+                    <span class="lbl">Giờ gửi trong ngày</span>
+                    <div class="chips" id="f-times"></div>
+                    <div class="inline" style="margin-top:10px">
+                        <input type="time" class="in sm" id="f-time-new" value="21:00" aria-label="Giờ mới">
+                        <button type="button" class="btn btn-red btn-sm" onclick="Bot.addTime()"><i class="fa-solid fa-plus"></i> Thêm giờ</button>
+                    </div>
+                    <div class="presets">
+                        <button type="button" class="pre" onclick="Bot.addTime('08:00')">+ 08:00 sáng</button>
+                        <button type="button" class="pre" onclick="Bot.addTime('10:30')">+ 10:30 (hết giờ điểm danh)</button>
+                        <button type="button" class="pre" onclick="Bot.addTime('12:00')">+ 12:00 trưa</button>
+                        <button type="button" class="pre" onclick="Bot.addTime('20:00')">+ 20:00 tối</button>
+                        <button type="button" class="pre" onclick="Bot.addTime('22:00')">+ 22:00 cuối ngày</button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <span class="lbl">Ngày trong tuần</span>
+                    <div class="chips" id="f-days"></div>
+                    <div class="presets">
+                        <button type="button" class="pre" onclick="Bot.setDays([0,1,2,3,4,5,6])">Hằng ngày</button>
+                        <button type="button" class="pre" onclick="Bot.setDays([1,2,3,4,5])">Thứ 2 – Thứ 6</button>
+                        <button type="button" class="pre" onclick="Bot.setDays([0,6])">Cuối tuần</button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <span class="lbl">Khoảng ngày áp dụng</span>
+                    <div class="grid2">
+                        <label><span class="hint" style="display:block;margin:0 0 5px">Từ ngày</span><input type="date" class="in" id="f-from" oninput="Bot.set('from', this.value)"></label>
+                        <label><span class="hint" style="display:block;margin:0 0 5px">Đến hết ngày</span><input type="date" class="in" id="f-to" oninput="Bot.set('to', this.value)"></label>
+                    </div>
+                    <p class="hint">Để trống = áp dụng mãi. Muốn gửi 1 ngày cụ thể: chọn "Từ" và "Đến" cùng 1 ngày. <button type="button" class="pre" style="height:24px" onclick="Bot.set('from','');Bot.set('to','');Bot.fill()">Xóa khoảng ngày</button></p>
+                </div>
+
+                <div class="row">
+                    <div class="grid2">
+                        <label><span class="lbl">Gửi bù khi trễ tối đa (phút)</span><input type="number" class="in" id="f-grace" min="5" max="720" step="5" oninput="Bot.set('grace', +this.value)"></label>
+                    </div>
+                    <p class="hint">Máy chủ lỡ mốc giờ (mất kết nối, Google chậm) thì gửi bù trong khoảng này. Quá thời gian (hoặc qua ngày mới) thì bỏ qua mốc đó.</p>
+                    <div class="tgl" style="margin-top:12px">
+                        <span class="em">🖥️</span>
+                        <div class="t"><b>Máy chủ tự gửi <span class="pill sending" id="srv-pill" style="display:inline-flex;width:auto;height:22px;margin:0 0 0 8px;vertical-align:middle;">Đang kiểm tra…</span></b><span id="srv-sub">Tới giờ máy chủ tự gửi vào Kênh Chung, không cần ai mở web. Cài 1 lần bằng file bot-server.gs (hướng dẫn ở đầu file).</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NỘI DUNG -->
+            <section class="card">
+                <div class="card-h"><span class="ic"><i class="fa-solid fa-pen-to-square"></i></span><h2>Nội dung báo cáo</h2></div>
+                <p class="sub">Sửa đến đâu, bản xem trước cập nhật đến đó.</p>
+
+                <div class="row">
+                    <div class="grid2">
+                        <label><span class="lbl">Tên Bot trong Kênh Chung</span><input type="text" class="in" id="f-botName" maxlength="40" oninput="Bot.set('botName', this.value)"></label>
+                        <label><span class="lbl">Tối đa tên mỗi mục</span><input type="number" class="in" id="f-maxNames" min="10" max="500" step="10" oninput="Bot.set('maxNames', +this.value)"></label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="lbl" for="f-title">Dòng tiêu đề</label>
+                    <input type="text" class="in" id="f-title" maxlength="300" oninput="Bot.set('title', this.value)">
+                    <div class="vars" id="vars-title"></div>
+                </div>
+
+                <div class="row">
+                    <span class="lbl">Các mục trong báo cáo</span>
+                    <div class="tgl"><span class="em">✅</span><div class="t"><b>Đã điểm danh</b><span>Ai đã điểm danh hôm nay, xếp theo người điểm danh sớm nhất.</span></div><label class="sw"><input type="checkbox" id="f-sec-att" onchange="Bot.setSec('att', this.checked)"><i></i></label></div>
+                    <div class="tgl"><span class="em">🔐</span><div class="t"><b>Đăng nhập hôm nay</b><span>Mọi tài khoản đã đăng nhập / vào web trong ngày.</span></div><label class="sw"><input type="checkbox" id="f-sec-login" onchange="Bot.setSec('login', this.checked)"><i></i></label></div>
+                    <div class="tgl"><span class="em">⚠️</span><div class="t"><b>Đã vào nhưng chưa điểm danh</b><span>Nhắc đúng người quên điểm danh.</span></div><label class="sw"><input type="checkbox" id="f-sec-loginNoAtt" onchange="Bot.setSec('loginNoAtt', this.checked)"><i></i></label></div>
+                    <div class="tgl"><span class="em">😴</span><div class="t"><b>Chưa đăng nhập</b><span>Tài khoản chưa vào web hôm nay.</span></div><label class="sw"><input type="checkbox" id="f-sec-noLogin" onchange="Bot.setSec('noLogin', this.checked)"><i></i></label></div>
+                    <div class="tgl"><span class="em">🔒</span><div class="t"><b>Tài khoản bị khóa</b><span>Các tài khoản đang bị khóa. Không tính vào tổng thành viên.</span></div><label class="sw"><input type="checkbox" id="f-sec-locked" onchange="Bot.setSec('locked', this.checked)"><i></i></label></div>
+                </div>
+
+                <div class="row">
+                    <span class="lbl">Cách ghi tên</span>
+                    <div class="tgl"><span class="em">📣</span><div class="t"><b>Gắn @tên tài khoản</b><span>Như Zalo: tên hiện màu, người được nhắc nhận thông báo "Bot nhắc đến bạn".</span></div><label class="sw"><input type="checkbox" id="f-tag" onchange="Bot.set('tag', this.checked)"><i></i></label></div>
+                    <div class="tgl"><span class="em">🕘</span><div class="t"><b>Kèm giờ điểm danh</b><span>Ví dụ: @binh (09:02).</span></div><label class="sw"><input type="checkbox" id="f-showTime" onchange="Bot.set('showTime', this.checked)"><i></i></label></div>
+                    <div class="tgl"><span class="em">🛡️</span><div class="t"><b>Bỏ qua Ban Quản Trị</b><span>Không tính Quản trị viên / Quản lý vào báo cáo.</span></div><label class="sw"><input type="checkbox" id="f-excludeStaff" onchange="Bot.set('excludeStaff', this.checked)"><i></i></label></div>
+                    <div class="tgl"><span class="em">🙈</span><div class="t"><b>Không gửi khi chưa ai đăng nhập</b><span>Mốc giờ đó được ghi "Bỏ qua" (gửi tay vẫn gửi).</span></div><label class="sw"><input type="checkbox" id="f-skipEmpty" onchange="Bot.set('skipEmpty', this.checked)"><i></i></label></div>
+                </div>
+
+                <div class="row">
+                    <span class="lbl">Tài khoản không đưa vào báo cáo</span>
+                    <div class="chips" id="f-exclude"></div>
+                    <div class="inline" style="margin-top:10px">
+                        <input type="text" class="in" id="f-ex-new" list="dl-users" placeholder="Tên tài khoản (vd: test01)" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();Bot.addEx();}">
+                        <button type="button" class="btn btn-red btn-sm" onclick="Bot.addEx()"><i class="fa-solid fa-plus"></i> Thêm</button>
+                    </div>
+                    <datalist id="dl-users"></datalist>
+                    <p class="hint">Tài khoản đang bị khóa tự động không có trong báo cáo.</p>
+                </div>
+
+                <div class="row">
+                    <label class="lbl" for="f-footer">Lời kết</label>
+                    <textarea class="ta" id="f-footer" maxlength="300" oninput="Bot.set('footer', this.value)"></textarea>
+                    <div class="vars" id="vars-footer"></div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col col-r">
+            <!-- XEM TRƯỚC -->
+            <section class="card" id="pv-card" style="scroll-margin-top: 80px;">
+                <div class="card-h"><span class="ic"><i class="fa-solid fa-eye"></i></span><h2>Xem trước</h2>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="Bot.refresh(true)" title="Lấy số liệu mới nhất"><i class="fa-solid fa-rotate" id="pv-spin"></i> Làm mới</button></div>
+                <p class="sub" id="pv-sub">Số liệu thật của hôm nay, tính tới lúc bấm làm mới.</p>
+                <div class="stats">
+                    <div class="stat g"><b id="s-att">–</b><span>Đã điểm danh</span></div>
+                    <div class="stat b"><b id="s-login">–</b><span>Đăng nhập hôm nay</span></div>
+                    <div class="stat w"><b id="s-lna">–</b><span>Vào, chưa điểm danh</span></div>
+                    <div class="stat r"><b id="s-no">–</b><span>Chưa đăng nhập</span></div>
+                    <div class="stat k"><b id="s-lock">–</b><span>Bị khóa</span></div>
+                </div>
+                <div class="chat">
+                    <div class="chat-h"><i class="fa-solid fa-users"></i> Kênh Chung (Toàn Server)</div>
+                    <div id="pv"><div class="pv-empty"><i class="fa-solid fa-spinner spin"></i> Đang lấy số liệu…</div></div>
+                </div>
+                <p class="pv-note" id="pv-note"></p>
+            </section>
+
+            <!-- LỊCH SỬ -->
+            <section class="card">
+                <div class="card-h"><span class="ic"><i class="fa-solid fa-clock-rotate-left"></i></span><h2>Lịch sử gửi</h2></div>
+                <p class="sub">30 lần gần nhất. Bấm vào để xem nội dung đã gửi.</p>
+                <div class="hist" id="hist"><div class="h-empty"><i class="fa-solid fa-spinner spin"></i></div></div>
+            </section>
+        </div>
+    </main>
+
+    <div class="savebar" id="savebar" hidden>
+        <div class="m">Có thay đổi chưa lưu<small id="sb-sub">Lịch mới chỉ áp dụng cho các mốc giờ từ lúc lưu.</small></div>
+        <button type="button" class="btn btn-ghost-w btn-sm pv-jump" onclick="document.getElementById('pv-card').scrollIntoView({ behavior: 'smooth', block: 'start' })" title="Xem bản xem trước">👁</button>
+        <button type="button" class="btn btn-ghost-w btn-sm" onclick="Bot.revert()">Hoàn tác</button>
+        <button type="button" class="btn btn-gold btn-sm" id="btn-save" onclick="Bot.save()"><i class="fa-solid fa-floppy-disk"></i> Lưu thiết lập</button>
+    </div>
+
+    <!-- CỔNG ĐĂNG NHẬP (chỉ Ban Quản Trị) -->
+    <div class="gate" id="gate">
+        <div class="gate-box">
+            <div class="bot-avt"><img src="logo.jpg" alt="" onerror="this.outerHTML='<span class=&quot;fb&quot;>🤖</span>'"><span class="tag">BOT</span></div>
+            <h1>Bot Báo Cáo</h1>
+            <p id="gate-p">Đang kiểm tra phiên Ban Quản Trị…</p>
+            <form id="gate-form" hidden onsubmit="event.preventDefault(); Bot.login();">
+                <input class="in" id="g-u" placeholder="Tên đăng nhập Ban Quản Trị" autocomplete="username" required>
+                <input class="in" id="g-p" type="password" placeholder="Mật khẩu" autocomplete="current-password" required>
+                <div class="gate-msg" id="g-msg" role="alert"></div>
+                <button class="btn btn-red" id="g-btn" type="submit"><i class="fa-solid fa-right-to-bracket"></i> Vào trạm Bot</button>
+            </form>
+            <a class="gate-alt" href="admin.html"><i class="fa-solid fa-arrow-left"></i> Về trang Quản trị</a>
+        </div>
+    </div>
+    <div id="toast" aria-live="polite"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ", projectId: "web-dangky-123" };
+        if (window.firebase && firebase.firestore) firebase.initializeApp(firebaseConfig);
+        else document.getElementById('gate-p').textContent = 'Không tải được thư viện máy chủ (mất mạng?). Kiểm tra kết nối rồi tải lại trang.';
+    </script>
+    <!-- ===== QD REPORT BOT: bộ máy Bot Báo Cáo (khối dùng chung bot.html · admin.html · user.html) =====
+         Cấu hình: settings/report_bot (Admin > Bot báo cáo hoặc trang bot.html). Lịch sử gửi: bot_reports/{YYYY-MM-DD_HHMM}.
+         Tới giờ hẹn (giờ Việt Nam), máy nào đang mở web sẽ giành quyền gửi bằng giao dịch máy chủ -> mỗi mốc giờ chỉ gửi ĐÚNG 1 LẦN
+         vào Kênh Chung, dù nhiều máy cùng mở. Máy chủ tự gửi (bot-server.gs, Google Apps Script) gửi kể cả khi không ai mở web;
+         trang Bot / Admin đang mở gửi dự phòng. Máy thành viên KHÔNG BAO GIỜ gửi.
+         Báo cáo: đã điểm danh · đăng nhập hôm nay · đã vào nhưng chưa điểm danh · chưa đăng nhập · tài khoản bị khóa, gắn @tên tài khoản. -->
+    <script id="qd-report-bot">
+    (function () {
+        'use strict';
+        var W = window;
+        if (W.QDReportBot) return;
+        var VN = 7 * 3600e3, BOT = 'qd_bot', CFG_DOC = 'report_bot', DAY = 864e5;
+        var WD = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        var DEF = {
+            isEnabled: false, enabledAt: 0, schedAt: 0,
+            times: ['20:00'], days: [0, 1, 2, 3, 4, 5, 6], from: '', to: '',
+            grace: 60, memberRun: false,
+            botName: 'Bot Báo Cáo',
+            title: '📋 BÁO CÁO HOẠT ĐỘNG — {thu}, {ngay}',
+            footer: 'Cảm ơn anh em đã có mặt hôm nay! Ai chưa điểm danh nhớ vào đúng giờ nhé 💪',
+            sec: { att: true, login: true, loginNoAtt: true, noLogin: false, locked: true },
+            tag: true, showTime: true, excludeStaff: true, exclude: [], maxNames: 100, skipEmpty: false
+        };
+        var DB = null;
+        function db() { if (DB) return DB; try { if (W.firebase && firebase.apps && firebase.apps.length && firebase.firestore) DB = firebase.firestore(); } catch (e) {} return DB; }
+        function pad(n) { return (n < 10 ? '0' : '') + n; }
+        function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+        /* ---------- Giờ Việt Nam (UTC+7, không đổi giờ mùa hè) ---------- */
+        function vnParts(t) {
+            var d = new Date((t == null ? Date.now() : t) + VN);
+            return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate(), wd: d.getUTCDay(), h: d.getUTCHours(), mi: d.getUTCMinutes() };
+        }
+        function dateKey(p) { return p.y + '-' + pad(p.m) + '-' + pad(p.d); }
+        function dateVN(p) { return p.d + '/' + p.m + '/' + p.y; }              // giống toLocaleDateString('vi-VN') ở trang Điểm Danh
+        function dateShow(p) { return pad(p.d) + '/' + pad(p.m) + '/' + p.y; }
+        function dayStart(p) { return Date.UTC(p.y, p.m - 1, p.d) - VN; }
+        function hm(t) { var p = vnParts(t); return pad(p.h) + ':' + pad(p.mi); }
+
+        /* ---------- Chuẩn hóa cấu hình ---------- */
+        function norm(c) {
+            c = c || {};
+            var o = JSON.parse(JSON.stringify(DEF)), n = function (v, def, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? def : Math.max(lo, Math.min(hi, v)); };
+            o.isEnabled = c.isEnabled === true; o.enabledAt = +c.enabledAt || 0; o.schedAt = +c.schedAt || 0;
+            if (Array.isArray(c.times)) {
+                var seen = {};
+                o.times = c.times.map(function (t) { var m = /^(\d{1,2}):(\d{2})$/.exec(String(t).trim()); if (!m || +m[1] > 23 || +m[2] > 59) return null; return pad(+m[1]) + ':' + m[2]; })
+                    .filter(function (t) { if (!t || seen[t]) return false; seen[t] = 1; return true; }).sort().slice(0, 12);
+            }
+            if (Array.isArray(c.days)) { var sd = {}; o.days = c.days.map(Number).filter(function (x) { if (!(x >= 0 && x <= 6) || sd[x]) return false; sd[x] = 1; return true; }).sort(); }
+            var dk = /^\d{4}-\d{2}-\d{2}$/;
+            o.from = dk.test(c.from || '') ? c.from : ''; o.to = dk.test(c.to || '') ? c.to : '';
+            o.grace = n(c.grace, DEF.grace, 5, 720); o.memberRun = false;   // bỏ "máy thành viên gửi thay"
+            ['botName', 'title', 'footer'].forEach(function (k) { if (typeof c[k] === 'string') o[k] = c[k].slice(0, k === 'botName' ? 40 : 300); });
+            if (!o.botName.trim()) o.botName = DEF.botName;
+            if (c.sec && typeof c.sec === 'object') Object.keys(o.sec).forEach(function (k) { if (typeof c.sec[k] === 'boolean') o.sec[k] = c.sec[k]; });
+            ['tag', 'showTime', 'excludeStaff', 'skipEmpty'].forEach(function (k) { if (typeof c[k] === 'boolean') o[k] = c[k]; });
+            if (Array.isArray(c.exclude)) o.exclude = c.exclude.map(function (u) { return String(u).replace(/^@/, '').trim(); }).filter(Boolean).slice(0, 300);
+            o.maxNames = n(c.maxNames, DEF.maxNames, 10, 500);
+            o.updatedAt = +c.updatedAt || 0; o.updatedBy = c.updatedBy || '';
+            return o;
+        }
+
+        /* ---------- Lịch: các mốc giờ của 1 ngày, mốc kế tiếp, mốc đang tới hạn ---------- */
+        function dayOk(cfg, p) {
+            if (cfg.days.indexOf(p.wd) < 0) return false;
+            var k = dateKey(p);
+            return !(cfg.from && k < cfg.from) && !(cfg.to && k > cfg.to);
+        }
+        function slotsFor(cfg, p) {
+            if (!dayOk(cfg, p)) return [];
+            var k = dateKey(p), st = dayStart(p);
+            return cfg.times.map(function (t) { var a = t.split(':'); return { time: t, key: k, ts: st + (+a[0]) * 3600e3 + (+a[1]) * 60e3, runId: k + '_' + a[0] + a[1] }; });
+        }
+        function nextRun(cfg, now) {
+            now = now || Date.now(); if (!cfg || !cfg.times.length || !cfg.days.length) return null;
+            for (var i = 0; i < 400; i++) {
+                var p = vnParts(now + i * DAY);
+                if (cfg.to && dateKey(p) > cfg.to) return null;
+                var s = slotsFor(cfg, p).filter(function (x) { return x.ts > now; })[0];
+                if (s) { s.p = p; return s; }
+            }
+            return null;
+        }
+        function dueSlots(cfg, now, delay) {
+            var floor = Math.max(cfg.enabledAt || 0, cfg.schedAt || 0) - 60000;
+            return slotsFor(cfg, vnParts(now)).filter(function (s) { return s.ts <= now - (delay || 0) && now - s.ts <= cfg.grace * 60000 && s.ts >= floor; });
+        }
+
+        /* ---------- Thu số liệu: tài khoản, điểm danh, đăng nhập hôm nay ---------- */
+        async function collect(cfg, at) {
+            var D = db(); if (!D) throw new Error('Chưa kết nối được máy chủ.');
+            cfg = cfg || norm(null); at = at || Date.now();
+            var p = vnParts(at), start = dayStart(p), key = dateKey(p), d1 = dateVN(p), d2 = dateShow(p);
+            var ex = {}; cfg.exclude.forEach(function (u) { ex[u.toLowerCase()] = 1; });
+            var res = await Promise.all([
+                D.collection('accounts').get(),
+                D.collection('attendance').where('date', 'in', d1 === d2 ? [d1] : [d1, d2]).get()
+            ]);
+            var accs = [], by = {}, all = [], locked = [];
+            res[0].forEach(function (doc) {
+                var a = doc.data() || {}, u = String(a.user || '').trim();
+                if (u && u !== BOT) all.push(u);
+                if (!u || u === BOT || ex[u.toLowerCase()]) return;
+                var role = a.role || (u === 'admin' ? 'admin' : 'user');
+                if (cfg.excludeStaff && (role === 'admin' || role === 'manager')) return;
+                if (a.isBlocked === true) { locked.push({ u: u, name: a.fullName || a.name || '', role: role, why: a.lockReason === 'security' ? 'nghi gian lận' : '', at: +a.lockedAt || 0 }); return; }
+                var o = { u: u, name: a.fullName || a.name || '', role: role, la: +a.lastActive || 0, online: a.online !== false, ll: a.lastLoginDate === key ? (+a.lastLoginAt || 0) : 0 };
+                accs.push(o); by[u] = o;
+            });
+            var att = {};
+            res[1].forEach(function (doc) {
+                var x = doc.data() || {}, u = x.userName; if (!u || !by[u]) return;
+                var ts = +x.timestamp || 0; if (!att[u] || ts < att[u].ts) att[u] = { ts: ts, time: x.time || '' };
+            });
+            var cmpName = function (a, b) { return a.u.localeCompare(b.u, 'vi', { sensitivity: 'base' }); };
+            var attended = accs.filter(function (a) { return att[a.u]; }).sort(function (a, b) { return att[a.u].ts - att[b.u].ts; });
+            var logged = accs.filter(function (a) { return att[a.u] || a.ll || a.la >= start; }).sort(cmpName);
+            var inLog = {}; logged.forEach(function (a) { inLog[a.u] = 1; });
+            return {
+                at: at, p: p, key: key, total: accs.length, att: att, by: by, allUsers: all.sort(),
+                attended: attended, loggedIn: logged,
+                loginNoAtt: logged.filter(function (a) { return !att[a.u]; }),
+                noLogin: accs.filter(function (a) { return !inLog[a.u]; }).sort(cmpName),
+                locked: locked.sort(cmpName),
+                online: accs.filter(function (a) { return a.online && at - a.la < 120000; }).length
+            };
+        }
+
+        /* ---------- Soạn tin nhắn ---------- */
+        function fill(tpl, v) { return String(tpl || '').replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); }
+        function compose(cfg, d) {
+            cfg = cfg || norm(null);
+            var men = {};
+            function list(arr, withTime, empty) {
+                if (!arr.length) return empty || '— Chưa có ai —';
+                var shown = arr.slice(0, cfg.maxNames);
+                var s = shown.map(function (a) {
+                    if (cfg.tag) men[a.u] = 1;
+                    return (cfg.tag ? '@' : '') + a.u + (withTime && cfg.showTime && d.att[a.u] && d.att[a.u].ts ? ' (' + hm(d.att[a.u].ts) + ')' : '') + (a.why ? ' (' + a.why + ')' : '');
+                }).join(', ');
+                if (arr.length > shown.length) s += ' … và ' + (arr.length - shown.length) + ' người khác';
+                return s;
+            }
+            var pct = d.total ? Math.round(d.attended.length * 1000 / d.total) / 10 : 0;
+            var v = { ngay: dateShow(d.p), thu: WD[d.p.wd], gio: hm(d.at), diemdanh: d.attended.length, dangnhap: d.loggedIn.length,
+                chuadiemdanh: d.loginNoAtt.length, chuavao: d.noLogin.length, bikhoa: (d.locked || []).length, tong: d.total, tile: String(pct).replace('.', ',') + '%', bot: cfg.botName };
+            var out = [], t = fill(cfg.title, v).trim();
+            if (t) out.push(t);
+            out.push('⏰ Chốt số liệu lúc ' + v.gio + ' · ' + d.total + ' thành viên');
+            if (cfg.sec.att) out.push('', '✅ ĐÃ ĐIỂM DANH: ' + d.attended.length + '/' + d.total + ' (' + v.tile + ')', list(d.attended, true));
+            if (cfg.sec.login) out.push('', '🔐 ĐĂNG NHẬP HÔM NAY: ' + d.loggedIn.length + '/' + d.total, list(d.loggedIn));
+            if (cfg.sec.loginNoAtt) out.push('', '⚠️ ĐÃ VÀO NHƯNG CHƯA ĐIỂM DANH: ' + d.loginNoAtt.length, list(d.loginNoAtt));
+            if (cfg.sec.noLogin) out.push('', '😴 CHƯA ĐĂNG NHẬP: ' + d.noLogin.length, list(d.noLogin));
+            if (cfg.sec.locked) out.push('', '🔒 TÀI KHOẢN BỊ KHÓA: ' + (d.locked || []).length, list(d.locked || [], false, '— Không có tài khoản nào bị khóa —'));
+            var f = fill(cfg.footer, v).trim(); if (f) out.push('', f);
+            return {
+                text: out.join('\n').slice(0, 30000), mentions: Object.keys(men), vars: v,
+                counts: { total: d.total, att: d.attended.length, login: d.loggedIn.length, loginNoAtt: d.loginNoAtt.length, noLogin: d.noLogin.length, locked: (d.locked || []).length, online: d.online }
+            };
+        }
+
+        /* ---------- @nhắc tên: tô màu + tách danh sách người được nhắc ---------- */
+        // resolve(token) -> tên tài khoản đúng (hoặc null nếu không có ai tên đó)
+        function scan(raw, resolve, cb) {
+            var re = /@([^\s@<>"'`,;:!?()[\]{}]+)/g, m;
+            while ((m = re.exec(raw))) {
+                var prev = m.index ? raw.charAt(m.index - 1) : '';
+                if (prev && !/[\s(\[,;:]/.test(prev)) continue;                 // a@b.com không phải nhắc tên
+                var tok = m[1], u = null;
+                if (/^(all|tatca|tấtcả)$/i.test(tok)) u = 'all';
+                else u = resolve(tok) || (/[.\-_]+$/.test(tok) ? resolve(tok.replace(/[.\-_]+$/, '')) : null);
+                if (!u) continue;
+                var len = u === 'all' ? tok.length : (resolve(tok) ? tok.length : tok.replace(/[.\-_]+$/, '').length);
+                cb(m.index, len + 1, u);
+                re.lastIndex = m.index + len + 1;
+            }
+        }
+        function renderText(raw, o) {
+            raw = String(raw == null ? '' : raw); o = o || {};
+            var resolve = o.resolve || function () { return null; }, out = '', last = 0;
+            scan(raw, resolve, function (i, len, u) {
+                out += esc(raw.slice(last, i));
+                var mine = u === 'all' || (o.me && u === o.me);
+                out += '<span class="qd-mention' + (mine ? ' me' : '') + '" data-u="' + esc(u) + '" role="button" tabindex="0">@' + esc(u === 'all' ? 'All' : u) + '</span>';
+                last = i + len;
+            });
+            out += esc(raw.slice(last));
+            return out.replace(/\n/g, '<br>');
+        }
+        function mentionsIn(raw, resolve) { var s = {}; scan(String(raw || ''), resolve, function (i, len, u) { s[u] = 1; }); return Object.keys(s); }
+
+        /* ---------- Gửi: giành quyền (giao dịch) -> thu số liệu -> ghi tin Kênh Chung + lịch sử cùng lúc ---------- */
+        async function send(slot, opt) {
+            var D = db(); if (!D) throw new Error('Chưa kết nối được máy chủ.');
+            opt = opt || {}; var cfg = opt.cfg || CFG || norm(null), who = String(opt.by || '?');
+            var ref = D.collection('bot_reports').doc(slot.runId);
+            var got = await D.runTransaction(function (tx) {
+                return tx.get(ref).then(function (s) {
+                    var x = s.exists ? s.data() : null, t = Date.now();
+                    if (x) {
+                        if (x.status === 'sent' || x.status === 'skipped') return 'done';
+                        if ((x.tries || 0) >= 3) return 'done';
+                        if (x.status === 'sending' && t - (+x.at || 0) < 180000) return 'busy';
+                    }
+                    tx.set(ref, { runId: slot.runId, slot: slot.time, dateKey: slot.key, due: slot.ts, status: 'sending', by: who, byRole: opt.role || '', at: t, tries: ((x && x.tries) || 0) + 1, manual: !!opt.manual }, { merge: true });
+                    return 'ok';
+                });
+            });
+            if (got !== 'ok') return { ok: false, reason: got };
+            try {
+                var data = await collect(cfg, Date.now()), comp = compose(cfg, data);
+                if (cfg.skipEmpty && !opt.manual && !data.loggedIn.length) {
+                    await ref.set({ status: 'skipped', note: 'Hôm nay chưa ai đăng nhập', doneAt: Date.now(), counts: comp.counts }, { merge: true });
+                    return { ok: false, reason: 'done', skipped: true };
+                }
+                var mref = D.collection('private_chat').doc(), t = Date.now();
+                var msg = { conversationId: 'general_room', from: BOT, to: 'all', text: comp.text, imageUrl: null, time: t, read: false, heart: false, hearts: [], readBy: [],
+                    bot: true, botName: cfg.botName, mentions: comp.mentions, reportId: slot.runId };
+                var b = D.batch();
+                b.set(mref, msg);
+                b.set(ref, { status: 'sent', msgId: mref.id, sentAt: t, counts: comp.counts, text: comp.text.slice(0, 6000) }, { merge: true });
+                await b.commit();
+                emit({ type: 'sent', runId: slot.runId });
+                return { ok: true, msgId: mref.id, comp: comp };
+            } catch (e) {
+                ref.set({ status: 'error', err: String((e && (e.message || e.code)) || e).slice(0, 200), errAt: Date.now() }, { merge: true }).catch(function () {});
+                emit({ type: 'error', runId: slot.runId });
+                throw e;
+            }
+        }
+        function sendNow(by, role, cfg) {
+            var now = Date.now(), p = vnParts(now);
+            return send({ runId: 'manual_' + dateKey(p) + '_' + now.toString(36), time: hm(now), key: dateKey(p), ts: now }, { by: by, role: role, manual: true, cfg: cfg });
+        }
+
+        /* ---------- Lưu cấu hình (đổi lịch -> chỉ gửi các mốc từ lúc lưu, không gửi bù mốc cũ) ---------- */
+        async function save(patch, by, action) {
+            var D = db(); if (!D) throw new Error('Chưa kết nối được máy chủ.');
+            var t = Date.now(), cur = CFG || norm(null), p = {};
+            Object.keys(patch || {}).forEach(function (k) { p[k] = patch[k]; });
+            if (p.isEnabled === true && !cur.isEnabled) p.enabledAt = t;
+            var sched = ['times', 'days', 'from', 'to'].some(function (k) { return k in p && JSON.stringify(p[k]) !== JSON.stringify(cur[k]); });
+            if (sched) p.schedAt = t;
+            p.memberRun = false;   // máy thành viên (kể cả bản web cũ còn mở) không gửi nữa
+            p.updatedAt = t; p.updatedBy = by || '';
+            await D.collection('settings').doc(CFG_DOC).set(p, { merge: true });
+            D.collection('admin_logs').add({ type: 'report_bot', action: action || 'save', user: '(bot báo cáo)', by: by || '', timestamp: t,
+                detail: 'isEnabled' in p ? (p.isEnabled ? 'Bật' : 'Tắt') : JSON.stringify({ times: p.times, days: p.days, from: p.from, to: p.to }).slice(0, 300) }).catch(function () {});
+        }
+
+        /* ---------- Trực gửi theo lịch ---------- */
+        var CFG = null, RAW = null, ROLE = '', ME = null, DELAY = 0, unsub = null, timer = null, tried = {}, subs = [];
+        function emit(ev) { subs.forEach(function (f) { try { f(ev || { type: 'cfg' }, CFG); } catch (e) {} }); }
+        function on(fn) { subs.push(fn); if (CFG) { try { fn({ type: 'cfg' }, CFG); } catch (e) {} } return function () { subs = subs.filter(function (x) { return x !== fn; }); }; }
+        function listen() {
+            var D = db(); if (!D || unsub) return !!unsub;
+            unsub = D.collection('settings').doc(CFG_DOC).onSnapshot(function (s) {
+                RAW = s.exists ? s.data() : null; CFG = norm(RAW); emit({ type: 'cfg', fromCache: s.metadata.fromCache }); tick();
+            }, function () { unsub = null; });
+            return true;
+        }
+        function tick() {
+            if (!CFG || !CFG.isEnabled || !ROLE) return;
+            if (ROLE !== 'admin' && ROLE !== 'bot') return;   // chỉ trang Admin / Bot gửi dự phòng, máy thành viên không gửi
+            var me = ME ? ME() : ''; if (!me) return;
+            var now = Date.now();
+            dueSlots(CFG, now, DELAY).forEach(function (s) {
+                var t = tried[s.runId]; if (t === true || (t && now - t < 60000)) return;
+                tried[s.runId] = now;
+                send(s, { by: me, role: ROLE, cfg: CFG }).then(function (r) { if (r.ok || r.reason === 'done') tried[s.runId] = true; })
+                    .catch(function (e) { console.warn('[Bot báo cáo] Gửi chưa được, sẽ thử lại:', e && e.message); });
+            });
+        }
+        function start(o) {
+            o = o || {}; ROLE = o.role || 'member'; ME = o.me || null;
+            DELAY = ROLE === 'member' ? 30000 + Math.floor(Math.random() * 60000) : ROLE === 'admin' ? 1500 + Math.floor(Math.random() * 4000) : 0;
+            if (!listen()) { var n = 0, w = setInterval(function () { if (listen() || ++n > 60) clearInterval(w); }, 500); }
+            if (!timer) timer = setInterval(tick, 15000);
+            setTimeout(tick, 2500);
+        }
+        // Trang nào cũng nghe cấu hình để hiển thị (không gửi khi chưa start)
+        function watch() { if (!listen()) { var n = 0, w = setInterval(function () { if (listen() || ++n > 60) clearInterval(w); }, 500); } }
+
+        W.QDReportBot = {
+            BOT: BOT, DEF: DEF, WD: WD, norm: norm, vnParts: vnParts, dateKey: dateKey, dateShow: dateShow, dayStart: dayStart, hm: hm, pad: pad, esc: esc,
+            slotsFor: slotsFor, nextRun: nextRun, dueSlots: dueSlots, collect: collect, compose: compose, fill: fill,
+            renderText: renderText, mentionsIn: mentionsIn, send: send, sendNow: sendNow, save: save,
+            start: start, watch: watch, on: on, cfg: function () { return CFG; }, raw: function () { return RAW; }, role: function () { return ROLE; }
+        };
+    })();
+    </script>
+    <script>
+    /* ===== TRANG BOT: đăng nhập Ban Quản Trị, trực gửi, chỉnh lịch / nội dung, xem trước, lịch sử ===== */
+    window.Bot = window.firebase && firebase.firestore && (function () {
+        'use strict';
+        var R = window.QDReportBot, db = firebase.firestore(), $ = function (id) { return document.getElementById(id); };
+        var esc = R.esc, ME = '', ROLE = '', CFG = null, FORM = null, DATA = null, LAST = null, armT = 0, wakeLock = null;
+        var KEYS = ['times', 'days', 'from', 'to', 'grace', 'botName', 'title', 'footer', 'sec', 'tag', 'showTime', 'excludeStaff', 'skipEmpty', 'exclude', 'maxNames'];
+        var DAYS = [[1, 'T2'], [2, 'T3'], [3, 'T4'], [4, 'T5'], [5, 'T6'], [6, 'T7'], [0, 'CN']];
+        var VARS = [['{thu}', 'Thứ'], ['{ngay}', 'Ngày'], ['{gio}', 'Giờ chốt'], ['{diemdanh}', 'Số đã điểm danh'], ['{dangnhap}', 'Số đăng nhập'], ['{chuadiemdanh}', 'Số chưa điểm danh'], ['{tong}', 'Tổng thành viên'], ['{tile}', 'Tỉ lệ %'], ['{bikhoa}', 'Số bị khóa'], ['{bot}', 'Tên bot']];
+
+        function toast(msg, kind) {
+            var t = document.createElement('div'); t.className = 'tst ' + (kind || ''); t.textContent = msg;
+            $('toast').appendChild(t); setTimeout(function () { t.style.transition = 'opacity .3s'; t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 320); }, 3200);
+        }
+        function pick(o) { var r = {}; KEYS.forEach(function (k) { r[k] = JSON.parse(JSON.stringify(o[k])); }); return r; }
+        function dirty() { return !!(FORM && CFG) && JSON.stringify(pick(FORM)) !== JSON.stringify(pick(CFG)); }
+        function fmtWhen(ts) { var p = R.vnParts(ts); return R.WD[p.wd] + ', ' + R.pad(p.d) + '/' + R.pad(p.m) + ' lúc ' + R.hm(ts); }
+        function left(ms) {
+            if (ms <= 0) return 'đang tới giờ';
+            var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
+            return 'còn ' + (d ? d + ' ngày ' : '') + (d || h ? h + ' giờ ' : '') + (d ? '' : m + ' phút ') + (d || h ? '' : ss + ' giây');
+        }
+
+        /* ---------- Đăng nhập: dùng phiên Admin có sẵn trên máy, không có thì nhập tài khoản BQT ---------- */
+        function staffSession() {
+            try {
+                var s = JSON.parse(localStorage.getItem('qd_sess_adm') || 'null'); if (!s || !s.u) return null;
+                var c = JSON.parse(localStorage.getItem('qd_sess_cfg') || 'null') || {}, m = parseInt(c.staffSessionMinutes, 10); if (isNaN(m)) m = 360;
+                var last = Math.max(+localStorage.getItem('qd_act') || 0, s.s || 0);
+                return m > 0 && Date.now() - last > m * 60000 ? null : s;
+            } catch (e) { return null; }
+        }
+        function tabSession() { try { var s = JSON.parse(sessionStorage.getItem('qd_bot_u') || 'null'); return s && s.u ? s : null; } catch (e) { return null; } }
+        async function verify(u) {
+            var q = await db.collection('accounts').where('user', '==', u).limit(1).get();
+            if (q.empty) return u === 'admin' ? { role: 'admin' } : null;
+            var a = q.docs[0].data() || {}, role = a.role || (u === 'admin' ? 'admin' : 'user');
+            if (a.isBlocked === true || (role !== 'admin' && role !== 'manager')) return null;
+            if (role === 'manager' && !(a.permissions || []).includes('reportbot')) return { role: role, denied: true };
+            return { role: role };
+        }
+        function gateForm(msg) {
+            $('gate-p').textContent = 'Chỉ Ban Quản Trị được vào trạm Bot. Đăng nhập tài khoản Quản trị / Quản lý (được cấp quyền Bot báo cáo).';
+            $('gate-form').hidden = false; $('g-msg').textContent = msg || ''; setTimeout(function () { $('g-u').focus(); }, 50);
+        }
+        async function boot() {
+            var s = staffSession() || tabSession();
+            if (!s) return gateForm();
+            try {
+                var v = await verify(s.u);
+                if (!v) return gateForm('Phiên "' + s.u + '" không còn quyền Ban Quản Trị.');
+                if (v.denied) return gateForm('Tài khoản Quản lý "' + s.u + '" chưa được cấp quyền Bot báo cáo.');
+                enter(s.u, v.role);
+            } catch (e) { gateForm('Không kết nối được máy chủ, thử lại sau.'); }
+        }
+        async function login() {
+            var u = $('g-u').value.trim(), p = $('g-p').value.trim(), b = $('g-btn');
+            if (!u || !p) return;
+            b.disabled = true; $('g-msg').textContent = '';
+            try {
+                var q = await db.collection('accounts').where('user', '==', u).where('pass', '==', p).limit(1).get();
+                var ok = !q.empty || (u === 'admin' && p === '123');
+                if (!ok) { $('g-msg').textContent = 'Sai tên đăng nhập hoặc mật khẩu.'; return; }
+                var v = await verify(u);
+                if (!v) { $('g-msg').textContent = 'Tài khoản không có quyền Ban Quản Trị.'; return; }
+                if (v.denied) { $('g-msg').textContent = 'Quản lý cần được Admin cấp quyền "Bot báo cáo".'; return; }
+                try { sessionStorage.setItem('qd_bot_u', JSON.stringify({ u: u, t: Date.now() })); } catch (e) {}
+                enter(u, v.role);
+            } catch (e) { $('g-msg').textContent = 'Không kết nối được máy chủ.'; }
+            finally { b.disabled = false; }
+        }
+        function enter(u, role) {
+            ME = u; ROLE = role;
+            $('gate').hidden = true; $('app').hidden = false;
+            $('t-who').textContent = (role === 'admin' ? '👑 ' : '🛡️ ') + u;
+            R.start({ role: 'bot', me: function () { return ME; } });
+            R.on(onCfg);
+            listenHistory();
+            db.collection('settings').doc('report_bot_server').onSnapshot(function (s) { SRV = s.exists ? s.data() : null; srvShow(); }, function () {});
+            setInterval(srvShow, 30000);
+            refresh(false);
+            setInterval(clock, 1000); clock();
+            setInterval(function () { if (!document.hidden && DATA && Date.now() - DATA.at > 5 * 60000) refresh(false); }, 60000);   // tự cập nhật 5 phút / lần
+            document.addEventListener('visibilitychange', function () { if (!document.hidden && wakeLock === false) wake(true); });
+        }
+
+        /* ---------- Cấu hình từ máy chủ ---------- */
+        function onCfg(ev, cfg) {
+            if (!cfg || ev.type !== 'cfg') return;
+            var wasDirty = dirty();
+            CFG = cfg;
+            if (!FORM || !wasDirty) { FORM = pick(cfg); fill(); }
+            else toast('Thiết lập vừa được đổi ở máy khác — bấm Hoàn tác để lấy bản mới.', '');
+            hero(); bar(); preview();
+        }
+        function hero() {
+            if (!CFG) return;
+            var on = CFG.isEnabled;
+            $('hero').classList.toggle('off', !on);
+            $('h-sw').checked = on; $('h-sw-txt').textContent = on ? 'BẬT' : 'TẮT';
+            $('h-state').textContent = on ? 'Đang bật — gửi theo lịch' : 'Đang tắt';
+            $('t-dot').className = 'dot ' + (on ? 'on' : 'off');
+            $('t-state').textContent = on ? 'Đang trực · ' + CFG.times.length + ' mốc / ngày' : 'Đã tắt gửi theo lịch';
+            $('t-name').textContent = CFG.botName;
+            clock();
+        }
+        function clock() {
+            if (!CFG) return;
+            var n = CFG.isEnabled ? R.nextRun(CFG, Date.now()) : null;
+            if (!CFG.isEnabled) { $('h-next').textContent = 'Đang tắt'; $('h-next-sub').textContent = 'Bật công tắc để gửi theo lịch'; }
+            else if (!n) { $('h-next').textContent = 'Không có'; $('h-next-sub').textContent = !CFG.times.length ? 'Chưa có giờ gửi' : !CFG.days.length ? 'Chưa chọn ngày' : 'Đã hết khoảng ngày áp dụng'; }
+            else { $('h-next').textContent = fmtWhen(n.ts); $('h-next-sub').textContent = left(n.ts - Date.now()); }
+        }
+
+        /* ---------- Biểu mẫu ---------- */
+        function fill() {
+            if (!FORM) return;
+            var f = FORM;
+            $('f-times').innerHTML = f.times.length ? f.times.map(function (t) { return '<span class="chip">' + t + '<button type="button" aria-label="Bỏ ' + t + '" onclick="Bot.delTime(\'' + t + '\')"><i class="fa-solid fa-xmark"></i></button></span>'; }).join('') : '<span class="chip-empty">Chưa có giờ gửi nào — thêm ít nhất 1 giờ.</span>';
+            $('f-days').innerHTML = DAYS.map(function (d) { return '<button type="button" class="day' + (f.days.indexOf(d[0]) >= 0 ? ' on' : '') + '" aria-pressed="' + (f.days.indexOf(d[0]) >= 0) + '" onclick="Bot.toggleDay(' + d[0] + ')">' + d[1] + '</button>'; }).join('');
+            $('f-exclude').innerHTML = f.exclude.length ? f.exclude.map(function (u, i) { return '<span class="chip ex-chip">@' + esc(u) + '<button type="button" aria-label="Bỏ" onclick="Bot.delEx(' + i + ')"><i class="fa-solid fa-xmark"></i></button></span>'; }).join('') : '<span class="hint" style="margin:0">Chưa loại trừ tài khoản nào.</span>';
+            var sv = function (id, v) { var el = $(id); if (el && document.activeElement !== el) el.value = v; };
+            sv('f-from', f.from); sv('f-to', f.to); sv('f-grace', f.grace); sv('f-botName', f.botName); sv('f-maxNames', f.maxNames); sv('f-title', f.title); sv('f-footer', f.footer);
+            $('f-tag').checked = f.tag; $('f-showTime').checked = f.showTime; $('f-excludeStaff').checked = f.excludeStaff; $('f-skipEmpty').checked = f.skipEmpty;
+            Object.keys(f.sec).forEach(function (k) { $('f-sec-' + k).checked = f.sec[k]; });
+        }
+        function changed(refill) { if (refill) fill(); bar(); preview(); }
+        function bar() {
+            var d = dirty(); $('savebar').hidden = !d;
+            if (d && CFG) {
+                var sched = ['times', 'days', 'from', 'to'].some(function (k) { return JSON.stringify(FORM[k]) !== JSON.stringify(CFG[k]); });
+                $('sb-sub').textContent = sched ? 'Lịch mới chỉ áp dụng cho các mốc giờ từ lúc lưu.' : 'Nội dung mới dùng cho lần gửi kế tiếp.';
+            }
+        }
+        function set(k, v) { if (!FORM) return; FORM[k] = v; changed(false); }
+        function setSec(k, v) { FORM.sec[k] = v; changed(false); }
+        function addTime(t) {
+            t = t || $('f-time-new').value; var m = /^(\d{1,2}):(\d{2})/.exec(t || ''); if (!m) return toast('Chọn giờ hợp lệ.', 'bad');
+            t = R.pad(+m[1]) + ':' + m[2];
+            if (FORM.times.indexOf(t) >= 0) return toast('Đã có mốc ' + t + '.', '');
+            if (FORM.times.length >= 12) return toast('Tối đa 12 mốc giờ mỗi ngày.', 'bad');
+            FORM.times = FORM.times.concat(t).sort(); changed(true);
+        }
+        function delTime(t) { FORM.times = FORM.times.filter(function (x) { return x !== t; }); changed(true); }
+        function toggleDay(d) { var i = FORM.days.indexOf(d); if (i >= 0) FORM.days.splice(i, 1); else FORM.days.push(d); FORM.days.sort(); changed(true); }
+        function setDays(a) { FORM.days = a.slice().sort(); changed(true); }
+        function addEx() {
+            var el = $('f-ex-new'), u = el.value.replace(/^@/, '').trim(); if (!u) return;
+            if (FORM.exclude.some(function (x) { return x.toLowerCase() === u.toLowerCase(); })) return toast('Đã có trong danh sách.', '');
+            FORM.exclude = FORM.exclude.concat(u); el.value = ''; changed(true);
+        }
+        function delEx(i) { FORM.exclude = FORM.exclude.filter(function (x, j) { return j !== i; }); changed(true); }
+        function revert() { FORM = pick(CFG); fill(); changed(false); }
+        function vars(boxId, inputId, key) {
+            $(boxId).innerHTML = VARS.map(function (v) { return '<button type="button" class="var" title="' + v[1] + '" data-v="' + v[0] + '">' + v[0] + '</button>'; }).join('');
+            $(boxId).addEventListener('click', function (e) {
+                var b = e.target.closest('.var'); if (!b) return;
+                var el = $(inputId), s = el.selectionStart == null ? el.value.length : el.selectionStart, en = el.selectionEnd == null ? s : el.selectionEnd;
+                el.value = el.value.slice(0, s) + b.getAttribute('data-v') + el.value.slice(en); el.focus();
+                var c = s + b.getAttribute('data-v').length; try { el.setSelectionRange(c, c); } catch (er) {}
+                set(key, el.value);
+            });
+        }
+
+        function valid(f) {
+            if (!f.times.length) return 'Thêm ít nhất 1 giờ gửi.';
+            if (!f.days.length) return 'Chọn ít nhất 1 ngày trong tuần.';
+            if (f.from && f.to && f.from > f.to) return '"Từ ngày" đang sau "Đến ngày".';
+            if (!Object.keys(f.sec).some(function (k) { return f.sec[k]; })) return 'Bật ít nhất 1 mục báo cáo.';
+            return '';
+        }
+        async function save() {
+            var err = valid(FORM); if (err) return toast(err, 'bad');
+            var b = $('btn-save'); b.disabled = true;
+            try {
+                var p = pick(R.norm(Object.assign({}, CFG, FORM)));
+                await R.save(p, ME, 'save');
+                toast('Đã lưu thiết lập Bot.', 'ok');
+            } catch (e) { toast('Lưu không được: ' + (e.message || e.code || e), 'bad'); }
+            finally { b.disabled = false; }
+        }
+        async function toggle(el) {
+            var on = el.checked;
+            if (on) { var err = valid(dirty() ? FORM : CFG); if (err) { el.checked = false; return toast(err, 'bad'); } }
+            el.disabled = true;
+            try {
+                var patch = { isEnabled: on };
+                if (on && dirty()) Object.assign(patch, pick(R.norm(Object.assign({}, CFG, FORM))));   // bật kèm lưu luôn phần đang sửa
+                await R.save(patch, ME, on ? 'enable' : 'disable');
+                toast(on ? '✅ Đã BẬT Bot — gửi theo lịch.' : 'Đã TẮT gửi theo lịch.', on ? 'ok' : '');
+            } catch (e) { el.checked = !on; toast('Không đổi được: ' + (e.message || e.code || e), 'bad'); }
+            finally { el.disabled = false; }
+        }
+
+        /* ---------- Xem trước ---------- */
+        function liveCfg() { return R.norm(Object.assign({}, CFG || {}, FORM || {})); }
+        async function refresh(manual) {
+            var sp = $('pv-spin'); if (sp) sp.classList.add('spin');
+            try {
+                DATA = await R.collect(liveCfg(), Date.now()); LAST = null;
+                $('dl-users').innerHTML = (DATA.allUsers || []).map(function (u) { return '<option value="' + esc(u) + '">'; }).join('');
+                preview();
+                if (manual) toast('Đã cập nhật số liệu lúc ' + R.hm(DATA.at) + '.', 'ok');
+            } catch (e) {
+                $('pv').innerHTML = '<div class="pv-empty">⚠️ Không lấy được số liệu: ' + esc(e.message || e.code || e) + '</div>';
+            } finally { if (sp) sp.classList.remove('spin'); }
+        }
+        var pvT = 0;
+        function preview() {
+            clearTimeout(pvT);
+            pvT = setTimeout(function () {
+                if (!DATA || !CFG) return;
+                var cfg = liveCfg();
+                // Danh sách loại trừ / bỏ BQT vừa đổi -> lọc lại trên số liệu đã có (không cần đọc lại máy chủ)
+                var d = DATA, ex = {}; cfg.exclude.forEach(function (u) { ex[u.toLowerCase()] = 1; });
+                var keep = function (a) { return !ex[a.u.toLowerCase()] && !(cfg.excludeStaff && (a.role === 'admin' || a.role === 'manager')); };
+                var x = JSON.stringify([cfg.exclude, cfg.excludeStaff]);
+                if (LAST && x !== LAST) {   // thêm lại người đã bỏ -> đọc lại máy chủ; bỏ bớt -> lọc ngay trên số liệu có sẵn
+                    var prev = JSON.parse(LAST), grew = prev[0].some(function (u) { return cfg.exclude.indexOf(u) < 0; }) || (prev[1] && !cfg.excludeStaff);
+                    if (grew) { LAST = x; return refresh(false); }
+                }
+                LAST = x;
+                var dd = { at: d.at, p: d.p, att: d.att, online: d.online, attended: d.attended.filter(keep), loggedIn: d.loggedIn.filter(keep), loginNoAtt: d.loginNoAtt.filter(keep), noLogin: d.noLogin.filter(keep), locked: (d.locked || []).filter(keep) };
+                dd.total = dd.loggedIn.length + dd.noLogin.length;
+                var c = R.compose(cfg, dd), known = {};
+                Object.keys(d.by).forEach(function (u) { known[u.toLowerCase()] = u; });
+                var stt = function (id, n, on) { var el = $(id); el.textContent = n; el.parentNode.style.opacity = on ? '' : '.5'; };
+                stt('s-att', c.counts.att, cfg.sec.att); stt('s-login', c.counts.login, cfg.sec.login); stt('s-lna', c.counts.loginNoAtt, cfg.sec.loginNoAtt); stt('s-no', c.counts.noLogin, cfg.sec.noLogin); stt('s-lock', c.counts.locked, cfg.sec.locked);
+                $('pv').innerHTML = '<div class="bubble"><div class="snd">🤖 ' + esc(cfg.botName) + ' <span class="bot-badge">BOT</span></div>'
+                    + R.renderText(c.text, { resolve: function (t) { return known[t.toLowerCase()] || null; } })
+                    + '<div class="bubble-t">' + R.hm(Date.now()) + ' · Kênh Chung</div></div>';
+                $('pv-sub').textContent = 'Số liệu thật hôm nay, tính tới ' + R.hm(d.at) + ' (tự cập nhật 5 phút / lần).';
+                $('pv-note').innerHTML = cfg.tag ? '📣 Lần gửi này sẽ nhắc tên <b>' + c.mentions.length + '</b> tài khoản — mỗi người nhận 1 thông báo.' : 'Đang tắt gắn @ — tên chỉ hiện dạng chữ, không ai nhận thông báo riêng.';
+            }, 120);
+        }
+
+        /* ---------- Gửi ngay (bấm 2 lần) ---------- */
+        async function sendNow(b) {
+            var now = Date.now();
+            if (!(armT && now - armT < 4000)) {
+                armT = now; b.classList.add('arm'); b.innerHTML = '<i class="fa-solid fa-hand-pointer"></i> Bấm lần nữa để gửi vào Kênh Chung';
+                setTimeout(function () { if (armT === now) { armT = 0; b.classList.remove('arm'); b.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi báo cáo ngay'; } }, 4000);
+                return;
+            }
+            armT = 0; b.classList.remove('arm'); b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Đang gửi…';
+            try {
+                var r = await R.sendNow(ME, 'bot', liveCfg());
+                if (r.ok) { toast('✅ Đã gửi báo cáo vào Kênh Chung.', 'ok'); db.collection('admin_logs').add({ type: 'report_bot', action: 'send_now', user: '(bot báo cáo)', by: ME, timestamp: Date.now() }).catch(function () {}); }
+                else toast('Chưa gửi được, thử lại.', 'bad');
+            } catch (e) { toast('Gửi không được: ' + (e.message || e.code || e), 'bad'); }
+            finally { b.disabled = false; b.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi báo cáo ngay'; }
+        }
+
+        /* ---------- Máy chủ tự gửi (bot-server.gs) ---------- */
+        var SRV = null, fixedMember = false;
+        function srvShow() {
+            var pill = $('srv-pill'), sub = $('srv-sub'); if (!pill) return;
+            var t = SRV && +SRV.lastRun || 0, age = Date.now() - t, st, txt, info;
+            if (!SRV || !t) { st = 'skipped'; txt = 'Chưa cài'; info = 'Chưa có máy chủ nào chạy → chỉ gửi được khi trang Bot / Admin đang mở. Cài 1 lần bằng file bot-server.gs (hướng dẫn ở đầu file).'; }
+            else if (SRV.stopped) { st = 'skipped'; txt = 'Đã tắt'; info = 'Máy chủ đã được tắt lúc ' + fmtWhen(t) + '. Chạy hàm CAI_DAT trong Apps Script để bật lại.'; }
+            else if (age > 8 * 60000) { st = 'error'; txt = 'Ngưng'; info = 'Máy chủ không phản hồi từ ' + fmtWhen(t) + '. Mở Apps Script kiểm tra Trình kích hoạt / Lượt thực thi, hoặc chạy lại CAI_DAT.'; }
+            else if (SRV.ok === false) { st = 'error'; txt = 'Có lỗi'; info = 'Lần chạy lúc ' + R.hm(t) + ' bị lỗi: ' + (SRV.err || 'không rõ'); }
+            else { st = 'sent'; txt = 'Đang chạy'; info = 'Kiểm tra mỗi phút, lần gần nhất ' + R.hm(t) + '. Tới giờ tự gửi vào Kênh Chung, không cần ai mở web.' + (SRV.note && SRV.noteAt ? ' · ' + SRV.note + ' (' + fmtWhen(SRV.noteAt) + ')' : ''); }
+            pill.className = 'pill ' + st; pill.textContent = txt; sub.textContent = info;
+            var raw = R.raw();
+            if (!fixedMember && raw && raw.memberRun !== false) { fixedMember = true; db.collection('settings').doc('report_bot').set({ memberRun: false }, { merge: true }).catch(function () { fixedMember = false; }); }
+        }
+
+        /* ---------- Lịch sử ---------- */
+        var ST = { sent: ['sent', '✅ Đã gửi'], sending: ['sending', '⏳ Đang gửi'], error: ['error', '⚠️ Lỗi'], skipped: ['skipped', '⏭ Bỏ qua'] };
+        function listenHistory() {
+            db.collection('bot_reports').orderBy('at', 'desc').limit(30).onSnapshot(function (snap) {
+                var rows = snap.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; });
+                var lastSent = rows.filter(function (x) { return x.status === 'sent'; })[0];
+                if (lastSent) { $('h-last').textContent = fmtWhen(lastSent.sentAt || lastSent.at); $('h-last-sub').textContent = (lastSent.manual ? 'Gửi tay' : 'Theo lịch') + ' · bởi ' + (lastSent.by || '?'); }
+                else { $('h-last').textContent = 'Chưa có'; $('h-last-sub').textContent = ''; }
+                if (!rows.length) { $('hist').innerHTML = '<div class="h-empty">Chưa gửi báo cáo nào.</div>'; return; }
+                $('hist').innerHTML = rows.map(function (x) {
+                    var st = ST[x.status] || ['sending', x.status || '?'], c = x.counts || {};
+                    var who = (x.byRole === 'server' ? '🖥️ máy chủ' : x.byRole === 'bot' ? '🤖 trạm Bot' : x.byRole === 'admin' ? '🛡️ trang Admin' : x.byRole === 'member' ? '📱 máy thành viên' : '') + (x.by ? ' (' + esc(x.by) + ')' : '');
+                    var sub = x.status === 'error' ? esc(x.err || 'Lỗi không rõ') : x.status === 'skipped' ? esc(x.note || '') : ('✅ ' + (c.att || 0) + ' · 🔐 ' + (c.login || 0) + ' · ⚠️ ' + (c.loginNoAtt || 0) + ' · ' + who);
+                    return '<div class="h-item"><button type="button" class="h-row" onclick="this.parentNode.querySelector(\'.h-body\') && (this.parentNode.querySelector(\'.h-body\').hidden = !this.parentNode.querySelector(\'.h-body\').hidden)">'
+                        + '<div class="when"><b>' + (x.manual ? '✋ Gửi tay · ' : '⏰ ') + esc(fmtWhen(x.sentAt || x.at || x.due || 0)) + '</b><span>' + sub + '</span></div>'
+                        + '<span class="pill ' + st[0] + '">' + st[1] + '</span></button>'
+                        + (x.text ? '<div class="h-body" hidden>' + esc(x.text) + '</div>' : '') + '</div>';
+                }).join('');
+            }, function (e) { $('hist').innerHTML = '<div class="h-empty">⚠️ Không đọc được lịch sử: ' + esc(e.message || e.code) + '</div>'; });
+        }
+
+        /* ---------- Giữ màn hình sáng (máy trực riêng) ---------- */
+        async function wake(on) {
+            try {
+                if (on && navigator.wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', function () { if ($('wake').checked) wakeLock = false; }); }
+                else { if (wakeLock) await wakeLock.release(); wakeLock = null; if (on) { $('wake').checked = false; toast('Trình duyệt này không hỗ trợ giữ màn hình sáng.', ''); } }
+            } catch (e) { $('wake').checked = false; toast('Không giữ được màn hình sáng.', ''); }
+        }
+
+        window.addEventListener('beforeunload', function (e) { if (dirty()) { e.preventDefault(); e.returnValue = ''; } });
+        vars('vars-title', 'f-title', 'title'); vars('vars-footer', 'f-footer', 'footer');   // khối này nằm cuối trang: phần tử đã có sẵn
+        boot();
+
+        return { login: login, toggle: toggle, save: save, revert: revert, set: set, setSec: setSec, addTime: addTime, delTime: delTime, toggleDay: toggleDay, setDays: setDays,
+            addEx: addEx, delEx: delEx, refresh: refresh, sendNow: sendNow, wake: wake, fill: fill };
+    })();
+    </script>
+</body>
+</html>
