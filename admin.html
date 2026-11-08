@@ -14754,8 +14754,8 @@ window.QDXlsx = (function () {
         [data-qd-ver="short"] b { font-weight: 800; letter-spacing: .02em; }
         [data-qd-ver="full"] { margin: 0 0 18px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border-strong, rgba(0,0,0,.12)); text-align: left; font-size: 13px; }
         [data-qd-ver="full"] .qv-h { display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 8px; }
-        [data-qd-ver="full"] .qv-r { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-top: 1px dashed var(--border-strong, rgba(0,0,0,.12)); }
-        [data-qd-ver="full"] .qv-r span { opacity: .75; flex: 0 0 auto; }
+        [data-qd-ver="full"] .qv-r { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        [data-qd-ver="full"] .qv-r span { opacity: .8; flex: 0 0 auto; font-weight: 700; }
         [data-qd-ver="full"] .qv-r b { text-align: right; min-width: 0; overflow-wrap: anywhere; }
         [data-qd-ver] a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
         [data-qd-ver] .qv-new { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 800; background: #f59e0b; color: #fff; }
@@ -14784,21 +14784,14 @@ window.QDXlsx = (function () {
             if (webInApp && webInApp[1] === info.version) return num(info);
             return 'cũ';
         }
-        function link(v) { return info && info.commit && v !== 'cũ' ? '<a href="https://github.com/' + REPO + '/commit/' + esc(info.commit) + '" target="_blank" rel="noopener"><b>' + esc(v) + '</b></a>' : '<b>' + esc(v) + '</b>'; }
-        function paint() {
-            var run = running(), latest = num(info), stale = app && info && run === 'cũ';
+        function link(v) { return info && info.commit && /^\d+$/.test(v) ? '<a href="https://github.com/' + REPO + '/commit/' + esc(info.commit) + '" target="_blank" rel="noopener"><b>' + esc(v) + '</b></a>' : '<b>' + esc(v) + '</b>'; }
+        function paint() {   // chỉ hiện số phiên bản (trong app mà web cũ hơn: "cũ (bản mới: 8)")
+            var run = running(), latest = num(info), txt = !run ? '' : run === 'cũ' ? 'cũ (bản mới: ' + latest + ')' : run;
             Array.prototype.forEach.call(document.querySelectorAll('[data-qd-ver]'), function (el) {
-                if (el.getAttribute('data-qd-ver') === 'full') {
-                    var rows = [];
-                    rows.push(['Phiên bản web', run ? link(run) + (stale ? '<span class="qv-new">có bản mới ' + esc(latest) + ' – bấm Cập nhật ngay</span>' : '') : '<b>Không đọc được</b>']);
-                    if (info && info.time) rows.push(['Cập nhật lúc', '<b>' + esc(when(info.time)) + '</b>']);
-                    if (info && info.message) rows.push(['Nội dung', '<b>' + esc(info.message) + '</b>']);
-                    if (app) rows.push(['Ứng dụng', '<b>QD Elite v' + esc(app[1]) + '</b>']);
-                    el.innerHTML = '<div class="qv-h"><i class="fa-solid fa-circle-info"></i> Phiên bản hệ thống</div>'
-                        + rows.map(function (r) { return '<div class="qv-r"><span>' + r[0] + '</span>' + r[1] + '</div>'; }).join('');
-                } else {
-                    el.innerHTML = run ? 'Phiên bản <b>' + esc(run) + '</b>' + (info && info.time ? ' · ' + esc(when(info.time)) : '') + (app ? ' · App v' + esc(app[1]) : '') + (stale ? ' · <b>có bản mới ' + esc(latest) + '</b>' : '') : (app ? 'App v' + esc(app[1]) : '');
-                }
+                if (!txt) { el.innerHTML = ''; return; }
+                el.innerHTML = el.getAttribute('data-qd-ver') === 'full'
+                    ? '<div class="qv-r"><span><i class="fa-solid fa-circle-info"></i> Phiên bản hệ thống</span>' + link(txt) + '</div>'
+                    : 'Phiên bản ' + link(txt);
             });
         }
         function start() {
