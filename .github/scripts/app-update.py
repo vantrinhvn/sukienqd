@@ -2,7 +2,7 @@
 
 Danh sách mọi file web trong kho + mã băm git (blob sha) + kích thước.
 App đọc file này, so với bản đang dùng, chỉ tải những file đã đổi (theo đúng commit, kiểm tra mã băm).
-Chạy: python3 .github/scripts/app-update.py <commit-sha>
+Chạy: python3 .github/scripts/app-update.py <commit-sha> [số phiên bản]
 """
 import json, os, subprocess, sys, time
 
@@ -11,6 +11,7 @@ EXTS = ('.html', '.htm', '.js', '.css', '.json', '.txt', '.svg', '.png', '.jpg',
 SKIP = {'app-update.json'}
 
 commit = sys.argv[1] if len(sys.argv) > 1 else subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()
+number = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 0   # số phiên bản hiển thị (tự tăng mỗi lần đẩy)
 raw = subprocess.check_output(['git', '-c', 'core.quotepath=off', 'ls-files', '-s', '-z']).decode('utf-8')
 files = {}
 for item in raw.split('\0'):
@@ -25,6 +26,7 @@ for item in raw.split('\0'):
 msg = subprocess.check_output(['git', 'log', '-1', '--format=%s', commit]).decode('utf-8').strip()
 out = {
     'version': commit[:7],
+    'number': number,
     'commit': commit,
     'message': msg[:300],
     'time': int(time.time() * 1000),
@@ -33,4 +35,4 @@ out = {
 with open('app-update.json', 'w', encoding='utf-8') as f:
     json.dump(out, f, ensure_ascii=False, indent=1)
     f.write('\n')
-print(f"app-update.json: {len(files)} file · bản {out['version']} · {msg[:80]}")
+print(f"app-update.json: {len(files)} file · phiên bản {number} ({out['version']}) · {msg[:80]}")

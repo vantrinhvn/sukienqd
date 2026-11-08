@@ -14778,24 +14778,26 @@ window.QDXlsx = (function () {
                 .catch(function () { return getJson('https://api.github.com/repos/' + REPO + '/contents/app-update.json?ref=main', { Accept: 'application/vnd.github.raw' }); })
                 .then(function (j) { return j && j.version ? j : null; }, function () { return null; });
         }
-        function running() {   // bản web đang chạy: trong app lấy từ User-Agent (bản đã cập nhật nóng), trên web = bản mới nhất
-            if (!app) return info ? info.version : '';
-            return webInApp ? webInApp[1] : 'đóng gói trong app';
+        function num(j) { return j ? (j.number ? String(j.number) : j.version) : ''; }   // số phiên bản (bản cũ chưa có số thì dùng mã)
+        function running() {   // bản web đang chạy: trên web = bản mới nhất; trong app so mã trong User-Agent với bản mới nhất
+            if (!app || !info) return num(info);
+            if (webInApp && webInApp[1] === info.version) return num(info);
+            return 'cũ';
         }
-        function link(v) { return /^[0-9a-f]{7,40}$/.test(v) ? '<a href="https://github.com/' + REPO + '/commit/' + esc(info && info.commit && info.commit.indexOf(v) === 0 ? info.commit : v) + '" target="_blank" rel="noopener"><b>' + esc(v) + '</b></a>' : '<b>' + esc(v) + '</b>'; }
+        function link(v) { return info && info.commit && v !== 'cũ' ? '<a href="https://github.com/' + REPO + '/commit/' + esc(info.commit) + '" target="_blank" rel="noopener"><b>' + esc(v) + '</b></a>' : '<b>' + esc(v) + '</b>'; }
         function paint() {
-            var run = running(), latest = info ? info.version : '', stale = app && latest && run !== latest;
+            var run = running(), latest = num(info), stale = app && info && run === 'cũ';
             Array.prototype.forEach.call(document.querySelectorAll('[data-qd-ver]'), function (el) {
                 if (el.getAttribute('data-qd-ver') === 'full') {
                     var rows = [];
-                    rows.push(['Phiên bản web', run ? link(run) + (stale ? '<span class="qv-new">có bản mới ' + esc(latest) + '</span>' : '') : '<b>Không đọc được</b>']);
+                    rows.push(['Phiên bản web', run ? link(run) + (stale ? '<span class="qv-new">có bản mới ' + esc(latest) + ' – bấm Cập nhật ngay</span>' : '') : '<b>Không đọc được</b>']);
                     if (info && info.time) rows.push(['Cập nhật lúc', '<b>' + esc(when(info.time)) + '</b>']);
                     if (info && info.message) rows.push(['Nội dung', '<b>' + esc(info.message) + '</b>']);
                     if (app) rows.push(['Ứng dụng', '<b>QD Elite v' + esc(app[1]) + '</b>']);
                     el.innerHTML = '<div class="qv-h"><i class="fa-solid fa-circle-info"></i> Phiên bản hệ thống</div>'
                         + rows.map(function (r) { return '<div class="qv-r"><span>' + r[0] + '</span>' + r[1] + '</div>'; }).join('');
                 } else {
-                    el.innerHTML = run ? 'Phiên bản <b>' + esc(run) + '</b>' + (info && info.time ? ' · ' + esc(when(info.time)) : '') + (app ? ' · App v' + esc(app[1]) : '') + (stale ? ' · <b>có bản mới</b>' : '') : (app ? 'App v' + esc(app[1]) : '');
+                    el.innerHTML = run ? 'Phiên bản <b>' + esc(run) + '</b>' + (info && info.time ? ' · ' + esc(when(info.time)) : '') + (app ? ' · App v' + esc(app[1]) : '') + (stale ? ' · <b>có bản mới ' + esc(latest) + '</b>' : '') : (app ? 'App v' + esc(app[1]) : '');
                 }
             });
         }

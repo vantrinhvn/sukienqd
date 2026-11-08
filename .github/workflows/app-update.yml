@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Tạo app-update.json
-        run: python3 .github/scripts/app-update.py "$GITHUB_SHA"
+        run: python3 .github/scripts/app-update.py "$GITHUB_SHA" "$GITHUB_RUN_NUMBER"
 
       - name: Lưu app-update.json vào kho
         run: |
