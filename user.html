@@ -12297,9 +12297,17 @@ html.qd-lite .qd-fx { display: none !important; }
 
             load: () => {
                 if(State.chatListener) State.chatListener(); const box = document.getElementById('chat-history-ui'); if(!box) return;
-                box.innerHTML = `<div class="text-center text-primary mt-10 text-3xl"><i class="fa-solid fa-spinner fa-spin"></i></div>`;
+                box.innerHTML = `<div class="text-center text-primary mt-10 text-3xl"><i class="fa-solid fa-spinner fa-spin"></i></div>`; box.__qdHtml = null;
                 
                 const roomId = State.chatTarget === 'general' ? 'general_room' : Utils.getRoomId(State.currentUser, State.chatTarget);
+                // Chống giật trên điện thoại: chỉ vẽ 60 tin gần nhất (bấm "Xem tin nhắn cũ hơn" để thêm), gom nhiều lần cập nhật
+                // dồn dập thành 1 lần vẽ mỗi khung hình, và đánh dấu "đã xem" bằng 1 lệnh ghi gộp thay vì từng tin một
+                const loadSeq = State.chatLoadSeq = (State.chatLoadSeq || 0) + 1, loadTarget = State.chatTarget;
+                State.chatShowN = 60; State.chatPrevTotal = 0; State.chatLastSnap = null; State.chatReadPending = new Set();
+                let qdLatest = null, qdSent = false, qdRaf = 0;
+                const qdFrame = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : (f => setTimeout(f, 16));
+                const qdFlush = () => { qdRaf = 0; if (loadSeq !== State.chatLoadSeq || !qdLatest) return; const sn = qdLatest, se = qdSent; qdLatest = null; qdSent = false; paint(sn, se, false); };
+                State.chatRepaint = () => { if (loadSeq === State.chatLoadSeq && State.chatLastSnap) paint(State.chatLastSnap, false, true); };
                 
                 State.chatFirstPaint = true; State.chatOpenAt = Date.now(); box.__qdStick = true;
                 // Bám đáy: người dùng tự kéo lên xem tin cũ thì thôi bám; ảnh tải xong khi đang bám đáy thì giữ nguyên ở tin mới nhất
@@ -12309,19 +12317,32 @@ html.qd-lite .qd-fx { display: none !important; }
                     box.addEventListener('load', (e) => { if (e.target && e.target.tagName === 'IMG' && box.__qdStick) window.Chat.toBottom(box); }, true);
                 }
                 State.chatListener = db.collection("private_chat").where("conversationId", "==", roomId).onSnapshot(snap => {
+                    if (snap.docChanges().some(c => c.type === 'added' && c.doc.data().from === State.currentUser)) qdSent = true;
+                    qdLatest = snap; State.chatLastSnap = snap;
+                    if (!qdRaf) qdRaf = qdFrame(qdFlush);
+                });
+                const paint = (snap, iSent, keepPos) => {
+                    if (State.chatTarget !== loadTarget) return;   // đã thoát / chuyển sang cuộc khác: không vẽ, không đánh dấu đã xem
                     // Chỉ tự cuộn xuống cuối khi đang ở gần cuối / lần đầu mở / mình vừa gửi -> không bị giật khi ai đó thả tim
                     const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
-                    const prevTop = box.scrollTop, first = State.chatFirstPaint || (box.__qdStick && Date.now() - (State.chatOpenAt || 0) < 2500); State.chatFirstPaint = false;
-                    const iSent = snap.docChanges().some(c => c.type === 'added' && c.doc.data().from === State.currentUser);
+                    const prevTop = box.scrollTop, prevH = box.scrollHeight, first = State.chatFirstPaint || (box.__qdStick && Date.now() - (State.chatOpenAt || 0) < 2500); State.chatFirstPaint = false;
                     State.chatMsgs = {};
-                    box.innerHTML = ""; if(snap.empty) { box.innerHTML = `<div class="text-center text-success mt-10"><i class="fa-solid fa-shield-heart text-5xl mb-4 opacity-50 block"></i>Kênh kết nối hoàn tất. Hãy gửi tin nhắn đầu tiên!</div>`; return; }
+                    if(snap.empty) { box.innerHTML = `<div class="text-center text-success mt-10"><i class="fa-solid fa-shield-heart text-5xl mb-4 opacity-50 block"></i>Kênh kết nối hoàn tất. Hãy gửi tin nhắn đầu tiên!</div>`; box.__qdHtml = ''; return; }
                     let ms = []; snap.forEach(d => { const mData = d.data(); mData.id = d.id; ms.push(mData); State.chatMsgs[d.id] = mData; }); ms.sort((a,b) => a.time - b.time);
-                    let html = '';
+                    // Đang kéo lên xem tin cũ mà có tin mới tới: giữ nguyên các tin đang xem (không đẩy tin trên cùng ra ngoài)
+                    if (State.chatPrevTotal && !first && !nearBottom && !keepPos) State.chatShowN += Math.max(0, ms.length - State.chatPrevTotal);
+                    State.chatPrevTotal = ms.length;
+                    const start = Math.max(0, ms.length - State.chatShowN);
+                    let html = start > 0 ? `<div class="qd-older"><button type="button" onclick="window.Chat.showOlder()"><i class="fa-solid fa-clock-rotate-left"></i> Xem tin nhắn cũ hơn (${start})</button></div>` : '';
                     
                     const unreadUpdates = [];
 
-                    ms.forEach(m => { 
+                    ms.forEach((m, idx) => { 
                         const isM = m.from === State.currentUser; 
+                        if (idx < start) {   // tin cũ chưa vẽ: vẫn đánh dấu đã xem
+                            if (!isM && !m.revoked) { if (State.chatTarget === 'general') { if (!(m.readBy || []).includes(State.currentUser)) unreadUpdates.push({ id: m.id, type: 'general' }); } else if (!m.read) unreadUpdates.push({ id: m.id, type: 'private' }); }
+                            return;
+                        }
                         const tm = new Date(m.time).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'}); 
                         let statusHtml = '';
 
@@ -12395,31 +12416,37 @@ html.qd-lite .qd-fx { display: none !important; }
                         let layoutHtml = isM ? `${actionsHtml}${msgBubbleHtml}` : `${msgBubbleHtml}${actionsHtml}`;
                         html += `<div class="msg-row ${isM?'me':'them'} ${heartHtml ? 'has-heart' : ''}${m.bot ? ' is-bot' : ''}${atMe ? ' at-me' : ''}${m.auto ? ' is-auto' : ''}"><div class="flex items-center gap-2">${layoutHtml}</div><div class="text-xs text-muted mt-2 font-bold ${isM?'text-right':'text-left'}">${tm}${statusHtml}</div></div>`;
 });
-                    box.innerHTML = html;
+                    if (html !== box.__qdHtml) { box.innerHTML = html; box.__qdHtml = html; }   // nội dung không đổi -> không vẽ lại
                     State.heartPop = null;
                     // cập nhật modal chi tiết nếu đang mở
                     const mi = document.getElementById('modal-msg-info');
                     if (mi && mi.classList.contains('active') && State.infoMsgId) window.Chat.infoTab(document.getElementById('mi-tab-seen').classList.contains('active') ? 'seen' : 'heart');
 
-                    unreadUpdates.forEach(u => {
-                        if (u.type === 'general') {
-                            db.collection("private_chat").doc(u.id).update({
-                                readBy: firebase.firestore.FieldValue.arrayUnion(State.currentUser),
-                                ['readAt.' + State.currentUser]: Date.now()
-                            }).catch(e => console.error("Lỗi cập nhật đã xem:", e));
-                        } else {
-                            db.collection("private_chat").doc(u.id).update({
-                                read: true, readTime: Date.now()
-                            }).catch(e => console.error("Lỗi cập nhật đã đọc:", e));
+                    // Đánh dấu đã xem: gộp thành 1 lệnh ghi (tối đa 400 tin / lệnh), không gửi lại tin đang chờ
+                    const qdTodo = unreadUpdates.filter(u => !State.chatReadPending.has(u.id));
+                    if (qdTodo.length) {
+                        const me = State.currentUser, FV = firebase.firestore.FieldValue, ref = id => db.collection("private_chat").doc(id);
+                        const patch = u => u.type === 'general' ? { readBy: FV.arrayUnion(me), ['readAt.' + me]: Date.now() } : { read: true, readTime: Date.now() };
+                        qdTodo.forEach(u => State.chatReadPending.add(u.id));
+                        for (let i = 0; i < qdTodo.length; i += 400) {
+                            const part = qdTodo.slice(i, i + 400), bt = db.batch();
+                            part.forEach(u => bt.update(ref(u.id), patch(u)));
+                            bt.commit().catch(e => {   // 1 tin lỗi (vd. vừa bị xóa) làm hỏng cả lệnh gộp -> ghi lại từng tin như cũ
+                                console.warn("Ghi gộp đã xem lỗi, ghi từng tin:", e);
+                                part.forEach(u => ref(u.id).update(patch(u)).catch(er => { State.chatReadPending.delete(u.id); console.error("Lỗi cập nhật đã xem:", er); }));
+                            });
                         }
-                    });
+                    }
 
                     // Mới mở cuộc trò chuyện: nhảy thẳng tới tin mới nhất ngay trong lần vẽ đầu (không chạy hiệu ứng cuộn từ trên xuống)
-                    if (first) { window.Chat.toBottom(box); box.__qdStick = true; }
+                    if (keepPos) window.Chat.toBottom(box, prevTop + (box.scrollHeight - prevH));   // vừa nạp tin cũ: giữ nguyên chỗ đang đọc
+                    else if (first) { window.Chat.toBottom(box); box.__qdStick = true; }
                     else if (nearBottom || iSent) setTimeout(() => box.scrollTop = box.scrollHeight, 100);
                     else window.Chat.toBottom(box, prevTop);
-                });
+                };
             },
+            // Nút "Xem tin nhắn cũ hơn": vẽ thêm 60 tin phía trên
+            showOlder: () => { State.chatShowN = (State.chatShowN || 60) + 60; if (State.chatRepaint) State.chatRepaint(); },
             
             sendMsg: () => { 
                 const i = document.getElementById('inp-chat-msg'); if(!i) return; 
@@ -23978,6 +24005,19 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         html[data-theme="tet"] #view-chat .qd-ct-head { color: rgba(255, 236, 179, .8); }
         html[data-theme="tet"] #view-chat #qd-ct-head-staff i { color: #9ccbff; }
         @media (prefers-reduced-motion: reduce) { #view-chat .contact-card .unread-badge { animation: none; } }
+        /* Nút xem tin cũ hơn ở đầu khung chat */
+        #chat-history-ui .qd-older { align-self: center; margin: 0 0 4px; }
+        #chat-history-ui .qd-older button { border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); font: inherit; font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+        #chat-history-ui .qd-older button i { margin-right: 6px; opacity: .75; }
+        html[data-theme="tet"] #chat-history-ui .qd-older button { background: rgba(0, 0, 0, .3); border-color: rgba(255, 213, 74, .45); color: #ffe9a8; }
+        /* Điện thoại / máy tính bảng: mở cuộc trò chuyện không chạy hiệu ứng (đỡ giật, đỡ rối mắt) */
+        @media (max-width: 1023px) {
+            .workspace-area, .main-content-wrapper, #view-chat .chat-main, #view-chat .chat-sidebar, #view-chat .contact-card { transition: none !important; }
+            #view-chat .contact-card:hover, #view-chat .contact-card:active { transform: none !important; }
+            #view-chat.view-section, #chat-history-ui .msg-row { animation: none !important; }
+            body.in-chat-mode .tet-flower { display: none !important; }
+            #chat-history-ui { overscroll-behavior: contain; }
+        }
     </style>
 
     <!-- ===== QD QUẢN LÝ: tài khoản admin / quản lý hiện chữ xanh dương + dấu tích trong phần Tin nhắn ===== -->
