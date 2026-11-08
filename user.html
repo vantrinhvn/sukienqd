@@ -24165,14 +24165,14 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 .catch(function () { return getJson('https://api.github.com/repos/' + REPO + '/contents/app-update.json?ref=main', { Accept: 'application/vnd.github.raw' }); })
                 .then(function (j) { return j && j.version ? j : null; }, function () { return null; });
         }
-        function num(j) { return j ? (j.number ? String(j.number) : j.version) : ''; }   // số phiên bản (bản cũ chưa có số thì dùng mã)
+        function num(j) { return j ? (j.name ? 'v' + j.name : j.number ? String(j.number) : j.version) : ''; }   // tên phiên bản: v1.1.0.x
         function running() {   // bản web đang chạy: trên web = bản mới nhất; trong app so mã trong User-Agent với bản mới nhất
             if (!app || !info) return num(info);
             if (webInApp && webInApp[1] === info.version) return num(info);
             return 'cũ';
         }
-        function link(v) { return info && info.commit && /^\d+$/.test(v) ? '<a href="https://github.com/' + REPO + '/commit/' + esc(info.commit) + '" target="_blank" rel="noopener"><b>' + esc(v) + '</b></a>' : '<b>' + esc(v) + '</b>'; }
-        function paint() {   // chỉ hiện số phiên bản (trong app mà web cũ hơn: "cũ (bản mới: 8)")
+        function link(v) { return info && info.commit && /^(v[\d.]+|\d+)$/.test(v) ? '<a href="https://github.com/' + REPO + '/commit/' + esc(info.commit) + '" target="_blank" rel="noopener"><b>' + esc(v) + '</b></a>' : '<b>' + esc(v) + '</b>'; }
+        function paint() {   // chỉ hiện phiên bản (trong app mà web cũ hơn: "cũ (bản mới: v1.1.0.1)")
             var run = running(), latest = num(info), txt = !run ? '' : run === 'cũ' ? 'cũ (bản mới: ' + latest + ')' : run;
             Array.prototype.forEach.call(document.querySelectorAll('[data-qd-ver]'), function (el) {
                 if (!txt) { el.innerHTML = ''; return; }
