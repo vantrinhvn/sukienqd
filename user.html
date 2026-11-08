@@ -11965,11 +11965,16 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div id="contact-general" class="contact-card ${isGeneralAct}" data-key="kênh chung" onclick="window.Chat.selectTarget('general')">
                                 <div class="avatar-circle" style="background: var(--color-info); font-size: 18px;"><i class="fa-solid fa-users"></i></div>
                                 <div class="flex-col flex-1 overflow-hidden">
-                                    <div class="font-bold text-main text-lg flex items-center justify-between"><span class="qd-kc">Kênh Chung</span> <span id="general-unread-badge"></span></div>
-                                    <div class="text-sm font-semibold text-muted">Trò chuyện toàn Server</div>
+                                    <div class="qd-ct-top font-bold text-main text-lg"><span class="qd-ct-nm qd-kc">Kênh Chung</span><span id="general-unread-badge" class="qd-ct-badge"></span></div>
+                                    <div class="qd-ct-sub text-sm font-semibold text-muted">Trò chuyện toàn Server</div>
+                                    <div class="qd-ct-prev text-main" id="general-prev"></div>
                                 </div>
                             </div>
                         `);
+                    }
+                    // Nhãn nhóm: Ban quản lý (ngay dưới Kênh Chung) và Thành viên
+                    if (!document.getElementById('qd-ct-head-staff')) {
+                        ls.insertAdjacentHTML('beforeend', `<div class="qd-ct-head" id="qd-ct-head-staff"><i class="fa-solid fa-shield-halved"></i> Ban quản lý</div><div class="qd-ct-head" id="qd-ct-head-mem"><i class="fa-solid fa-user-group"></i> Thành viên</div>`);
                     }
 
                     const skeleton = ls.querySelector('.skeleton');
@@ -11988,33 +11993,13 @@ html.qd-lite .qd-fx { display: none !important; }
                     });
 
                     // Chỉ vẽ lại (và đếm lại tin chưa đọc) cho tài khoản vừa thay đổi, thay vì cả danh sách mỗi lần có người báo online
+                    // Số tin chưa đọc lấy từ 1 bộ nghe trực tiếp chung (bên dưới), nên vẽ thẻ ngay, không phải chờ đếm từng người
                     snap.docChanges().forEach(change => {
                         const doc = change.doc, d = doc.data(); if (!d || !d.user || d.user === State.currentUser) return;
                         if (change.type === 'removed') { const old = document.getElementById(`contact-${d.user}`); if (old) old.remove(); return; }
-                        {
-                            const isOn = Utils.isOnline(d.lastActive, d.online);
-                            const dN = State.nicknames[d.user] || d.user; const isAct = State.chatTarget === d.user ? 'active' : '';
-                            
-                            const roomId = Utils.getRoomId(State.currentUser, d.user);
-                            
-                            db.collection("private_chat").where("conversationId", "==", roomId).where("to", "==", State.currentUser).where("read", "==", false).get().then(unreadSnap => {
-                                const unreadCount = unreadSnap.size;
-                                const unreadHtml = unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : '';
-
-                                let card = document.getElementById(`contact-${d.user}`);
-                                if (!card) {
-                                    card = document.createElement('div');
-                                    card.id = `contact-${d.user}`;
-                                    card.onclick = () => window.Chat.selectTarget(d.user);
-                                    ls.appendChild(card);
-                                }
-                                
-                                card.className = `contact-card ${isAct}`;
-                                card.setAttribute('data-key', dN.toLowerCase());
-                                card.innerHTML = `<div class="avatar-circle" style="position:relative;">${window.Avatar ? window.Avatar.inner(d.avatar, dN) : dN.charAt(0).toUpperCase()}<div class="status-indicator ${isOn?'online':'offline'}"${Utils.liveAgo(d.lastActive, d.online, { fmt: 'none', on: 'online', off: 'offline' })}></div></div><div class="flex-col flex-1 overflow-hidden"><div class="font-bold text-main text-lg flex items-center justify-between" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${window.QDStaff ? window.QDStaff.name(d.user, dN) : dN} ${unreadHtml}</div><div class="text-sm font-semibold ${isOn?'text-success':'text-muted'}"${Utils.liveAgo(d.lastActive, d.online, { on: 'text-success', off: 'text-muted' })}>${Utils.timeAgo(d.lastActive, d.online)}</div></div>`;
-                            });
-                        }
+                        window.Chat.renderCard(d);
                     });
+                    window.Chat.sortContacts();
                     if(State.chatTarget) window.Chat.updateHeader();
                 });
 
@@ -12028,8 +12013,17 @@ html.qd-lite .qd-fx { display: none !important; }
                             if (!readList.includes(State.currentUser)) { unreadCount++; if (QM && QM.forMe(data)) unreadAt++; }
                         }
                     });
+                    if (State.chatTarget === 'general') { unreadCount = 0; unreadAt = 0; }   // đang mở Kênh Chung: tin sắp được đánh dấu đã xem
                     const badgeEl = document.getElementById('general-unread-badge');
                     if(badgeEl) badgeEl.innerHTML = (unreadAt > 0 ? `<span class="qd-at-badge" title="${unreadAt} tin nhắn nhắc đến bạn">@</span>` : '') + (unreadCount > 0 ? `<span class="unread-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>` : '');
+                    // Kiểu Zalo / Messenger: in đậm + hiện tin chưa đọc mới nhất ngay dưới tên
+                    const gCard = document.getElementById('contact-general'), gPrev = document.getElementById('general-prev');
+                    if (gCard) gCard.classList.toggle('has-unread', unreadCount > 0);
+                    if (gPrev) {
+                        let lastU = null;
+                        if (unreadCount > 0) snap.forEach(doc => { const x = doc.data(); if (x.from !== State.currentUser && !(x.readBy || []).includes(State.currentUser) && (!lastU || (x.time || 0) > (lastU.time || 0))) lastU = x; });
+                        gPrev.textContent = lastU ? `${QM && QM.sender ? QM.sender(lastU) : (State.nicknames[lastU.from] || lastU.from)}: ${window.Chat.previewText(lastU)}` : '';
+                    }
 
                     snap.docChanges().forEach(change => {
                         if (change.type === 'added') {
@@ -12049,26 +12043,25 @@ html.qd-lite .qd-fx { display: none !important; }
                 });
 
                 db.collection("private_chat").where("to", "==", State.currentUser).onSnapshot(snap => {
+                    // Đếm trực tiếp tin riêng chưa đọc theo từng người gửi (tự cập nhật khi có tin mới / khi đã đọc)
+                    const ub = {}, last = {};
+                    snap.forEach(doc => {
+                        const m = doc.data(); if (!m || !m.from || m.from === State.currentUser || m.conversationId === 'general_room') return;
+                        const t = +m.time || 0; if (t > (last[m.from] || 0)) last[m.from] = t;
+                        if (m.read || m.revoked) return;
+                        const o = ub[m.from] || (ub[m.from] = { n: 0, at: 0, text: '' });
+                        o.n++; if (t >= o.at) { o.at = t; o.text = window.Chat.previewText(m); }
+                    });
+                    State.unreadBy = ub; State.lastFrom = last;
+                    document.querySelectorAll('#contact-list-ui .contact-card[data-u]').forEach(c => window.Chat.paintBadge(c.getAttribute('data-u')));
+                    window.Chat.sortContacts();
+
                     snap.docChanges().forEach(change => {
                         if (change.type === 'added') {
                             const data = change.doc.data();
                             if (data.from !== State.currentUser && data.time > State.appStartTime && State.chatTarget !== data.from) {
                                 const dN = State.nicknames[data.from] || data.from;
                                 window.Chat.showNotification(`Tin nhắn từ ${dN}`, data.text || "Đã gửi một ảnh đính kèm", data.conversationId);
-                                
-                                // Cập nhật live số tin nhắn chưa đọc cho liên hệ
-                                const roomId = Utils.getRoomId(State.currentUser, data.from);
-                                db.collection("private_chat").where("conversationId", "==", roomId).where("to", "==", State.currentUser).where("read", "==", false).get().then(unreadSnap => {
-                                    const unreadCount = unreadSnap.size;
-                                    const card = document.getElementById(`contact-${data.from}`);
-                                    if (card) {
-                                        const nameDiv = card.querySelector('.font-bold.text-main');
-                                        if (nameDiv) {
-                                            const unreadHtml = unreadCount > 0 ? `<span class="unread-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>` : '';
-                                            nameDiv.innerHTML = `${dN} ${unreadHtml}`;
-                                        }
-                                    }
-                                });
                             }
                         }
                     });
@@ -12077,7 +12070,69 @@ html.qd-lite .qd-fx { display: none !important; }
                 setInterval(() => { if(State.chatTarget) window.Chat.updateHeader(); }, 30000);
             },
             
-            filterContacts: () => { const v = document.getElementById('inp-search-contact').value.toLowerCase(); document.querySelectorAll('.contact-card').forEach(c => { c.style.display = c.getAttribute('data-key').includes(v) ? 'flex' : 'none'; }); },
+            // Nội dung xem trước 1 tin nhắn (dòng dưới tên trong danh bạ)
+            previewText: (m) => {
+                if (!m) return '';
+                if (m.revoked) return 'Tin nhắn đã bị thu hồi';
+                const t = String(m.text || '').replace(/\s+/g, ' ').trim();
+                return t ? t.slice(0, 90) : (m.imageUrl ? '🖼️ Đã gửi một ảnh' : 'Tin nhắn mới');
+            },
+            // Vẽ (hoặc vẽ lại) thẻ 1 tài khoản trong danh bạ
+            renderCard: (d) => {
+                const ls = document.getElementById('contact-list-ui'); if (!ls || !d || !d.user) return;
+                const u = d.user, isOn = Utils.isOnline(d.lastActive, d.online), dN = State.nicknames[u] || u;
+                let card = document.getElementById(`contact-${u}`);
+                if (!card) {
+                    card = document.createElement('div');
+                    card.id = `contact-${u}`;
+                    card.onclick = () => window.Chat.selectTarget(u);
+                    ls.appendChild(card);
+                }
+                card.className = 'contact-card' + (State.chatTarget === u ? ' active' : '');
+                card.setAttribute('data-key', dN.toLowerCase());
+                card.setAttribute('data-u', u);
+                const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                card.innerHTML = `<div class="avatar-circle" style="position:relative;">${window.Avatar ? window.Avatar.inner(d.avatar, dN) : esc(dN.charAt(0).toUpperCase())}<div class="status-indicator ${isOn?'online':'offline'}"${Utils.liveAgo(d.lastActive, d.online, { fmt: 'none', on: 'online', off: 'offline' })}></div></div><div class="flex-col flex-1 overflow-hidden"><div class="qd-ct-top font-bold text-main text-lg">${window.QDStaff ? window.QDStaff.name(u, dN) : `<span class="qd-ct-nm">${esc(dN)}</span>`}<span class="qd-ct-badge"></span></div><div class="qd-ct-sub text-sm font-semibold ${isOn?'text-success':'text-muted'}"${Utils.liveAgo(d.lastActive, d.online, { on: 'text-success', off: 'text-muted' })}>${Utils.timeAgo(d.lastActive, d.online)}</div><div class="qd-ct-prev text-main"></div></div>`;
+                window.Chat.paintBadge(u);
+            },
+            // Nút đỏ nhỏ đếm tin chưa đọc + in đậm tin mới nhất (kiểu Zalo / Messenger)
+            paintBadge: (u) => {
+                const card = document.getElementById(`contact-${u}`); if (!card) return;
+                const info = (State.unreadBy || {})[u], n = info && State.chatTarget !== u ? info.n : 0;
+                card.classList.toggle('has-unread', n > 0);
+                const b = card.querySelector('.qd-ct-badge');
+                if (b) b.innerHTML = n > 0 ? `<span class="unread-badge" title="${n} tin nhắn chưa đọc">${n > 99 ? '99+' : n}</span>` : '';
+                const p = card.querySelector('.qd-ct-prev');
+                if (p) p.textContent = n > 0 ? info.text : '';
+            },
+            // Thứ tự danh bạ: Kênh Chung -> Ban quản lý (admin / quản lý) -> Thành viên.
+            // Trong mỗi nhóm: có tin chưa đọc lên đầu (mới nhất trước), rồi người nhắn gần đây, rồi theo tên.
+            sortContacts: () => {
+                const ls = document.getElementById('contact-list-ui'); if (!ls) return;
+                const ub = State.unreadBy || {}, last = State.lastFrom || {}, acc = State.accInfo || {};
+                const isStaff = u => window.QDStaff ? window.QDStaff.is(u) : (u === 'admin' || ['admin', 'manager'].includes((acc[u] || {}).role));
+                const rank = u => u === 'admin' || (acc[u] || {}).role === 'admin' ? 0 : 1;
+                const unr = u => (ub[u] && State.chatTarget !== u) ? ub[u].at : 0;
+                const cmp = (a, b) => {
+                    const x = a.getAttribute('data-u'), y = b.getAttribute('data-u');
+                    return (unr(y) - unr(x)) || ((last[y] || 0) - (last[x] || 0)) || (rank(x) - rank(y)) || a.getAttribute('data-key').localeCompare(b.getAttribute('data-key'), 'vi');
+                };
+                const cards = Array.from(ls.querySelectorAll(':scope > .contact-card[data-u]'));
+                const staff = cards.filter(c => isStaff(c.getAttribute('data-u'))).sort(cmp);
+                const mem = cards.filter(c => !isStaff(c.getAttribute('data-u'))).sort(cmp);
+                const hS = document.getElementById('qd-ct-head-staff'), hM = document.getElementById('qd-ct-head-mem');
+                if (hS) hS.hidden = !staff.length;
+                if (hM) hM.hidden = !mem.length;
+                const want = [document.getElementById('contact-general'), hS, ...staff, hM, ...mem].filter(Boolean);
+                const now = Array.from(ls.children).filter(el => want.includes(el));
+                if (now.length === want.length && now.every((el, i) => el === want[i])) return;   // đã đúng thứ tự: không đụng DOM
+                want.forEach(el => ls.appendChild(el));
+            },
+            filterContacts: () => {
+                const v = document.getElementById('inp-search-contact').value.toLowerCase();
+                document.querySelectorAll('#contact-list-ui .contact-card').forEach(c => { c.style.display = (c.getAttribute('data-key') || '').includes(v) ? 'flex' : 'none'; });
+                document.querySelectorAll('#contact-list-ui .qd-ct-head').forEach(h => { h.style.display = v ? 'none' : ''; });
+            },
             
             selectTarget: (u) => {
                 State.chatTarget = u; document.querySelectorAll('.contact-card').forEach(el => el.classList.remove('active'));
@@ -12089,6 +12144,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     // Xóa ngay lập tức badge chưa đọc khi click vào tin nhắn
                     const badge = card.querySelector('.unread-badge');
                     if (badge) badge.remove();
+                    card.classList.remove('has-unread');
                 }
                 
                 const emp = document.getElementById('chat-empty-ui'); const act = document.getElementById('chat-active-ui');
@@ -12169,7 +12225,7 @@ html.qd-lite .qd-fx { display: none !important; }
                                 const currentHeight = window.visualViewport.height;
                                 document.body.style.height = `${currentHeight}px`;
                                 const box = document.getElementById('chat-history-ui');
-                                if(box) { setTimeout(() => { box.scrollTop = box.scrollHeight; }, 150); }
+                                if(box && box.__qdStick !== false) { setTimeout(() => window.Chat.toBottom(box), 150); }
                             }
                         };
                         window.__qdVVfn = handleViewportResize;
@@ -12231,17 +12287,31 @@ html.qd-lite .qd-fx { display: none !important; }
                 document.getElementById('mi-list').innerHTML = html;
             },
 
+            // Đặt vị trí cuộn tức thì (tắt tạm cuộn mượt), mặc định là đáy = tin mới nhất
+            toBottom: (box, top) => {
+                if (!box) return;
+                const sb = box.style.scrollBehavior; box.style.scrollBehavior = 'auto';
+                box.scrollTop = top == null ? box.scrollHeight : top;
+                box.style.scrollBehavior = sb;
+            },
+
             load: () => {
                 if(State.chatListener) State.chatListener(); const box = document.getElementById('chat-history-ui'); if(!box) return;
                 box.innerHTML = `<div class="text-center text-primary mt-10 text-3xl"><i class="fa-solid fa-spinner fa-spin"></i></div>`;
                 
                 const roomId = State.chatTarget === 'general' ? 'general_room' : Utils.getRoomId(State.currentUser, State.chatTarget);
                 
-                State.chatFirstPaint = true;
+                State.chatFirstPaint = true; State.chatOpenAt = Date.now(); box.__qdStick = true;
+                // Bám đáy: người dùng tự kéo lên xem tin cũ thì thôi bám; ảnh tải xong khi đang bám đáy thì giữ nguyên ở tin mới nhất
+                if (!box.__qdStickInit) {
+                    box.__qdStickInit = true;
+                    box.addEventListener('scroll', () => { box.__qdStick = box.scrollHeight - box.scrollTop - box.clientHeight < 140; }, { passive: true });
+                    box.addEventListener('load', (e) => { if (e.target && e.target.tagName === 'IMG' && box.__qdStick) window.Chat.toBottom(box); }, true);
+                }
                 State.chatListener = db.collection("private_chat").where("conversationId", "==", roomId).onSnapshot(snap => {
                     // Chỉ tự cuộn xuống cuối khi đang ở gần cuối / lần đầu mở / mình vừa gửi -> không bị giật khi ai đó thả tim
                     const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
-                    const prevTop = box.scrollTop, first = State.chatFirstPaint; State.chatFirstPaint = false;
+                    const prevTop = box.scrollTop, first = State.chatFirstPaint || (box.__qdStick && Date.now() - (State.chatOpenAt || 0) < 2500); State.chatFirstPaint = false;
                     const iSent = snap.docChanges().some(c => c.type === 'added' && c.doc.data().from === State.currentUser);
                     State.chatMsgs = {};
                     box.innerHTML = ""; if(snap.empty) { box.innerHTML = `<div class="text-center text-success mt-10"><i class="fa-solid fa-shield-heart text-5xl mb-4 opacity-50 block"></i>Kênh kết nối hoàn tất. Hãy gửi tin nhắn đầu tiên!</div>`; return; }
@@ -12344,8 +12414,10 @@ html.qd-lite .qd-fx { display: none !important; }
                         }
                     });
 
-                    if (first || nearBottom || iSent) setTimeout(() => box.scrollTop = box.scrollHeight, 100);
-                    else box.scrollTop = prevTop;
+                    // Mới mở cuộc trò chuyện: nhảy thẳng tới tin mới nhất ngay trong lần vẽ đầu (không chạy hiệu ứng cuộn từ trên xuống)
+                    if (first) { window.Chat.toBottom(box); box.__qdStick = true; }
+                    else if (nearBottom || iSent) setTimeout(() => box.scrollTop = box.scrollHeight, 100);
+                    else window.Chat.toBottom(box, prevTop);
                 });
             },
             
@@ -23881,6 +23953,32 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         return { set: set, level: function () { return level; }, choice: function () { return choice; }, on: function (f) { subs.push(f); }, popover: popover, draw: draw };
     })();
     </script>
+
+    <!-- ===== QD DANH BẠ: nút đỏ đếm tin chưa đọc kiểu Zalo / Messenger + nhãn nhóm Ban quản lý / Thành viên ===== -->
+    <style id="qd-contact-unread-css">
+        #view-chat .contact-card .qd-ct-top { display: flex; align-items: center; gap: 8px; min-width: 0; white-space: nowrap; }
+        #view-chat .contact-card .qd-ct-top > .qd-nm,
+        #view-chat .contact-card .qd-ct-top > .qd-ct-nm { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #view-chat .contact-card .qd-ct-badge { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+        #view-chat .contact-card .unread-badge {
+            min-width: 20px; height: 20px; padding: 0 6px; margin-left: 0; border-radius: 999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; line-height: 1; color: #fff; background: #ef4444;
+            box-shadow: 0 0 0 2px var(--bg-elevated), 0 2px 6px rgba(239, 68, 68, .45);
+            animation: qdUbPop .28s ease-out;
+        }
+        @keyframes qdUbPop { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+        #view-chat .contact-card .qd-ct-prev { display: none; font-size: 13px; font-weight: 700; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #view-chat .contact-card.has-unread .qd-ct-prev { display: block; }
+        #view-chat .contact-card.has-unread .qd-ct-sub { display: none; }
+        #view-chat .contact-card.has-unread .qd-ct-top { font-weight: 900; }
+        #view-chat .qd-ct-head { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); padding: 10px 8px 2px; display: flex; align-items: center; gap: 6px; }
+        #view-chat .qd-ct-head[hidden] { display: none !important; }
+        #view-chat #qd-ct-head-staff i { color: #1d6fe0; }
+        html[data-theme="tet"] #view-chat .qd-ct-head { color: rgba(255, 236, 179, .8); }
+        html[data-theme="tet"] #view-chat #qd-ct-head-staff i { color: #9ccbff; }
+        @media (prefers-reduced-motion: reduce) { #view-chat .contact-card .unread-badge { animation: none; } }
+    </style>
 
     <!-- ===== QD QUẢN LÝ: tài khoản admin / quản lý hiện chữ xanh dương + dấu tích trong phần Tin nhắn ===== -->
     <style id="qd-staff-css">
