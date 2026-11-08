@@ -9338,6 +9338,7 @@ html.qd-lite .qd-fx { display: none !important; }
 
             <button class="btn btn-primary w-full au2-btn" id="btn-login" onclick="window.Auth.login()">Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i></button>
             <p class="au2-foot">Chưa có tài khoản? <a href="index.html">Đăng ký tại cổng sự kiện</a></p>
+            <div data-qd-ver="short" class="au2-ver"></div>
         </div>
     </div>
     <!-- LỒNG ĐÈN TẾT -->
@@ -9863,6 +9864,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     </div>
                 </div>
             </div>
+            <div data-qd-ver="full"></div>
             <button class="btn btn-primary w-full" onclick="window.UI.closeModal('modal-settings')">Hoàn Tất</button>
         </div>
     </div>
@@ -24130,6 +24132,66 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 .then(function (v) { if (v && v.versionCode > cur && /^[\w.-]+\.apk$/.test(v.file || '')) show(v); })
                 .catch(function () {});
         }, 4000);
+    })();
+    </script>
+    <!-- ===== QD PHIÊN BẢN HỆ THỐNG: đọc app-update.json (GitHub tự tạo mỗi lần đẩy file lên), điền vào mọi ô [data-qd-ver] =====
+         data-qd-ver="short" -> 1 dòng nhỏ · data-qd-ver="full" -> bảng chi tiết (mã phiên bản, lúc cập nhật, nội dung, app) -->
+    <style id="qd-ver-css">
+        [data-qd-ver] { font-size: 12px; line-height: 1.45; }
+        [data-qd-ver="short"] { opacity: .78; text-align: center; margin-top: 10px; word-break: break-word; }
+        [data-qd-ver="short"] b { font-weight: 800; letter-spacing: .02em; }
+        [data-qd-ver="full"] { margin: 0 0 18px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border-strong, rgba(0,0,0,.12)); text-align: left; font-size: 13px; }
+        [data-qd-ver="full"] .qv-h { display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 8px; }
+        [data-qd-ver="full"] .qv-r { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-top: 1px dashed var(--border-strong, rgba(0,0,0,.12)); }
+        [data-qd-ver="full"] .qv-r span { opacity: .75; flex: 0 0 auto; }
+        [data-qd-ver="full"] .qv-r b { text-align: right; min-width: 0; overflow-wrap: anywhere; }
+        [data-qd-ver] a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+        [data-qd-ver] .qv-new { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 800; background: #f59e0b; color: #fff; }
+        html[data-theme="tet"] #auth-gate .au2-ver { color: #ffe3c4; }
+    </style>
+    <script id="qd-ver-js">
+    window.QDVersion = (function () {
+        'use strict';
+        var REPO = 'vantrinhvn/sukienqd', info = null, waiting = [];
+        var ua = navigator.userAgent || '', app = /QDEliteApp\/([\d.]+)/.exec(ua), webInApp = /QDWeb\/(\w+)/.exec(ua);
+        function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        function p2(n) { return (n < 10 ? '0' : '') + n; }
+        function when(t) { if (!t) return ''; var d = new Date(t); return p2(d.getHours()) + ':' + p2(d.getMinutes()) + ' ' + p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear(); }
+        function getJson(u, h) { return fetch(u, { cache: 'no-store', headers: h || {} }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+        function load() {
+            // Trang web: file ngay cạnh trang. Trong app (file web đóng gói / cập nhật nóng): đọc thẳng từ GitHub.
+            return getJson('app-update.json?t=' + Date.now())
+                .catch(function () { return getJson('https://raw.githubusercontent.com/' + REPO + '/main/app-update.json?t=' + Date.now()); })
+                .catch(function () { return getJson('https://api.github.com/repos/' + REPO + '/contents/app-update.json?ref=main', { Accept: 'application/vnd.github.raw' }); })
+                .then(function (j) { return j && j.version ? j : null; }, function () { return null; });
+        }
+        function running() {   // bản web đang chạy: trong app lấy từ User-Agent (bản đã cập nhật nóng), trên web = bản mới nhất
+            if (!app) return info ? info.version : '';
+            return webInApp ? webInApp[1] : 'đóng gói trong app';
+        }
+        function link(v) { return /^[0-9a-f]{7,40}$/.test(v) ? '<a href="https://github.com/' + REPO + '/commit/' + esc(info && info.commit && info.commit.indexOf(v) === 0 ? info.commit : v) + '" target="_blank" rel="noopener"><b>' + esc(v) + '</b></a>' : '<b>' + esc(v) + '</b>'; }
+        function paint() {
+            var run = running(), latest = info ? info.version : '', stale = app && latest && run !== latest;
+            Array.prototype.forEach.call(document.querySelectorAll('[data-qd-ver]'), function (el) {
+                if (el.getAttribute('data-qd-ver') === 'full') {
+                    var rows = [];
+                    rows.push(['Phiên bản web', run ? link(run) + (stale ? '<span class="qv-new">có bản mới ' + esc(latest) + '</span>' : '') : '<b>Không đọc được</b>']);
+                    if (info && info.time) rows.push(['Cập nhật lúc', '<b>' + esc(when(info.time)) + '</b>']);
+                    if (info && info.message) rows.push(['Nội dung', '<b>' + esc(info.message) + '</b>']);
+                    if (app) rows.push(['Ứng dụng', '<b>QD Elite v' + esc(app[1]) + '</b>']);
+                    el.innerHTML = '<div class="qv-h"><i class="fa-solid fa-circle-info"></i> Phiên bản hệ thống</div>'
+                        + rows.map(function (r) { return '<div class="qv-r"><span>' + r[0] + '</span>' + r[1] + '</div>'; }).join('');
+                } else {
+                    el.innerHTML = run ? 'Phiên bản <b>' + esc(run) + '</b>' + (info && info.time ? ' · ' + esc(when(info.time)) : '') + (app ? ' · App v' + esc(app[1]) : '') + (stale ? ' · <b>có bản mới</b>' : '') : (app ? 'App v' + esc(app[1]) : '');
+                }
+            });
+        }
+        function start() {
+            paint();
+            load().then(function (j) { info = j; paint(); waiting.forEach(function (f) { try { f(info); } catch (e) {} }); waiting = []; });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+        return { paint: paint, get: function () { return info; }, onLoad: function (f) { if (info) f(info); else waiting.push(f); } };
     })();
     </script>
     <script id="qd-boot-done">
