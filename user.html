@@ -24199,13 +24199,12 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         function reloadFresh() {
             try { var u = new URL(location.href); u.searchParams.set('v', info.version); location.replace(u.toString()); } catch (e) { location.reload(); }
         }
-        function gate() {
-            var old = document.getElementById('qd-force-upd');
-            if (!isStale()) { if (old) old.remove(); return; }
-            if (old) return;
-            var b = bridge(), oldApp = app && !b;
-            var d = document.createElement('div'); d.id = 'qd-force-upd'; d.setAttribute('role', 'alertdialog'); d.setAttribute('aria-modal', 'true');
-            d.innerHTML = '<div class="box"><div class="ic">🔄</div><h3>Đã có phiên bản mới ' + esc(num(info)) + '</h3>'
+        // Lớp phủ "Cập nhật ngay" (kiểu Tết). name: tên phiên bản mới; oldApp: app chưa có cầu nối -> hướng dẫn mở lại app
+        function overlay(name, oldApp) {
+            var d = document.getElementById('qd-force-upd'); if (d) return d;
+            var b = bridge();
+            d = document.createElement('div'); d.id = 'qd-force-upd'; d.setAttribute('role', 'alertdialog'); d.setAttribute('aria-modal', 'true');
+            d.innerHTML = '<div class="box"><div class="ic">🔄</div><h3>Đã có phiên bản mới' + (name ? ' ' + esc(name) : '') + '</h3>'
                 + (oldApp
                     ? '<p>Bạn đang dùng bản cũ. Hãy <b>tắt hẳn app QD Elite</b> (vuốt app khỏi danh sách đa nhiệm) rồi <b>mở lại</b> để cập nhật.</p><p class="sm">Nếu app hỏi "Cập nhật", hãy chọn Cập nhật.</p>'
                     : '<p>Bạn đang dùng bản cũ. Vui lòng cập nhật để tiếp tục sử dụng.</p>')
@@ -24217,6 +24216,18 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 if (app && b) { try { b.updateNow(); } catch (e) { location.reload(); } setTimeout(function () { go.disabled = false; go.textContent = 'Cập nhật ngay'; }, 15000); }
                 else reloadFresh();
             };
+            return d;
+        }
+        function gate() {
+            var old = document.getElementById('qd-force-upd');
+            if (!isStale()) { if (old && !old.__app) old.remove(); return; }
+            overlay(num(info), app && !bridge());
+        }
+        // App (v1.0.24+) báo đã tải xong bản web mới -> hiện lớp phủ Tết thay cho hộp thoại trắng của Android
+        function appUpdateReady(version, message) {
+            if (!app || !bridge()) return false;
+            var d = overlay(info && info.version === version ? num(info) : '', false); d.__app = true;
+            return true;
         }
         function refresh() {
             return load().then(function (j) {
@@ -24236,7 +24247,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             window.addEventListener('online', refresh);
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
-        return { paint: paint, refresh: refresh, get: function () { return info; }, stale: isStale, onLoad: function (f) { if (info) f(info); else waiting.push(f); } };
+        return { paint: paint, refresh: refresh, appUpdateReady: appUpdateReady, get: function () { return info; }, stale: isStale, onLoad: function (f) { if (info) f(info); else waiting.push(f); } };
     })();
     </script>
     <script id="qd-boot-done">
