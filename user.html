@@ -18019,9 +18019,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 { src: 'media/nhac-tet.mp3',   name: 'Xuân Về Phơi Phới', desc: 'Sáo trúc · đàn tranh' },
                 { src: 'media/nhac-tet-2.mp3', name: 'Xuân Rộn Ràng',     desc: 'Pop sôi động · đàn bầu' },
                 { src: 'media/nhac-tet-3.mp3', name: 'Lân Về Phố',        desc: 'Trống lân · kèn · pháo' },
-                { src: 'media/nhac-tet-4.mp3', name: 'Sum Vầy Ngày Xuân', desc: 'Đàn tranh · đàn bầu' }
+                { src: 'media/nhac-tet-4.mp3', name: 'Sum Vầy Ngày Xuân', desc: 'Đàn tranh · đàn bầu' },
+                { src: 'media/nhac-tet-5.mp3', name: 'Phố Xuân Rộn Rã',   desc: 'Sáo trúc · đàn tranh · trống cơm' }
             ],
-            mode: 'auto', idx: 0,   // mode: 'auto' = tự chuyển bài lần lượt, '0'..'3' = lặp 1 bài
+            mode: 'auto', idx: 0,   // mode: 'auto' = tự chuyển bài lần lượt, '0'..'4' = lặp 1 bài
             el: null, vol: 50, lastVol: 50, enabled: true, active: false,
             ctx: null, gain: null, useGain: false, _waitGesture: false, _fadeT: 0,
             load: function () {
@@ -18074,7 +18075,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 var self = this, playing = !!(this.el && !this.el.paused);
                 if (!box.__built) {
                     box.__built = true;
-                    var h = '<button type="button" class="qd-trk auto" data-m="auto"><span class="qd-trk-n"><i class="fa-solid fa-shuffle"></i></span><span class="qd-trk-t"><b>Tự động chuyển bài</b><small>Phát lần lượt cả 4 bài</small></span></button>';
+                    var h = '<button type="button" class="qd-trk auto" data-m="auto"><span class="qd-trk-n"><i class="fa-solid fa-shuffle"></i></span><span class="qd-trk-t"><b>Tự động chuyển bài</b><small>Phát lần lượt cả ' + self.TRACKS.length + ' bài</small></span></button>';
                     this.TRACKS.forEach(function (t, i) {
                         h += '<button type="button" class="qd-trk" data-m="' + i + '"><span class="qd-trk-n">' + (i + 1) + '</span><span class="qd-trk-t"><b>' + t.name + '</b><small>' + t.desc + '</small></span><span class="qd-trk-eq" aria-hidden="true"><i></i><i></i><i></i></span></button>';
                     });

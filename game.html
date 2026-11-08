@@ -1912,7 +1912,7 @@ html.qd-lite .qd-fx { display: none !important; }
     <!-- ===== QD TẾT MUSIC: nhạc nền Tết dùng chung (mọi trang trừ admin; user.html có trình phát riêng) ===== -->
     <script id="qd-music-js">
     /* - Vào trang tự bật nhạc Tết (mặc định Bật). Trình duyệt chặn tự phát -> phát ở lần chạm / bấm phím đầu tiên
-       - 4 bài: mặc định tự chuyển bài lần lượt; chọn lặp 1 bài trong Cài đặt của trang user (qd_music_track: 'auto' | '0'..'3')
+       - 5 bài: mặc định tự chuyển bài lần lượt; chọn lặp 1 bài trong Cài đặt của trang user (qd_music_track: 'auto' | '0'..'4')
        - Dùng chung cài đặt với trang user: qd_music_on ('0' = tắt), qd_music_vol (0-100, mặc định 50)
        - Chuyển trang -> nghe tiếp đúng đoạn đang phát; ẩn tab -> tạm dừng, quay lại -> phát tiếp
        - Nút tròn góc trái dưới: bấm để Bật / Tắt nhạc */
@@ -1925,7 +1925,8 @@ html.qd-lite .qd-fx { display: none !important; }
             { src: 'media/nhac-tet.mp3', name: 'Xuân Về Phơi Phới' },
             { src: 'media/nhac-tet-2.mp3', name: 'Xuân Rộn Ràng' },
             { src: 'media/nhac-tet-3.mp3', name: 'Lân Về Phố' },
-            { src: 'media/nhac-tet-4.mp3', name: 'Sum Vầy Ngày Xuân' }
+            { src: 'media/nhac-tet-4.mp3', name: 'Sum Vầy Ngày Xuân' },
+            { src: 'media/nhac-tet-5.mp3', name: 'Phố Xuân Rộn Rã' }
         ];
         function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
         function readVol() { var v = parseInt(ls('qd_music_vol'), 10); return isNaN(v) ? 50 : Math.min(100, Math.max(0, v)); }
