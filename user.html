@@ -24000,6 +24000,11 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
 
     <!-- ===== QD DANH BẠ: nút đỏ đếm tin chưa đọc kiểu Zalo / Messenger + nhãn nhóm Ban quản lý / Thành viên ===== -->
     <style id="qd-contact-unread-css">
+        /* Phần chữ cạnh ảnh đại diện không được rộng quá thẻ (lớp "overflow-hidden" không có sẵn trong trang):
+           tin dài tự cắt "..." thay vì tràn ra ngoài và đẩy chấm đỏ ra khỏi khung */
+        #view-chat .contact-card { min-width: 0; max-width: 100%; flex-shrink: 0; }
+        #view-chat .contact-card > .flex-col { flex: 1 1 0%; min-width: 0; overflow: hidden; }
+        #view-chat .contact-card .qd-ct-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #view-chat .contact-card .qd-ct-top { display: flex; align-items: center; gap: 8px; min-width: 0; white-space: nowrap; }
         #view-chat .contact-card .qd-ct-top > .qd-nm,
         #view-chat .contact-card .qd-ct-top > .qd-ct-nm { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
