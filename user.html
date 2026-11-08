@@ -24022,8 +24022,8 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         }
         @keyframes qdUbPop { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
         #view-chat .contact-card .qd-ct-prev { display: none; font-size: 13px; font-weight: 700; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #view-chat .contact-card.has-unread .qd-ct-prev { display: block; }
-        #view-chat .contact-card.has-unread .qd-ct-sub { display: none; }
+        /* Không hiện dòng xem trước nội dung tin nhắn: dưới tên luôn là dòng trạng thái (online / mô tả kênh) */
+        #view-chat .contact-card .qd-ct-prev { display: none !important; }
         #view-chat .contact-card.has-unread .qd-ct-top { font-weight: 900; }
         #view-chat .qd-ct-head { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); padding: 10px 8px 2px; display: flex; align-items: center; gap: 6px; }
         #view-chat .qd-ct-head[hidden] { display: none !important; }
