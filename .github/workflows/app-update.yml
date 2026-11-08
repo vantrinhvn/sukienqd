@@ -1,0 +1,39 @@
+# Mỗi lần đẩy file web lên nhánh main: tự tạo app-update.json để app Android QD Elite
+# tự cập nhật bản web mới (hiện hộp thoại "Cập nhật ngay"), KHÔNG cần build / cài lại APK.
+name: Cập nhật cho app
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: [ 'app-update.json' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: app-update
+  cancel-in-progress: false
+
+jobs:
+  manifest:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v5
+
+      - name: Tạo app-update.json
+        run: python3 .github/scripts/app-update.py "$GITHUB_SHA"
+
+      - name: Lưu app-update.json vào kho
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app-update.json
+          if git diff --cached --quiet; then echo "Không có gì thay đổi"; exit 0; fi
+          git commit -m "App: cập nhật app-update.json (${GITHUB_SHA::7})"
+          for i in 1 2 3; do
+            git pull --rebase -q origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          echo "::error::Không đẩy được app-update.json"; exit 1
