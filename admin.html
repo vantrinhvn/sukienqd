@@ -1062,7 +1062,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                         <div>
                             <label class="form-label m-0" style="font-size: 15px; color: #f59e0b;">Quản lý video giới thiệu</label>
-                            <span class="text-xs text-muted">Bật: trang chủ chỉ phát video có nhạc, ẩn Đăng nhập / Đăng ký</span>
+                            <span class="text-xs text-muted">Bật: trang chủ và màn hình đăng nhập (cả trong app) chỉ phát video có nhạc, ẩn Đăng nhập / Đăng ký. Ai đã đăng nhập vẫn dùng bình thường.</span>
                         </div>
                     </div>
                     <label class="switch">
@@ -14905,7 +14905,7 @@ window.QDXlsx = (function () {
             var tg = $('cfg-iv-toggle'), sel = $('cfg-iv-video'), s = $('cfg-iv-status');
             if (tg) tg.checked = st.isEnabled; if (sel) sel.value = st.video; preview(st.video);
             if (s) s.innerHTML = (st.isEnabled ? '<b style="color:#22c55e">● Đang BẬT</b> — trang chủ đang phát “' + NAMES[st.video] + '”'
-                : '<b>○ Đang TẮT</b> — trang chủ hiện Đăng nhập / Đăng ký bình thường') + (st.updatedAt ? ' · ' + fmt(st.updatedAt) : '');
+                : '<b>○ Đang TẮT</b> — trang chủ và màn hình đăng nhập hiện bình thường') + (st.updatedAt ? ' · ' + fmt(st.updatedAt) : '');
         }
         function save(patch, ok, revert) {
             if (!R()) { toast('Chưa kết nối máy chủ, thử lại sau.', 'error'); if (revert) revert(); return; }

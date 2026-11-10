@@ -2359,10 +2359,11 @@ html.qd-lite .qd-fx { display: none !important; }
     </script>
 
     <!-- ===== VIDEO GIỚI THIỆU: Admin bật trong admin.html (Cài đặt → Quản lý video giới thiệu)
-         Bật: trang chủ chỉ phát video có nhạc, ẩn Đăng nhập / Đăng ký. Tắt: trang chủ trở lại bình thường (cập nhật tức thì). ===== -->
+         Bật: trang chủ (index) và màn hình đăng nhập (user.html, kể cả trong app) chỉ phát video có nhạc, ẩn Đăng nhập / Đăng ký.
+         Người đã đăng nhập vẫn dùng bình thường. Tắt: trở lại như cũ (cập nhật tức thì). ===== -->
     <style id="qd-intro-css">
         html.qd-intro-on, html.qd-intro-on body { overflow: hidden !important; }
-        html.qd-intro-on body > *:not(#qd-intro):not(#toast-container) { display: none !important; }   /* ẩn hẳn trang + hiệu ứng (hoa rơi, pháo hoa, video huy hiệu) */
+        html.qd-intro-on body > *:not(#qd-intro):not(#toast-container):not(#qd-force-upd) { display: none !important; }   /* ẩn hẳn trang + hiệu ứng */
         #qd-intro { position: fixed; inset: 0; z-index: 2147483000; display: none; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         html.qd-intro-on #qd-intro { display: flex; }
         #qd-intro video { position: relative; display: block; width: min(100vw, calc(100dvh * 9 / 16)); height: auto; aspect-ratio: 9 / 16; max-height: 100dvh; object-fit: contain; background: #000; }
@@ -2374,10 +2375,10 @@ html.qd-lite .qd-fx { display: none !important; }
     </style>
     <script>
     (function () {
-        var W = window, d = document, html = d.documentElement;
+        var W = window, d = document, html = d.documentElement, GATE = null;
         var VIDS = { phonk: 'media/gioi-thieu-phonk.mp4', hungtrang: 'media/gioi-thieu-hung-trang.mp4' };
         function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
-        var box, vid, snd, ctl, cur = '', first = true;
+        var box, vid, snd, ctl, cur = '', first = true, want = false, key = 'phonk', shown = false;
         function build() {
             if (box) return;
             box = d.createElement('div'); box.id = 'qd-intro'; box.setAttribute('role', 'region'); box.setAttribute('aria-label', 'Video giới thiệu');
@@ -2392,7 +2393,7 @@ html.qd-lite .qd-fx { display: none !important; }
             });
             vid.addEventListener('volumechange', ui); vid.addEventListener('playing', ui);
             d.addEventListener('visibilitychange', function () {
-                if (!W.__qdIntroOn || !vid) return;
+                if (!shown || !vid) return;
                 if (d.hidden) vid.pause(); else vid.play().catch(function () {});
             });
         }
@@ -2413,12 +2414,18 @@ html.qd-lite .qd-fx { display: none !important; }
             if (block) { try { if (M.el && !M.el.paused) M.el.pause(); } catch (e) {} }
             else if (M.enabled && M.el && M.el.paused) M.play();
         }
-        function apply(on, key) {
-            var was = !!W.__qdIntroOn; W.__qdIntroOn = on;
-            ls('qd_intro_on', on ? '1' : null);
+        function gateOpen() {   // user.html: chỉ chiếu khi đang ở màn hình đăng nhập (chưa đăng nhập)
+            if (!GATE) return true;
+            var g = d.querySelector(GATE); if (!g) return false;
+            if (html.classList.contains('qd-boot')) return false;   // đang tự đăng nhập lại phiên cũ
+            return g.style.display !== 'none' && g.style.opacity !== '0';
+        }
+        function render() {
+            var on = want && gateOpen();
+            if (on === shown && (!on || cur === VIDS[key])) return;
+            var was = shown; shown = on; W.__qdIntroOn = on;
             if (on) {
-                build(); key = VIDS[key] ? key : 'phonk'; ls('qd_intro_vid', key);
-                html.classList.add('qd-intro-on'); music(true);
+                build(); html.classList.add('qd-intro-on'); music(true);
                 if (cur !== VIDS[key]) { cur = VIDS[key]; vid.src = cur; first = true; start(); }
                 else if (!was || vid.paused) start();
             } else {
@@ -2427,14 +2434,20 @@ html.qd-lite .qd-fx { display: none !important; }
                 if (was) music(false);
             }
         }
-        // Chặn mở form đăng ký khi đang chiếu video
+        function set(on, k) {
+            want = on; key = VIDS[k] ? k : 'phonk';
+            ls('qd_intro_on', on ? '1' : null); if (on) ls('qd_intro_vid', key);
+            render();
+        }
+        // Chặn mở form đăng ký khi đang chiếu video (index)
         if (typeof W.openRegisterModal === 'function') { var _o = W.openRegisterModal; W.openRegisterModal = function () { if (W.__qdIntroOn) return; return _o.apply(this, arguments); }; }
-        if (ls('qd_intro_on') === '1') apply(true, ls('qd_intro_vid'));   // hiện ngay theo lần trước, không lóe trang đăng nhập
+        if (ls('qd_intro_on') === '1') set(true, ls('qd_intro_vid'));   // hiện ngay theo lần trước, không lóe trang đăng nhập
+        if (GATE) setInterval(render, 400);   // đăng xuất -> hiện video; đăng nhập (phiên cũ) -> ẩn
         (function listen(n) {
             try {
                 firebase.firestore().collection('settings').doc('intro_video').onSnapshot(function (doc) {
-                    var x = doc.exists ? doc.data() : {}; apply(x.isEnabled === true, x.video);
-                }, function () {});
+                    var x = doc.exists ? doc.data() : {}; set(x.isEnabled === true, x.video);
+                }, function (e) { try { console.warn('[QD intro] không đọc được settings/intro_video', e && e.code); } catch (er) {} });
             } catch (e) { if (n < 40) setTimeout(function () { listen(n + 1); }, 250); }
         })(0);
     })();
