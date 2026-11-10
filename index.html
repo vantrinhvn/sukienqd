@@ -2261,6 +2261,7 @@ html.qd-lite .qd-fx { display: none !important; }
         /* ---------- Video tự chạy: Tiết kiệm / mạng chậm thì không tự phát ---------- */
         function videos() {
             Array.prototype.forEach.call(d.querySelectorAll('video[autoplay], video[muted], video.hero-video'), function (v) {
+                if (v.__qdIntro) return;   // video giới thiệu (Admin bật) luôn được phát
                 if (level === 'low') { if (!v.paused) { v.__qgPaused = true; try { v.pause(); } catch (e) {} } v.preload = 'none'; }
                 else if (v.__qgPaused) { v.__qgPaused = false; try { var p = v.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
             });
@@ -2351,7 +2352,7 @@ html.qd-lite .qd-fx { display: none !important; }
         setTimeout(monitor, 4000);
         var wasOpen = false;   // mở Cài đặt -> đo FPS nhanh hơn để hiện số trực tiếp (chỉ kiểm tra khi trang có khung chọn)
         setInterval(function () { if (d.hidden || !d.querySelector('[data-qd-gfx-panel]')) return; var o = panelOpen(); if (o && !wasOpen) { draw(); monitor(); } wasOpen = o; }, 1500);
-        d.addEventListener('play', function (e) { var v = e.target; if (level === 'low' && v && v.tagName === 'VIDEO' && (v.muted || v.classList.contains('hero-video'))) { v.__qgPaused = true; try { v.pause(); } catch (er) {} } }, true);
+        d.addEventListener('play', function (e) { var v = e.target; if (level === 'low' && v && v.tagName === 'VIDEO' && !v.__qdIntro && (v.muted || v.classList.contains('hero-video'))) { v.__qgPaused = true; try { v.pause(); } catch (er) {} } }, true);
 
         return { set: set, level: function () { return level; }, choice: function () { return choice; }, on: function (f) { subs.push(f); }, popover: popover, draw: draw };
     })();
@@ -2361,18 +2362,15 @@ html.qd-lite .qd-fx { display: none !important; }
          Bật: trang chủ chỉ phát video có nhạc, ẩn Đăng nhập / Đăng ký. Tắt: trang chủ trở lại bình thường (cập nhật tức thì). ===== -->
     <style id="qd-intro-css">
         html.qd-intro-on, html.qd-intro-on body { overflow: hidden !important; }
-        html.qd-intro-on body > *:not(#qd-intro):not(#toast-container) { visibility: hidden !important; }
-        #qd-intro { position: fixed; inset: 0; z-index: 2147483000; display: none; align-items: center; justify-content: center; background: #2a0508; overflow: hidden; }
+        html.qd-intro-on body > *:not(#qd-intro):not(#toast-container) { display: none !important; }   /* ẩn hẳn trang + hiệu ứng (hoa rơi, pháo hoa, video huy hiệu) */
+        #qd-intro { position: fixed; inset: 0; z-index: 2147483000; display: none; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         html.qd-intro-on #qd-intro { display: flex; }
-        #qd-intro .bg { position: absolute; inset: -60px; background: #5a0a10 url(media/gioi-thieu-poster.jpg) center/cover; filter: blur(30px) brightness(.5) saturate(1.25); }
-        #qd-intro video { position: relative; display: block; width: min(100vw, calc(100dvh * 9 / 16)); height: auto; aspect-ratio: 9 / 16; max-height: 100dvh; object-fit: cover; background: #000; box-shadow: 0 0 90px rgba(0,0,0,.55); }
+        #qd-intro video { position: relative; display: block; width: min(100vw, calc(100dvh * 9 / 16)); height: auto; aspect-ratio: 9 / 16; max-height: 100dvh; object-fit: contain; background: #000; }
         #qd-intro .snd { position: absolute; left: 50%; bottom: max(28px, calc(env(safe-area-inset-bottom) + 18px)); transform: translateX(-50%); border: 2px solid #ffe58a; border-radius: 999px;
             padding: 13px 24px; font: 800 16px/1.2 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #6a0710; background: linear-gradient(180deg, #ffe58a, #ffc93a);
-            box-shadow: 0 10px 30px rgba(0,0,0,.4); cursor: pointer; white-space: nowrap; animation: qdIntroPulse 1.6s ease-in-out infinite; }
+            cursor: pointer; white-space: nowrap; }
         #qd-intro .ctl { position: absolute; right: 14px; top: max(14px, calc(env(safe-area-inset-top) + 8px)); width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(255,229,138,.8);
             background: rgba(106,7,16,.72); color: #ffe58a; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        @keyframes qdIntroPulse { 50% { transform: translateX(-50%) scale(1.06); } }
-        @media (prefers-reduced-motion: reduce) { #qd-intro .snd { animation: none; } }
     </style>
     <script>
     (function () {
@@ -2383,10 +2381,11 @@ html.qd-lite .qd-fx { display: none !important; }
         function build() {
             if (box) return;
             box = d.createElement('div'); box.id = 'qd-intro'; box.setAttribute('role', 'region'); box.setAttribute('aria-label', 'Video giới thiệu');
-            box.innerHTML = '<div class="bg"></div><video playsinline webkit-playsinline loop preload="auto" poster="media/gioi-thieu-poster.jpg" disablepictureinpicture controlslist="nodownload"></video>'
+            box.innerHTML = '<video playsinline webkit-playsinline loop preload="auto" poster="media/gioi-thieu-poster.jpg" disablepictureinpicture controlslist="nodownload"></video>'
                 + '<button type="button" class="snd">🔊 Chạm để bật nhạc</button><button type="button" class="ctl" aria-label="Tắt / bật tiếng">🔊</button>';
             d.body.appendChild(box);
             vid = box.querySelector('video'); snd = box.querySelector('.snd'); ctl = box.querySelector('.ctl');
+            vid.__qdW = vid.__qdIntro = true;   // không để bộ tiết kiệm hiệu ứng / Mức đồ họa tự dừng video này
             box.addEventListener('click', function (e) {
                 if (e.target === ctl) { if (vid.muted) unmute(false); else { vid.muted = true; ui(); } return; }
                 if (vid.muted) unmute(first); else if (vid.paused) vid.play().catch(function () {});
