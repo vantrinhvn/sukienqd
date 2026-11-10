@@ -1055,21 +1055,22 @@ html.qd-lite .qd-fx { display: none !important; }
             </div>
 
             <div class="form-group mb-6 p-5 rounded-xl" id="iv-card" style="border: 1px solid rgba(245,158,11,.6); background: rgba(245,158,11,.06);">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center gap-3">
+                <div class="flex justify-between items-center mb-3" style="gap: 12px;">
+                    <div class="flex items-center gap-3" style="flex: 1; min-width: 0;">
                         <div class="flex-center rounded-full" style="width: 36px; height: 36px; background: rgba(245,158,11,0.2); color: #f59e0b; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <i class="fa-solid fa-film text-lg"></i>
                         </div>
-                        <div>
+                        <div style="min-width: 0;">
                             <label class="form-label m-0" style="font-size: 15px; color: #f59e0b;">Quản lý video giới thiệu</label>
-                            <span class="text-xs text-muted">Bật: trang chủ và màn hình đăng nhập (cả trong app) chỉ phát video có nhạc, ẩn Đăng nhập / Đăng ký. Ai đã đăng nhập vẫn dùng bình thường. Điện thoại xem bản dọc, máy tính tự xem bản ngang.</span>
+                            <span class="text-xs text-muted">Bật: chỉ phát video, ẩn Đăng nhập / Đăng ký</span>
                         </div>
                     </div>
-                    <label class="switch">
+                    <label class="switch" style="flex-shrink: 0;">
                         <input type="checkbox" id="cfg-iv-toggle" onchange="QDIntroAdmin.toggle(this)">
                         <span class="slider"></span>
                     </label>
                 </div>
+                <p class="text-xs text-muted" style="margin: 0 0 14px; line-height: 1.5;">Áp dụng cho trang chủ và màn hình đăng nhập (cả trong app). Ai đã đăng nhập vẫn dùng bình thường. Điện thoại xem bản dọc, máy tính tự xem bản ngang.</p>
                 <div class="form-group mb-3">
                     <label class="form-label text-xs">Video phát trên trang chủ</label>
                     <select id="cfg-iv-video" class="form-control" onchange="QDIntroAdmin.pick(this.value)">
