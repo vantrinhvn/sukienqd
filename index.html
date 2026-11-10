@@ -2367,37 +2367,40 @@ html.qd-lite .qd-fx { display: none !important; }
         #qd-intro { position: fixed; inset: 0; z-index: 2147483000; display: none; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         html.qd-intro-on #qd-intro { display: flex; }
         #qd-intro video { position: relative; display: block; width: min(100vw, calc(100dvh * 9 / 16)); height: auto; aspect-ratio: 9 / 16; max-height: 100dvh; object-fit: contain; background: #000; }
-        #qd-intro .snd { position: absolute; left: 50%; bottom: max(28px, calc(env(safe-area-inset-bottom) + 18px)); transform: translateX(-50%); border: 2px solid #ffe58a; border-radius: 999px;
-            padding: 13px 24px; font: 800 16px/1.2 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #6a0710; background: linear-gradient(180deg, #ffe58a, #ffc93a);
-            cursor: pointer; white-space: nowrap; }
+        #qd-intro.land video { width: min(100vw, calc(100dvh * 16 / 9)); aspect-ratio: 16 / 9; max-width: 100vw; }
         #qd-intro .ctl { position: absolute; right: 14px; top: max(14px, calc(env(safe-area-inset-top) + 8px)); width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(255,229,138,.8);
             background: rgba(106,7,16,.72); color: #ffe58a; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
     <script>
     (function () {
         var W = window, d = document, html = d.documentElement, GATE = null;
-        var VIDS = { phonk: 'media/gioi-thieu-phonk.mp4', hungtrang: 'media/gioi-thieu-hung-trang.mp4' };
+        var VIDS = { phonk: 'media/gioi-thieu-phonk', hungtrang: 'media/gioi-thieu-hung-trang' };   // + '.mp4' (dọc, điện thoại) / '-ngang.mp4' (ngang, máy tính)
         function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
-        var box, vid, snd, ctl, cur = '', first = true, want = false, key = 'phonk', shown = false;
+        var box, vid, ctl, cur = '', first = true, want = false, key = 'phonk', shown = false, land = false, noLand = false;
+        function srcFor() { land = W.innerWidth > W.innerHeight * 1.05 && !noLand; return VIDS[key] + (land ? '-ngang.mp4' : '.mp4'); }
         function build() {
             if (box) return;
             box = d.createElement('div'); box.id = 'qd-intro'; box.setAttribute('role', 'region'); box.setAttribute('aria-label', 'Video giới thiệu');
-            box.innerHTML = '<video playsinline webkit-playsinline loop preload="auto" poster="media/gioi-thieu-poster.jpg" disablepictureinpicture controlslist="nodownload"></video>'
-                + '<button type="button" class="snd">🔊 Chạm để bật nhạc</button><button type="button" class="ctl" aria-label="Tắt / bật tiếng">🔊</button>';
+            box.innerHTML = '<video playsinline webkit-playsinline loop preload="auto" disablepictureinpicture controlslist="nodownload"></video>'
+                + '<button type="button" class="ctl" aria-label="Tắt / bật tiếng">🔊</button>';
             d.body.appendChild(box);
-            vid = box.querySelector('video'); snd = box.querySelector('.snd'); ctl = box.querySelector('.ctl');
+            vid = box.querySelector('video'); ctl = box.querySelector('.ctl');
             vid.__qdW = vid.__qdIntro = true;   // không để bộ tiết kiệm hiệu ứng / Mức đồ họa tự dừng video này
             box.addEventListener('click', function (e) {
                 if (e.target === ctl) { if (vid.muted) unmute(false); else { vid.muted = true; ui(); } return; }
                 if (vid.muted) unmute(first); else if (vid.paused) vid.play().catch(function () {});
             });
             vid.addEventListener('volumechange', ui); vid.addEventListener('playing', ui);
+            vid.addEventListener('error', function () { if (land && !noLand) { noLand = true; render(); } });   // không có bản ngang -> dùng bản dọc
+            // Chạm / bấm / gõ phím ở bất kỳ đâu -> bật tiếng (trình duyệt không cho tự phát có tiếng khi chưa chạm)
+            ['pointerdown', 'touchstart', 'keydown'].forEach(function (ev) { d.addEventListener(ev, function (e) { if (shown && vid.muted && !(e.target && e.target === ctl)) unmute(first); }, true); });
+            W.addEventListener('resize', function () { if (shown) render(); });
             d.addEventListener('visibilitychange', function () {
                 if (!shown || !vid) return;
                 if (d.hidden) vid.pause(); else vid.play().catch(function () {});
             });
         }
-        function ui() { if (!vid) return; snd.style.display = vid.muted ? '' : 'none'; ctl.textContent = vid.muted ? '🔇' : '🔊'; }
+        function ui() { if (!vid) return; ctl.textContent = vid.muted ? '🔇' : '🔊'; }
         function unmute(restart) {
             first = false; vid.muted = false;
             if (restart) { try { vid.currentTime = 0; } catch (e) {} }
@@ -2421,12 +2424,19 @@ html.qd-lite .qd-fx { display: none !important; }
             return g.style.display !== 'none' && g.style.opacity !== '0';
         }
         function render() {
-            var on = want && gateOpen();
-            if (on === shown && (!on || cur === VIDS[key])) return;
+            var on = want && gateOpen(), src = on ? srcFor() : '';
+            if (on === shown && (!on || cur === src)) return;
             var was = shown; shown = on; W.__qdIntroOn = on;
             if (on) {
-                build(); html.classList.add('qd-intro-on'); music(true);
-                if (cur !== VIDS[key]) { cur = VIDS[key]; vid.src = cur; first = true; start(); }
+                build(); html.classList.add('qd-intro-on'); music(true); box.classList.toggle('land', land);
+                if (cur !== src) {
+                    var same = cur && cur.replace('-ngang', '') === src.replace('-ngang', ''), t0 = same ? vid.currentTime : 0, mu = vid.muted;
+                    cur = src; vid.poster = 'media/gioi-thieu-poster' + (land ? '-ngang' : '') + '.jpg'; vid.src = src;
+                    if (same) {   // xoay màn hình / đổi cỡ cửa sổ: phát tiếp đúng chỗ
+                        vid.addEventListener('loadedmetadata', function f() { vid.removeEventListener('loadedmetadata', f); try { vid.currentTime = t0; } catch (e) {} }, { once: true });
+                        vid.muted = mu; vid.play().catch(function () { vid.muted = true; vid.play().catch(function () {}); ui(); });
+                    } else { first = true; start(); }
+                }
                 else if (!was || vid.paused) start();
             } else {
                 html.classList.remove('qd-intro-on');

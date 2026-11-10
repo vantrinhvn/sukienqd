@@ -22,6 +22,8 @@ for item in raw.split('\0'):
         continue
     meta, path = item.split('\t', 1)
     mode, sha, _stage = meta.split()
+    if path.endswith('-ngang.mp4'):   # video ngang chỉ dành cho máy tính: app (điện thoại) không cần tải
+        continue
     if mode == '160000' or path.startswith('.') or '/.' in path or path in SKIP or not path.lower().endswith(EXTS):
         continue
     files[path] = {'sha': sha, 'size': os.path.getsize(path)}
