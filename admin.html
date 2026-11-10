@@ -14933,5 +14933,29 @@ window.QDXlsx = (function () {
         return { toggle: toggle, pick: pick };
     })();
     </script>
+
+    <!-- ===== Bấm ra ngoài (vùng tối quanh hộp thoại) để đóng mọi hộp thoại / tab, không cần bấm nút X ===== -->
+    <script id="qd-backdrop-close">
+    (function () {
+        var d = document, downOn = null;
+        function closeOv(ov) {
+            // ưu tiên chạy đúng nút đóng của hộp thoại (có thể kèm dọn dẹp riêng, VD: Xóa dữ liệu)
+            var x = ov.querySelector('.modal-close-btn');
+            if (!x) x = Array.prototype.filter.call(ov.querySelectorAll('button'), function (b) { return /^(Hủy|Hủy bỏ|Đóng|Đóng cửa sổ|Thôi)$/i.test((b.textContent || '').trim()); })[0];
+            if (x) { x.click(); return; }
+            try { UI.closeModal(ov.id); } catch (e) { ov.classList.remove('active'); setTimeout(function () { ov.style.display = 'none'; }, 300); }
+        }
+        // Chỉ đóng khi cả lúc nhấn và lúc thả đều ở vùng tối (kéo bôi đen chữ từ trong hộp ra ngoài thì không đóng)
+        d.addEventListener('pointerdown', function (e) { downOn = (e.target && e.target.classList && e.target.classList.contains('modal-overlay')) ? e.target : null; }, true);
+        d.addEventListener('click', function (e) {
+            var ov = e.target;
+            if (!ov || !ov.classList || !ov.classList.contains('modal-overlay') || !ov.classList.contains('active')) return;
+            if (downOn && downOn !== ov) return;
+            if (ov.getAttribute('onclick')) return;   // hộp đã tự xử lý (menu điện thoại)
+            if (ov.dataset.noBackdrop === '1') return;
+            closeOv(ov);
+        });
+    })();
+    </script>
 </body>
 </html>
