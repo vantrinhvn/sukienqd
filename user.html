@@ -24264,10 +24264,27 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
          Người đã đăng nhập vẫn dùng bình thường. Tắt: trở lại như cũ (cập nhật tức thì). ===== -->
     <style id="qd-intro-css">
         html.qd-intro-on, html.qd-intro-on body { overflow: hidden !important; }
-        html.qd-intro-on body > *:not(#qd-intro):not(#toast-container):not(#qd-force-upd) { display: none !important; }   /* ẩn hẳn trang + hiệu ứng */
+        html.qd-intro-on body > *:not(#qd-intro):not(#toast-container):not(#qd-force-upd):not(#qd-intro-test) { display: none !important; }   /* ẩn hẳn trang + hiệu ứng */
         #qd-intro { position: fixed; inset: 0; z-index: 2147483000; display: none; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         html.qd-intro-on #qd-intro { display: flex; }
         #qd-intro video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: none; object-fit: cover; background: #000; }   /* phủ kín màn hình, không viền đen */
+        #qd-intro .adm { position: absolute; left: 0; top: 0; width: 72px; height: 72px; border: 0; padding: 0; margin: 0; background: transparent; opacity: 0; cursor: default; -webkit-tap-highlight-color: transparent; }   /* nút ẩn: chạm 5 lần liền */
+        #qd-intro .gate { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(20, 0, 0, .72); }
+        #qd-intro .gate.show { display: flex; }
+        #qd-intro .gate form { width: 100%; max-width: 340px; padding: 24px 20px; border-radius: 20px; text-align: center; background: linear-gradient(180deg, #b91c1c, #7f1d1d); border: 2px solid #facc15;
+            font: 600 14px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #fef08a; box-shadow: 0 20px 50px rgba(0,0,0,.6); }
+        #qd-intro .gate b { display: block; font-size: 19px; font-weight: 900; color: #facc15; margin-bottom: 4px; text-transform: uppercase; }
+        #qd-intro .gate input { width: 100%; box-sizing: border-box; margin: 14px 0 6px; padding: 12px; border-radius: 12px; border: 1px solid #facc15; background: rgba(69,10,10,.75); color: #fff;
+            font-size: 20px; letter-spacing: 4px; text-align: center; outline: none; }
+        #qd-intro .gate .err { display: none; color: #fecaca; font-size: 13px; }
+        #qd-intro .gate .btns { display: flex; gap: 10px; margin-top: 12px; }
+        #qd-intro .gate .btns button { flex: 1; padding: 11px; border-radius: 999px; font: inherit; font-weight: 800; cursor: pointer; }
+        #qd-intro .gate .no { background: transparent; border: 1px solid rgba(254,240,138,.5); color: #fef08a; }
+        #qd-intro .gate .yes { border: 0; color: #7f1d1d; background: linear-gradient(135deg, #fef9c3, #facc15); }
+        #qd-intro-test { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom) + 78px); z-index: 2147483001; white-space: nowrap; display: none; align-items: center; gap: 8px; padding: 7px 8px 7px 12px; border-radius: 999px;
+            background: rgba(127,29,29,.92); border: 1.5px solid #facc15; color: #fef08a; font: 700 12px/1.2 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+        #qd-intro-test.show { display: flex; }
+        #qd-intro-test button { border: 0; border-radius: 999px; padding: 6px 10px; font: inherit; font-weight: 800; color: #7f1d1d; background: #facc15; cursor: pointer; }
         #qd-intro .ctl { position: absolute; right: 14px; top: max(14px, calc(env(safe-area-inset-top) + 8px)); width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(255,229,138,.8);
             background: rgba(106,7,16,.72); color: #ffe58a; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
@@ -24282,18 +24299,36 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             if (box) return;
             box = d.createElement('div'); box.id = 'qd-intro'; box.setAttribute('role', 'region'); box.setAttribute('aria-label', 'Video giới thiệu');
             box.innerHTML = '<video playsinline webkit-playsinline loop preload="auto" disablepictureinpicture controlslist="nodownload"></video>'
-                + '<button type="button" class="ctl" aria-label="Tắt / bật tiếng">🔊</button>';
+                + '<button type="button" class="ctl" aria-label="Tắt / bật tiếng">🔊</button><button type="button" class="adm" tabindex="-1" aria-hidden="true"></button>'
+                + '<div class="gate"><form autocomplete="off"><b>🔒 Admin vào test</b>Nhập mã quản trị để vào hệ thống khi video giới thiệu đang bật (chỉ tab này).'
+                + '<input type="password" inputmode="numeric" placeholder="••••••••"><div class="err">Mã không đúng!</div>'
+                + '<div class="btns"><button type="button" class="no">Hủy</button><button type="submit" class="yes">Vào hệ thống</button></div></form></div>';
             d.body.appendChild(box);
             vid = box.querySelector('video'); ctl = box.querySelector('.ctl');
             vid.__qdW = vid.__qdIntro = true;   // không để bộ tiết kiệm hiệu ứng / Mức đồ họa tự dừng video này
+            // Nút ẩn cho Admin: chạm 5 lần liền vào góc trên bên trái -> nhập mã -> vào hệ thống để test (chỉ tab này)
+            var adm = box.querySelector('.adm'), gate = box.querySelector('.gate'), gin = gate.querySelector('input'), gerr = gate.querySelector('.err'), taps = [];
+            adm.addEventListener('click', function (e) {
+                e.stopPropagation(); var now = Date.now(); taps = taps.filter(function (x) { return now - x < 2500; }); taps.push(now);
+                if (taps.length >= 5) { taps = []; gerr.style.display = 'none'; gin.value = ''; gate.classList.add('show'); setTimeout(function () { gin.focus(); }, 50); }
+            });
+            gate.addEventListener('click', function (e) { e.stopPropagation(); if (e.target === gate || e.target.classList.contains('no')) gate.classList.remove('show'); });
+            gate.querySelector('form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (gin.value === '16062004') {   // cùng mã với Admin Gateway ở trang Bảo trì
+                    try { sessionStorage.setItem('qd_intro_bypass', '1'); } catch (er) {}
+                    gate.classList.remove('show'); render();
+                } else { gerr.style.display = 'block'; gin.select(); }
+            });
             box.addEventListener('click', function (e) {
+                if (gate.classList.contains('show')) return;
                 if (e.target === ctl) { if (vid.muted) unmute(false); else { vid.muted = true; ui(); } return; }
                 if (vid.muted) unmute(first); else if (vid.paused) vid.play().catch(function () {});
             });
             vid.addEventListener('volumechange', ui); vid.addEventListener('playing', ui);
             vid.addEventListener('error', function () { if (land && !noLand) { noLand = true; render(); } });   // không có bản ngang -> dùng bản dọc
             // Chạm / bấm / gõ phím ở bất kỳ đâu -> bật tiếng (trình duyệt không cho tự phát có tiếng khi chưa chạm)
-            ['pointerdown', 'touchstart', 'keydown'].forEach(function (ev) { d.addEventListener(ev, function (e) { if (!shown) return; if (vid.muted && !(e.target && e.target === ctl)) unmute(first); setTimeout(hush, 0); setTimeout(hush, 300); }, true); });
+            ['pointerdown', 'touchstart', 'keydown'].forEach(function (ev) { d.addEventListener(ev, function (e) { if (!shown) return; if (vid.muted && !(e.target && (e.target === ctl || e.target.closest && e.target.closest('.gate')))) unmute(first); setTimeout(hush, 0); setTimeout(hush, 300); }, true); });
             setInterval(function () { if (shown) hush(); }, 1000);
             W.addEventListener('resize', function () { if (shown) render(); });
             d.addEventListener('visibilitychange', function () {
@@ -24341,7 +24376,8 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             return g.style.display !== 'none' && g.style.opacity !== '0';
         }
         function render() {
-            var on = want && gateOpen(), src = on ? srcFor() : '';
+            testPill();
+            var on = want && !byp() && gateOpen(), src = on ? srcFor() : '';
             if (on === shown && (!on || cur === src)) return;
             var was = shown; shown = on; W.__qdIntroOn = on;
             if (on) {
@@ -24360,6 +24396,18 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 if (vid) { vid.pause(); vid.removeAttribute('src'); try { vid.load(); } catch (e) {} cur = ''; }
                 if (was) music(false);
             }
+        }
+        function byp() { try { return sessionStorage.getItem('qd_intro_bypass') === '1'; } catch (e) { return false; } }
+        var pill = null;
+        function testPill() {   // đang ở chế độ Admin test: nhắc + nút xem lại video
+            var need = want && byp();
+            if (need && !pill) {
+                pill = d.createElement('div'); pill.id = 'qd-intro-test';
+                pill.innerHTML = '<span>🎬 Admin test · video giới thiệu đang bật</span><button type="button">Xem video</button>';
+                pill.querySelector('button').addEventListener('click', function () { try { sessionStorage.removeItem('qd_intro_bypass'); } catch (e) {} render(); });
+                d.body.appendChild(pill);
+            }
+            if (pill) pill.classList.toggle('show', need);
         }
         function set(on, k) {
             want = on; key = VIDS[k] ? k : 'phonk';
