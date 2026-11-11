@@ -24662,8 +24662,26 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
     .msg-avt.sp { visibility: hidden; }
     .msg-avt.bot { background: linear-gradient(135deg, #0ea5e9, #6366f1) !important; font-size: 17px !important; }
     .msg-avt > img.avt-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
-    .msg-row.has-avt > .text-xs { padding-left: 42px; }
-    @media (max-width: 768px) { .msg-row.has-avt { max-width: calc(85% + 40px); } .msg-avt { flex-basis: 30px; width: 30px !important; height: 30px !important; min-width: 30px !important; font-size: 13px !important; } .msg-row.has-avt > .text-xs { padding-left: 38px; } }
+    /* ----- Khung trò chuyện GỌN: bong bóng, chữ, khoảng cách, giờ gửi, ảnh đại diện nhỏ lại ----- */
+    #chat-history-ui.chat-history { gap: 8px !important; padding: 14px 16px !important; }
+    #chat-history-ui .msg-row { max-width: 72%; }
+    #chat-history-ui .msg-row.has-avt { max-width: calc(72% + 34px); }
+    #chat-history-ui .msg-bubble { padding: 7px 12px !important; border-radius: 16px !important; font-size: 14px !important; line-height: 1.4 !important; }
+    #chat-history-ui .msg-row.me .msg-bubble { border-bottom-right-radius: 5px !important; }
+    #chat-history-ui .msg-row.them .msg-bubble { border-bottom-left-radius: 5px !important; }
+    #chat-history-ui .msg-sender { font-size: 11.5px !important; line-height: 1.3; margin-bottom: 2px !important; }
+    #chat-history-ui .msg-row > .text-xs { font-size: 10.5px !important; margin-top: 3px !important; opacity: .85; }
+    #chat-history-ui .msg-row > .flex.items-center { gap: 6px !important; }
+    #chat-history-ui .msg-bubble img { max-height: 260px; object-fit: cover; }
+    .msg-avt { flex-basis: 28px; width: 28px !important; height: 28px !important; min-width: 28px !important; font-size: 12px !important; margin-top: 0; }
+    .msg-row.has-avt > .text-xs { padding-left: 34px; }
+    @media (max-width: 768px) {
+        #chat-history-ui.chat-history { padding: 10px 10px !important; gap: 7px !important; }
+        #chat-history-ui .msg-row { max-width: 80%; } #chat-history-ui .msg-row.has-avt { max-width: calc(80% + 32px); }
+        #chat-history-ui .msg-bubble { font-size: 14px !important; padding: 7px 11px !important; }
+        .msg-avt { flex-basis: 26px; width: 26px !important; height: 26px !important; min-width: 26px !important; font-size: 11px !important; }
+        .msg-row.has-avt > .text-xs { padding-left: 32px; }
+    }
     </style>
     <script id="qd-chat-avt-js">
     window.QDChatAvt = (function () {
