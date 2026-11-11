@@ -24663,6 +24663,15 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
     .msg-avt.bot { background: linear-gradient(135deg, #0ea5e9, #6366f1) !important; font-size: 17px !important; }
     .msg-avt > img.avt-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
     /* ----- Khung trò chuyện GỌN: bong bóng, chữ, khoảng cách, giờ gửi, ảnh đại diện nhỏ lại ----- */
+    /* Đầu khung chat gọn: ảnh 34px, tên 14.5px, trạng thái 11.5px, nút 32px */
+    #view-chat .chat-header { padding: 8px 14px !important; }
+    #view-chat .chat-header > .flex { gap: 10px !important; }
+    #view-chat #active-avt { width: 34px !important; height: 34px !important; min-width: 34px !important; font-size: 14px !important; }
+    #view-chat #active-name { font-size: 14.5px !important; line-height: 1.25 !important; }
+    #view-chat #active-status { font-size: 11.5px !important; line-height: 1.3 !important; }
+    #view-chat .chat-header .btn-icon { width: 32px !important; height: 32px !important; min-width: 32px; font-size: 13px !important; }
+    #view-chat .chat-header .btn-mobile-back { font-size: 19px !important; padding: 4px 2px !important; margin-right: 0 !important; }
+    @media (max-width: 768px) { #view-chat .chat-header { padding: 6px 10px !important; } }
     /* Ô soạn tin gọn + cân đối: ô nhập và nút gửi cùng cao 40px, các nút ảnh / @ căn giữa */
     #chat-active-ui .chat-input-wrapper { padding: 8px 12px !important; gap: 8px !important; align-items: flex-end !important; }
     #chat-active-ui .chat-input-wrapper > div:not(#qd-at-pop) { min-height: 42px; padding: 2px 6px 2px 4px !important; border-radius: 21px !important; box-sizing: border-box; align-items: flex-end !important; gap: 0; }
