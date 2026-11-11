@@ -12213,10 +12213,11 @@ html.qd-lite .qd-fx { display: none !important; }
             },
             openNicknameEditor: () => { 
                 if(State.chatTarget === 'general') return Utils.toast("Không thể đổi biệt danh cho Kênh Chung.", "info");
+                if(window.QDStaff && window.QDStaff.is(State.chatTarget)) return Utils.toast("Không thể đổi biệt danh cho tài khoản Quản trị / Quản lý. Chỉ đổi được biệt danh của thành viên.", "info");
                 const inp = document.getElementById('inp-nickname'); if(inp) inp.value = State.nicknames[State.chatTarget] || ''; window.UI.openModal('modal-nickname'); 
             },
             
-            saveNickname: () => { const v = document.getElementById('inp-nickname').value.trim(); if(v) State.nicknames[State.chatTarget] = v; else delete State.nicknames[State.chatTarget]; localStorage.setItem('qd_elite_nicks', JSON.stringify(State.nicknames)); window.UI.closeModal('modal-nickname'); window.Chat.updateHeader(); window.Chat.init(); Utils.toast("Cập nhật biệt danh hiển thị thành công.", "success"); },
+            saveNickname: () => { if (State.chatTarget === 'general' || (window.QDStaff && window.QDStaff.is(State.chatTarget))) { window.UI.closeModal('modal-nickname'); return Utils.toast("Không thể đổi biệt danh cho tài khoản Quản trị / Quản lý.", "info"); } const v = document.getElementById('inp-nickname').value.trim(); if(v) State.nicknames[State.chatTarget] = v; else delete State.nicknames[State.chatTarget]; localStorage.setItem('qd_elite_nicks', JSON.stringify(State.nicknames)); window.UI.closeModal('modal-nickname'); window.Chat.updateHeader(); window.Chat.init(); Utils.toast("Cập nhật biệt danh hiển thị thành công.", "success"); },
             
             toggleMobile: (showSidebar) => { 
                 const s = document.getElementById('chat-sidebar'); const m = document.querySelector('.chat-main'); 
@@ -24084,8 +24085,20 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         }
         function sender(u, nm) { var on = is(u); return '<div class="msg-sender' + (on ? ' is-staff' : '') + '" data-staff-u="' + esc(u) + '" style="color: var(--color-info);">' + esc(nm) + (on ? TICK : '') + '</div>'; }
         function name(u, nm) { var on = is(u); return '<span class="qd-nm' + (on ? ' is-staff' : '') + '" data-staff-u="' + esc(u) + '">' + esc(nm) + (on ? TICK : '') + '</span>'; }
-        function header() { var el = document.getElementById('active-name'); if (!el) return; var t = (window.State || {}).chatTarget; mark(el, is(t)); el.classList.toggle('qd-kc', t === 'general'); }
-        function paint() { document.querySelectorAll('[data-staff-u]').forEach(function (el) { mark(el, is(el.getAttribute('data-staff-u'))); }); header(); }
+        function header() {
+            var el = document.getElementById('active-name'); if (!el) return; var t = (window.State || {}).chatTarget; mark(el, is(t)); el.classList.toggle('qd-kc', t === 'general');
+            // Quản trị / Quản lý: ẩn nút "Đổi biệt danh" (chỉ thành viên mới đổi được biệt danh)
+            var b = document.querySelector('[onclick="window.Chat.openNicknameEditor()"]'); if (b) b.style.display = is(t) ? 'none' : '';
+        }
+        function purgeNicks() {   // biệt danh đã đặt trước đây cho Quản trị / Quản lý -> bỏ, luôn hiện tên thật
+            var S = window.State; if (!S || !S.nicknames || !S.accInfo) return;
+            var gone = Object.keys(S.nicknames).filter(is);
+            if (!gone.length) return;
+            gone.forEach(function (u) { delete S.nicknames[u]; });
+            try { localStorage.setItem('qd_elite_nicks', JSON.stringify(S.nicknames)); } catch (e) {}
+            try { if (window.Chat && window.Chat.updateHeader) window.Chat.updateHeader(); if (window.Chat && window.Chat.init && S.currentUser) window.Chat.init(); } catch (e) {}
+        }
+        function paint() { purgeNicks(); document.querySelectorAll('[data-staff-u]').forEach(function (el) { mark(el, is(el.getAttribute('data-staff-u'))); }); header(); }
         return { is: is, sender: sender, name: name, header: header, paint: paint };
     })();
     </script>
