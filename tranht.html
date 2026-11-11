@@ -192,6 +192,18 @@
         .result-prize.is-wish h3::after { content: '❞'; }
         .history-wish { display: block; margin-top: 4px; font-size: 13px; line-height: 1.45; color: #fff3c4; font-style: italic; }
         .sound-btn { width: 44px; padding: 11px 0; }
+        .x3-btn { display: inline-flex; align-items: center; gap: 8px; margin: 16px auto 0; padding: 12px 22px; border-radius: 999px; border: 2px solid #fff; cursor: pointer;
+            font: inherit; font-size: 16px; font-weight: 900; color: #7a0c0c; background: linear-gradient(135deg, #fff3a6, #ffd700 55%, #ffaa00); box-shadow: 0 8px 22px rgba(255, 215, 0, .4); transition: transform .15s, filter .15s; }
+        .x3-btn small { font-size: 12.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px; background: rgba(122,12,12,.14); }
+        .x3-btn:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.05); }
+        .x3-btn:disabled { cursor: not-allowed; filter: grayscale(.6) brightness(.8); opacity: .7; box-shadow: none; }
+        .result-prize.multi { padding: 14px 12px; }
+        .result-prize.multi h3 { display: flex; flex-direction: column; gap: 8px; font-size: 18px; letter-spacing: 0; }
+        .result-prize.multi h3::before, .result-prize.multi h3::after { content: none; }
+        .x3-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.65); border: 1px solid rgba(217,119,6,.35); text-align: left; }
+        .x3-item .ic { font-size: 24px; flex: 0 0 auto; }
+        .x3-item b { display: block; font-size: 17px; color: #b91c1c; text-transform: uppercase; }
+        .x3-item small { display: block; font-size: 13px; font-weight: 700; color: #92400e; text-transform: none; line-height: 1.45; }
         .result-wish { margin-top: 8px; font-size: 13px; color: #92400e; font-weight: 700; font-style: italic; }
 
         .history-list { max-height: 400px; overflow-y: auto; margin-top: 18px; padding-right: 4px; }
@@ -403,7 +415,7 @@ html.qd-lite .qd-fx { display: none !important; }
         <div class="title-box">
             <span class="tet-sub">Xuân Đinh Mùi 2027</span>
             <h1>Rút Lì Xì May Mắn</h1>
-            <p>Chúc mừng năm mới <b id="player-name">User</b>! Chọn 1 trong 6 bao lì xì để nhận lộc đầu xuân.</p>
+            <p>Chúc mừng năm mới <b id="player-name">User</b>! Chọn 1 trong 6 bao lì xì, hoặc rút 3 bao cùng lúc để nhận lộc đầu xuân.</p>
 
             <div class="spin-counter" id="spin-counter-box">
                 <span aria-hidden="true">🧧</span>
@@ -412,6 +424,7 @@ html.qd-lite .qd-fx { display: none !important; }
             </div>
             <div class="stock-strip" id="stock-strip" aria-label="Giải thưởng còn lại"></div>
             <div class="lock-box" id="lock-box" role="status" aria-live="polite"></div>
+            <button type="button" class="x3-btn" id="x3-btn" onclick="TranhThuong.openThree()">🧧🧧🧧 Rút 3 bao cùng lúc <small>−3 lượt</small></button>
         </div>
 
         <div class="lixi-grid" id="ticket-grid-ui"></div>
@@ -1375,6 +1388,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 document.getElementById('ticket-grid-ui').classList.toggle('locked', !!why && !State.hasPlayed);
                 const disp = why ? 'block' : 'none'; if (box.style.display !== disp) box.style.display = disp;
                 if (why) box.textContent= why === 'expired' ? '🔒 Đợt rút lì xì đã kết thúc. Hẹn gặp lại bạn đợt sau!' : '🔒 Cửa rút lì xì đang đóng. Vui lòng quay lại sau!';
+                const x3 = document.getElementById('x3-btn');
+                if (x3) { const ok = !why && !State.hasPlayed && (State.availableTickets || 0) >= 3; x3.disabled = !ok; x3.title = why ? 'Cửa rút lì xì đang đóng' : (State.availableTickets || 0) < 3 ? 'Cần ít nhất 3 lượt rút' : 'Mở 3 bao lì xì cùng lúc, trừ 3 lượt'; }
             },
 
             renderTickets: function() {
@@ -1494,7 +1509,7 @@ html.qd-lite .qd-fx { display: none !important; }
 
                     setTimeout(() => {
                         const w = State.wishes, a = Math.floor(Math.random() * w.length);
-                        document.getElementById('prizeBox').classList.toggle('is-wish', isWish);
+                        document.getElementById('prizeBox').classList.toggle('is-wish', isWish); document.getElementById('prizeBox').classList.remove('multi');
                         document.getElementById('prizeSub').innerText = isWish ? "Bao lì xì gửi đến bạn lời chúc:" : "Bao lì xì của bạn có:";
                         document.getElementById('prizeText').innerText = isWish ? wish : winningPrize;
                         const pw = document.getElementById('prizeWish');
@@ -1520,6 +1535,70 @@ html.qd-lite .qd-fx { display: none !important; }
                     if (err && err.code === 'CLOSED') Utils.toast("Cửa rút lì xì vừa đóng, lượt của bạn không bị trừ.", "warning");
                     else if (err && err.code === 'NOTICKET') Utils.toast("Bạn đã hết lượt rút lì xì!", "warning");
                     else Utils.toast("Lỗi kết nối máy chủ.", "error");
+                    this.refreshLock();
+                });
+            },
+
+            /* ----- Rút 3 bao cùng lúc: 1 giao dịch trừ 3 lượt, chọn 3 giải (tôn trọng số lượng còn lại), mở 3 bao + bảng kết quả gộp ----- */
+            openThree: function() {
+                if (State.hasPlayed) return;
+                if (this.closedBy(State.cfg)) { Utils.toast("Cửa rút lì xì đang đóng, vui lòng quay lại sau!", "warning"); return; }
+                if (!State.currentDocId || (State.availableTickets || 0) < 3) { Utils.toast("Cần ít nhất 3 lượt rút để rút 3 bao cùng lúc!", "warning"); return; }
+                State.hasPlayed = true; this.refreshLock();
+                TetSound.unlock();
+                const idx = [0, 1, 2, 3, 4, 5].sort(() => Math.random() - .5).slice(0, 3).sort((a, b) => a - b);
+                idx.forEach(i => { const e = document.getElementById(`ticket-${i}`); if (e) e.classList.add('picking'); });
+                const accRef = db.collection("accounts").doc(State.currentDocId);
+                const cfgRef = db.collection("settings").doc("tranhthuong_config");
+                const stockRef = db.collection("tranhthuong_stock").doc("counts");
+                db.runTransaction(async (tx) => {
+                    const [acc, c, st] = await Promise.all([tx.get(accRef), tx.get(cfgRef), tx.get(stockRef)]);
+                    const cfg = c.exists ? c.data() : {};
+                    if (this.closedBy(cfg)) throw { code: 'CLOSED' };
+                    const left = (acc.exists && acc.data().tickets) || 0;
+                    if (left < 3) throw { code: 'NOTICKET' };
+                    const prizes = this.normPrizes(cfg.prizes), counts = Object.assign({}, (st.exists && st.data().counts) || {}), inc = {}, picks = [];
+                    for (let k = 0; k < 3; k++) {
+                        const p = this.pickFrom(prizes, counts);
+                        if (p && p.qty != null) { counts[p.id] = (counts[p.id] || 0) + 1; inc[p.id] = (inc[p.id] || 0) + 1; }
+                        picks.push({ text: p ? p.text : "Lời Chúc Tết", prizeId: p ? p.id : null });
+                    }
+                    tx.update(accRef, { tickets: firebase.firestore.FieldValue.increment(-3) });
+                    if (Object.keys(inc).length) { const m = {}; Object.keys(inc).forEach(id => m[id] = firebase.firestore.FieldValue.increment(inc[id])); tx.set(stockRef, { counts: m }, { merge: true }); }
+                    return { left, picks };
+                }).then(({ left, picks }) => {
+                    const res = picks.map(p => { const w = this.isWishPrize(p.text); return { prize: w ? "Lời Chúc Tết" : p.text, prizeId: p.prizeId, wish: w ? this.randomWish() : null }; });
+                    for (let i = 0; i < 6; i++) if (idx.indexOf(i) < 0) document.getElementById(`ticket-${i}`).classList.add('disabled');
+                    idx.forEach((i, k) => setTimeout(() => {
+                        const env = document.getElementById(`ticket-${i}`); if (!env) return;
+                        env.classList.remove('picking');
+                        document.getElementById(`result-${i}`).innerText = res[k].wish ? "Lời chúc Tết" : res[k].prize;
+                        if (res[k].wish) env.querySelector('.card-ico').textContent = '🎊';
+                        env.classList.add('opened'); TetSound.open();
+                        const r = env.getBoundingClientRect(); setTimeout(() => Utils.burst(r.left + r.width / 2, r.top), 650);
+                    }, k * 320));
+                    setTimeout(() => {
+                        const box = document.getElementById('prizeBox'), w = State.wishes, a = Math.floor(Math.random() * w.length);
+                        box.classList.remove('is-wish'); box.classList.add('multi');
+                        document.getElementById('prizeSub').innerText = "3 bao lì xì của bạn có:";
+                        document.getElementById('prizeText').innerHTML = res.map(x => x.wish
+                            ? `<span class="x3-item"><span class="ic">🎊</span><span><b>Lời chúc Tết</b><small>${Utils.esc(x.wish)}</small></span></span>`
+                            : `<span class="x3-item"><span class="ic">🎁</span><span><b>${Utils.esc(x.prize)}</b></span></span>`).join('');
+                        const pw = document.getElementById('prizeWish'); pw.style.display = ''; pw.innerText = `${w[a]} - ${w[(a + 4) % w.length]}`;
+                        const modal = document.getElementById('modal-result');
+                        modal.style.display = 'flex'; void modal.offsetWidth; modal.classList.add('active');
+                        TetSound.melody();
+                        const now = Date.now();
+                        res.forEach((x, k) => db.collection("tranhthuong_history").add({
+                            userId: State.currentUser, result: x.prize, prizeId: x.prizeId, wish: x.wish, remain: left - 1 - k, multi: 3, timestamp: now + k
+                        }).catch(e => console.error("Lỗi lưu lịch sử:", e)));
+                    }, 2 * 320 + 1500);
+                }).catch(err => {
+                    idx.forEach(i => { const e = document.getElementById(`ticket-${i}`); if (e) e.classList.remove('picking'); });
+                    State.hasPlayed = false;
+                    if (err && err.code === 'CLOSED') Utils.toast("Cửa rút lì xì vừa đóng, lượt của bạn không bị trừ.", "warning");
+                    else if (err && err.code === 'NOTICKET') Utils.toast("Cần ít nhất 3 lượt rút để rút 3 bao cùng lúc!", "warning");
+                    else { console.error(err); Utils.toast("Lỗi kết nối máy chủ.", "error"); }
                     this.refreshLock();
                 });
             },
