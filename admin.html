@@ -1082,6 +1082,37 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div id="cfg-iv-status" class="text-xs text-muted" style="text-align: center;"></div>
             </div>
 
+            <div class="form-group mb-6 p-5 rounded-xl" id="mx-card" style="border: 1px solid rgba(236,72,153,.55); background: rgba(236,72,153,.06);">
+                <div class="flex justify-between items-center mb-3" style="gap: 12px;">
+                    <div class="flex items-center gap-3" style="flex: 1; min-width: 0;">
+                        <div class="flex-center rounded-full" style="width: 36px; height: 36px; background: rgba(236,72,153,0.2); color: #ec4899; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fa-solid fa-compact-disc text-lg"></i>
+                        </div>
+                        <div style="min-width: 0;">
+                            <label class="form-label m-0" style="font-size: 15px; color: #ec4899;">Nhạc nền Remix</label>
+                            <span class="text-xs text-muted">Bật: 8 bài nhạc nền phát bản remix</span>
+                        </div>
+                    </div>
+                    <label class="switch" style="flex-shrink: 0;">
+                        <input type="checkbox" id="cfg-mx-toggle" onchange="QDRemixAdmin.toggle(this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p class="text-xs text-muted" style="margin: 0 0 14px; line-height: 1.5;">Áp dụng ngay cho mọi trang và trong app, kể cả người đang nghe (nghe tiếp đúng đoạn). Tắt thì về 8 bài bình thường.</p>
+                <div class="form-group mb-3">
+                    <label class="form-label text-xs">Nghe thử</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="cfg-mx-track" class="form-control" style="flex: 1; min-width: 0;" onchange="QDRemixAdmin.preview()"></select>
+                        <select id="cfg-mx-ver" class="form-control" style="width: 120px; flex-shrink: 0;" onchange="QDRemixAdmin.preview()">
+                            <option value="remix">Remix</option>
+                            <option value="goc">Bản gốc</option>
+                        </select>
+                    </div>
+                </div>
+                <audio id="cfg-mx-audio" controls preload="none" style="display: block; width: 100%; margin-bottom: 10px;"></audio>
+                <div id="cfg-mx-status" class="text-xs text-muted" style="text-align: center;"></div>
+            </div>
+
             <div class="form-group mb-2 p-5 rounded-xl wipe-entry" id="wipe-entry-settings" hidden style="border: 1px solid var(--color-danger); background: rgba(239, 68, 68, 0.08);">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="flex-center rounded-full" style="width: 36px; height: 36px; background: rgba(239,68,68,0.2); color: var(--color-danger); display: flex; align-items: center; justify-content: center;">
@@ -14979,6 +15010,44 @@ window.QDXlsx = (function () {
         })(0);
         if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', paint); else paint();
         return { toggle: toggle, pick: pick };
+    })();
+    </script>
+
+    <!-- ===== NHẠC NỀN REMIX (settings/music_config.remix) — các trang nghe tài liệu này để đổi 8 bài sang bản remix ===== -->
+    <script>
+    window.QDRemixAdmin = (function () {
+        var d = document, st = { remix: false, updatedAt: 0 }, ref = null;
+        var NAMES = ['Xuân Về Phơi Phới', 'Xuân Rộn Ràng', 'Lân Về Phố', 'Sum Vầy Ngày Xuân', 'Phố Xuân Rộn Rã', 'Chợ Hoa Ngày Tết', 'Pháo Hoa Giao Thừa', 'Én Liệng Mùa Xuân'];
+        function $(id) { return d.getElementById(id); }
+        function toast(m, t) { try { Utils.toast(m, t); } catch (e) { alert(m); } }
+        function R() { if (!ref && window.firebase && firebase.apps && firebase.apps.length) ref = firebase.firestore().collection('settings').doc('music_config'); return ref; }
+        function fmt(ms) { if (!ms) return ''; var x = new Date(ms), p = function (n) { return (n < 10 ? '0' : '') + n; }; return p(x.getHours()) + ':' + p(x.getMinutes()) + ' ' + p(x.getDate()) + '/' + p(x.getMonth() + 1); }
+        function src(i, rmx) { var n = i ? '-' + (i + 1) : ''; return 'media/nhac-tet' + (rmx ? '-remix' : '') + n + '.mp3'; }
+        function preview() {
+            var t = $('cfg-mx-track'), v = $('cfg-mx-ver'), au = $('cfg-mx-audio'); if (!t || !au) return;
+            var u = src(+t.value || 0, v.value === 'remix'); if (au.dataset.u === u) return;
+            var was = !au.paused; au.dataset.u = u; au.src = u; if (was) { var p = au.play(); if (p && p.catch) p.catch(function () {}); }
+        }
+        function paint() {
+            var tg = $('cfg-mx-toggle'), s = $('cfg-mx-status'), t = $('cfg-mx-track');
+            if (t && !t.options.length) { t.innerHTML = NAMES.map(function (n, i) { return '<option value="' + i + '">' + (i + 1) + '. ' + n + '</option>'; }).join(''); preview(); }
+            if (tg) tg.checked = st.remix;
+            if (s) s.innerHTML = (st.remix ? '<b style="color:#22c55e">● Đang BẬT</b> — mọi trang đang phát 8 bài bản remix' : '<b>○ Đang TẮT</b> — mọi trang phát 8 bài bình thường') + (st.updatedAt ? ' · ' + fmt(st.updatedAt) : '');
+        }
+        function toggle(cb) {
+            var on = cb.checked;
+            if (!R()) { toast('Chưa kết nối máy chủ, thử lại sau.', 'error'); cb.checked = !on; return; }
+            R().set({ remix: on, updatedAt: Date.now() }, { merge: true })
+                .then(function () { toast(on ? 'Đã BẬT nhạc Remix! 8 bài nhạc nền chuyển sang bản remix.' : 'Đã TẮT nhạc Remix. 8 bài nhạc nền về bản bình thường.', 'success'); })
+                .catch(function (e) { toast('Lỗi lưu cài đặt nhạc' + (e && e.code ? ' (' + e.code + ')' : ''), 'error'); cb.checked = !on; });
+        }
+        (function boot(n) {
+            if (!R()) { if (n < 120) setTimeout(function () { boot(n + 1); }, 500); return; }
+            R().onSnapshot(function (doc) { var x = doc.exists ? doc.data() : {}; st.remix = x.remix === true; st.updatedAt = x.updatedAt || 0; paint(); },
+                function () { var s = $('cfg-mx-status'); if (s) s.textContent = 'Không đọc được cài đặt nhạc (kiểm tra kết nối).'; });
+        })(0);
+        if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', paint); else paint();
+        return { toggle: toggle, preview: preview };
     })();
     </script>
 
