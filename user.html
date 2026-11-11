@@ -24663,6 +24663,13 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
     .msg-avt.bot { background: linear-gradient(135deg, #0ea5e9, #6366f1) !important; font-size: 17px !important; }
     .msg-avt > img.avt-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
     /* ----- Khung trò chuyện GỌN: bong bóng, chữ, khoảng cách, giờ gửi, ảnh đại diện nhỏ lại ----- */
+    /* Ô soạn tin gọn + cân đối: ô nhập và nút gửi cùng cao 40px, các nút ảnh / @ căn giữa */
+    #chat-active-ui .chat-input-wrapper { padding: 8px 12px !important; gap: 8px !important; align-items: flex-end !important; }
+    #chat-active-ui .chat-input-wrapper > div:not(#qd-at-pop) { min-height: 42px; padding: 2px 6px 2px 4px !important; border-radius: 21px !important; box-sizing: border-box; align-items: flex-end !important; gap: 0; }
+    #chat-active-ui .chat-input-wrapper > div:not(#qd-at-pop) > .btn-icon, #chat-active-ui .qd-at-btn { width: 32px !important; height: 32px !important; min-width: 32px; margin: 2px 0 !important; font-size: 16px !important; padding: 0 !important; }
+    #chat-active-ui #inp-chat-msg { min-height: 36px !important; padding: 7px 8px !important; line-height: 1.35 !important; font-size: 16px !important; }
+    #chat-active-ui .chat-input-wrapper > .btn-primary { width: 42px !important; height: 42px !important; min-width: 42px; font-size: 15px !important; box-shadow: 0 3px 10px var(--brand-glow) !important; }
+    @media (max-width: 768px) { body.in-chat-mode #chat-active-ui .chat-input-wrapper { padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important; } }
     #chat-history-ui.chat-history { gap: 8px !important; padding: 14px 16px !important; }
     #chat-history-ui .msg-row { max-width: 72%; }
     #chat-history-ui .msg-row.has-avt { max-width: calc(72% + 34px); }
