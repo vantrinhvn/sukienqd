@@ -342,6 +342,13 @@ html.qd-lite .qd-fx { display: none !important; }
     if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
 })();
     </script>
+
+    <style id="qd-nohead-css">
+    /* Bỏ thanh tiêu đề Ném Còn: chỉ giữ nút Lịch sử ở góc phải trên */
+    .topbar { justify-content: flex-end; background: none !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; pointer-events: none; }
+    .topbar .tb-title, #shop-btn, #sfx-btn { display: none !important; }
+    #menu-btn { pointer-events: auto; width: auto; height: 40px; gap: 7px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 800; }
+    </style>
 </head>
 <body>
     <div id="stage" aria-label="Sân ném còn: vuốt lên để ném"><canvas id="cv"></canvas></div>
@@ -350,7 +357,7 @@ html.qd-lite .qd-fx { display: none !important; }
         <div class="tb-title"><b>🎯 Ném Còn</b><small>Xuân Đinh Mùi 2027 · <span id="me-name">...</span></small></div>
         <button type="button" class="ic-btn" id="shop-btn" title="Đổi điểm lấy lượt ném" aria-label="Đổi điểm lấy lượt ném"><i class="fa-solid fa-store"></i></button>
         <button type="button" class="ic-btn" id="sfx-btn" title="Bật / tắt tiếng ném" aria-label="Bật / tắt tiếng ném"><i class="fa-solid fa-volume-high"></i></button>
-        <button type="button" class="ic-btn" id="menu-btn" title="Bảng xếp hạng, lịch sử, luật chơi" aria-label="Bảng xếp hạng, lịch sử, luật chơi"><i class="fa-solid fa-trophy"></i></button>
+        <button type="button" class="ic-btn" id="menu-btn" title="Lịch sử, bảng xếp hạng, luật chơi" aria-label="Lịch sử"><i class="fa-solid fa-clock-rotate-left"></i> <span>Lịch sử</span></button>
     </header>
 
     <div class="hud" id="hud">

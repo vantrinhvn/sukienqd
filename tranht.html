@@ -398,6 +398,16 @@ html.qd-lite .qd-fx { display: none !important; }
     if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
 })();
     </script>
+
+    <style id="qd-nohead-css">
+    /* Bỏ thanh tiêu đề: chỉ giữ nút Lịch sử, nổi ở góc phải trên */
+    .app-header { position: fixed !important; top: max(10px, env(safe-area-inset-top)) !important; right: max(12px, env(safe-area-inset-right)) !important; left: auto !important;
+        padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; z-index: 100; }
+    .app-header .header-brand, .app-header .sound-btn { display: none !important; }
+    .app-header .hidden-mobile { display: inline !important; }
+    .app-header .btn { padding: 9px 16px !important; background: rgba(40, 0, 0, .55) !important; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+    @media (max-width: 640px) { .main-wrapper { padding-top: 46px !important; } }   /* chừa chỗ cho nút Lịch sử, không đè dòng Xuân Đinh Mùi */
+    </style>
 </head>
 <body>
 
