@@ -2928,11 +2928,12 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
                             <h1 style="font-size: 28px; margin-bottom: 4px;">Trả Thưởng Tiền Mặt</h1>
-                            <p class="text-muted">Giải tiền mặt ở Vòng Quay, Rút Lì Xì, Quay Số &amp; Giải Đấu chưa trả. Quét mã VietQR bằng app ngân hàng, hoặc xuất file chuyển theo lô cho Internet Banking doanh nghiệp, rồi bấm <b>Đã chuyển</b>.</p>
+                            <p class="text-muted">Giải tiền mặt ở Vòng Quay, Rút Lì Xì, Quay Số, Giải Đấu &amp; Đổi điểm lì xì chưa trả. Quét mã VietQR bằng app ngân hàng, hoặc xuất file chuyển theo lô cho Internet Banking doanh nghiệp, rồi bấm <b>Đã chuyển</b>.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
                             <button type="button" class="btn btn-outline btn-report" onclick="QDReport.open('payout')" title="Báo cáo các lần chuyển tiền: Excel / CSV / PDF"><i class="fa-solid fa-file-export"></i> Báo cáo chuyển tiền</button>
                             <button type="button" class="btn btn-outline btn-report" onclick="QDReport.open('payoutwait')" title="Danh sách giải tiền mặt còn chờ trả"><i class="fa-solid fa-hourglass-half"></i> Báo cáo chờ trả</button>
+                            <button type="button" class="btn btn-outline btn-report" onclick="QDReport.open('cashout')" title="Báo cáo đổi điểm lì xì ra tiền: Excel / CSV / PDF"><i class="fa-solid fa-coins"></i> Báo cáo đổi điểm</button>
                         </div>
                     </div>
 
@@ -2947,6 +2948,35 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="po-cfg-r">
                             <span class="font-bold text-sm" id="po-on-st">ĐANG BẬT</span>
                             <label class="switch"><input type="checkbox" id="po-on" onchange="PayoutAdmin.toggle(this)"><span class="slider"></span></label>
+                        </div>
+                    </div>
+
+                    <div class="card mb-6 pc-card" id="pc-card">
+                        <div class="pc-top">
+                            <div class="po-cfg-l">
+                                <span class="po-cfg-ico" style="color:#d97706;background:rgba(245,158,11,.15);"><i class="fa-solid fa-coins"></i></span>
+                                <div style="min-width:0;">
+                                    <h3 class="text-lg m-0">Đổi điểm lì xì ra tiền</h3>
+                                    <p class="text-muted text-sm m-0">Thành viên đổi điểm theo các mốc (Trạm Quy Đổi / Túi đồ), điểm bị trừ ngay. Yêu cầu hiện ở danh sách bên dưới với nguồn <b>💱 Đổi Điểm</b>; bấm <b>Không trả</b> = hoàn điểm.</p>
+                                </div>
+                            </div>
+                            <div class="po-cfg-r">
+                                <span class="font-bold text-sm" id="pc-on-st">ĐANG BẬT</span>
+                                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="pc-on" onchange="CashoutAdmin.toggle(this)"><span class="slider"></span></label>
+                            </div>
+                        </div>
+                        <div class="pc-grid">
+                            <label class="po-pf"><span class="text-xs text-muted font-bold">Tỷ lệ: số điểm cho 10.000đ</span>
+                                <input type="number" id="pc-rate" class="form-control" min="1" step="1" placeholder="10000" oninput="CashoutAdmin.preview()"></label>
+                            <label class="po-pf"><span class="text-xs text-muted font-bold">Hạn mức / người / ngày (đ, 0 = không giới hạn)</span>
+                                <input type="number" id="pc-daily" class="form-control" min="0" step="10000" placeholder="0" oninput="CashoutAdmin.preview()"></label>
+                            <label class="po-pf pc-wide"><span class="text-xs text-muted font-bold">Các mốc đổi (đ, cách nhau bằng dấu phẩy)</span>
+                                <input type="text" id="pc-tiers" class="form-control" placeholder="10000, 20000, 50000, 100000" oninput="CashoutAdmin.preview()"></label>
+                        </div>
+                        <div class="pc-pv" id="pc-pv"></div>
+                        <div class="pc-foot">
+                            <div class="pc-stats" id="pc-stats"></div>
+                            <button type="button" class="btn btn-primary" onclick="CashoutAdmin.save()"><i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình</button>
                         </div>
                     </div>
 
@@ -10744,8 +10774,8 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         var isWish = function (t) { return !t || /chuc may man|loi chuc|chuc tet|ti nua|them ti/.test(fold(t).toLowerCase()); };
         var me = function () { return (typeof State !== 'undefined' && State.currentUser) || 'admin'; };
         var agoS = function (t) { var m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : Math.round(m / 60) + ' giờ trước'; };
-        var SRCS = [{ col: 'spin_history', name: '🎡 Vòng Quay' }, { col: 'tranhthuong_history', name: '🧧 Rút Lì Xì' }, { col: 'lucky_rewards', name: '🎯 Quay Số' }, { col: 'tournament_prize', name: '🏆 Giải Đấu' }];
-        var SRCN = { spin_history: '🎡 Vòng Quay', tranhthuong_history: '🧧 Rút Lì Xì', lucky_rewards: '🎯 Quay Số', tournament_prize: '🏆 Giải Đấu' };
+        var SRCS = [{ col: 'spin_history', name: '🎡 Vòng Quay' }, { col: 'tranhthuong_history', name: '🧧 Rút Lì Xì' }, { col: 'lucky_rewards', name: '🎯 Quay Số' }, { col: 'tournament_prize', name: '🏆 Giải Đấu' }, { col: 'point_cashout', name: '💱 Đổi Điểm' }];
+        var SRCN = { spin_history: '🎡 Vòng Quay', tranhthuong_history: '🧧 Rút Lì Xì', lucky_rewards: '🎯 Quay Số', tournament_prize: '🏆 Giải Đấu', point_cashout: '💱 Đổi Điểm' };
         var BIN = { '970436': 'Vietcombank', '970415': 'VietinBank', '970418': 'BIDV', '970405': 'Agribank', '970422': 'MB Bank', '970407': 'Techcombank', '970416': 'ACB', '970432': 'VPBank', '970423': 'TPBank', '970403': 'Sacombank', '970437': 'HDBank', '970441': 'VIB', '970443': 'SHB', '970431': 'Eximbank', '970426': 'MSB', '970448': 'OCB', '970440': 'SeABank', '970449': 'LPBank', '970428': 'Nam A Bank', '970409': 'Bac A Bank', '970425': 'ABBANK', '970427': 'VietABank', '970412': 'PVcomBank', '970452': 'Kienlongbank', '970454': 'BVBank', '970438': 'BaoViet Bank', '970400': 'Saigonbank', '970419': 'NCB', '970414': 'OceanBank', '970430': 'PG Bank', '970408': 'GPBank', '970406': 'DongA Bank', '970429': 'SCB', '970421': 'VRB', '970442': 'Hong Leong', '970424': 'Shinhan Bank', '970457': 'Woori Bank', '546034': 'Cake by VPBank', '963388': 'Timo' };
         var bankOf = function (b) { return b ? (b.bank || BIN[b.bin] || b.bin) : ''; };
         var PA = window.PayoutAdmin = { wins: {}, got: {}, pays: {}, banks: {}, accs: {}, cfg: { on: true, prefix: 'QDTLH', tpl: '{MA} {USER} THUONG TET' }, sel: {}, open: {}, arm: null, tab: 'wait', started: false, lastExport: null };
@@ -10771,13 +10801,13 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             ['{MA} TRA THUONG {USER}', 'Rõ mục đích'],
             ['{MA} {USER} {SOGIAI} GIAI {TIEN}', 'Kèm số giải + số tiền, dễ đối soát'],
             ['{MA} {USER} {NGAY}', 'Kèm ngày chuyển'],
-            ['{MA} {USER} {NGUON}', 'Kèm nguồn: VQ = Vòng Quay, RLX = Rút Lì Xì, QS = Quay Số, GD = Giải Đấu'],
+            ['{MA} {USER} {NGUON}', 'Kèm nguồn: VQ = Vòng Quay, RLX = Rút Lì Xì, QS = Quay Số, GD = Giải Đấu, DD = Đổi Điểm'],
             ['LI XI TET {USER} {MA}', 'Thân thiện, đúng không khí Tết'],
             ['{MA} {USER} {MAGD}', 'Mỗi giải 1 mã riêng — đối soát từng lệnh chuyển']
         ];
         function refBuild(tpl, prefix, x) {
             x = x || {}; var wins = x.wins || [], tot = +x.total || 0, d = new Date();
-            var src = {}; wins.forEach(function (w) { src[w.col === 'spin_history' ? 'VQ' : w.col === 'lucky_rewards' ? 'QS' : w.col === 'tournament_prize' ? 'GD' : 'RLX'] = 1; });
+            var src = {}; wins.forEach(function (w) { src[w.col === 'spin_history' ? 'VQ' : w.col === 'lucky_rewards' ? 'QS' : w.col === 'tournament_prize' ? 'GD' : w.col === 'point_cashout' ? 'DD' : 'RLX'] = 1; });
             var h = 2166136261, idk = wins.map(function (w) { return w.id || ''; }).join('|'); for (var i = 0; i < idk.length; i++) { h ^= idk.charCodeAt(i); h = Math.imul(h, 16777619); } h ^= h >>> 13; h = Math.imul(h, 2246822507); h ^= h >>> 16;   // FNV-1a + trộn: mã khác hẳn nhau
             var magd = (Object.keys(src).length === 1 ? Object.keys(src)[0] : 'TG') + (h >>> 0).toString(36).toUpperCase().slice(-4).padStart(4, '0');   // vd VQ7F2A: cùng 1 giải luôn ra cùng mã
             var v = { MA: prefix || 'QDTLH', USER: x.user || '', SOGIAI: wins.length || 1, TIEN: tot >= 1000 ? Math.round(tot / 1000) + 'K' : String(tot), NGAY: p2(d.getDate()) + p2(d.getMonth() + 1), NGUON: Object.keys(src).join(' ') || 'VQ', MAGD: magd };
@@ -11033,12 +11063,29 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             if (!armed('rej:' + id, btn, 'Bấm lần nữa: không trả')) return;
             db.collection('payouts').doc(id).set({ user: w.user, col: w.col, histId: w.histId, prize: w.prize, amount: w.amount, wonAt: w.wonAt, status: 'rejected', paidAt: Date.now(), by: me(), note: 'Ban Quản Trị không duyệt giải này' })
                 .then(function () { toast('Đã đánh dấu không trả: ' + esc(w.prize) + ' của ' + esc(w.user) + '.', 'warning'); log('reject', { user: w.user, amount: w.amount, id: id }); })
+                .then(function () { if (w.col === 'point_cashout') return cashoutPoints(w.user, w.histId, +1); })
                 .catch(function () { toast('Không ghi được.', 'error'); });
         };
+        /* Đổi điểm ra tiền: "Không trả" -> HOÀN điểm cho thành viên; hoàn tác lệnh "Không trả" -> trừ lại (mỗi chiều chỉ 1 lần nhờ cờ refunded) */
+        function cashoutPoints(user, histId, sign) {
+            var acc = PA.accs[user]; if (!acc || !acc.__id) { toast('Không tìm thấy tài khoản ' + esc(user) + ' để ' + (sign > 0 ? 'hoàn' : 'trừ lại') + ' điểm.', 'error'); return; }
+            var FV = firebase.firestore.FieldValue, oRef = db.collection('point_cashout').doc(histId), aRef = db.collection('accounts').doc(acc.__id);
+            return db.runTransaction(function (t) {
+                return t.get(oRef).then(function (o) {
+                    if (!o.exists) return 0; var x = o.data(), n = +x.points || 0; if (!n) return 0;
+                    if (sign > 0 && x.refunded) return 0; if (sign < 0 && !x.refunded) return 0;
+                    t.update(aRef, { points: FV.increment(sign * n) });
+                    t.set(oRef, { refunded: sign > 0, status: sign > 0 ? 'rejected' : 'pending', refundAt: Date.now(), refundBy: me() }, { merge: true });
+                    t.set(db.collection('point_history').doc(), { user: user, action: sign > 0 ? 'cashout_refund' : 'cashout', detail: sign > 0 ? 'Hoàn ' + n.toLocaleString('vi-VN') + ' điểm: yêu cầu đổi tiền không được duyệt' : 'Trừ lại ' + n.toLocaleString('vi-VN') + ' điểm: BQT hoàn tác lệnh không duyệt', pointsChanged: sign * n, cashoutId: histId, timestamp: Date.now() });
+                    return n;
+                });
+            }).then(function (n) { if (n) toast((sign > 0 ? 'Đã hoàn ' : 'Đã trừ lại ') + n.toLocaleString('vi-VN') + ' điểm lì xì cho ' + esc(user) + '.', 'info'); })
+              .catch(function (e) { console.warn(e); toast('Không ' + (sign > 0 ? 'hoàn' : 'trừ lại') + ' được điểm (kiểm tra quyền Firestore).', 'error'); });
+        }
         PA.undo = function (id, btn) {
             var p = PA.pays[id]; if (!p) return;
             if (!armed('undo:' + id, btn, 'Bấm lần nữa')) return;
-            db.collection('payouts').doc(id).delete().then(function () { toast('Đã hoàn tác — giải quay lại danh sách Chờ trả.', 'info'); log('undo', { user: p.user, amount: p.amount, id: id, was: p.status }); })
+            db.collection('payouts').doc(id).delete().then(function () { toast('Đã hoàn tác — giải quay lại danh sách Chờ trả.', 'info'); log('undo', { user: p.user, amount: p.amount, id: id, was: p.status }); if (p.col === 'point_cashout' && p.status === 'rejected') return cashoutPoints(p.user, p.histId, -1); })
                 .catch(function () { toast('Không hoàn tác được.', 'error'); });
         };
 
@@ -11150,7 +11197,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             });
             db.collection('payouts').onSnapshot(function (snap) { PA.pays = {}; snap.docs.forEach(function (d) { PA.pays[d.id] = d.data(); }); later(); }, function (e) { console.warn('payouts', e); });
             db.collection('bank_info').onSnapshot(function (snap) { PA.banks = {}; snap.docs.forEach(function (d) { var b = d.data(); PA.banks[b.user || d.id] = b; }); later(); }, function (e) { console.warn('bank_info', e); });
-            db.collection('accounts').onSnapshot(function (snap) { PA.accs = {}; snap.docs.forEach(function (d) { var a = d.data(); if (a && a.user) PA.accs[a.user] = a; }); later(); }, function () {});
+            db.collection('accounts').onSnapshot(function (snap) { PA.accs = {}; snap.docs.forEach(function (d) { var a = d.data(); if (a && a.user) { a.__id = d.id; PA.accs[a.user] = a; } }); later(); }, function () {});
             renderCfg();
             reportSources();
         };
@@ -14956,6 +15003,119 @@ window.QDXlsx = (function () {
             if (ov.dataset.noBackdrop === '1') return;
             closeOv(ov);
         });
+    })();
+    </script>
+
+    <style id="cashout-admin-css">
+    .pc-card { padding: 20px 24px !important; display: flex; flex-direction: column; gap: 14px; border-left: 4px solid #f59e0b !important; }
+    .pc-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .pc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pc-grid .pc-wide { grid-column: 1 / -1; }
+    .pc-pv { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pc-pv span { padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 800; background: rgba(245,158,11,.14); border: 1px solid rgba(245,158,11,.45); color: #f59e0b; }
+    .pc-pv .bad { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.5); color: #ef4444; }
+    .pc-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .pc-stats { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--text-muted); }
+    .pc-stats b { color: var(--text-main, inherit); font-size: 15px; }
+    @media (max-width: 640px) { .pc-grid { grid-template-columns: 1fr; } .pc-card { padding: 16px !important; } }
+    </style>
+    <script id="cashout-admin-js">
+    /* ===== ĐỔI ĐIỂM LÌ XÌ RA TIỀN (admin) =====
+       settings/point_cashout : { isEnabled, per1000, tiers[], dailyLimit, updatedAt, by }   (per1000 = điểm cho 1.000đ; mặc định 1000 -> 10.000 điểm = 10.000đ)
+       point_cashout/{mã}     : yêu cầu của thành viên { user, points, amount, result, timestamp, status, bank{}, refunded }
+       Trả tiền: Admin > Trả Thưởng (nguồn 💱 Đổi Điểm) — "Không trả" tự hoàn điểm. Báo cáo: QDReport 'cashout'. */
+    window.CashoutAdmin = (function () {
+        var $ = function (id) { return document.getElementById(id); };
+        var fmt = function (n) { return Number(n || 0).toLocaleString('vi-VN'); };
+        var vnd = function (n) { return fmt(n) + 'đ'; };
+        var p2 = function (x) { return String(x).padStart(2, '0'); };
+        var toast = function (m, t) { try { Utils.toast(m, t || 'success'); } catch (e) {} };
+        var me = function () { return (typeof State !== 'undefined' && State.currentUser) || 'admin'; };
+        var DEF = { on: true, per1000: 1000, tiers: [10000, 20000, 50000, 100000], daily: 0 };
+        var C = { cfg: DEF, list: [], started: false, ref: null };
+        function norm(c) {
+            c = c || {};
+            var tiers = (Array.isArray(c.tiers) ? c.tiers : DEF.tiers).map(function (x) { return Math.round(+x); }).filter(function (x) { return x >= 1000; }).sort(function (a, b) { return a - b; });
+            return { on: c.isEnabled !== false, per1000: Math.max(1, Math.round(+c.per1000 || DEF.per1000)), tiers: tiers.length ? tiers : DEF.tiers.slice(), daily: Math.max(0, Math.round(+c.dailyLimit || 0)), at: c.updatedAt || 0, by: c.by || '' };
+        }
+        function parseTiers(v) {
+            var out = []; String(v || '').split(/[,;\s]+/).forEach(function (t) { if (!t) return; var k = /k$/i.test(t); var n = Math.round(parseFloat(t.replace(/[^\d.]/g, '').replace(/\.(?=\d{3}\b)/g, '')) * (k ? 1000 : 1)); if (n >= 1000 && out.indexOf(n) < 0) out.push(n); });
+            return out.sort(function (a, b) { return a - b; });
+        }
+        function pay(id) { var P = window.PayoutAdmin; return P && P.pays ? P.pays['point_cashout_' + id] : null; }
+        function st(x) { var p = pay(x.id); return p ? p.status : (x.refunded ? 'rejected' : 'pending'); }
+        function paint() {
+            var c = C.cfg, t = $('pc-on'), s = $('pc-on-st');
+            if (t) t.checked = c.on; if (s) { s.textContent = c.on ? 'ĐANG BẬT' : 'ĐANG TẮT'; s.style.color = c.on ? 'var(--color-success)' : 'var(--text-muted)'; }
+            var r = $('pc-rate'), d = $('pc-daily'), tr = $('pc-tiers');
+            if (r && document.activeElement !== r) r.value = c.per1000 * 10;
+            if (d && document.activeElement !== d) d.value = c.daily || 0;
+            if (tr && document.activeElement !== tr) tr.value = c.tiers.join(', ');
+            preview(); stats();
+        }
+        function preview() {
+            var pv = $('pc-pv'); if (!pv) return;
+            var per10k = Math.round(+($('pc-rate') || {}).value || 0), tiers = parseTiers(($('pc-tiers') || {}).value), daily = Math.max(0, Math.round(+($('pc-daily') || {}).value || 0));
+            if (!(per10k > 0)) { pv.innerHTML = '<span class="bad">Tỷ lệ phải lớn hơn 0</span>'; return; }
+            if (!tiers.length) { pv.innerHTML = '<span class="bad">Cần ít nhất 1 mốc (≥ 1.000đ)</span>'; return; }
+            pv.innerHTML = tiers.map(function (a) { return '<span>' + vnd(a) + ' = ' + fmt(Math.round(a * per10k / 10000)) + ' điểm</span>'; }).join('') + (daily ? '<span>Tối đa ' + vnd(daily) + '/người/ngày</span>' : '<span>Không giới hạn mỗi ngày</span>');
+        }
+        function stats() {
+            var el = $('pc-stats'); if (!el) return;
+            var w = 0, wn = 0, pd = 0, pn = 0, rj = 0, pts = 0;
+            C.list.forEach(function (x) { var s = st(x); if (s === 'paid') { pd += x.amount || 0; pn++; pts += x.points || 0; } else if (s === 'rejected') rj++; else { w += x.amount || 0; wn++; pts += x.points || 0; } });
+            el.innerHTML = '<span>Chờ trả: <b>' + vnd(w) + '</b> (' + wn + ' yêu cầu)</span><span>Đã trả: <b>' + vnd(pd) + '</b> (' + pn + ')</span><span>Không duyệt: <b>' + rj + '</b></span><span>Điểm đã quy đổi: <b>' + fmt(pts) + '</b></span>';
+        }
+        function toggle(el) {
+            C.ref.set({ isEnabled: !!el.checked, updatedAt: Date.now(), by: me() }, { merge: true })
+                .then(function () { toast(el.checked ? 'Đã BẬT đổi điểm lì xì ra tiền.' : 'Đã TẮT đổi điểm ra tiền — thành viên không đổi được nữa.', el.checked ? 'success' : 'info'); })
+                .catch(function () { el.checked = !el.checked; toast('Không lưu được.', 'error'); });
+        }
+        function save() {
+            var per10k = Math.round(+($('pc-rate') || {}).value || 0), tiers = parseTiers(($('pc-tiers') || {}).value), daily = Math.max(0, Math.round(+($('pc-daily') || {}).value || 0));
+            if (!(per10k > 0) || !tiers.length) { toast('Kiểm tra lại tỷ lệ và các mốc đổi.', 'warning'); return; }
+            if (tiers.length > 8) { toast('Tối đa 8 mốc.', 'warning'); return; }
+            C.ref.set({ per1000: per10k / 10, tiers: tiers, dailyLimit: daily, updatedAt: Date.now(), by: me() }, { merge: true })
+                .then(function () { toast('Đã lưu: ' + fmt(per10k) + ' điểm = 10.000đ · mốc ' + tiers.map(vnd).join(', ') + '.'); })
+                .catch(function () { toast('Không lưu được.', 'error'); });
+        }
+        function report() {
+            if (!window.QDReport || !QDReport.add || C.rep) return; C.rep = true;
+            var fDT = function (t) { if (!t) return ''; var x = new Date(t); return p2(x.getHours()) + ':' + p2(x.getMinutes()) + ' ' + p2(x.getDate()) + '/' + p2(x.getMonth() + 1) + '/' + x.getFullYear(); };
+            var full = function (u) { var P = window.PayoutAdmin; return P && P.accs && P.accs[u] ? P.accs[u].fullName || '' : ''; };
+            var STN = { paid: 'Đã chuyển', rejected: 'Không duyệt (đã hoàn điểm)', pending: 'Chờ chuyển' };
+            QDReport.add({ id: 'cashout', view: 'payout', name: 'Đổi Điểm Lì Xì Ra Tiền', icon: 'fa-coins', color: '#d97706', file: 'Doi_Diem_Ra_Tien', col: 'point_cashout',
+                load: function () { return Promise.resolve(C.list.slice()); },
+                time: function (x) { return x.timestamp; }, who: function (x) { return x.user; },
+                cols: [['Thời gian đổi', function (x) { return fDT(x.timestamp); }], ['Tài khoản', function (x) { return x.user; }], ['Họ tên', function (x) { return full(x.user); }],
+                    ['Điểm đã đổi', function (x) { return +x.points || 0; }, 'n'], ['Số tiền', function (x) { return +x.amount || 0; }, 'n'], ['Trạng thái', function (x) { return STN[st(x)]; }],
+                    ['Xử lý lúc', function (x) { var p = pay(x.id); return p ? fDT(p.paidAt) : ''; }], ['Người xử lý', function (x) { var p = pay(x.id); return p ? p.by || '' : ''; }],
+                    ['Ngân hàng', function (x) { return (x.bank || {}).bank || (x.bank || {}).bin || ''; }], ['Số tài khoản', function (x) { return (x.bank || {}).accNo || ''; }, 't'],
+                    ['Chủ tài khoản', function (x) { return (x.bank || {}).accName || ''; }], ['Nội dung CK', function (x) { var p = pay(x.id); return p ? p.ref || '' : ''; }], ['Mã yêu cầu', function (x) { return x.id; }, 't']],
+                kpi: function (r) {
+                    var sum = function (f) { return r.filter(f).reduce(function (a, x) { return a + (+x.amount || 0); }, 0); };
+                    var paid = r.filter(function (x) { return st(x) === 'paid'; }), wait = r.filter(function (x) { return st(x) === 'pending'; }), rej = r.filter(function (x) { return st(x) === 'rejected'; });
+                    var us = {}; r.forEach(function (x) { us[x.user] = 1; });
+                    return [['Tổng yêu cầu', vnd(sum(function () { return true; })), r.length + ' lần · ' + Object.keys(us).length + ' người'],
+                        ['Đã chuyển', vnd(sum(function (x) { return st(x) === 'paid'; })), paid.length + ' yêu cầu'],
+                        ['Chờ chuyển', vnd(sum(function (x) { return st(x) === 'pending'; })), wait.length + ' yêu cầu'],
+                        ['Không duyệt', fmt(rej.length), 'đã hoàn ' + fmt(rej.reduce(function (a, x) { return a + (+x.points || 0); }, 0)) + ' điểm']];
+                },
+                brk: ['Theo mốc đổi', function (x) { return vnd(x.amount); }, function (x) { return +x.amount || 0; }],
+                rank: ['Đổi nhiều nhất', 'đ', function (x) { return st(x) === 'rejected' ? 0 : (+x.amount || 0); }] });
+        }
+        function start() {
+            if (C.started || typeof db === 'undefined') return; C.started = true;
+            C.ref = db.collection('settings').doc('point_cashout');
+            C.ref.onSnapshot(function (d) { C.cfg = norm(d.exists ? d.data() : {}); paint(); }, function () {});
+            db.collection('point_cashout').onSnapshot(function (snap) {
+                C.list = snap.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }).sort(function (a, b) { return (b.timestamp || 0) - (a.timestamp || 0); }); stats();
+            }, function (e) { console.warn('point_cashout', e); });
+            setInterval(stats, 3000);
+            report();
+        }
+        (function boot(n) { if (typeof db !== 'undefined' && $('pc-card')) start(); else if (n < 60) setTimeout(function () { boot(n + 1); }, 500); })(0);
+        return { toggle: toggle, save: save, preview: preview, _c: C };
     })();
     </script>
 </body>

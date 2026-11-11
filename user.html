@@ -24440,6 +24440,216 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         })(0);
     })();
     </script>
+
+    <!-- ===== ĐỔI ĐIỂM LÌ XÌ RA TIỀN MẶT (user) =====
+         settings/point_cashout        : { isEnabled, per1000 (điểm cho 1.000đ, mặc định 1000 -> 10.000 điểm = 10.000đ), tiers [10000, 20000, 50000, 100000], dailyLimit (đ/người/ngày, 0 = không giới hạn) }
+         point_cashout/{mã}            : { user, points, amount, result ("20.000 VNĐ · Đổi 20.000 điểm lì xì"), timestamp, status, bank{} } -> Admin > Trả Thưởng (nguồn "💱 Đổi Điểm")
+         point_cashout_daily/{tk}_{ngày}: { user, date, amount, count }   ·   point_history: action "cashout"
+         Trạng thái chuyển tiền đọc từ payouts/point_cashout_{mã} (Admin "Đã chuyển" / "Không trả" -> hoàn điểm). -->
+    <style id="qd-cashout-css">
+    #modal-cashout .modal-content.co2 { padding: 0 !important; overflow: hidden; max-width: 520px; width: calc(100% - 24px); max-height: calc(100vh - 32px); display: flex; flex-direction: column; position: relative;
+        background: linear-gradient(170deg, #c1121f 0%, #8f0a12 60%, #6a0710 100%) !important; border: 2px solid #ffd54a !important; border-radius: 24px !important; color: #fff !important; }
+    #modal-cashout .co2 * { text-shadow: none; }
+    .co2-head { display: flex; align-items: center; gap: 12px; padding: 18px 18px 6px; }
+    .co2-logo { font-size: 34px; line-height: 1; }
+    .co2-head h2 { margin: 0; font-size: 19px; font-weight: 900; color: #ffd54a; line-height: 1.25; }
+    .co2-head small { display: block; font-size: 13px; font-weight: 700; color: #ffeec7; }
+    .co2-x { margin-left: auto; width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; border: 1.5px solid rgba(255,213,74,.7); background: rgba(0,0,0,.2); color: #ffd54a; font-size: 18px; cursor: pointer; }
+    .co2-body { overflow-y: auto; padding: 8px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+    .co2-bal { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 16px; background: linear-gradient(135deg, #fffbea, #fde68a); color: #7a0c0c; }
+    .co2-bal span { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: #92400e; }
+    .co2-bal b { font-size: 22px; font-weight: 900; color: #b91c1c; font-variant-numeric: tabular-nums; }
+    .co2-closed { display: none; padding: 10px 14px; border-radius: 12px; background: rgba(0,0,0,.3); color: #fde68a; font-weight: 800; font-size: 13.5px; text-align: center; }
+    .co2-closed.show { display: block; }
+    .co2-bank { padding: 11px 14px; border-radius: 14px; background: rgba(0,0,0,.22); border: 1px dashed rgba(255,213,74,.6); font-size: 13.5px; font-weight: 700; color: #ffeec7; line-height: 1.45; }
+    .co2-bank b { color: #fff; } .co2-bank.warn { border-style: solid; border-color: #fbbf24; background: rgba(251,191,36,.14); }
+    .co2-bank button { margin-top: 8px; border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 900; color: #6a0710; background: linear-gradient(180deg, #ffe58a, #ffc93a); cursor: pointer; }
+    .co2-tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .co2-tier { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 14px 10px 12px; border-radius: 18px; border: 1.5px solid rgba(255,213,74,.55); background: rgba(0,0,0,.22);
+        color: #fff; font: inherit; cursor: pointer; text-align: center; transition: transform .15s, background .15s; }
+    .co2-tier:not(:disabled):hover { transform: translateY(-2px); background: rgba(255,213,74,.16); }
+    .co2-tier .m { font-size: 22px; font-weight: 900; color: #ffd54a; font-variant-numeric: tabular-nums; }
+    .co2-tier .p { font-size: 12.5px; font-weight: 800; color: #ffeec7; }
+    .co2-tier .go { margin-top: 6px; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 900; color: #6a0710; background: linear-gradient(180deg, #ffe58a, #ffc93a); }
+    .co2-tier:disabled { cursor: not-allowed; opacity: .55; } .co2-tier:disabled .go { background: rgba(0,0,0,.35); color: #fde68a; }
+    .co2-note { font-size: 12.5px; font-weight: 600; color: #fde2b3; line-height: 1.5; }
+    .co2-h { margin: 4px 0 0; font-size: 14px; font-weight: 900; color: #ffd54a; text-transform: uppercase; letter-spacing: .4px; }
+    .co2-list { display: flex; flex-direction: column; gap: 8px; }
+    .co2-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.2); }
+    .co2-row b { font-size: 15px; color: #fff; } .co2-row small { display: block; font-size: 12px; color: #fde2b3; font-weight: 600; }
+    .co2-st { flex: 0 0 auto; font-size: 12px; font-weight: 900; padding: 5px 10px; border-radius: 999px; white-space: nowrap; }
+    .co2-st.wait { background: rgba(251,191,36,.2); color: #fde68a; } .co2-st.ok { background: rgba(34,197,94,.22); color: #bbf7d0; } .co2-st.no { background: rgba(0,0,0,.35); color: #fecaca; }
+    .co2-empty { text-align: center; font-size: 13px; color: #fde2b3; padding: 8px; }
+    .co2-pop { position: absolute; inset: 0; z-index: 5; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(40,0,0,.72); }
+    .co2-pop.show { display: flex; }
+    .co2-pop-card { width: 100%; max-width: 360px; padding: 20px 18px 16px; border-radius: 20px; text-align: center; background: linear-gradient(180deg, #b91c1c, #7f1d1d); border: 2px solid #facc15; box-shadow: 0 20px 50px rgba(0,0,0,.55); }
+    .co2-pop-card.ok { background: linear-gradient(180deg, #059669, #065f46); border-color: #a7f3d0; }
+    .co2-pop-card h3 { margin: 6px 0 10px; font-size: 19px; font-weight: 900; color: #ffd54a; } .co2-pop-card.ok h3 { color: #fff; }
+    .co2-pop-ico { font-size: 40px; line-height: 1; }
+    .co2-pop-rows { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .co2-pop-rows div { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 12px; background: rgba(0,0,0,.22); font-size: 13.5px; font-weight: 700; color: #ffeec7; }
+    .co2-pop-rows b { color: #fff; } .co2-pop-rows .minus b { color: #fecaca; } .co2-pop-rows .plus b { color: #bbf7d0; }
+    .co2-pop-btns { display: flex; gap: 10px; }
+    .co2-pop-btns button { flex: 1; padding: 12px; border-radius: 999px; font: inherit; font-weight: 900; cursor: pointer; }
+    .co2-pop-btns .no { background: transparent; border: 1px solid rgba(254,240,138,.55); color: #fef08a; }
+    .co2-pop-btns .yes { border: 0; color: #7f1d1d; background: linear-gradient(135deg, #fef9c3, #facc15); }
+    .co2-spin { width: 38px; height: 38px; margin: 4px auto; border-radius: 50%; border: 4px solid rgba(255,213,74,.3); border-top-color: #ffd54a; animation: co2spin .8s linear infinite; }
+    @keyframes co2spin { to { transform: rotate(360deg); } }
+    .co2-entry { flex: 0 0 auto; border: 0; border-radius: 999px; padding: 8px 12px; font: inherit; font-size: 12.5px; font-weight: 900; color: #fff; background: linear-gradient(135deg, #16a34a, #15803d); cursor: pointer; box-shadow: 0 3px 0 #14532d; }
+    .co2-entry-row { margin: 10px 18px 0; } .co2-entry-row .co2-entry { width: 100%; padding: 11px 14px; font-size: 14px; }
+    .inv2-act.co2-inv { margin-top: 6px; top: 4px; background: linear-gradient(135deg, #22c55e, #15803d); color: #fff !important; }
+    @media (max-width: 380px) { .co2-tier .m { font-size: 19px; } }
+    </style>
+    <div class="modal-overlay" id="modal-cashout" style="z-index: 1070;">
+        <div class="modal-content co2" role="dialog" aria-labelledby="co2-title">
+            <div class="co2-head">
+                <span class="co2-logo" aria-hidden="true">💵</span>
+                <div><h2 id="co2-title">Đổi Điểm Lì Xì Ra Tiền</h2><small id="co2-rate">10.000 điểm = 10.000đ</small></div>
+                <button class="co2-x" onclick="window.UI.closeModal('modal-cashout')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="co2-body">
+                <div class="co2-bal"><span>Điểm lì xì của bạn</span><b><span id="co2-pts">0</span> điểm</b></div>
+                <div class="co2-closed" id="co2-closed">🔒 Đổi điểm ra tiền đang tạm đóng. Vui lòng quay lại sau!</div>
+                <div class="co2-bank" id="co2-bank"></div>
+                <div class="co2-tiers" id="co2-tiers"></div>
+                <div class="co2-note" id="co2-note"></div>
+                <h4 class="co2-h">Lịch sử đổi điểm</h4>
+                <div class="co2-list" id="co2-list"><div class="co2-empty">Chưa có lần đổi nào.</div></div>
+            </div>
+            <div class="co2-pop" id="co2-pop" aria-live="assertive"><div class="co2-pop-card" id="co2-pop-card" role="alertdialog"></div></div>
+        </div>
+    </div>
+    <script id="qd-cashout-js">
+    window.Cashout = (function () {
+        'use strict';
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var fmt = function (n) { return Number(n || 0).toLocaleString('vi-VN'); };
+        var vnd = function (n) { return fmt(n) + 'đ'; };
+        var p2 = function (x) { return String(x).padStart(2, '0'); };
+        var day = function () { var d = new Date(); return d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()); };
+        var DEF = { on: true, per1000: 1000, tiers: [10000, 20000, 50000, 100000], daily: 0 };
+        var CO = { cfg: DEF, list: [], today: 0, me: null, unsubs: [], busy: false };
+        function norm(c) {
+            c = c || {};
+            var tiers = (Array.isArray(c.tiers) ? c.tiers : DEF.tiers).map(function (x) { return Math.round(+x); }).filter(function (x) { return x >= 1000; }).sort(function (a, b) { return a - b; });
+            return { on: c.isEnabled !== false, per1000: Math.max(1, Math.round(+c.per1000 || DEF.per1000)), tiers: tiers.length ? tiers : DEF.tiers.slice(), daily: Math.max(0, Math.round(+c.dailyLimit || 0)) };
+        }
+        function need(a) { return Math.round(a * CO.cfg.per1000 / 1000); }
+        function pts() { var S = window.State || {}; return Math.max(0, +S.availablePoints || 0); }
+        function bank() { var b = window.PayoutUser && window.PayoutUser.bank; return b && b.accNo ? b : null; }
+        function status(id) { var P = window.PayoutUser; return P && P.pays ? P.pays['point_cashout_' + id] : null; }
+        function stop() { CO.unsubs.forEach(function (u) { try { u(); } catch (e) {} }); CO.unsubs = []; CO.list = []; CO.today = 0; }
+        function watch() {
+            var me = window.State && window.State.currentUser;
+            if (me === CO.me) return; stop(); CO.me = me || null;
+            if (!me || typeof db === 'undefined') return render();
+            CO.unsubs.push(db.collection('point_cashout').where('user', '==', me).onSnapshot(function (snap) {
+                CO.list = snap.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }).sort(function (a, b) { return (b.timestamp || 0) - (a.timestamp || 0); }); render();
+            }, function (e) { console.warn('point_cashout', e); }));
+            CO.unsubs.push(db.collection('point_cashout_daily').doc(me + '_' + day()).onSnapshot(function (d) { CO.today = (d.exists && +d.data().amount) || 0; render(); }, function () {}));
+        }
+        if (typeof db !== 'undefined') db.collection('settings').doc('point_cashout').onSnapshot(function (d) { CO.cfg = norm(d.exists ? d.data() : {}); render(); }, function () {});
+        setInterval(function () { watch(); var m = $('modal-cashout'); if (m && m.classList.contains('active')) render(); }, 1500);
+        function render() {
+            var c = CO.cfg, p = pts(), b = bank();
+            if ($('co2-rate')) $('co2-rate').textContent = fmt(need(10000)) + ' điểm = 10.000đ · chuyển khoản về tài khoản của bạn';
+            document.querySelectorAll('.co2-entry-row, .co2-inv').forEach(function (e) { e.style.display = c.on ? '' : 'none'; });
+            document.querySelectorAll('.co2-entry-row .co2-entry').forEach(function (e) { e.textContent = '💵 Đổi điểm lì xì ra tiền mặt (' + fmt(need(10000)) + ' điểm = 10.000đ)'; });
+            if ($('co2-pts')) $('co2-pts').textContent = fmt(p);
+            if ($('co2-closed')) $('co2-closed').classList.toggle('show', !c.on);
+            var bk = $('co2-bank');
+            if (bk) {
+                bk.classList.toggle('warn', !b);
+                bk.innerHTML = b ? '🏦 Tiền sẽ chuyển về: <b>' + esc(b.bank || b.bin) + ' · ' + esc(b.accNo) + '</b>' + (b.accName ? ' · ' + esc(b.accName) : '')
+                    : '⚠️ Bạn chưa khai <b>tài khoản nhận tiền</b>. Khai 1 lần để Ban Quản Trị chuyển khoản cho bạn.<br><button type="button" onclick="window.Cashout.bank()">🏦 Khai tài khoản nhận tiền</button>';
+            }
+            var left = c.daily ? Math.max(0, c.daily - CO.today) : Infinity;
+            var tg = $('co2-tiers');
+            if (tg) tg.innerHTML = c.tiers.map(function (a) {
+                var n = need(a), why = !c.on ? 'Đang đóng' : !b ? 'Cần khai TK' : p < n ? 'Thiếu ' + fmt(n - p) + ' điểm' : a > left ? 'Vượt hạn mức hôm nay' : CO.busy ? 'Đang xử lý...' : '';
+                return '<button type="button" class="co2-tier"' + (why ? ' disabled' : '') + ' onclick="window.Cashout.ask(' + a + ')"><span class="m">' + vnd(a) + '</span><span class="p">−' + fmt(n) + ' điểm lì xì</span><span class="go">' + (why || 'Đổi ngay') + '</span></button>';
+            }).join('');
+            var nt = $('co2-note');
+            if (nt) nt.innerHTML = '• Điểm bị trừ ngay khi đổi; Ban Quản Trị chuyển khoản trong thời gian sớm nhất (theo dõi ở Lịch sử bên dưới).<br>• Nếu yêu cầu không được duyệt, điểm được <b>hoàn lại đủ</b>.'
+                + (c.daily ? '<br>• Hạn mức mỗi ngày: <b>' + vnd(c.daily) + '</b> · hôm nay còn <b>' + vnd(left) + '</b>.' : '');
+            var ls = $('co2-list');
+            if (ls) ls.innerHTML = CO.list.length ? CO.list.slice(0, 30).map(function (x) {
+                var st = status(x.id), t = new Date(x.timestamp || 0), when = p2(t.getHours()) + ':' + p2(t.getMinutes()) + ' ' + p2(t.getDate()) + '/' + p2(t.getMonth() + 1);
+                var badge = st && st.status === 'paid' ? '<span class="co2-st ok">✅ Đã chuyển ' + (function (d) { return p2(d.getDate()) + '/' + p2(d.getMonth() + 1); })(new Date(st.paidAt || 0)) + '</span>'
+                    : st && st.status === 'rejected' ? '<span class="co2-st no">✖ Không duyệt · đã hoàn điểm</span>' : '<span class="co2-st wait">⏳ Chờ chuyển khoản</span>';
+                return '<div class="co2-row"><div><b>' + vnd(x.amount) + '</b><small>−' + fmt(x.points) + ' điểm · ' + when + '</small></div>' + badge + '</div>';
+            }).join('') : '<div class="co2-empty">Chưa có lần đổi nào.</div>';
+        }
+        function pop(cls, html) { var p = $('co2-pop'), c = $('co2-pop-card'); if (!p || !c) return; c.className = 'co2-pop-card ' + (cls || ''); c.innerHTML = html; p.classList.add('show'); }
+        function closePop() { var p = $('co2-pop'); if (p && !CO.busy) p.classList.remove('show'); }
+        function ask(a) {
+            var n = need(a), p = pts(), b = bank();
+            if (!CO.cfg.on) return window.Utils.toast('Đổi điểm ra tiền đang tạm đóng.', 'warning');
+            if (!b) return window.Utils.toast('Bạn cần khai tài khoản nhận tiền trước.', 'warning');
+            if (p < n) return window.Utils.toast('Số dư điểm không đủ.', 'warning');
+            pop('', '<div class="co2-pop-ico">💵</div><h3>Xác nhận đổi điểm?</h3><div class="co2-pop-rows"><div class="plus"><span>Bạn nhận</span><b>' + vnd(a) + '</b></div>'
+                + '<div class="minus"><span>Trừ điểm</span><b>−' + fmt(n) + '</b></div><div><span>Số dư sau khi đổi</span><b>' + fmt(p - n) + ' điểm</b></div>'
+                + '<div><span>Chuyển về</span><b>' + esc((b.bank || b.bin) + ' · ' + b.accNo) + '</b></div></div>'
+                + '<div class="co2-pop-btns"><button class="no" onclick="window.Cashout.closePop()">Hủy</button><button class="yes" onclick="window.Cashout.go(' + a + ')">Xác nhận đổi</button></div>');
+        }
+        function go(a) {
+            var S = window.State || {}, me = S.currentUser;
+            if (!me || !S.currentDocId || CO.busy) return;
+            CO.busy = true; render();
+            pop('', '<div class="co2-spin"></div><h3>Đang xử lý...</h3>');
+            var FV = firebase.firestore.FieldValue, now = Date.now(), got = null;
+            var accRef = db.collection('accounts').doc(S.currentDocId), cfgRef = db.collection('settings').doc('point_cashout');
+            var dRef = db.collection('point_cashout_daily').doc(me + '_' + day()), bRef = db.collection('bank_info').doc(me), oRef = db.collection('point_cashout').doc();
+            db.runTransaction(function (t) {
+                return Promise.all([t.get(accRef), t.get(cfgRef), t.get(dRef), t.get(bRef)]).then(function (r) {
+                    var acc = r[0], c = norm(r[1].exists ? r[1].data() : {}), dd = r[2], bk = r[3].exists ? r[3].data() : null;
+                    if (!c.on) throw 'CLOSED';
+                    if (c.tiers.indexOf(a) < 0) throw 'TIER';
+                    if (!bk || !bk.accNo) throw 'BANK';
+                    var n = Math.round(a * c.per1000 / 1000), have = (acc.exists && +acc.data().points) || 0;
+                    if (have < n) throw 'POINTS';
+                    var used = (dd.exists && +dd.data().amount) || 0;
+                    if (c.daily && used + a > c.daily) throw 'DAILY';
+                    t.update(accRef, { points: FV.increment(-n) });
+                    t.set(dRef, { user: me, date: day(), amount: FV.increment(a), count: FV.increment(1) }, { merge: true });
+                    t.set(oRef, { user: me, points: n, amount: a, result: fmt(a) + ' VNĐ · Đổi ' + fmt(n) + ' điểm lì xì', timestamp: now, status: 'pending',
+                        bank: { bin: bk.bin || '', bank: bk.bank || '', accNo: bk.accNo || '', accName: bk.accName || '' } });
+                    t.set(db.collection('point_history').doc(), { user: me, action: 'cashout', detail: 'Đổi ' + fmt(n) + ' điểm lì xì lấy ' + vnd(a) + ' tiền mặt', pointsChanged: -n, cashoutId: oRef.id, amount: a, timestamp: now });
+                    got = { a: a, n: n, left: have - n };
+                });
+            }).then(function () {
+                CO.busy = false;
+                S.availablePoints = got.left;
+                try { if (window.PointShop && window.PointShop.updateUI) window.PointShop.updateUI(got.left); } catch (e) {}
+                try { if (window.Inventory && window.Inventory.refresh) window.Inventory.refresh(); } catch (e) {}
+                pop('ok', '<div class="co2-pop-ico">🎉</div><h3>Đổi điểm thành công!</h3><div class="co2-pop-rows"><div class="plus"><span>Tiền mặt</span><b>' + vnd(got.a) + '</b></div>'
+                    + '<div class="minus"><span>Đã trừ</span><b>−' + fmt(got.n) + ' điểm</b></div><div><span>Số dư còn lại</span><b>' + fmt(got.left) + ' điểm</b></div>'
+                    + '<div><span>Trạng thái</span><b>⏳ Chờ BQT chuyển khoản</b></div></div><div class="co2-pop-btns"><button class="yes" onclick="window.Cashout.closePop()">Tuyệt vời!</button></div>');
+                window.Utils.toast('💵 Đã gửi yêu cầu đổi ' + fmt(got.n) + ' điểm lấy ' + vnd(got.a) + '. Chờ Ban Quản Trị chuyển khoản!', 'success');
+                render();
+            }).catch(function (e) {
+                CO.busy = false;
+                var msg = { CLOSED: 'Đổi điểm ra tiền vừa tạm đóng.', TIER: 'Mốc đổi này không còn áp dụng.', BANK: 'Bạn cần khai tài khoản nhận tiền trước.', POINTS: 'Số dư điểm không đủ.', DAILY: 'Bạn đã đạt hạn mức đổi trong hôm nay.' }[e];
+                if (!msg) console.error(e);
+                pop('', '<div class="co2-pop-ico">😢</div><h3>Đổi điểm chưa thành công</h3><div class="co2-pop-rows"><div><span>' + (msg || 'Lỗi kết nối máy chủ, vui lòng thử lại.') + '</span></div></div>'
+                    + '<p style="font-size:12px;color:#fecaca;margin:-4px 0 12px;">Bạn chưa bị trừ điểm.</p><div class="co2-pop-btns"><button class="yes" onclick="window.Cashout.closePop()">Đã hiểu</button></div>');
+                render();
+            });
+        }
+        function open() { watch(); render(); var p = $('co2-pop'); if (p) p.classList.remove('show'); window.UI.openModal('modal-cashout'); }
+        function openBank() { try { window.UI.closeModal('modal-cashout'); } catch (e) {} setTimeout(function () { if (window.PayoutUser && window.PayoutUser.openForm) window.PayoutUser.openForm(); }, 250); }
+        // Nút vào: Trạm Quy Đổi (cạnh số dư) + Túi đồ (ô Điểm lì xì)
+        (function entries() {
+            var bal = document.querySelector('#modal-point-shop .ps2-balance');
+            if (bal && !document.querySelector('.co2-entry-row')) bal.insertAdjacentHTML('afterend', '<div class="co2-entry-row"><button type="button" class="co2-entry" onclick="window.Cashout.open()">💵 Đổi điểm lì xì ra tiền mặt (10.000 điểm = 10.000đ)</button></div>');
+            var inv = document.querySelector('.inv2-act[onclick="window.Inventory.openShop()"]');
+            if (inv && !document.querySelector('.co2-inv')) inv.insertAdjacentHTML('afterend', '<button type="button" class="inv2-act co2-inv" onclick="window.UI.closeModal(\'modal-inventory\'); setTimeout(function(){ window.Cashout.open(); }, 250);">Đổi ra tiền</button>');
+        })();
+        setTimeout(render, 0);
+        return { open: open, ask: ask, go: go, closePop: closePop, bank: openBank, render: render, _co: CO };
+    })();
+    </script>
 </body>
 
 </html>
