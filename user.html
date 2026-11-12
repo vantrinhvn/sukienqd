@@ -19159,6 +19159,16 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="bk2-body">
                 <div class="bk2-sum" id="bk2-sum"></div>
+                <div class="bk2-qr" id="bk2-qr">
+                    <button type="button" class="bk2-qr-btn" id="bk2-qr-btn" onclick="document.getElementById('bk2-qr-file').click()">
+                        <span class="bk2-qr-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V4a1 1 0 0 1 1-1h3M17 3h3a1 1 0 0 1 1 1v3M21 17v3a1 1 0 0 1-1 1h-3M7 21H4a1 1 0 0 1-1-1v-3"/><rect x="7" y="7" width="4" height="4" rx=".5"/><rect x="13" y="13" width="4" height="4" rx=".5"/><path d="M13 7h4v3M7 14v3h3"/></svg></span>
+                        <span class="bk2-qr-t"><b>Tải ảnh mã QR nhận tiền</b><small>Không nhớ số tài khoản? Chọn ảnh mã QR của ngân hàng hoặc ví MoMo, ZaloPay… — tự điền ngân hàng và số tài khoản</small></span>
+                    </button>
+                    <input type="file" id="bk2-qr-file" accept="image/*" hidden>
+                    <details class="bk2-qr-how"><summary>Lấy ảnh mã QR ở đâu?</summary>
+                        <p><b>MoMo / ZaloPay:</b> mở ví → <b>Nhận tiền</b> (hoặc QR nhận tiền) → <b>Lưu ảnh</b>.<br><b>App ngân hàng:</b> mở <b>Mã QR của tôi / Nhận tiền</b> → <b>Tải về</b> hoặc chụp màn hình.<br>Sau đó bấm nút trên và chọn ảnh vừa lưu.</p>
+                    </details>
+                </div>
                 <label class="bk2-f"><span>Ngân hàng</span>
                     <input type="search" id="bk2-bank-q" class="bk2-in" placeholder="Gõ tên ngân hàng: MB, Vietcombank, Techcombank..." autocomplete="off" spellcheck="false">
                     <select id="bk2-bank" class="bk2-in" size="5"></select>
@@ -19214,6 +19224,24 @@ document.addEventListener("DOMContentLoaded", () => {
     .bk2-msg { font-size: 13.5px; font-weight: 700; min-height: 0; }
     .bk2-msg:empty { display: none; }
     .bk2-msg.err { color: #b91c1c; } .bk2-msg.ok { color: #15803d; }
+    .bk2-qr { display: flex; flex-direction: column; gap: 6px; }
+    .bk2-qr[hidden] { display: none; }
+    .bk2-qr-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: left; cursor: pointer; border-radius: 16px; font: inherit; color: #3b1306;
+        background: linear-gradient(135deg, #fff3c4, #ffe08a); border: 2px dashed #e0a100; -webkit-tap-highlight-color: transparent; transition: transform .15s; }
+    .bk2-qr-btn:active { transform: scale(.98); }
+    .bk2-qr-btn:disabled { opacity: .65; cursor: wait; }
+    .bk2-qr-ico { flex: 0 0 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #ffd700; background: linear-gradient(135deg, #c1121f, #8f0a12); }
+    .bk2-qr-ico svg { width: 26px; height: 26px; }
+    .bk2-qr-btn.busy .bk2-qr-ico svg { animation: bk2Spin 1s linear infinite; }
+    @keyframes bk2Spin { to { transform: rotate(360deg); } }
+    .bk2-qr-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .bk2-qr-t b { font-size: 14.5px; font-weight: 900; color: #8f0a12; }
+    .bk2-qr-t small { font-size: 12px; font-weight: 600; line-height: 1.4; color: #6b3a10; }
+    .bk2-qr-how { font-size: 12.5px; color: #6b3a10; }
+    .bk2-qr-how summary { cursor: pointer; font-weight: 800; color: #b45309; padding: 2px 4px; }
+    .bk2-qr-how p { margin: 6px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 215, 0, .16); line-height: 1.55; }
+    .bk2-in.bk2-filled { animation: bk2Fill 1.6s ease-out; }
+    @keyframes bk2Fill { 0%, 40% { box-shadow: 0 0 0 3px rgba(34, 197, 94, .55); background: #ecfdf5; } 100% { box-shadow: none; } }
     .bk2-save { border: 0; border-radius: 14px; padding: 14px; font: 800 15px inherit; color: #ffd700; background: linear-gradient(135deg, #c1121f, #8f0a12); cursor: pointer; }
     .bk2-save:disabled { opacity: .6; cursor: wait; }
     </style>
@@ -19246,7 +19274,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!window.fetch) return;
                 fetch('https://api.vietqr.io/v2/banks', { cache: 'force-cache' }).then(function (r) { return r.json(); }).then(function (j) {
                     var have = {}; BANKS.forEach(function (b) { have[b[0]] = 1; });
-                    (j && j.data || []).forEach(function (b) { if (b && b.bin && !have[b.bin] && b.transferSupported !== 0) { BANKS.push([String(b.bin), String(b.shortName || b.name)]); have[b.bin] = 1; } });
+                    (j && j.data || []).forEach(function (b) {
+                        if (!b || !b.bin) return;
+                        var ph = BANKS.filter(function (x) { return x[0] === String(b.bin) && x[2]; })[0];   // tên tạm (đọc từ mã QR) -> thay bằng tên thật
+                        if (ph) { ph[1] = String(b.shortName || b.name); ph[2] = 0; return; }
+                        if (!have[b.bin] && b.transferSupported !== 0) { BANKS.push([String(b.bin), String(b.shortName || b.name)]); have[b.bin] = 1; }
+                    });
                     fillBanks();
                 }).catch(function () {});
             } catch (e) {}
@@ -19340,11 +19373,12 @@ document.addEventListener("DOMContentLoaded", () => {
         PU.openForm = function () {
             var b = PU.bank || {};
             $('bk2-bank-q').value = ''; fillBanks(b.bin || ''); if (b.bin) $('bk2-bank').value = b.bin;
-            $('bk2-acc').value = b.accNo || ''; $('bk2-name').value = b.accName || ''; $('bk2-pwd').value = ''; msg('');
+            $('bk2-acc').value = b.accNo || ''; $('bk2-name').value = b.accName || ''; $('bk2-pwd').value = ''; msg(''); PU._qrName = '';
             var ed = canEdit();
             ['bk2-bank-q', 'bk2-bank', 'bk2-acc', 'bk2-name', 'bk2-pwd'].forEach(function (id) { var el = $(id); if (el) el.disabled = !ed; });
             var bq = $('bk2-bank-q'); if (bq) { bq.parentNode.classList.toggle('bk2-ro', !ed); if (!ed && b.bin) bq.value = bankName(b.bin); }
             $('bk2-save').hidden = !ed; $('bk2-pwd').closest('label').hidden = !ed;
+            var qr = $('bk2-qr'); if (qr) qr.hidden = !ed;
             var lk = $('bk2-lock'); if (lk) { lk.hidden = ed; }
             var nt = $('bk2-note'); if (nt) nt.innerHTML = PU.bank && PU.bank.accNo && ed
                 ? '✏️ Ban Quản Trị đã cho phép sửa <b>1 lần</b>. Lưu xong tài khoản sẽ tự khóa lại.'
@@ -19354,16 +19388,16 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         document.addEventListener('input', function (e) {
             if (e.target.id === 'bk2-bank-q') { fillBanks(); var box = $('bk2-bank'); if (box && box.options.length && e.target.value.trim() && box.selectedIndex < 0) box.selectedIndex = 0; }   // tự chọn ngân hàng khớp nhất
-            if (e.target.id === 'bk2-acc') e.target.value = e.target.value.replace(/\D/g, '');
+            if (e.target.id === 'bk2-acc') e.target.value = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '');   // ví MoMo / ZaloPay có chữ: 99MM..., 99ZP...
             if (e.target.id === 'bk2-name') { var p = e.target.selectionStart; e.target.value = fold(e.target.value).toUpperCase().replace(/[^A-Z ]/g, '').replace(/\s{2,}/g, ' '); try { e.target.setSelectionRange(p, p); } catch (er) {} }
         });
         PU.save = function () {
             var me = window.State && window.State.currentUser, docId = window.State && window.State.currentDocId;
             if (!me || !docId) { msg('Vui lòng đăng nhập lại.', 'err'); return; }
             if (!canEdit()) { msg('Tài khoản nhận thưởng đã khóa. Nhắn Ban Quản Trị bấm "Cho sửa lại" để đổi.', 'err'); return; }
-            var bin = $('bk2-bank').value, acc = $('bk2-acc').value.trim(), name = $('bk2-name').value.trim().replace(/\s+/g, ' '), pwd = $('bk2-pwd').value;
+            var bin = $('bk2-bank').value, acc = $('bk2-acc').value.trim().toUpperCase(), name = $('bk2-name').value.trim().replace(/\s+/g, ' '), pwd = $('bk2-pwd').value;
             if (!bin) return msg('Chọn ngân hàng.', 'err');
-            if (!/^\d{6,19}$/.test(acc)) return msg('Số tài khoản gồm 6–19 chữ số.', 'err');
+            if (!/^[0-9A-Z]{6,19}$/.test(acc)) return msg('Số tài khoản gồm 6–19 ký tự (chữ số, ví điện tử có thể có chữ in hoa).', 'err');
             if (!/^[A-Z]+( [A-Z]+)+$/.test(name)) return msg('Nhập đủ họ tên chủ tài khoản, viết không dấu (VD: NGUYEN VAN A).', 'err');
             if (!pwd) return msg('Nhập mật khẩu đăng nhập để xác nhận.', 'err');
             var btn = $('bk2-save'); btn.disabled = true; msg('Đang kiểm tra...');
@@ -19382,6 +19416,121 @@ document.addEventListener("DOMContentLoaded", () => {
                 msg(e && e.code === 'PWD' ? 'Mật khẩu không đúng.' : 'Không lưu được, thử lại sau.', 'err');
             }).finally(function () { btn.disabled = false; });
         };
+
+        /* ---------- Đọc mã QR nhận tiền (VietQR / NAPAS 247) -> tự điền ngân hàng + số tài khoản ----------
+           Mã VietQR theo chuẩn EMVCo: [mã 2 số][độ dài 2 số][giá trị]...; khối 38 (hoặc 26–51) có GUID A000000727,
+           trong đó 01 -> { 00: mã BIN ngân hàng, 01: số tài khoản / số thẻ }; 59: tên (nếu có); 63: CRC16-CCITT.
+           Ví MoMo / ZaloPay: tài khoản định danh tại ngân hàng (VD BVBank 970454, số 99MM... / 99ZP...) -> chuyển khoản như ngân hàng. */
+        function crc16(str) {
+            var c = 0xFFFF;
+            for (var i = 0; i < str.length; i++) { c ^= (str.charCodeAt(i) & 0xFF) << 8; for (var j = 0; j < 8; j++) c = (c & 0x8000) ? ((c << 1) ^ 0x1021) & 0xFFFF : (c << 1) & 0xFFFF; }
+            return ('000' + c.toString(16).toUpperCase()).slice(-4);
+        }
+        function tlv(str) {
+            var o = {}, i = 0; str = String(str || '');
+            while (i < str.length) {
+                if (i + 4 > str.length) return null;
+                var id = str.substr(i, 2), n = parseInt(str.substr(i + 2, 2), 10);
+                if (!/^\d\d$/.test(id) || isNaN(n) || i + 4 + n > str.length) return null;
+                o[id] = str.substr(i + 4, n); i += 4 + n;
+            }
+            return o;
+        }
+        function parseQR(raw) {
+            raw = String(raw || '').replace(/^\s+|\s+$/g, '');
+            if (/^2\|99\|/.test(raw)) return { err: 'momo-cu' };   // mã MoMo cũ (chuyển ví - ví), không có tài khoản ngân hàng
+            var t = tlv(raw); if (!t || t['00'] !== '01') return { err: 'khong-phai' };
+            var k = raw.lastIndexOf('6304'), crcOk = !t['63'] || (k >= 0 && crc16(raw.slice(0, k + 4)) === String(t['63']).toUpperCase());
+            for (var id = 26; id <= 51; id++) {
+                var m = tlv(t[String(id)] || ''); if (!m || !/^A000000727$/i.test(m['00'] || '')) continue;
+                var b = tlv(m['01'] || ''); if (!b || !/^\d{6}$/.test(b['00'] || '') || !b['01']) continue;
+                return { bin: b['00'], acc: String(b['01']).toUpperCase().replace(/[^0-9A-Z]/g, ''), name: t['59'] || '', card: m['02'] === 'QRIBFTTC', crcOk: crcOk };
+            }
+            return { err: t['26'] || t['27'] ? 'cua-hang' : 'khong-phai' };
+        }
+        PU.parseQR = parseQR;
+        var jsQRp = null;
+        function loadJsQR() {
+            if (window.jsQR) return Promise.resolve(window.jsQR);
+            if (jsQRp) return jsQRp;
+            var urls = ['https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js', 'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js'];
+            jsQRp = new Promise(function (res, rej) {
+                (function next(i) {
+                    if (i >= urls.length) { jsQRp = null; return rej(new Error('jsqr')); }
+                    var sc = document.createElement('script'); sc.src = urls[i]; sc.async = true;
+                    sc.onload = function () { window.jsQR ? res(window.jsQR) : next(i + 1); };
+                    sc.onerror = function () { sc.remove(); next(i + 1); };
+                    document.head.appendChild(sc);
+                })(0);
+            });
+            return jsQRp;
+        }
+        function readImage(file) {
+            return new Promise(function (res, rej) {
+                var u = URL.createObjectURL(file), im = new Image();
+                im.onload = function () { res(im); setTimeout(function () { URL.revokeObjectURL(u); }, 2000); };
+                im.onerror = function () { URL.revokeObjectURL(u); rej(new Error('img')); };
+                im.src = u;
+            });
+        }
+        // Thử: BarcodeDetector có sẵn trong trình duyệt (Android) -> jsQR ở nhiều cỡ ảnh (ảnh chụp màn hình to / mã nhỏ)
+        function decodeQR(im) {
+            var W0 = im.naturalWidth || im.width, H0 = im.naturalHeight || im.height;
+            var viaDetector = Promise.resolve([]);
+            try {
+                if ('BarcodeDetector' in window) viaDetector = new window.BarcodeDetector({ formats: ['qr_code'] }).detect(im)
+                    .then(function (r) { return (r || []).map(function (x) { return x.rawValue; }); }, function () { return []; });
+            } catch (e) {}
+            return viaDetector.then(function (found) {
+                if (found.length) return found;
+                return loadJsQR().then(function (jsQR) {
+                    var out = [], cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+                    var tries = [[1, 1000], [1, 1600], [1, 700], [0.6, 1000]];   // [phần giữa ảnh, cạnh dài tối đa]
+                    for (var i = 0; i < tries.length && !out.length; i++) {
+                        var f = tries[i][0], sw = W0 * f, sh = H0 * f, sx = (W0 - sw) / 2, sy = (H0 - sh) / 2;
+                        var k = Math.min(1, tries[i][1] / Math.max(sw, sh)), w = Math.max(1, Math.round(sw * k)), h = Math.max(1, Math.round(sh * k));
+                        cv.width = w; cv.height = h; cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.drawImage(im, sx, sy, sw, sh, 0, 0, w, h);
+                        var r = jsQR(cx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'attemptBoth' });
+                        if (r && r.data) out.push(r.data);
+                    }
+                    return out;
+                });
+            });
+        }
+        function flash(id) { var el = $(id); if (!el) return; el.classList.remove('bk2-filled'); void el.offsetWidth; el.classList.add('bk2-filled'); }
+        function applyQR(r) {
+            if (!BANKS.some(function (b) { return b[0] === r.bin; })) BANKS.push([r.bin, 'Ngân hàng mã ' + r.bin, 1]);
+            $('bk2-bank-q').value = ''; fillBanks(r.bin); $('bk2-bank').value = r.bin;
+            var sel = $('bk2-bank').selectedOptions && $('bk2-bank').selectedOptions[0]; if (sel) try { sel.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+            $('bk2-acc').value = r.acc; flash('bk2-bank'); flash('bk2-acc');
+            var nm = fold(r.name).toUpperCase().replace(/[^A-Z ]/g, '').replace(/\s+/g, ' ').trim(), nEl = $('bk2-name');
+            if (nm && / /.test(nm)) { nEl.value = nm; flash('bk2-name'); PU._qrName = nm; }
+            else { if (PU._qrName && nEl.value === PU._qrName) nEl.value = ''; PU._qrName = ''; nm = nEl.value.trim(); }   // tên do mã QR trước điền -> xóa, tên tự gõ -> giữ
+            var wallet = /^99MM/.test(r.acc) ? ' (ví MoMo)' : /^99ZP/.test(r.acc) ? ' (ví ZaloPay)' : '';
+            msg('✓ Đã đọc mã QR: ' + bankName(r.bin) + wallet + ' · ' + (r.card ? 'số thẻ ' : 'STK ') + r.acc + '. '
+                + (nm ? 'Kiểm tra lại tên chủ tài khoản rồi nhập mật khẩu để lưu.' : 'Nhập tên chủ tài khoản (không dấu) và mật khẩu để lưu.')
+                + (r.crcOk ? '' : ' ⚠️ Mã QR có thể bị mờ / lỗi, hãy đối chiếu kỹ số tài khoản.'), r.crcOk ? 'ok' : 'err');
+            setTimeout(function () { var f = nm ? $('bk2-pwd') : $('bk2-name'); if (f) f.focus(); }, 120);
+        }
+        PU.applyQR = applyQR;
+        PU.readQRFile = function (file) {
+            if (!file || !canEdit()) return;
+            var btn = $('bk2-qr-btn'); if (btn) { btn.disabled = true; btn.classList.add('busy'); }
+            msg('Đang đọc mã QR...');
+            readImage(file).then(decodeQR).then(function (list) {
+                if (!list.length) return msg('Không tìm thấy mã QR trong ảnh. Chọn ảnh rõ nét, thấy trọn mã QR (có thể cắt sát mã rồi thử lại).', 'err');
+                var bad = null;
+                for (var i = 0; i < list.length; i++) { var r = parseQR(list[i]); if (!r.err) return applyQR(r); bad = bad || r.err; }
+                msg(bad === 'momo-cu' ? 'Đây là mã MoMo chuyển ví–ví (mã cũ), không có tài khoản nhận từ ngân hàng. Trong MoMo chọn "Nhận tiền" → mã QR nhận tiền từ ngân hàng rồi lưu ảnh đó.'
+                    : bad === 'cua-hang' ? 'Đây là mã QR thanh toán cửa hàng, không phải mã nhận tiền cá nhân. Hãy dùng mã "Nhận tiền" trong app ngân hàng / ví.'
+                    : 'Mã QR này không phải mã nhận tiền chuyển khoản (VietQR). Hãy dùng mã "Nhận tiền" trong app ngân hàng / ví, hoặc nhập tay bên dưới.', 'err');
+            }).catch(function (e) {
+                msg(e && e.message === 'jsqr' ? 'Không tải được bộ đọc mã QR, kiểm tra kết nối mạng rồi thử lại.' : 'Không mở được ảnh, hãy chọn ảnh khác (JPG / PNG).', 'err');
+            }).finally(function () { if (btn) { btn.disabled = false; btn.classList.remove('busy'); } });
+        };
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.id === 'bk2-qr-file') { var f = e.target.files && e.target.files[0]; e.target.value = ''; PU.readQRFile(f); }
+        });
         document.addEventListener('DOMContentLoaded', function () { fillBanks(); loadBanks(); });
         document.addEventListener('click', function (e) {   // mở Túi đồ -> vẽ lại số liệu
             var t = e.target && e.target.closest ? e.target.closest('[onclick*="modal-inventory"], [onclick*="modal-profile"]') : null;
