@@ -19224,6 +19224,13 @@ document.addEventListener("DOMContentLoaded", () => {
     .bk2-msg { font-size: 13.5px; font-weight: 700; min-height: 0; }
     .bk2-msg:empty { display: none; }
     .bk2-msg.err { color: #b91c1c; } .bk2-msg.ok { color: #15803d; }
+    /* Điện thoại: bàn phím hiện làm màn hình thấp lại -> hộp neo ở trên (không nhảy theo căn giữa), bỏ làm mờ nền (vẽ lại cả màn hình gây giật) */
+    @media (max-width: 767px), (pointer: coarse) {
+        #modal-bank.modal-overlay { align-items: flex-start; padding: max(10px, env(safe-area-inset-top)) 10px 10px; backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(0, 0, 0, .86); transition: none; }
+        #modal-bank .modal-content.bk2 { width: 100%; max-height: calc(100% - 4px); transition: none !important; transform: none !important; animation: none !important; }
+        #modal-bank .bk2-body { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scroll-padding: 16px 0 120px; }
+        #modal-bank .bk2-in { font-size: 16px; }   /* < 16px: iPhone tự phóng to khi gõ */
+    }
     .bk2-qr { display: flex; flex-direction: column; gap: 6px; }
     .bk2-qr[hidden] { display: none; }
     .bk2-qr-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: left; cursor: pointer; border-radius: 16px; font: inherit; color: #3b1306;
@@ -19286,6 +19293,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         function bankName(bin) { for (var i = 0; i < BANKS.length; i++) if (BANKS[i][0] === bin) return BANKS[i][1]; return bin || ''; }
 
+        var TOUCH = (function () { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return 'ontouchstart' in window; } })();
         var PU = window.PayoutUser = { me: null, bank: null, pays: {}, cfg: { on: true }, unsubs: [], firstPays: true };
         function stop() { PU.unsubs.forEach(function (u) { try { u(); } catch (e) {} }); PU.unsubs = []; PU.bank = null; PU.pays = {}; PU.firstPays = true; }
         function watch() {
@@ -19384,7 +19392,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? '✏️ Ban Quản Trị đã cho phép sửa <b>1 lần</b>. Lưu xong tài khoản sẽ tự khóa lại.'
                 : '🔒 Chỉ khai <b>1 lần</b>: lưu xong sẽ khóa lại, muốn đổi phải nhắn Ban Quản Trị cho sửa. Nhập sai số tài khoản / tên, tiền có thể chuyển nhầm và không lấy lại được — hãy kiểm tra kỹ.';
             render(); window.UI.openModal('modal-bank');
-            if (ed) setTimeout(function () { var f = b.bin ? $('bk2-acc') : $('bk2-bank-q'); if (f) f.focus(); }, 250);
+            if (ed && !TOUCH) setTimeout(function () { var f = b.bin ? $('bk2-acc') : $('bk2-bank-q'); if (f) f.focus(); }, 250);   // điện thoại: không tự bật bàn phím (màn hình bị giật)
         };
         document.addEventListener('input', function (e) {
             if (e.target.id === 'bk2-bank-q') { fillBanks(); var box = $('bk2-bank'); if (box && box.options.length && e.target.value.trim() && box.selectedIndex < 0) box.selectedIndex = 0; }   // tự chọn ngân hàng khớp nhất
@@ -19510,17 +19518,79 @@ document.addEventListener("DOMContentLoaded", () => {
             msg('✓ Đã đọc mã QR: ' + bankName(r.bin) + wallet + ' · ' + (r.card ? 'số thẻ ' : 'STK ') + r.acc + '. '
                 + (nm ? 'Kiểm tra lại tên chủ tài khoản rồi nhập mật khẩu để lưu.' : 'Nhập tên chủ tài khoản (không dấu) và mật khẩu để lưu.')
                 + (r.crcOk ? '' : ' ⚠️ Mã QR có thể bị mờ / lỗi, hãy đối chiếu kỹ số tài khoản.'), r.crcOk ? 'ok' : 'err');
-            setTimeout(function () { var f = nm ? $('bk2-pwd') : $('bk2-name'); if (f) f.focus(); }, 120);
+            if (!TOUCH) setTimeout(function () { var f = nm ? $('bk2-pwd') : $('bk2-name'); if (f) f.focus(); }, 120);
         }
         PU.applyQR = applyQR;
+
+        /* ---------- Đọc tên chủ tài khoản in trên ảnh (mã VietQR thường KHÔNG chứa tên) ----------
+           Tesseract.js (tiếng Việt) chạy ngay trên máy, chỉ tải khi cần; chọn dòng giống họ tên nhất (họ Việt phổ biến, cạnh số tài khoản, sau "Tên / Chủ tài khoản") */
+        var SURN = {}; ('NGUYEN TRAN LE PHAM HOANG HUYNH PHAN VU VO DANG BUI DO HO NGO DUONG LY TRUONG DINH LAM MAI TRINH CAO LUONG TA TO HA THAI QUACH LUU KIEU DOAN TONG LA MA CHAU TANG VUONG TIEU KHUC VIEN THAN LUC DIEP KHUAT HUA PHUNG NONG LO VI TRIEU MAC KHONG BACH CU CHU DAM DAU GIANG HAN HAU HUA KIM LAI LIEU NGHIEM NINH ONG PHI QUAN SON TAN THACH THAN TIET TRAC TU UNG VAN VUONG XA YEN').split(' ').forEach(function (x) { SURN[x] = 1; });
+        var NOTNAME = /NGAN HANG|BANK|MOMO|ZALO|VIETQR|VIET QR|NAPAS|\bQR\b|TAI KHOAN|CHUYEN|NHAN TIEN|QUET|\bSTK\b|THANH TOAN|\bVI\b|LUU ANH|CHIA SE|TAI VE|SAO CHEP|SO TIEN|NOI DUNG|DIEN THOAI|HOTLINE|\bPAY\b|DIGITAL|MOBILE|\bAPP\b|\bMA\b QR|VIET NAM|TMCP|THUONG MAI|CO PHAN|QUAN DOI|NGOAI THUONG|CONG THUONG|DAU TU|PHAT TRIEN|\bDONG\b|\bVND\b|SMART|WALLET|SCAN|SHARE|SAVE|DOWNLOAD|ACCOUNT NUMBER/;
+        function nameFromText(text, acc) {
+            var lines = String(text || '').split(/\r?\n/), best = null, accLine = -1, digits = String(acc || '').replace(/\D/g, '');
+            lines.forEach(function (l, i) { var d = l.replace(/[^0-9A-Z]/gi, '').toUpperCase(); if (acc && (d.indexOf(String(acc).toUpperCase()) >= 0 || (digits.length >= 6 && d.indexOf(digits.slice(-6)) >= 0))) accLine = i; });
+            lines.forEach(function (raw, i) {
+                var lab = /(t[eê]n|ch[uủ]\s*t[aà]i\s*kho[aả]n|ch[uủ]\s*tk|account\s*name|ng[uư][oờ]i\s*nh[aậ]n)\s*[:：]/i.test(raw);
+                var l = raw.indexOf(':') >= 0 ? raw.slice(raw.lastIndexOf(':') + 1) : raw;
+                var f = fold(l).toUpperCase().replace(/[^A-Z ]/g, ' ').replace(/\s+/g, ' ').trim();
+                if (lab && !f && lines[i + 1]) return;
+                var w = f.split(' ');
+                if (w.length < 2 || w.length > 6 || f.length < 5 || f.length > 40 || NOTNAME.test(f)) return;
+                if (w.some(function (x) { return x.length > 7 || !/[AEIOUY]/.test(x); })) return;   // mỗi tiếng Việt có nguyên âm, dài tối đa 7 chữ
+                var sc = (SURN[w[0]] ? 3 : 0) + (lab ? 3 : 0) + (accLine >= 0 && Math.abs(i - accLine) <= 2 ? 2 : 0) + (l.replace(/[^A-Za-zÀ-ỹ]/g, '') === l.replace(/[^A-Za-zÀ-ỹ]/g, '').toUpperCase() ? 1 : 0) + (w.length >= 3 ? 1 : 0);
+                if (sc >= 3 && (!best || sc > best.sc)) best = { name: f, sc: sc };
+            });
+            return best ? best.name : '';
+        }
+        PU.nameFromText = nameFromText;
+        var tessP = null;
+        function loadTess() {
+            if (window.Tesseract) return Promise.resolve(window.Tesseract);
+            if (tessP) return tessP;
+            tessP = new Promise(function (res, rej) {
+                var sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js'; sc.async = true;
+                sc.onload = function () { window.Tesseract ? res(window.Tesseract) : rej(new Error('ocr')); };
+                sc.onerror = function () { tessP = null; sc.remove(); rej(new Error('ocr')); };
+                document.head.appendChild(sc);
+            });
+            return tessP;
+        }
+        function ocrName(im, acc) {
+            var W0 = im.naturalWidth || im.width, H0 = im.naturalHeight || im.height, k = Math.min(1400, Math.max(1000, Math.max(W0, H0))) / Math.max(W0, H0);   // ảnh nhỏ phóng lên ~1000px cho chữ rõ
+            var cv = document.createElement('canvas'); cv.width = Math.round(W0 * k); cv.height = Math.round(H0 * k);
+            var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(im, 0, 0, cv.width, cv.height);
+            var worker = null;
+            var job = loadTess().then(function (T) { return T.createWorker('vie'); })
+                .then(function (w) { worker = w; return w.recognize(cv); })
+                .then(function (r) { return nameFromText(r && r.data && r.data.text, acc); });
+            var to = new Promise(function (res) { setTimeout(function () { res(''); }, 30000); });   // mạng chậm: tối đa 30 giây
+            return Promise.race([job, to]).then(function (n) { if (worker) try { worker.terminate(); } catch (e) {} return n; },
+                function () { if (worker) try { worker.terminate(); } catch (e) {} return ''; });
+        }
         PU.readQRFile = function (file) {
             if (!file || !canEdit()) return;
             var btn = $('bk2-qr-btn'); if (btn) { btn.disabled = true; btn.classList.add('busy'); }
             msg('Đang đọc mã QR...');
-            readImage(file).then(decodeQR).then(function (list) {
+            var img = null;
+            readImage(file).then(function (im) { img = im; return decodeQR(im); }).then(function (list) {
                 if (!list.length) return msg('Không tìm thấy mã QR trong ảnh. Chọn ảnh rõ nét, thấy trọn mã QR (có thể cắt sát mã rồi thử lại).', 'err');
                 var bad = null;
-                for (var i = 0; i < list.length; i++) { var r = parseQR(list[i]); if (!r.err) return applyQR(r); bad = bad || r.err; }
+                for (var i = 0; i < list.length; i++) {
+                    var r = parseQR(list[i]); if (r.err) { bad = bad || r.err; continue; }
+                    applyQR(r);
+                    if ($('bk2-name').value.trim()) return;   // mã đã có tên / người dùng đã gõ tên
+                    var m0 = $('bk2-msg').textContent, cls = $('bk2-msg').className.indexOf('err') >= 0 ? 'err' : 'ok', nEl = $('bk2-name');
+                    nEl.placeholder = 'Đang đọc tên trên ảnh...';
+                    msg(m0.replace(/Nhập tên chủ tài khoản.*?lưu\./, '⏳ Đang đọc tên chủ tài khoản trên ảnh...'), cls);
+                    return ocrName(img, r.acc).then(function (nm) {
+                        nEl.placeholder = 'VD: NGUYEN VAN A';
+                        if (nm && !nEl.value.trim() && $('bk2-acc').value === r.acc) {
+                            nEl.value = nm; PU._qrName = nm; flash('bk2-name');
+                            msg(m0.replace(/Nhập tên chủ tài khoản.*?lưu\./, 'Tên: ' + nm + ' (đọc từ ảnh — kiểm tra lại cho đúng). Nhập mật khẩu để lưu.'), cls);
+                        } else if (!nEl.value.trim()) msg(m0.replace(/Nhập tên chủ tài khoản/, 'Không đọc được tên trên ảnh — nhập tên chủ tài khoản'), cls);
+                        else msg(m0, cls);
+                    });
+                }
                 msg(bad === 'momo-cu' ? 'Đây là mã MoMo chuyển ví–ví (mã cũ), không có tài khoản nhận từ ngân hàng. Trong MoMo chọn "Nhận tiền" → mã QR nhận tiền từ ngân hàng rồi lưu ảnh đó.'
                     : bad === 'cua-hang' ? 'Đây là mã QR thanh toán cửa hàng, không phải mã nhận tiền cá nhân. Hãy dùng mã "Nhận tiền" trong app ngân hàng / ví.'
                     : 'Mã QR này không phải mã nhận tiền chuyển khoản (VietQR). Hãy dùng mã "Nhận tiền" trong app ngân hàng / ví, hoặc nhập tay bên dưới.', 'err');
