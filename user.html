@@ -19224,13 +19224,14 @@ document.addEventListener("DOMContentLoaded", () => {
     .bk2-msg { font-size: 13.5px; font-weight: 700; min-height: 0; }
     .bk2-msg:empty { display: none; }
     .bk2-msg.err { color: #b91c1c; } .bk2-msg.ok { color: #15803d; }
-    /* Điện thoại: bàn phím hiện làm màn hình thấp lại -> hộp neo ở trên (không nhảy theo căn giữa), bỏ làm mờ nền (vẽ lại cả màn hình gây giật) */
-    @media (max-width: 767px), (pointer: coarse) {
-        #modal-bank.modal-overlay { align-items: flex-start; padding: max(10px, env(safe-area-inset-top)) 10px 10px; backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(0, 0, 0, .86); transition: none; }
-        #modal-bank .modal-content.bk2 { width: 100%; max-height: calc(100% - 4px); transition: none !important; transform: none !important; animation: none !important; }
-        #modal-bank .bk2-body { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scroll-padding: 16px 0 120px; }
-        #modal-bank .bk2-in { font-size: 16px; }   /* < 16px: iPhone tự phóng to khi gõ */
-    }
+    /* Điện thoại (bản 2): bàn phím hiện / đổi bàn phím số <-> chữ làm màn hình đổi chiều cao liên tục ->
+       - hộp giữ CHIỀU CAO CỐ ĐỊNH (đo lúc mở, --bk2-h), vùng tối tự cuộn tới ô đang gõ -> không co giãn, không vẽ lại
+       - mọi thứ phía sau (trang, hạt nền, hộp Hồ sơ / Túi đồ đang mở) ẩn hẳn khi hộp mở -> không lóe xuyên qua, đổi cỡ màn hình rất nhẹ */
+    body.bk2-open > *:not(#modal-bank):not(#toast-container):not(script):not(style) { visibility: hidden !important; content-visibility: hidden; }
+    body.bk2-open #modal-bank.modal-overlay { display: block !important; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: max(10px, env(safe-area-inset-top)) 10px 10px;
+        background: #1c0606; backdrop-filter: none; -webkit-backdrop-filter: none; transition: none; opacity: 1; }
+    body.bk2-open #modal-bank .modal-content.bk2 { margin: 0 auto; width: 100%; height: var(--bk2-h, auto); max-height: none; transition: none !important; transform: none !important; animation: none !important; will-change: auto; }
+    body.bk2-open #modal-bank .bk2-in { font-size: 16px; }   /* < 16px: iPhone tự phóng to khi gõ */
     .bk2-qr { display: flex; flex-direction: column; gap: 6px; }
     .bk2-qr[hidden] { display: none; }
     .bk2-qr-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: left; cursor: pointer; border-radius: 16px; font: inherit; color: #3b1306;
@@ -19601,6 +19602,37 @@ document.addEventListener("DOMContentLoaded", () => {
         document.addEventListener('change', function (e) {
             if (e.target && e.target.id === 'bk2-qr-file') { var f = e.target.files && e.target.files[0]; e.target.value = ''; PU.readQRFile(f); }
         });
+        /* Điện thoại: khóa chiều cao hộp + ẩn trang phía sau khi hộp Tài khoản nhận thưởng mở */
+        (function () {
+            if (!TOUCH) return;
+            var ov = null, H = 0;
+            function typing() { var a = document.activeElement; return !!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
+            function setH(force) {
+                var h = window.innerHeight;
+                if (!force && (typing() || h <= H)) return;   // bàn phím đang hiện -> giữ nguyên; chỉ lớn lên khi xoay máy / bàn phím đóng
+                H = h; ov.style.setProperty('--bk2-h', Math.max(360, h - 20) + 'px');
+            }
+            function sync() {
+                var on = ov.classList.contains('active');
+                if (on === document.body.classList.contains('bk2-open')) return;
+                if (on) { H = 0; setH(true); }
+                document.body.classList.toggle('bk2-open', on);
+                if (!on) ov.scrollTop = 0;
+            }
+            function boot() {
+                ov = $('modal-bank'); if (!ov || !window.MutationObserver) return;
+                new MutationObserver(sync).observe(ov, { attributes: true, attributeFilter: ['class', 'style'] });
+                window.addEventListener('resize', function () { if (document.body.classList.contains('bk2-open')) setH(false); }, { passive: true });
+                window.addEventListener('orientationchange', function () { setTimeout(function () { if (document.body.classList.contains('bk2-open')) setH(true); }, 400); });
+                // chạm vào ô -> cuộn ô đó lên giữa phần màn hình còn lại (sau khi bàn phím hiện xong)
+                ov.addEventListener('focusin', function (e) {
+                    var t = e.target; if (!t || !/^(INPUT|TEXTAREA)$/.test(t.tagName)) return;
+                    setTimeout(function () { try { t.scrollIntoView({ block: 'center', behavior: 'auto' }); } catch (er) {} }, 320);
+                });
+                sync();
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+        })();
         document.addEventListener('DOMContentLoaded', function () { fillBanks(); loadBanks(); });
         document.addEventListener('click', function (e) {   // mở Túi đồ -> vẽ lại số liệu
             var t = e.target && e.target.closest ? e.target.closest('[onclick*="modal-inventory"], [onclick*="modal-profile"]') : null;
