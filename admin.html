@@ -3628,6 +3628,8 @@ html.qd-lite .qd-fx { display: none !important; }
                                     <div class="rb-tgl"><span class="em">🔐</span><div class="t"><b>Đăng nhập hôm nay</b><span>Mọi tài khoản đã đăng nhập / vào web trong ngày.</span></div><label class="switch"><input type="checkbox" id="rb-sec-login" onchange="RBAdmin.setSec('login', this.checked)"><span class="slider"></span></label></div>
                                     <div class="rb-tgl"><span class="em">⚠️</span><div class="t"><b>Đã vào nhưng chưa điểm danh</b><span>Nhắc đúng người quên điểm danh.</span></div><label class="switch"><input type="checkbox" id="rb-sec-loginNoAtt" onchange="RBAdmin.setSec('loginNoAtt', this.checked)"><span class="slider"></span></label></div>
                                     <div class="rb-tgl"><span class="em">😴</span><div class="t"><b>Chưa đăng nhập</b><span>Tài khoản chưa vào web hôm nay.</span></div><label class="switch"><input type="checkbox" id="rb-sec-noLogin" onchange="RBAdmin.setSec('noLogin', this.checked)"><span class="slider"></span></label></div>
+                                    <div class="rb-tgl"><span class="em">🆔</span><div class="t"><b>Khai báo ID</b><span>Bao nhiêu người đã khai ID, ai mới khai hôm nay, ai chưa khai. Chỉ ghi tên, không ghi số ID.</span></div><label class="switch"><input type="checkbox" id="rb-sec-gameId" onchange="RBAdmin.setSec('gameId', this.checked)"><span class="slider"></span></label></div>
+                                    <div class="rb-tgl"><span class="em">🏦</span><div class="t"><b>Khai báo tài khoản ngân hàng</b><span>Ai đã khai / mới khai hôm nay / chưa khai tài khoản nhận thưởng. Chỉ ghi tên, không ghi số tài khoản.</span></div><label class="switch"><input type="checkbox" id="rb-sec-bank" onchange="RBAdmin.setSec('bank', this.checked)"><span class="slider"></span></label></div>
                                     <div class="rb-tgl"><span class="em">🔒</span><div class="t"><b>Tài khoản bị khóa</b><span>Các tài khoản đang bị khóa (khóa tay, tự khóa, nghi gian lận). Không tính vào tổng thành viên.</span></div><label class="switch"><input type="checkbox" id="rb-sec-locked" onchange="RBAdmin.setSec('locked', this.checked)"><span class="slider"></span></label></div>
                                 </div>
 
@@ -13310,7 +13312,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             botName: 'Bot Báo Cáo',
             title: '📋 BÁO CÁO HOẠT ĐỘNG — {thu}, {ngay}',
             footer: 'Cảm ơn anh em đã có mặt hôm nay! Ai chưa điểm danh nhớ vào đúng giờ nhé 💪',
-            sec: { att: true, login: true, loginNoAtt: true, noLogin: false, locked: true },
+            sec: { att: true, login: true, loginNoAtt: true, noLogin: false, locked: true, gameId: true, bank: true },
             tag: true, showTime: true, excludeStaff: true, exclude: [], maxNames: 100, skipEmpty: false
         };
         var DB = null;
@@ -13387,7 +13389,10 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             var ex = {}; cfg.exclude.forEach(function (u) { ex[u.toLowerCase()] = 1; });
             var res = await Promise.all([
                 D.collection('accounts').get(),
-                D.collection('attendance').where('date', 'in', d1 === d2 ? [d1] : [d1, d2]).get()
+                D.collection('attendance').where('date', 'in', d1 === d2 ? [d1] : [d1, d2]).get(),
+                // Khai báo ID (đơn đăng ký: users) + tài khoản ngân hàng (bank_info): không đọc được thì bỏ qua mục đó, báo cáo vẫn gửi
+                D.collection('users').get().catch(function () { return null; }),
+                D.collection('bank_info').get().catch(function () { return null; })
             ]);
             var accs = [], by = {}, all = [], locked = [];
             res[0].forEach(function (doc) {
@@ -13406,6 +13411,12 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 var ts = +x.timestamp || 0; if (!att[u] || ts < att[u].ts) att[u] = { ts: ts, time: x.time || '' };
             });
             var cmpName = function (a, b) { return a.u.localeCompare(b.u, 'vi', { sensitivity: 'base' }); };
+            // Ai đã khai ID / ngân hàng (chỉ lấy tên + giờ khai, KHÔNG đưa số ID / số tài khoản vào báo cáo)
+            var idTs = {}, bkTs = {};
+            if (res[2]) res[2].forEach(function (doc) { var x = doc.data() || {}, u = String(x.submitter || '').trim(), ts = +x.timestamp || 0; if (u && by[u] && x.gameId && (!idTs[u] || ts > idTs[u].ts)) idTs[u] = { ts: ts }; });
+            if (res[3]) res[3].forEach(function (doc) { var x = doc.data() || {}, u = String(x.user || doc.id || '').trim(), ts = +x.changedAt || +x.updatedAt || 0; if (u && by[u] && x.accNo) bkTs[u] = { ts: ts }; });
+            var byTs = function (m) { return function (a, b) { return (m[a.u].ts || 0) - (m[b.u].ts || 0); }; };
+            var idDone = accs.filter(function (a) { return idTs[a.u]; }), bkDone = accs.filter(function (a) { return bkTs[a.u]; });
             var attended = accs.filter(function (a) { return att[a.u]; }).sort(function (a, b) { return att[a.u].ts - att[b.u].ts; });
             var logged = accs.filter(function (a) { return att[a.u] || a.ll || a.la >= start; }).sort(cmpName);
             var inLog = {}; logged.forEach(function (a) { inLog[a.u] = 1; });
@@ -13415,6 +13426,8 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 loginNoAtt: logged.filter(function (a) { return !att[a.u]; }),
                 noLogin: accs.filter(function (a) { return !inLog[a.u]; }).sort(cmpName),
                 locked: locked.sort(cmpName),
+                idOk: !!res[2], idTs: idTs, idDone: idDone, idNew: idDone.filter(function (a) { return idTs[a.u].ts >= start; }).sort(byTs(idTs)), idMissing: accs.filter(function (a) { return !idTs[a.u]; }).sort(cmpName),
+                bkOk: !!res[3], bkTs: bkTs, bkDone: bkDone, bkNew: bkDone.filter(function (a) { return bkTs[a.u].ts >= start; }).sort(byTs(bkTs)), bkMissing: accs.filter(function (a) { return !bkTs[a.u]; }).sort(cmpName),
                 online: accs.filter(function (a) { return a.online && at - a.la < 120000; }).length
             };
         }
@@ -13429,14 +13442,16 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 var shown = arr.slice(0, cfg.maxNames);
                 var s = shown.map(function (a) {
                     if (cfg.tag) men[a.u] = 1;
-                    return (cfg.tag ? '@' : '') + a.u + (withTime && cfg.showTime && d.att[a.u] && d.att[a.u].ts ? ' (' + hm(d.att[a.u].ts) + ')' : '') + (a.why ? ' (' + a.why + ')' : '');
+                    var tm = withTime === true ? d.att : withTime;   // true = giờ điểm danh; hoặc bảng giờ khai báo
+                    return (cfg.tag ? '@' : '') + a.u + (tm && cfg.showTime && tm[a.u] && tm[a.u].ts ? ' (' + hm(tm[a.u].ts) + ')' : '') + (a.why ? ' (' + a.why + ')' : '');
                 }).join(', ');
                 if (arr.length > shown.length) s += ' … và ' + (arr.length - shown.length) + ' người khác';
                 return s;
             }
             var pct = d.total ? Math.round(d.attended.length * 1000 / d.total) / 10 : 0;
             var v = { ngay: dateShow(d.p), thu: WD[d.p.wd], gio: hm(d.at), diemdanh: d.attended.length, dangnhap: d.loggedIn.length,
-                chuadiemdanh: d.loginNoAtt.length, chuavao: d.noLogin.length, bikhoa: (d.locked || []).length, tong: d.total, tile: String(pct).replace('.', ',') + '%', bot: cfg.botName };
+                chuadiemdanh: d.loginNoAtt.length, chuavao: d.noLogin.length, bikhoa: (d.locked || []).length, tong: d.total, tile: String(pct).replace('.', ',') + '%', bot: cfg.botName,
+                khaiid: (d.idDone || []).length, chuakhaiid: (d.idMissing || []).length, khainh: (d.bkDone || []).length, chuakhainh: (d.bkMissing || []).length };
             var out = [], t = fill(cfg.title, v).trim();
             if (t) out.push(t);
             out.push('⏰ Chốt số liệu lúc ' + v.gio + ' · ' + d.total + ' thành viên');
@@ -13445,10 +13460,19 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             if (cfg.sec.loginNoAtt) out.push('', '⚠️ ĐÃ VÀO NHƯNG CHƯA ĐIỂM DANH: ' + d.loginNoAtt.length, list(d.loginNoAtt));
             if (cfg.sec.noLogin) out.push('', '😴 CHƯA ĐĂNG NHẬP: ' + d.noLogin.length, list(d.noLogin));
             if (cfg.sec.locked) out.push('', '🔒 TÀI KHOẢN BỊ KHÓA: ' + (d.locked || []).length, list(d.locked || [], false, '— Không có tài khoản nào bị khóa —'));
+            function decl(on, ok, icon, label, done, fresh, miss, tm) {
+                if (!on || !ok) return;
+                out.push('', icon + ' ' + label + ': ' + done.length + '/' + d.total + ' đã khai' + (fresh.length ? ' · hôm nay +' + fresh.length : ''));
+                if (fresh.length) out.push('🆕 Mới khai hôm nay: ' + list(fresh, tm));
+                out.push('⏳ Chưa khai: ' + (miss.length ? miss.length + ' — ' : '') + list(miss, false, 'Tất cả đã khai 🎉'));
+            }
+            decl(cfg.sec.gameId, d.idOk !== false && d.idDone, '🆔', 'KHAI BÁO ID', d.idDone || [], d.idNew || [], d.idMissing || [], d.idTs);
+            decl(cfg.sec.bank, d.bkOk !== false && d.bkDone, '🏦', 'KHAI BÁO TÀI KHOẢN NGÂN HÀNG', d.bkDone || [], d.bkNew || [], d.bkMissing || [], d.bkTs);
             var f = fill(cfg.footer, v).trim(); if (f) out.push('', f);
             return {
                 text: out.join('\n').slice(0, 30000), mentions: Object.keys(men), vars: v,
-                counts: { total: d.total, att: d.attended.length, login: d.loggedIn.length, loginNoAtt: d.loginNoAtt.length, noLogin: d.noLogin.length, locked: (d.locked || []).length, online: d.online }
+                counts: { total: d.total, att: d.attended.length, login: d.loggedIn.length, loginNoAtt: d.loginNoAtt.length, noLogin: d.noLogin.length, locked: (d.locked || []).length, online: d.online,
+                    gameId: (d.idDone || []).length, gameIdNew: (d.idNew || []).length, bank: (d.bkDone || []).length, bankNew: (d.bkNew || []).length }
             };
         }
 
@@ -13682,7 +13706,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         var SCHED = ['times', 'days', 'from', 'to', 'grace'];
         var KEYS = SCHED.concat(['botName', 'title', 'footer', 'sec', 'tag', 'showTime', 'excludeStaff', 'skipEmpty', 'exclude', 'maxNames']);
         var DAYS = [[1, 'T2'], [2, 'T3'], [3, 'T4'], [4, 'T5'], [5, 'T6'], [6, 'T7'], [0, 'CN']];
-        var VARS = [['{thu}', 'Thứ'], ['{ngay}', 'Ngày'], ['{gio}', 'Giờ chốt'], ['{diemdanh}', 'Số đã điểm danh'], ['{dangnhap}', 'Số đăng nhập'], ['{chuadiemdanh}', 'Số chưa điểm danh'], ['{tong}', 'Tổng thành viên'], ['{tile}', 'Tỉ lệ %'], ['{bikhoa}', 'Số bị khóa'], ['{bot}', 'Tên bot']];
+        var VARS = [['{thu}', 'Thứ'], ['{ngay}', 'Ngày'], ['{gio}', 'Giờ chốt'], ['{diemdanh}', 'Số đã điểm danh'], ['{dangnhap}', 'Số đăng nhập'], ['{chuadiemdanh}', 'Số chưa điểm danh'], ['{khaiid}', 'Số đã khai ID'], ['{chuakhaiid}', 'Số chưa khai ID'], ['{khainh}', 'Số đã khai ngân hàng'], ['{chuakhainh}', 'Số chưa khai ngân hàng'], ['{tong}', 'Tổng thành viên'], ['{tile}', 'Tỉ lệ %'], ['{bikhoa}', 'Số bị khóa'], ['{bot}', 'Tên bot']];
         var C = null, F = null, DATA = null, LASTX = null, started = false, armT = 0, pvT = 0;
         function me() { try { return (typeof State !== 'undefined' && State.currentUser) || ''; } catch (e) { return ''; } }
         function toast(m, k) { try { Utils.toast(m, k); } catch (e) {} }
@@ -13811,7 +13835,9 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 LASTX = x;
                 cfg.exclude.forEach(function (u) { ex[u.toLowerCase()] = 1; });
                 var keep = function (a) { return !ex[a.u.toLowerCase()] && !(cfg.excludeStaff && (a.role === 'admin' || a.role === 'manager')); };
-                var dd = { at: d.at, p: d.p, att: d.att, online: d.online, attended: d.attended.filter(keep), loggedIn: d.loggedIn.filter(keep), loginNoAtt: d.loginNoAtt.filter(keep), noLogin: d.noLogin.filter(keep), locked: (d.locked || []).filter(keep) };
+                var dd = { at: d.at, p: d.p, att: d.att, online: d.online, attended: d.attended.filter(keep), loggedIn: d.loggedIn.filter(keep), loginNoAtt: d.loginNoAtt.filter(keep), noLogin: d.noLogin.filter(keep), locked: (d.locked || []).filter(keep),
+                    idOk: d.idOk, idTs: d.idTs, idDone: (d.idDone || []).filter(keep), idNew: (d.idNew || []).filter(keep), idMissing: (d.idMissing || []).filter(keep),
+                    bkOk: d.bkOk, bkTs: d.bkTs, bkDone: (d.bkDone || []).filter(keep), bkNew: (d.bkNew || []).filter(keep), bkMissing: (d.bkMissing || []).filter(keep) };
                 dd.total = dd.loggedIn.length + dd.noLogin.length;
                 var c = R.compose(cfg, dd), known = {};
                 Object.keys(d.by).forEach(function (u) { known[u.toLowerCase()] = u; });
