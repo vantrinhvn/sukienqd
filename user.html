@@ -43,6 +43,19 @@
         };
         window.Notification = N;
         window.QDAppNotif = { open: function () { try { Q.openNotifySettings(); } catch (e) {} }, perm: perm };
+        // Đăng nhập xong mà chưa từng được hỏi quyền -> hỏi luôn (không hỏi thì Android chặn hết thông báo, kể cả thông báo đẩy)
+        (function askOnce(n) {
+            var S = window.State;
+            if (!S || !S.currentUser) { if (n < 400) setTimeout(function () { askOnce(n + 1); }, 3000); return; }
+            var asked = false; try { asked = localStorage.getItem('qd_app_notif_asked') === '1'; } catch (e) {}
+            if (asked || perm() !== 'default') return;
+            try { localStorage.setItem('qd_app_notif_asked', '1'); } catch (e) {}
+            setTimeout(function () {
+                N.requestPermission().then(function (p) {
+                    try { if (window.Utils && Utils.toast) Utils.toast(p === 'granted' ? '🔔 Đã bật thông báo: có tin nhắn mới điện thoại sẽ báo ngay.' : 'Bạn đã tắt thông báo. Muốn bật lại: Cài đặt → Thông báo → Bật.', p === 'granted' ? 'success' : 'info'); } catch (e) {}
+                });
+            }, 1500);
+        })(0);
         try {
             if (window.ServiceWorkerRegistration) ServiceWorkerRegistration.prototype.showNotification = function (title, opts) { new N(title, opts); return Promise.resolve(); };
         } catch (e) {}
@@ -12094,7 +12107,7 @@ html.qd-lite .qd-fx { display: none !important; }
                                 if (data.bot) {   // Tin Bot báo cáo: luôn có chuông riêng (kể cả đang mở Kênh Chung)
                                     if (notifOn) { if (QM) QM.ding(true); if (away && window.Notif) window.Notif.show(forMe ? `📣 ${who} nhắc đến bạn trong Kênh Chung` : `${who} · Kênh Chung`, body, "general_room"); }
                                 }
-                                else if (State.chatTarget !== 'general') window.Chat.showNotification(forMe ? `📣 ${who} nhắc đến bạn trong Kênh Chung` : "Kênh Chung", forMe ? body : `${who}: ${body}`, "general_room");
+                                else if (State.chatTarget !== 'general' || document.hidden) window.Chat.showNotification(forMe ? `📣 ${who} nhắc đến bạn trong Kênh Chung` : "Kênh Chung", forMe ? body : `${who}: ${body}`, "general_room");
                                 else if (forMe && notifOn) { if (QM) QM.ding(false); if (document.hidden && window.Notif) window.Notif.show(`📣 ${who} nhắc đến bạn trong Kênh Chung`, body, "general_room"); }
                             }
                         }
