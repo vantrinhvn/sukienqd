@@ -11942,7 +11942,10 @@ html.qd-lite .qd-fx { display: none !important; }
                 if (window.QDSession) window.QDSession.end('logout', true);
                 else { try { localStorage.removeItem('qd_current_username'); } catch (e) {} }
                 if(docId) { 
-                    db.collection("accounts").doc(docId).update({lastActive: Date.now(), online: false}).catch(() => {}).finally(()=>window.location.reload()); 
+                    const offUpd = { lastActive: Date.now(), online: false };
+                    // App Android: đăng xuất -> máy này thôi nhận thông báo đẩy của tài khoản này
+                    if (window.QDPush && window.QDPush.token) { offUpd.pushTokens = firebase.firestore.FieldValue.arrayRemove(window.QDPush.token); try { localStorage.removeItem('qd_push_saved'); } catch (e) {} }
+                    db.collection("accounts").doc(docId).update(offUpd).catch(() => {}).finally(()=>window.location.reload()); 
                 } else {
                     window.location.reload(); 
                 }
@@ -18449,6 +18452,38 @@ document.addEventListener("DOMContentLoaded", () => {
                 el.textContent = msg; el.className = 'text-sm font-bold ' + cls;
             }
         };
+
+        /* App Android + Firebase Cloud Messaging: lưu mã nhận thông báo đẩy của máy vào tài khoản đang đăng nhập
+           (accounts/{id}.pushTokens) để máy chủ báo tin nhắn mới cả khi đã tắt app. Máy đổi tài khoản -> gỡ khỏi tài khoản cũ. */
+        window.QDPush = (function () {
+            var Q = window.QDNative; if (!Q || typeof Q.pushToken !== 'function') return null;
+            var P = { token: '' }, busy = false;
+            try { P.token = String(Q.pushToken() || ''); } catch (e) {}
+            function save() {
+                var S = window.State, t = P.token;
+                if (busy || !t || !S || !S.currentUser || !S.currentDocId || !window.firebase || !firebase.apps || !firebase.apps.length) return;
+                var key = S.currentUser + '|' + t, me = S.currentDocId;
+                try { if (localStorage.getItem('qd_push_saved') === key) return; } catch (e) {}
+                var fs = firebase.firestore(), FV = firebase.firestore.FieldValue; busy = true;
+                fs.collection('accounts').doc(me).update({ pushTokens: FV.arrayUnion(t), pushAt: Date.now() }).then(function () {
+                    try { localStorage.setItem('qd_push_saved', key); } catch (e) {}
+                    return fs.collection('accounts').where('pushTokens', 'array-contains', t).get().then(function (q) {
+                        q.forEach(function (d) { if (d.id !== me) d.ref.update({ pushTokens: FV.arrayRemove(t) }).catch(function () {}); });
+                    });
+                }).catch(function () {}).then(function () { busy = false; });
+            }
+            window.__qdPushToken = function (t) {
+                t = String(t || ''); if (!t) return;
+                if (t !== P.token) {
+                    var old = P.token, S = window.State; P.token = t; try { localStorage.removeItem('qd_push_saved'); } catch (e) {}
+                    if (old && S && S.currentDocId && window.firebase) firebase.firestore().collection('accounts').doc(S.currentDocId).update({ pushTokens: firebase.firestore.FieldValue.arrayRemove(old) }).catch(function () {}).then(save);   // mã cũ hết hạn -> gỡ
+                }
+                save();
+            };
+            setInterval(save, 4000);
+            Object.defineProperty(P, 'save', { value: save });
+            return P;
+        })();
 
         document.addEventListener('DOMContentLoaded', function () {
             window.TetColor.init();

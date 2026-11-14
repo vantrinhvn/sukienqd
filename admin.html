@@ -1113,6 +1113,39 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div id="cfg-mx-status" class="text-xs text-muted" style="text-align: center;"></div>
             </div>
 
+            <div class="form-group mb-6 p-5 rounded-xl" id="pushn-card" style="border: 1px solid rgba(59,130,246,.55); background: rgba(59,130,246,.06);">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="flex-center rounded-full" style="width: 36px; height: 36px; background: rgba(59,130,246,0.2); color: #3b82f6; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="fa-solid fa-bell text-lg"></i>
+                    </div>
+                    <div style="min-width: 0;">
+                        <label class="form-label m-0" style="font-size: 15px; color: #3b82f6;">Gửi thông báo đến app</label>
+                        <span class="text-xs text-muted" id="pushn-devices">Đang đếm số máy...</span>
+                    </div>
+                </div>
+                <p class="text-xs text-muted" style="margin: 0 0 12px; line-height: 1.5;">Hiện trên thanh thông báo điện thoại của người dùng app Android, kể cả khi đã tắt app. Tin nhắn riêng và @nhắc tên được máy chủ tự báo.</p>
+                <div class="form-group mb-3">
+                    <label class="form-label text-xs">Gửi đến</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="pushn-target" class="form-control" style="flex: 1; min-width: 0;" onchange="QDPushAdmin.target()">
+                            <option value="all">Tất cả thành viên</option>
+                            <option value="one">Một tài khoản</option>
+                        </select>
+                        <input id="pushn-user" class="form-control" placeholder="Tên đăng nhập" autocomplete="off" style="flex: 1; min-width: 0; display: none;">
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label text-xs">Tiêu đề</label>
+                    <input id="pushn-title" class="form-control" maxlength="80" placeholder="VD: 🧧 Lì xì đầu năm đã mở!">
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label text-xs">Nội dung</label>
+                    <textarea id="pushn-body" class="form-control" rows="3" maxlength="300" placeholder="VD: Vào app nhận lì xì ngay hôm nay, số lượng có hạn."></textarea>
+                </div>
+                <button type="button" class="btn btn-primary w-full" id="pushn-send" onclick="QDPushAdmin.send()"><i class="fa-solid fa-paper-plane"></i> Gửi thông báo</button>
+                <div id="pushn-status" class="text-xs" style="text-align: center; margin-top: 10px; line-height: 1.5;"></div>
+                <div id="pushn-hist" style="margin-top: 10px;"></div>
+            </div>
             <div class="form-group mb-2 p-5 rounded-xl wipe-entry" id="wipe-entry-settings" hidden style="border: 1px solid var(--color-danger); background: rgba(239, 68, 68, 0.08);">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="flex-center rounded-full" style="width: 36px; height: 36px; background: rgba(239,68,68,0.2); color: var(--color-danger); display: flex; align-items: center; justify-content: center;">
@@ -15051,6 +15084,62 @@ window.QDXlsx = (function () {
     })();
     </script>
 
+    <!-- ===== GỬI THÔNG BÁO ĐẾN APP (push_broadcast -> Cloud Function pushBroadcast -> Firebase Cloud Messaging) ===== -->
+    <script>
+    window.QDPushAdmin = (function () {
+        var d = document, unsubOne = null;
+        function $(id) { return d.getElementById(id); }
+        function fs() { return (window.firebase && firebase.apps && firebase.apps.length) ? firebase.firestore() : null; }
+        function toast(m, t) { try { Utils.toast(m, t); } catch (e) { alert(m); } }
+        function esc(x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        function fmt(ms) { if (!ms) return ''; var x = new Date(ms), p = function (n) { return (n < 10 ? '0' : '') + n; }; return p(x.getHours()) + ':' + p(x.getMinutes()) + ' ' + p(x.getDate()) + '/' + p(x.getMonth() + 1); }
+        function status(h, cls) { var s = $('pushn-status'); if (s) { s.innerHTML = h; s.style.color = cls === 'ok' ? '#22c55e' : cls === 'err' ? '#ef4444' : ''; } }
+        function target() { var one = $('pushn-target').value === 'one'; $('pushn-user').style.display = one ? '' : 'none'; if (one) $('pushn-user').focus(); }
+        function devices() {
+            var f = fs(), el = $('pushn-devices'); if (!f || !el) return;
+            f.collection('accounts').where('pushTokens', '!=', null).get().then(function (q) {
+                var acc = 0, dev = 0; q.forEach(function (x) { var t = x.data().pushTokens; if (Array.isArray(t) && t.length) { acc++; dev += t.length; } });
+                el.textContent = dev ? (dev + ' máy · ' + acc + ' tài khoản đang nhận thông báo') : 'Chưa có máy nào nhận (cần app bản mới + đăng nhập)';
+            }).catch(function () { el.textContent = 'Không đếm được số máy'; });
+        }
+        function result(b) {
+            if (!b) return '';
+            if (b.status === 'done') return '<span style="color:#22c55e">✓ ' + (b.devices ? ('Đã gửi ' + b.sent + '/' + b.devices + ' máy' + (b.failed ? ' · ' + b.failed + ' lỗi' : '')) : 'Không có máy nào nhận') + '</span>';
+            if (b.status === 'error') return '<span style="color:#ef4444">✗ Lỗi: ' + esc(b.error || '') + '</span>';
+            return (Date.now() - (b.createdAt || 0) > 90000) ? '<span style="color:#f59e0b">⚠ Máy chủ thông báo chưa chạy</span>' : '<span>⏳ Đang gửi...</span>';
+        }
+        function hist() {
+            var f = fs(), el = $('pushn-hist'); if (!f || !el) return;
+            f.collection('push_broadcast').orderBy('createdAt', 'desc').limit(5).onSnapshot(function (q) {
+                var h = [];
+                q.forEach(function (x) { var b = x.data(); h.push('<div style="padding:8px 10px;margin-top:6px;border-radius:10px;background:rgba(127,127,127,.08);font-size:12px;line-height:1.45"><b>' + esc(b.title) + '</b> <span class="text-muted">· ' + (b.target === 'all' ? 'Tất cả' : '@' + esc(b.target)) + ' · ' + fmt(b.createdAt) + '</span><br><span class="text-muted">' + esc(b.body) + '</span><br>' + result(b) + '</div>'); });
+                el.innerHTML = h.length ? '<div class="text-xs text-muted" style="margin-top:6px">Đã gửi gần đây</div>' + h.join('') : '';
+            }, function () {});
+        }
+        function send() {
+            var f = fs(); if (!f) return toast('Chưa kết nối máy chủ, thử lại sau.', 'error');
+            var title = $('pushn-title').value.trim(), body = $('pushn-body').value.trim(), one = $('pushn-target').value === 'one', user = $('pushn-user').value.trim();
+            if (!title) return toast('Nhập tiêu đề thông báo.', 'error');
+            if (!body) return toast('Nhập nội dung thông báo.', 'error');
+            if (one && !user) return toast('Nhập tên đăng nhập người nhận.', 'error');
+            if (!one && !confirm('Gửi thông báo "' + title + '" đến TẤT CẢ thành viên?')) return;
+            var btn = $('pushn-send'); btn.disabled = true; status('⏳ Đang gửi...');
+            f.collection('push_broadcast').add({ title: title, body: body, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: 'admin' }).then(function (ref) {
+                $('pushn-title').value = ''; $('pushn-body').value = '';
+                if (unsubOne) unsubOne();
+                var t0 = Date.now();
+                unsubOne = ref.onSnapshot(function (x) {
+                    var b = x.data(); if (!b) return;
+                    if (b.status === 'done') { status(result(b), 'ok'); btn.disabled = false; unsubOne(); unsubOne = null; }
+                    else if (b.status === 'error') { status(result(b), 'err'); btn.disabled = false; unsubOne(); unsubOne = null; }
+                });
+                setTimeout(function () { if (unsubOne && Date.now() - t0 >= 60000) { status('⚠ Chưa thấy máy chủ thông báo trả lời. Kiểm tra đã cài máy chủ (Cloud Functions) chưa.', 'err'); btn.disabled = false; unsubOne(); unsubOne = null; } }, 60000);
+            }).catch(function (e) { status('✗ Không gửi được' + (e && e.code ? ' (' + e.code + ')' : ''), 'err'); btn.disabled = false; });
+        }
+        (function boot(n) { if (!fs()) { if (n < 120) setTimeout(function () { boot(n + 1); }, 500); return; } devices(); hist(); })(0);
+        return { send: send, target: target, devices: devices };
+    })();
+    </script>
     <!-- ===== Bấm ra ngoài (vùng tối quanh hộp thoại) để đóng mọi hộp thoại / tab, không cần bấm nút X ===== -->
     <script id="qd-backdrop-close">
     (function () {
