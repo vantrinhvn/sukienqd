@@ -12522,7 +12522,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 
                 const qdMsg = { conversationId: roomId, from: State.currentUser, to: targetUser, text: t, imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [] };
                 if (State.chatTarget === 'general' && window.QDMention) { window.QDMention.close(); const men = window.QDMention.extract(t); if (men.length) qdMsg.mentions = men; }
-                db.collection("private_chat").add(qdMsg); 
+                const ping = targetUser !== 'all' || (qdMsg.mentions && qdMsg.mentions.length);
+                db.collection("private_chat").add(qdMsg).then(() => { if (ping && window.QDPushPing) window.QDPushPing(); }).catch(() => {}); 
             },
 
             revokeMsg: (msgId) => {
@@ -12668,7 +12669,8 @@ html.qd-lite .qd-fx { display: none !important; }
                         const roomId = State.chatTarget === 'general' ? 'general_room' : Utils.getRoomId(State.currentUser, State.chatTarget);
                         const targetUser = State.chatTarget === 'general' ? 'all' : State.chatTarget;
                         
-                        db.collection("private_chat").add({ conversationId: roomId, from: State.currentUser, to: targetUser, text: "", imageUrl: base64Data, time: Date.now(), read: false, heart: false, readBy: [] });
+                        db.collection("private_chat").add({ conversationId: roomId, from: State.currentUser, to: targetUser, text: "", imageUrl: base64Data, time: Date.now(), read: false, heart: false, readBy: [] })
+                            .then(() => { if (targetUser !== 'all' && window.QDPushPing) window.QDPushPing(); }).catch(() => {});
                         inputElement.value = ""; 
                     };
                     img.src = e.target.result;
@@ -18455,6 +18457,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
         /* App Android + Firebase Cloud Messaging: lưu mã nhận thông báo đẩy của máy vào tài khoản đang đăng nhập
            (accounts/{id}.pushTokens) để máy chủ báo tin nhắn mới cả khi đã tắt app. Máy đổi tài khoản -> gỡ khỏi tài khoản cũ. */
+        /* Gõ cửa máy chủ thông báo (Apps Script "Ứng dụng web") -> báo app Android NGAY, không chờ lịch mỗi phút.
+           Chỉ "nhắc" máy chủ kiểm tra, không gửi nội dung. Địa chỉ ở settings/push_server (hook do Admin dán / hookAuto máy chủ tự ghi). */
+        window.QDPushPing = (function () {
+            var url = null, at = 0, last = 0, timer = null;
+            function hook() {
+                if (url !== null && Date.now() - at < 10 * 60000) return Promise.resolve(url);
+                if (!window.firebase || !firebase.apps || !firebase.apps.length) return Promise.resolve('');
+                return firebase.firestore().collection('settings').doc('push_server').get().then(function (d) {
+                    var x = d.exists ? d.data() : {}; url = String(x.hook || x.hookAuto || ''); at = Date.now(); return url;
+                }).catch(function () { return ''; });
+            }
+            function fire() {
+                last = Date.now();
+                hook().then(function (u) { if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); });
+            }
+            return function () {   // nhiều tin liên tiếp -> gộp, tối đa 1 lần / 3 giây
+                var wait = 3000 - (Date.now() - last);
+                if (wait <= 0) return fire();
+                if (!timer) timer = setTimeout(function () { timer = null; fire(); }, wait);
+            };
+        })();
+
         window.QDPush = (function () {
             var Q = window.QDNative; if (!Q || typeof Q.pushToken !== 'function') return null;
             var P = { token: '' }, busy = false;

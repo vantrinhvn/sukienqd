@@ -3545,10 +3545,24 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="card pushn-stat pushn-stat-srv"><span class="pushn-k">🖥️ Máy chủ gửi</span><div id="pushn-srv" class="text-sm" style="line-height: 1.45;">Đang kiểm tra…</div></div>
                     </div>
 
+                    <div class="card mb-8" style="padding: 20px 24px;">
+                        <div class="flex justify-between items-center flex-wrap gap-3">
+                            <div style="flex: 1 1 320px; min-width: 0;">
+                                <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Gửi nhanh (vài giây)</h3>
+                                <p class="text-muted text-sm mt-2 mb-0" id="pushn-hook-st">Dán "URL ứng dụng web" của Apps Script (kết thúc bằng <b>/exec</b>) để thông báo đến gần như tức thì. Không có thì máy chủ gửi theo lịch, chậm tới 1 phút.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4 flex-wrap">
+                            <input id="pushn-hook" class="form-control" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false" style="flex: 1 1 320px; min-width: 0;">
+                            <button type="button" class="btn btn-primary" onclick="QDPushAdmin.saveHook()"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu</button>
+                            <button type="button" class="btn btn-outline" onclick="QDPushAdmin.testHook(this)"><i class="fa-solid fa-bolt mr-2"></i> Thử</button>
+                        </div>
+                    </div>
+
                     <div class="pushn-grid">
                         <div class="card" id="pushn-card" style="padding: 24px;">
                             <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-pen-to-square" style="color: #3b82f6;"></i> Soạn thông báo</h3>
-                            <p class="text-muted text-sm mt-2 mb-4">Đến điện thoại sau khoảng <b>1–2 phút</b>. <span id="pushn-devices">Đang đếm số máy...</span></p>
+                            <p class="text-muted text-sm mt-2 mb-4"><span id="pushn-eta">Đến điện thoại sau khoảng <b>1–2 phút</b>.</span> <span id="pushn-devices">Đang đếm số máy...</span></p>
                             <div class="form-group mb-4">
                                 <label class="form-label">Gửi đến</label>
                                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -15252,7 +15266,7 @@ window.QDXlsx = (function () {
             if (b.status === 'error') return '<span style="color:#ef4444">✗ Lỗi: ' + esc(b.error || '') + '</span>';
             if (b.status === 'expired') return '<span style="color:#f59e0b">⚠ Quá 24 giờ chưa gửi được — đã hủy</span>';
             if (b.status === 'sending') return '<span>📤 Đang gửi đến các máy...</span>';
-            return (Date.now() - (b.createdAt || 0) > 10 * 60000) ? '<span style="color:#f59e0b">⚠ Chờ quá lâu — máy chủ gửi thông báo chưa chạy</span>' : '<span>⏳ Đang chờ gửi (khoảng 1–2 phút)</span>';
+            return (Date.now() - (b.createdAt || 0) > 10 * 60000) ? '<span style="color:#f59e0b">⚠ Chờ quá lâu — máy chủ gửi thông báo chưa chạy</span>' : '<span>⏳ Đang chờ gửi (' + eta() + ')</span>';
         }
         function hist() {
             var f = fs(), el = $('pushn-hist'); if (!f || !el) return;
@@ -15266,13 +15280,50 @@ window.QDXlsx = (function () {
                 $('pushn-n-today').textContent = today;
             }, function () {});
         }
+        var HOOK_RE = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
+        function hookUrl() { return String(SRV && (SRV.hook || SRV.hookAuto) || ''); }
+        function fast() { return HOOK_RE.test(hookUrl()); }
+        function eta() { return fast() ? 'vài giây' : 'khoảng 1–2 phút'; }
+        // Gõ cửa máy chủ: đọc được kết quả (CORS) thì báo rõ, không thì gõ "mù" (no-cors) — máy chủ vẫn chạy
+        function ping() {
+            var u = hookUrl(); if (!HOOK_RE.test(u)) return Promise.resolve(null);
+            return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); })
+                .catch(function () { return fetch(u, { mode: 'no-cors', cache: 'no-store' }).then(function () { return { ok: true, blind: true }; }); })
+                .catch(function () { return { ok: false }; });
+        }
+        function hookUi() {
+            var inp = $('pushn-hook'), st = $('pushn-hook-st'); if (!inp) return;
+            if (d.activeElement !== inp) inp.value = (SRV && SRV.hook) || '';
+            var u = hookUrl();
+            if (HOOK_RE.test(u)) st.innerHTML = '<span style="color:#22c55e">⚡ Đang bật</span> — thông báo đến sau vài giây.' + (SRV && !SRV.hook && SRV.hookAuto ? ' <span class="text-muted">(máy chủ tự báo địa chỉ)</span>' : '');
+            $('pushn-eta').innerHTML = 'Đến điện thoại sau <b>' + eta() + '</b>.';
+        }
+        function saveHook() {
+            var u = ($('pushn-hook').value || '').trim();
+            if (u && !HOOK_RE.test(u)) return toast('Địa chỉ phải dạng https://script.google.com/macros/s/.../exec', 'error');
+            fs().collection('settings').doc('push_server').set({ hook: u }, { merge: true })
+                .then(function () { toast(u ? 'Đã lưu. Bấm "Thử" để kiểm tra.' : 'Đã bỏ địa chỉ gửi nhanh.', 'success'); })
+                .catch(function (e) { toast('Không lưu được' + (e && e.code ? ' (' + e.code + ')' : ''), 'error'); });
+        }
+        function testHook(btn) {
+            var u = ($('pushn-hook').value || '').trim() || hookUrl();
+            if (!HOOK_RE.test(u)) return toast('Dán địa chỉ /exec rồi bấm Lưu trước.', 'error');
+            btn.disabled = true; var t0 = Date.now();
+            fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (r) {
+                if (r && r.ok) toast('⚡ Máy chủ trả lời sau ' + ((Date.now() - t0) / 1000).toFixed(1) + ' giây (' + (r.ver || '?') + '). Gửi nhanh đã chạy!', 'success');
+                else if (r && r.busy) toast('Máy chủ đang bận gửi lượt khác — vẫn chạy bình thường.', 'success');
+                else toast('Máy chủ báo lỗi: ' + ((r && r.err) || 'không rõ'), 'error');
+            }).catch(function () { toast('Không gọi được địa chỉ này. Kiểm tra lúc Triển khai đã chọn "Bất kỳ ai" (Anyone) và chép đúng URL /exec.', 'error'); })
+                .then(function () { btn.disabled = false; });
+        }
         function srv() {
+            hookUi();
             var el = $('pushn-srv'); if (!el) return;
             var t = SRV && +SRV.lastRun || 0, age = Date.now() - t;
             if (!t) el.innerHTML = '<span style="color:#f59e0b">⚠ Chưa cài</span><br><span class="text-muted text-xs">Cập nhật bot-server bản srv-5 trong Google Apps Script.</span>';
             else if (age > 12 * 60000) el.innerHTML = '<span style="color:#ef4444">● Ngưng</span><br><span class="text-muted text-xs">Lần cuối ' + fmt(t) + '. Mở Apps Script chạy lại CAI_DAT.</span>';
             else if (SRV.ok === false) el.innerHTML = '<span style="color:#ef4444">● Có lỗi</span><br><span class="text-muted text-xs">' + esc(SRV.err || '') + '</span>';
-            else el.innerHTML = '<span style="color:#22c55e">● Đang chạy</span><br><span class="text-muted text-xs">Kiểm tra mỗi phút' + (SRV.lastSent ? ' · gửi gần nhất ' + fmt(SRV.lastSent) : '') + '</span>';
+            else el.innerHTML = '<span style="color:#22c55e">● Đang chạy</span><br><span class="text-muted text-xs">' + (fast() ? '⚡ Gửi nhanh' : 'Kiểm tra mỗi phút') + (SRV.lastSent ? ' · gửi gần nhất ' + fmt(SRV.lastSent) : '') + '</span>';
         }
         // Hộp xác nhận theo giao diện Admin (thay hộp hỏi mặc định của trình duyệt)
         var waiting = null;
@@ -15296,7 +15347,7 @@ window.QDXlsx = (function () {
             ask({ title: title, body: body,
                 to: one ? 'Gửi riêng cho <b>@' + esc(user) + '</b>' : 'Gửi đến <b>TẤT CẢ</b> thành viên',
                 note: noDev ? '⚠ @' + esc(user) + ' chưa có máy nào nhận thông báo (chưa cập nhật app hoặc chưa đăng nhập) — thông báo sẽ không đến đâu cả.'
-                    : (dev ? '📱 Sẽ đến <b>' + dev + '</b> máy sau khoảng 1–2 phút.' : 'Chưa có máy nào nhận thông báo.'),
+                    : (dev ? '📱 Sẽ đến <b>' + dev + '</b> máy sau ' + eta() + '.' : 'Chưa có máy nào nhận thông báo.'),
                 warn: noDev }).then(function (ok) { if (ok) queue(f, title, body, one, user); });
         }
         function queue(f, title, body, one, user) {
@@ -15305,7 +15356,8 @@ window.QDXlsx = (function () {
             f.collection('push_broadcast').add({ title: title, body: body, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: by || 'admin' }).then(function () {
                 $('pushn-title').value = ''; $('pushn-body').value = ''; pv();
                 btn.disabled = false;
-                status('✓ Đã xếp hàng. Điện thoại sẽ nhận trong khoảng 1–2 phút — xem kết quả ở "Đã gửi gần đây".', 'ok');
+                if (fast()) { status('⚡ Đang gửi ngay...'); ping().then(function (r) { status(r && r.ok ? '✓ Đã gửi đi — xem kết quả ở "Đã gửi gần đây".' : '✓ Đã xếp hàng, máy chủ sẽ gửi trong khoảng 1 phút.', 'ok'); }); }
+                else status('✓ Đã xếp hàng. Điện thoại sẽ nhận trong khoảng 1–2 phút — xem kết quả ở "Đã gửi gần đây".', 'ok');
             }).catch(function (e) { status('✗ Không gửi được' + (e && e.code ? ' (' + e.code + ')' : ''), 'err'); btn.disabled = false; });
         }
         function boot(n) {
@@ -15333,7 +15385,7 @@ window.QDXlsx = (function () {
             UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'apppush') { if (booted) devices(); else boot(0); } return r; };
             var sec = $('view-apppush'); if (sec && sec.classList.contains('active')) boot(0);
         })(0);
-        return { send: send, target: target, devices: devices, accs: accs, pick: pick, answer: answer };
+        return { send: send, target: target, devices: devices, accs: accs, pick: pick, answer: answer, saveHook: saveHook, testHook: testHook };
     })();
     </script>
     <!-- ===== Bấm ra ngoài (vùng tối quanh hộp thoại) để đóng mọi hộp thoại / tab, không cần bấm nút X ===== -->
