@@ -1123,7 +1123,8 @@ html.qd-lite .qd-fx { display: none !important; }
                         <span class="text-xs text-muted" id="pushn-devices">Đang đếm số máy...</span>
                     </div>
                 </div>
-                <p class="text-xs text-muted" style="margin: 0 0 12px; line-height: 1.5;">Hiện trên thanh thông báo điện thoại của người dùng app Android, kể cả khi đã tắt app. Máy chủ gửi định kỳ nên thông báo đến sau khoảng <b>5–15 phút</b>.</p>
+                <p class="text-xs text-muted" style="margin: 0 0 12px; line-height: 1.5;">Hiện trên thanh thông báo điện thoại của người dùng app Android, kể cả khi đã tắt app. Máy chủ kiểm tra mỗi phút nên thông báo đến sau khoảng <b>1–2 phút</b>. Tin nhắn riêng và @nhắc tên cũng được máy chủ tự báo.</p>
+                <p class="text-xs" id="pushn-srv" style="margin: -6px 0 12px; line-height: 1.5;"></p>
                 <div class="form-group mb-3">
                     <label class="form-label text-xs">Gửi đến</label>
                     <div style="display: flex; gap: 8px;">
@@ -15134,7 +15135,7 @@ window.QDXlsx = (function () {
             if (b.status === 'error') return '<span style="color:#ef4444">✗ Lỗi: ' + esc(b.error || '') + '</span>';
             if (b.status === 'expired') return '<span style="color:#f59e0b">⚠ Quá 24 giờ chưa gửi được — đã hủy</span>';
             if (b.status === 'sending') return '<span>📤 Đang gửi đến các máy...</span>';
-            return (Date.now() - (b.createdAt || 0) > 40 * 60000) ? '<span style="color:#f59e0b">⚠ Chờ quá lâu — máy chủ gửi thông báo (GitHub) có thể chưa cài khóa</span>' : '<span>⏳ Đang chờ gửi (khoảng 5–15 phút)</span>';
+            return (Date.now() - (b.createdAt || 0) > 10 * 60000) ? '<span style="color:#f59e0b">⚠ Chờ quá lâu — máy chủ gửi thông báo chưa chạy</span>' : '<span>⏳ Đang chờ gửi (khoảng 1–2 phút)</span>';
         }
         function hist() {
             var f = fs(), el = $('pushn-hist'); if (!f || !el) return;
@@ -15155,10 +15156,22 @@ window.QDXlsx = (function () {
             f.collection('push_broadcast').add({ title: title, body: body, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: 'admin' }).then(function (ref) {
                 $('pushn-title').value = ''; $('pushn-body').value = '';
                 btn.disabled = false;
-                status('✓ Đã xếp hàng. Điện thoại sẽ nhận trong khoảng 5–15 phút — xem kết quả ở "Đã gửi gần đây".', 'ok');
+                status('✓ Đã xếp hàng. Điện thoại sẽ nhận trong khoảng 1–2 phút — xem kết quả ở "Đã gửi gần đây".', 'ok');
             }).catch(function (e) { status('✗ Không gửi được' + (e && e.code ? ' (' + e.code + ')' : ''), 'err'); btn.disabled = false; });
         }
-        (function boot(n) { if (!fs()) { if (n < 120) setTimeout(function () { boot(n + 1); }, 500); return; } devices(); hist(); })(0);
+        // Trạng thái máy chủ gửi (Google Apps Script bot-server srv-5 ghi settings/push_server mỗi 5 phút)
+        var SRV = null;
+        function srv() {
+            var el = $('pushn-srv'); if (!el) return;
+            var t = SRV && +SRV.lastRun || 0, age = Date.now() - t;
+            if (!t) el.innerHTML = '<span style="color:#f59e0b">⚠ Máy chủ gửi thông báo: chưa cài</span> <span class="text-muted">— cập nhật bot-server bản srv-5 trong Google Apps Script.</span>';
+            else if (age > 12 * 60000) el.innerHTML = '<span style="color:#ef4444">● Máy chủ gửi thông báo: ngưng từ ' + fmt(t) + '</span>';
+            else if (SRV.ok === false) el.innerHTML = '<span style="color:#ef4444">● Máy chủ gửi thông báo có lỗi:</span> <span class="text-muted">' + esc(SRV.err || '') + '</span>';
+            else el.innerHTML = '<span style="color:#22c55e">● Máy chủ gửi thông báo: đang chạy</span>' + (SRV.lastSent ? ' <span class="text-muted">· gửi gần nhất ' + fmt(SRV.lastSent) + '</span>' : '');
+        }
+        setInterval(srv, 60000);
+        (function boot(n) { if (!fs()) { if (n < 120) setTimeout(function () { boot(n + 1); }, 500); return; } devices(); hist();
+            fs().collection('settings').doc('push_server').onSnapshot(function (x) { SRV = x.exists ? x.data() : null; srv(); }, function () {}); })(0);
         return { send: send, target: target, devices: devices };
     })();
     </script>
