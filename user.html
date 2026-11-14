@@ -9916,6 +9916,11 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                         <button class="btn btn-info w-full" id="notif-test-btn" style="padding: 12px 20px; font-size: 13px;" onclick="window.Chat.testNotification()">Test (5s)</button>
                     </div>
+                    <div id="qd-bubble-set" style="display: none; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-strong);">
+                        <div class="font-bold" style="margin-bottom: 6px;">🫧 Bong bóng chat (như Messenger)</div>
+                        <div class="text-sm text-muted" style="margin-bottom: 12px; line-height: 1.5;">Tin nhắn mới nổi thành bong bóng tròn trên màn hình, bấm vào là chat ngay, không cần mở app. Bấm nút dưới → chọn <b>"Tất cả cuộc trò chuyện có thể hiện bong bóng"</b>.</div>
+                        <button class="btn btn-primary w-full" style="padding: 12px 20px; font-size: 13px;" onclick="try{QDNative.openBubbleSettings()}catch(e){}">Bật bong bóng chat</button>
+                    </div>
                 </div>
             </div>
             <div data-qd-ver="full"></div>
@@ -25199,6 +25204,37 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         }
         d.addEventListener('touchend', end, { passive: true });
         d.addEventListener('touchcancel', end, { passive: true });
+    })();
+    </script>
+
+    <!-- ===== Bong bóng chat (app Android 11+): user.html?bubble=1&room=... chỉ hiện đúng 1 phòng chat, gọn như Messenger ===== -->
+    <style id="qd-bubble-css">
+        html.qd-bubble #qd-help-btn, html.qd-bubble #qd-gift-fab, html.qd-bubble #qd-gift-banner, html.qd-bubble #qd-annc,
+        html.qd-bubble #music-icon, html.qd-bubble .btn-mobile-back, html.qd-bubble #qd-appupd { display: none !important; }
+    </style>
+    <script id="qd-bubble-js">
+    (function () {
+        var Q = window.QDNative;
+        try { if (Q && Q.bubbleSupported && Q.bubbleSupported() && !(Q.isBubble && Q.isBubble())) { var bs = document.getElementById('qd-bubble-set'); if (bs) bs.style.display = ''; } } catch (e) {}
+        var q = new URLSearchParams(location.search); if (q.get('bubble') !== '1') return;
+        var room = q.get('room') || '';
+        document.documentElement.classList.add('qd-bubble');
+        function hush() {   // bong bóng không phát nhạc nền
+            try { if (window.Music && window.Music.el && !window.Music.el.paused) window.Music.el.pause(); } catch (e) {}
+            try { if (window.QDMusic && window.QDMusic.pause) window.QDMusic.pause(); } catch (e) {}
+        }
+        var n = 0;
+        (function go() {
+            if (window.State && State.currentUser && window.Chat && Chat.openFromNotif) {
+                Chat.openFromNotif(room); hush();
+                setInterval(function () {   // lỡ thoát khỏi phòng (vuốt / Quay lại trên trang) -> mở lại đúng phòng
+                    hush();
+                    if (window.innerWidth <= 1023 && !document.body.classList.contains('in-chat-mode')) Chat.openFromNotif(room);
+                }, 1200);
+                return;
+            }
+            if (n++ < 120) setTimeout(go, 500);
+        })();
     })();
     </script>
 </body>
