@@ -1113,40 +1113,6 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div id="cfg-mx-status" class="text-xs text-muted" style="text-align: center;"></div>
             </div>
 
-            <div class="form-group mb-6 p-5 rounded-xl" id="pushn-card" style="border: 1px solid rgba(59,130,246,.55); background: rgba(59,130,246,.06);">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="flex-center rounded-full" style="width: 36px; height: 36px; background: rgba(59,130,246,0.2); color: #3b82f6; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i class="fa-solid fa-bell text-lg"></i>
-                    </div>
-                    <div style="min-width: 0;">
-                        <label class="form-label m-0" style="font-size: 15px; color: #3b82f6;">Gửi thông báo đến app</label>
-                        <span class="text-xs text-muted" id="pushn-devices">Đang đếm số máy...</span>
-                    </div>
-                </div>
-                <p class="text-xs text-muted" style="margin: 0 0 12px; line-height: 1.5;">Hiện trên thanh thông báo điện thoại của người dùng app Android, kể cả khi đã tắt app. Máy chủ kiểm tra mỗi phút nên thông báo đến sau khoảng <b>1–2 phút</b>. Tin nhắn riêng và @nhắc tên cũng được máy chủ tự báo.</p>
-                <p class="text-xs" id="pushn-srv" style="margin: -6px 0 12px; line-height: 1.5;"></p>
-                <div class="form-group mb-3">
-                    <label class="form-label text-xs">Gửi đến</label>
-                    <div style="display: flex; gap: 8px;">
-                        <select id="pushn-target" class="form-control" style="flex: 1; min-width: 0;" onchange="QDPushAdmin.target()">
-                            <option value="all">Tất cả thành viên</option>
-                            <option value="one">Một tài khoản</option>
-                        </select>
-                        <input id="pushn-user" class="form-control" placeholder="Tên đăng nhập" autocomplete="off" style="flex: 1; min-width: 0; display: none;">
-                    </div>
-                </div>
-                <div class="form-group mb-3">
-                    <label class="form-label text-xs">Tiêu đề</label>
-                    <input id="pushn-title" class="form-control" maxlength="80" placeholder="VD: 🧧 Lì xì đầu năm đã mở!">
-                </div>
-                <div class="form-group mb-3">
-                    <label class="form-label text-xs">Nội dung</label>
-                    <textarea id="pushn-body" class="form-control" rows="3" maxlength="300" placeholder="VD: Vào app nhận lì xì ngay hôm nay, số lượng có hạn."></textarea>
-                </div>
-                <button type="button" class="btn btn-primary w-full" id="pushn-send" onclick="QDPushAdmin.send()"><i class="fa-solid fa-paper-plane"></i> Gửi thông báo</button>
-                <div id="pushn-status" class="text-xs" style="text-align: center; margin-top: 10px; line-height: 1.5;"></div>
-                <div id="pushn-hist" style="margin-top: 10px;"></div>
-            </div>
             <div class="form-group mb-2 p-5 rounded-xl wipe-entry" id="wipe-entry-settings" hidden style="border: 1px solid var(--color-danger); background: rgba(239, 68, 68, 0.08);">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="flex-center rounded-full" style="width: 36px; height: 36px; background: rgba(239,68,68,0.2); color: var(--color-danger); display: flex; align-items: center; justify-content: center;">
@@ -1203,6 +1169,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="security"> Chống Gian Lận</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="news"> Bản Tin</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="reportbot"> Bot Báo Cáo</label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="apppush"> Thông Báo App</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="gifts"> Quà Toàn Hệ Thống</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="approvals"> Phê Duyệt TK</label>
                 </div>
@@ -1338,6 +1305,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('tournament')" style="--tone: #818cf8;"><div class="m-menu-icon"><i class="fa-solid fa-trophy"></i></div><span>Giải đấu</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('news')" style="--tone: var(--color-info);"><div class="m-menu-icon"><i class="fa-solid fa-newspaper"></i></div><span>Bản tin</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('reportbot')" style="--tone: #f59e0b;"><div class="m-menu-icon"><i class="fa-solid fa-robot"></i></div><span>Bot báo cáo</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('apppush')" style="--tone: #3b82f6;"><div class="m-menu-icon"><i class="fa-solid fa-bell"></i></div><span>Thông báo app</span></div>
                 </div>
             </div>
 
@@ -1428,6 +1396,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <button type="button" title="Giải đấu" class="nav-item" onclick="UI.navigate('tournament', this)" style="--tone: #818cf8;"><i class="fa-solid fa-trophy"></i><span>Giải đấu</span></button>
                     <button type="button" title="Bản tin" class="nav-item" onclick="UI.navigate('news', this)" style="--tone: var(--color-info);"><i class="fa-solid fa-newspaper"></i><span>Bản tin</span></button>
                     <button type="button" title="Bot báo cáo" class="nav-item" onclick="UI.navigate('reportbot', this)" style="--tone: #f59e0b;"><i class="fa-solid fa-robot"></i><span>Bot báo cáo</span></button>
+                    <button type="button" title="Thông báo app" class="nav-item" onclick="UI.navigate('apppush', this)" style="--tone: #3b82f6;"><i class="fa-solid fa-bell"></i><span>Thông báo app</span></button>
                 </div>
             </nav>
             <div class="sb-foot">
@@ -1597,6 +1566,10 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="card mod-card" onclick="UI.navigate('reportbot')" style="--tone: #f59e0b;">
                                 <span class="mod-ico"><i class="fa-solid fa-robot"></i></span>
                                 <div><h4>Bot báo cáo</h4><p>Tự báo điểm danh &amp; đăng nhập vào Kênh Chung, gắn @tên. Bật / tắt, đặt ngày giờ.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('apppush')" style="--tone: #3b82f6;">
+                                <span class="mod-ico"><i class="fa-solid fa-bell"></i></span>
+                                <div><h4>Thông báo app</h4><p>Gửi thông báo đến điện thoại người dùng app Android, kể cả khi đã tắt app.</p></div>
                             </div>
                         </div>
                     </div>
@@ -3536,6 +3509,79 @@ html.qd-lite .qd-fx { display: none !important; }
                     </div>
                 </section>
 
+
+                <!-- VIEW THÔNG BÁO APP (push_broadcast -> máy chủ Apps Script gửi Firebase Cloud Messaging) -->
+                <section id="view-apppush" class="view-section">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Thông Báo App</h1>
+                            <p class="text-muted">Gửi thông báo lên thanh thông báo điện thoại của người dùng app Android, kể cả khi đã tắt app. Tin nhắn riêng và @nhắc tên được máy chủ tự báo.</p>
+                        </div>
+                    </div>
+
+                    <div class="pushn-stats mb-8">
+                        <div class="card pushn-stat"><span class="pushn-k">📱 Máy đang nhận</span><b id="pushn-n-dev">–</b></div>
+                        <div class="card pushn-stat"><span class="pushn-k">👥 Tài khoản</span><b id="pushn-n-acc">–</b></div>
+                        <div class="card pushn-stat"><span class="pushn-k">📨 Đã gửi hôm nay</span><b id="pushn-n-today">–</b></div>
+                        <div class="card pushn-stat pushn-stat-srv"><span class="pushn-k">🖥️ Máy chủ gửi</span><div id="pushn-srv" class="text-sm" style="line-height: 1.45;">Đang kiểm tra…</div></div>
+                    </div>
+
+                    <div class="pushn-grid">
+                        <div class="card" id="pushn-card" style="padding: 24px;">
+                            <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-pen-to-square" style="color: #3b82f6;"></i> Soạn thông báo</h3>
+                            <p class="text-muted text-sm mt-2 mb-4">Đến điện thoại sau khoảng <b>1–2 phút</b>. <span id="pushn-devices">Đang đếm số máy...</span></p>
+                            <div class="form-group mb-4">
+                                <label class="form-label">Gửi đến</label>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <select id="pushn-target" class="form-control" style="flex: 1 1 180px; min-width: 0;" onchange="QDPushAdmin.target()">
+                                        <option value="all">Tất cả thành viên</option>
+                                        <option value="one">Một tài khoản</option>
+                                    </select>
+                                    <input id="pushn-user" class="form-control" placeholder="Tên đăng nhập" autocomplete="off" list="pushn-userlist" style="flex: 1 1 180px; min-width: 0; display: none;">
+                                    <datalist id="pushn-userlist"></datalist>
+                                </div>
+                            </div>
+                            <div class="form-group mb-4">
+                                <label class="form-label">Tiêu đề <span class="text-muted text-xs" id="pushn-title-n">0/80</span></label>
+                                <input id="pushn-title" class="form-control" maxlength="80" placeholder="VD: 🧧 Lì xì đầu năm đã mở!">
+                            </div>
+                            <div class="form-group mb-4">
+                                <label class="form-label">Nội dung <span class="text-muted text-xs" id="pushn-body-n">0/300</span></label>
+                                <textarea id="pushn-body" class="form-control" rows="4" maxlength="300" placeholder="VD: Vào app nhận lì xì ngay hôm nay, số lượng có hạn."></textarea>
+                            </div>
+                            <div class="form-group mb-4">
+                                <label class="form-label">Mẫu nhanh</label>
+                                <div class="pushn-tpl" id="pushn-tpl"></div>
+                            </div>
+                            <label class="form-label">Xem trước trên điện thoại</label>
+                            <div class="pushn-phone">
+                                <div class="pushn-notif">
+                                    <div class="pushn-nh"><span class="pushn-ic"><i class="fa-solid fa-bell"></i></span><span>QD Elite</span><span class="pushn-dot">·</span><span>bây giờ</span></div>
+                                    <b id="pushn-pv-t">Tiêu đề thông báo</b>
+                                    <p id="pushn-pv-b">Nội dung thông báo hiện ở đây.</p>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary w-full mt-4" id="pushn-send" onclick="QDPushAdmin.send()" style="padding: 14px;"><i class="fa-solid fa-paper-plane mr-2"></i> Gửi thông báo</button>
+                            <div id="pushn-status" class="text-sm" style="text-align: center; margin-top: 10px; line-height: 1.5;"></div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 24px; min-width: 0;">
+                            <div class="card" style="padding: 24px;">
+                                <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left" style="color: #3b82f6;"></i> Đã gửi gần đây</h3>
+                                <div id="pushn-hist" class="mt-3"><div class="text-muted text-sm">Chưa gửi thông báo nào.</div></div>
+                            </div>
+                            <div class="card" style="padding: 24px;">
+                                <div class="flex justify-between items-center gap-3">
+                                    <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-mobile-screen" style="color: #3b82f6;"></i> Thành viên đang nhận</h3>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="QDPushAdmin.devices()" title="Tải lại"><i class="fa-solid fa-rotate"></i></button>
+                                </div>
+                                <p class="text-muted text-xs mt-2 mb-3">Người đã cập nhật app bản mới và đăng nhập. Bấm tên để gửi riêng cho người đó.</p>
+                                <input id="pushn-acc-q" class="form-control mb-3" placeholder="Tìm tên đăng nhập..." autocomplete="off" oninput="QDPushAdmin.accs()">
+                                <div id="pushn-accs" class="pushn-accs"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- VIEW BOT BÁO CÁO (lịch + nội dung + xem trước + lịch sử, tất cả ngay trong Admin) -->
                 <section id="view-reportbot" class="view-section">
@@ -5775,7 +5821,7 @@ const QVis = {
                                 return;
                             }
 
-                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals', 'reportbot', 'gifts'];
+                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals', 'reportbot', 'apppush', 'gifts'];
                             
                             // 2. NẾU LÀ MANAGER THÌ ẨN/HIỆN CHỨC NĂNG THEO QUYỀN
                             if (myRole === 'manager') {
@@ -7766,6 +7812,7 @@ exportAttendanceExcel: () => {
             tournament: ['Thi đấu & tin tức', 'Giải đấu'],
             news: ['Thi đấu & tin tức', 'Bản tin'],
             reportbot: ['Thi đấu & tin tức', 'Bot báo cáo'],
+            apppush: ['Thi đấu & tin tức', 'Thông báo app'],
             gifts: ['Giải trí & thưởng', 'Quà toàn hệ thống'],
             transfer: ['Giải trí & thưởng', 'Tặng lượt'],
             payout: ['Giải trí & thưởng', 'Trả thưởng tiền mặt'],
@@ -15111,10 +15158,41 @@ window.QDXlsx = (function () {
     })();
     </script>
 
-    <!-- ===== GỬI THÔNG BÁO ĐẾN APP (push_broadcast -> Cloud Function pushBroadcast -> Firebase Cloud Messaging) ===== -->
+    <!-- ===== THÔNG BÁO APP (mục riêng trong Admin): push_broadcast -> máy chủ Apps Script (bot-server srv-5) gửi Firebase Cloud Messaging ===== -->
+    <style id="pushn-css">
+        .pushn-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+        .pushn-stat { padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+        .pushn-stat .pushn-k { font-size: 12.5px; color: var(--text-muted); font-weight: 600; }
+        .pushn-stat b { font-size: 26px; line-height: 1.1; }
+        .pushn-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+        @media (max-width: 1100px) { .pushn-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pushn-grid { grid-template-columns: minmax(0, 1fr); } }
+        .pushn-tpl { display: flex; flex-wrap: wrap; gap: 8px; }
+        .pushn-tpl button { border: 1px solid var(--border-color, rgba(127,127,127,.3)); background: transparent; color: inherit; border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 12.5px; cursor: pointer; }
+        .pushn-tpl button:hover { border-color: #3b82f6; color: #3b82f6; }
+        .pushn-phone { border-radius: 22px; padding: 16px 14px; background: linear-gradient(160deg, #1e293b, #0f172a); }
+        .pushn-notif { background: rgba(255,255,255,.96); color: #111; border-radius: 18px; padding: 12px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+        .pushn-nh { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #555; margin-bottom: 4px; }
+        .pushn-ic { width: 18px; height: 18px; border-radius: 50%; background: #c1121f; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; }
+        .pushn-notif b { display: block; font-size: 14px; margin-bottom: 2px; word-break: break-word; }
+        .pushn-notif p { margin: 0; font-size: 13px; color: #333; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+        .pushn-h { padding: 10px 12px; margin-top: 8px; border-radius: 12px; background: rgba(127,127,127,.08); font-size: 13px; line-height: 1.45; }
+        .pushn-h .pushn-hb { color: var(--text-muted); white-space: pre-wrap; word-break: break-word; }
+        .pushn-h .pushn-again { float: right; border: 0; background: transparent; color: #3b82f6; cursor: pointer; font: inherit; font-size: 12px; }
+        .pushn-accs { display: flex; flex-wrap: wrap; gap: 8px; max-height: 320px; overflow: auto; }
+        .pushn-accs button { border: 1px solid rgba(59,130,246,.4); background: rgba(59,130,246,.08); color: inherit; border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+        .pushn-accs button small { color: var(--text-muted); margin-left: 4px; }
+        .pushn-accs button:hover { background: rgba(59,130,246,.18); }
+    </style>
     <script>
     window.QDPushAdmin = (function () {
-        var d = document;
+        var d = document, ACCS = [], LAST = [], SRV = null, booted = false;
+        var TPL = [
+            ['🧧 Lì xì', '🧧 Lì xì đã mở!', 'Vào app nhận lì xì ngay hôm nay, số lượng có hạn.'],
+            ['🎡 Vòng quay', '🎡 Vòng quay may mắn', 'Lượt quay mới đã có, vào app thử vận may ngay!'],
+            ['✅ Điểm danh', '✅ Nhớ điểm danh hôm nay', 'Vào app điểm danh để nhận điểm thưởng nhé.'],
+            ['🏆 Giải đấu', '🏆 Giải đấu sắp bắt đầu', 'Anh em vào app xem lịch thi đấu và chuẩn bị nhé!'],
+            ['🛠 Bảo trì', '🛠 Thông báo bảo trì', 'Hệ thống bảo trì trong ít phút, anh em thông cảm nhé.']
+        ];
         function $(id) { return d.getElementById(id); }
         function fs() { return (window.firebase && firebase.apps && firebase.apps.length) ? firebase.firestore() : null; }
         function toast(m, t) { try { Utils.toast(m, t); } catch (e) { alert(m); } }
@@ -15122,16 +15200,36 @@ window.QDXlsx = (function () {
         function fmt(ms) { if (!ms) return ''; var x = new Date(ms), p = function (n) { return (n < 10 ? '0' : '') + n; }; return p(x.getHours()) + ':' + p(x.getMinutes()) + ' ' + p(x.getDate()) + '/' + p(x.getMonth() + 1); }
         function status(h, cls) { var s = $('pushn-status'); if (s) { s.innerHTML = h; s.style.color = cls === 'ok' ? '#22c55e' : cls === 'err' ? '#ef4444' : ''; } }
         function target() { var one = $('pushn-target').value === 'one'; $('pushn-user').style.display = one ? '' : 'none'; if (one) $('pushn-user').focus(); }
+        function pv() {
+            var t = $('pushn-title'), b = $('pushn-body'); if (!t) return;
+            $('pushn-pv-t').textContent = t.value.trim() || 'Tiêu đề thông báo';
+            $('pushn-pv-b').textContent = b.value.trim() || 'Nội dung thông báo hiện ở đây.';
+            $('pushn-title-n').textContent = t.value.length + '/80'; $('pushn-body-n').textContent = b.value.length + '/300';
+        }
+        function useTpl(i) { var x = TPL[i]; $('pushn-title').value = x[1]; $('pushn-body').value = x[2]; pv(); }
+        function pick(u) { $('pushn-target').value = 'one'; target(); $('pushn-user').value = u; $('pushn-title').focus(); try { $('pushn-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }
+        function accs() {
+            var box = $('pushn-accs'); if (!box) return;
+            var q = ($('pushn-acc-q').value || '').trim().toLowerCase();
+            var list = ACCS.filter(function (a) { return !q || a.u.toLowerCase().indexOf(q) >= 0 || (a.name || '').toLowerCase().indexOf(q) >= 0; });
+            box.innerHTML = list.length ? list.map(function (a) { return '<button type="button" data-u="' + esc(a.u) + '" title="Gửi riêng cho ' + esc(a.name || a.u) + '">@' + esc(a.u) + (a.n > 1 ? '<small>' + a.n + ' máy</small>' : '') + '</button>'; }).join('')
+                : '<div class="text-muted text-sm">' + (ACCS.length ? 'Không có ai khớp.' : 'Chưa có ai — người dùng cần cập nhật app bản mới rồi đăng nhập.') + '</div>';
+        }
         function devices() {
-            var f = fs(), el = $('pushn-devices'); if (!f || !el) return;
+            var f = fs(), el = $('pushn-devices'); if (!f) return;
             f.collection('accounts').where('pushTokens', '!=', null).get().then(function (q) {
-                var acc = 0, dev = 0; q.forEach(function (x) { var t = x.data().pushTokens; if (Array.isArray(t) && t.length) { acc++; dev += t.length; } });
-                el.textContent = dev ? (dev + ' máy · ' + acc + ' tài khoản đang nhận thông báo') : 'Chưa có máy nào nhận (cần app bản mới + đăng nhập)';
-            }).catch(function () { el.textContent = 'Không đếm được số máy'; });
+                var dev = 0; ACCS = [];
+                q.forEach(function (x) { var a = x.data(), t = a.pushTokens; if (Array.isArray(t) && t.length && a.user) { ACCS.push({ u: a.user, name: a.fullName || a.name || '', n: t.length }); dev += t.length; } });
+                ACCS.sort(function (a, b) { return a.u.localeCompare(b.u, 'vi'); });
+                if (el) el.textContent = dev ? ('Đang có ' + dev + ' máy · ' + ACCS.length + ' tài khoản nhận thông báo.') : 'Chưa có máy nào nhận (cần app bản mới + đăng nhập).';
+                $('pushn-n-dev').textContent = dev; $('pushn-n-acc').textContent = ACCS.length;
+                $('pushn-userlist').innerHTML = ACCS.map(function (a) { return '<option value="' + esc(a.u) + '">' + esc(a.name) + '</option>'; }).join('');
+                accs();
+            }).catch(function () { if (el) el.textContent = 'Không đếm được số máy.'; });
         }
         function result(b) {
             if (!b) return '';
-            if (b.status === 'done') return '<span style="color:#22c55e">✓ ' + (b.devices ? ('Đã gửi ' + b.sent + '/' + b.devices + ' máy' + (b.failed ? ' · ' + b.failed + ' lỗi' : '')) : 'Không có máy nào nhận') + '</span>';
+            if (b.status === 'done') return '<span style="color:#22c55e">✓ ' + (b.devices ? ('Đã gửi ' + b.sent + '/' + b.devices + ' máy' + (b.failed ? ' · ' + b.failed + ' lỗi' : '')) : 'Không có máy nào nhận') + (b.doneAt ? ' · ' + fmt(b.doneAt) : '') + '</span>';
             if (b.status === 'error') return '<span style="color:#ef4444">✗ Lỗi: ' + esc(b.error || '') + '</span>';
             if (b.status === 'expired') return '<span style="color:#f59e0b">⚠ Quá 24 giờ chưa gửi được — đã hủy</span>';
             if (b.status === 'sending') return '<span>📤 Đang gửi đến các máy...</span>';
@@ -15139,40 +15237,66 @@ window.QDXlsx = (function () {
         }
         function hist() {
             var f = fs(), el = $('pushn-hist'); if (!f || !el) return;
-            f.collection('push_broadcast').orderBy('createdAt', 'desc').limit(5).onSnapshot(function (q) {
-                var h = [];
-                q.forEach(function (x) { var b = x.data(); h.push('<div style="padding:8px 10px;margin-top:6px;border-radius:10px;background:rgba(127,127,127,.08);font-size:12px;line-height:1.45"><b>' + esc(b.title) + '</b> <span class="text-muted">· ' + (b.target === 'all' ? 'Tất cả' : '@' + esc(b.target)) + ' · ' + fmt(b.createdAt) + '</span><br><span class="text-muted">' + esc(b.body) + '</span><br>' + result(b) + '</div>'); });
-                el.innerHTML = h.length ? '<div class="text-xs text-muted" style="margin-top:6px">Đã gửi gần đây</div>' + h.join('') : '';
+            f.collection('push_broadcast').orderBy('createdAt', 'desc').limit(20).onSnapshot(function (q) {
+                LAST = []; var h = [], st = new Date(); st.setHours(0, 0, 0, 0); var today = 0;
+                q.forEach(function (x) {
+                    var b = x.data(); LAST.push(b); if ((b.createdAt || 0) >= st.getTime() && b.status === 'done') today += (b.sent || 0);
+                    h.push('<div class="pushn-h"><button type="button" class="pushn-again" data-i="' + (LAST.length - 1) + '" title="Chép lại để gửi lần nữa"><i class="fa-solid fa-copy"></i> Dùng lại</button><b>' + esc(b.title) + '</b> <span class="text-muted">· ' + (b.target === 'all' ? 'Tất cả' : '@' + esc(b.target)) + ' · ' + fmt(b.createdAt) + '</span><div class="pushn-hb">' + esc(b.body) + '</div>' + result(b) + '</div>');
+                });
+                el.innerHTML = h.length ? h.join('') : '<div class="text-muted text-sm">Chưa gửi thông báo nào.</div>';
+                $('pushn-n-today').textContent = today;
             }, function () {});
+        }
+        function srv() {
+            var el = $('pushn-srv'); if (!el) return;
+            var t = SRV && +SRV.lastRun || 0, age = Date.now() - t;
+            if (!t) el.innerHTML = '<span style="color:#f59e0b">⚠ Chưa cài</span><br><span class="text-muted text-xs">Cập nhật bot-server bản srv-5 trong Google Apps Script.</span>';
+            else if (age > 12 * 60000) el.innerHTML = '<span style="color:#ef4444">● Ngưng</span><br><span class="text-muted text-xs">Lần cuối ' + fmt(t) + '. Mở Apps Script chạy lại CAI_DAT.</span>';
+            else if (SRV.ok === false) el.innerHTML = '<span style="color:#ef4444">● Có lỗi</span><br><span class="text-muted text-xs">' + esc(SRV.err || '') + '</span>';
+            else el.innerHTML = '<span style="color:#22c55e">● Đang chạy</span><br><span class="text-muted text-xs">Kiểm tra mỗi phút' + (SRV.lastSent ? ' · gửi gần nhất ' + fmt(SRV.lastSent) : '') + '</span>';
         }
         function send() {
             var f = fs(); if (!f) return toast('Chưa kết nối máy chủ, thử lại sau.', 'error');
-            var title = $('pushn-title').value.trim(), body = $('pushn-body').value.trim(), one = $('pushn-target').value === 'one', user = $('pushn-user').value.trim();
+            var title = $('pushn-title').value.trim(), body = $('pushn-body').value.trim(), one = $('pushn-target').value === 'one', user = $('pushn-user').value.trim().replace(/^@/, '');
             if (!title) return toast('Nhập tiêu đề thông báo.', 'error');
             if (!body) return toast('Nhập nội dung thông báo.', 'error');
             if (one && !user) return toast('Nhập tên đăng nhập người nhận.', 'error');
+            if (one && ACCS.length && !ACCS.some(function (a) { return a.u === user; }) && !confirm('@' + user + ' chưa có máy nào nhận thông báo (chưa cập nhật app / chưa đăng nhập). Vẫn gửi?')) return;
             if (!one && !confirm('Gửi thông báo "' + title + '" đến TẤT CẢ thành viên?')) return;
             var btn = $('pushn-send'); btn.disabled = true; status('⏳ Đang xếp hàng...');
-            f.collection('push_broadcast').add({ title: title, body: body, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: 'admin' }).then(function (ref) {
-                $('pushn-title').value = ''; $('pushn-body').value = '';
+            var by = ''; try { by = (window.State && State.currentUser) || ''; } catch (e) {}
+            f.collection('push_broadcast').add({ title: title, body: body, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: by || 'admin' }).then(function () {
+                $('pushn-title').value = ''; $('pushn-body').value = ''; pv();
                 btn.disabled = false;
                 status('✓ Đã xếp hàng. Điện thoại sẽ nhận trong khoảng 1–2 phút — xem kết quả ở "Đã gửi gần đây".', 'ok');
             }).catch(function (e) { status('✗ Không gửi được' + (e && e.code ? ' (' + e.code + ')' : ''), 'err'); btn.disabled = false; });
         }
-        // Trạng thái máy chủ gửi (Google Apps Script bot-server srv-5 ghi settings/push_server mỗi 5 phút)
-        var SRV = null;
-        function srv() {
-            var el = $('pushn-srv'); if (!el) return;
-            var t = SRV && +SRV.lastRun || 0, age = Date.now() - t;
-            if (!t) el.innerHTML = '<span style="color:#f59e0b">⚠ Máy chủ gửi thông báo: chưa cài</span> <span class="text-muted">— cập nhật bot-server bản srv-5 trong Google Apps Script.</span>';
-            else if (age > 12 * 60000) el.innerHTML = '<span style="color:#ef4444">● Máy chủ gửi thông báo: ngưng từ ' + fmt(t) + '</span>';
-            else if (SRV.ok === false) el.innerHTML = '<span style="color:#ef4444">● Máy chủ gửi thông báo có lỗi:</span> <span class="text-muted">' + esc(SRV.err || '') + '</span>';
-            else el.innerHTML = '<span style="color:#22c55e">● Máy chủ gửi thông báo: đang chạy</span>' + (SRV.lastSent ? ' <span class="text-muted">· gửi gần nhất ' + fmt(SRV.lastSent) + '</span>' : '');
+        function boot(n) {
+            if (booted) return;
+            if (!fs()) { if (n < 120) setTimeout(function () { boot(n + 1); }, 500); return; }
+            booted = true;
+            $('pushn-tpl').innerHTML = TPL.map(function (x, i) { return '<button type="button" data-i="' + i + '">' + x[0] + '</button>'; }).join('');
+            $('pushn-tpl').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) useTpl(+b.dataset.i); });
+            $('pushn-accs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) pick(b.dataset.u); });
+            $('pushn-hist').addEventListener('click', function (e) {
+                var b = e.target.closest('.pushn-again'); if (!b) return; var x = LAST[+b.dataset.i]; if (!x) return;
+                $('pushn-title').value = x.title || ''; $('pushn-body').value = x.body || '';
+                $('pushn-target').value = x.target && x.target !== 'all' ? 'one' : 'all'; target(); $('pushn-user').value = x.target !== 'all' ? (x.target || '') : '';
+                pv(); try { $('pushn-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (er) {}
+            });
+            ['pushn-title', 'pushn-body'].forEach(function (id) { $(id).addEventListener('input', pv); });
+            pv(); devices(); hist();
+            fs().collection('settings').doc('push_server').onSnapshot(function (x) { SRV = x.exists ? x.data() : null; srv(); }, function () {});
+            setInterval(srv, 60000);
         }
-        setInterval(srv, 60000);
-        (function boot(n) { if (!fs()) { if (n < 120) setTimeout(function () { boot(n + 1); }, 500); return; } devices(); hist();
-            fs().collection('settings').doc('push_server').onSnapshot(function (x) { SRV = x.exists ? x.data() : null; srv(); }, function () {}); })(0);
-        return { send: send, target: target, devices: devices };
+        // Chỉ nạp khi mở mục Thông báo app (đỡ đọc dữ liệu khi không dùng); mở lại -> đếm lại số máy
+        (function hook(n) {
+            if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
+            var nav = UI.navigate;
+            UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'apppush') { if (booted) devices(); else boot(0); } return r; };
+            var sec = $('view-apppush'); if (sec && sec.classList.contains('active')) boot(0);
+        })(0);
+        return { send: send, target: target, devices: devices, accs: accs, pick: pick };
     })();
     </script>
     <!-- ===== Bấm ra ngoài (vùng tối quanh hộp thoại) để đóng mọi hộp thoại / tab, không cần bấm nút X ===== -->
