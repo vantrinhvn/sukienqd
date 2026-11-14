@@ -1,0 +1,49 @@
+# Gửi thông báo đẩy đến app Android (Admin > Cài đặt > "Gửi thông báo đến app").
+# Chạy định kỳ ~5 phút / lần (GitHub có thể trễ thêm vài phút): lấy các thông báo đang chờ (push_broadcast) -> gửi qua
+# Firebase Cloud Messaging (miễn phí, không cần gói Blaze) -> ghi kết quả để Admin xem.
+# Cần GitHub Secret FIREBASE_SERVICE_ACCOUNT = nội dung file khóa .json (Firebase Console > Cài đặt dự án > Tài khoản dịch vụ).
+name: Gửi thông báo đến app
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: push-notify
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Kiểm tra khóa
+        id: key
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA" ]; then echo "::notice::Chưa có Secret FIREBASE_SERVICE_ACCOUNT -> chưa gửi được"; echo "ok=0" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "ok=1" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        if: steps.key.outputs.ok == '1'
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@v4
+        if: steps.key.outputs.ok == '1'
+        with: { node-version: '20' }
+
+      - name: Gửi các thông báo đang chờ
+        if: steps.key.outputs.ok == '1'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/p" && cd "$RUNNER_TEMP/p"
+          npm init -y >/dev/null && npm install --no-audit --no-fund --silent firebase-admin@12
+          node "$GITHUB_WORKSPACE/.github/scripts/push-notify.js"

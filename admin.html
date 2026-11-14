@@ -1123,7 +1123,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         <span class="text-xs text-muted" id="pushn-devices">Đang đếm số máy...</span>
                     </div>
                 </div>
-                <p class="text-xs text-muted" style="margin: 0 0 12px; line-height: 1.5;">Hiện trên thanh thông báo điện thoại của người dùng app Android, kể cả khi đã tắt app. Tin nhắn riêng và @nhắc tên được máy chủ tự báo.</p>
+                <p class="text-xs text-muted" style="margin: 0 0 12px; line-height: 1.5;">Hiện trên thanh thông báo điện thoại của người dùng app Android, kể cả khi đã tắt app. Máy chủ gửi định kỳ nên thông báo đến sau khoảng <b>5–15 phút</b>.</p>
                 <div class="form-group mb-3">
                     <label class="form-label text-xs">Gửi đến</label>
                     <div style="display: flex; gap: 8px;">
@@ -15087,7 +15087,7 @@ window.QDXlsx = (function () {
     <!-- ===== GỬI THÔNG BÁO ĐẾN APP (push_broadcast -> Cloud Function pushBroadcast -> Firebase Cloud Messaging) ===== -->
     <script>
     window.QDPushAdmin = (function () {
-        var d = document, unsubOne = null;
+        var d = document;
         function $(id) { return d.getElementById(id); }
         function fs() { return (window.firebase && firebase.apps && firebase.apps.length) ? firebase.firestore() : null; }
         function toast(m, t) { try { Utils.toast(m, t); } catch (e) { alert(m); } }
@@ -15106,7 +15106,9 @@ window.QDXlsx = (function () {
             if (!b) return '';
             if (b.status === 'done') return '<span style="color:#22c55e">✓ ' + (b.devices ? ('Đã gửi ' + b.sent + '/' + b.devices + ' máy' + (b.failed ? ' · ' + b.failed + ' lỗi' : '')) : 'Không có máy nào nhận') + '</span>';
             if (b.status === 'error') return '<span style="color:#ef4444">✗ Lỗi: ' + esc(b.error || '') + '</span>';
-            return (Date.now() - (b.createdAt || 0) > 90000) ? '<span style="color:#f59e0b">⚠ Máy chủ thông báo chưa chạy</span>' : '<span>⏳ Đang gửi...</span>';
+            if (b.status === 'expired') return '<span style="color:#f59e0b">⚠ Quá 24 giờ chưa gửi được — đã hủy</span>';
+            if (b.status === 'sending') return '<span>📤 Đang gửi đến các máy...</span>';
+            return (Date.now() - (b.createdAt || 0) > 40 * 60000) ? '<span style="color:#f59e0b">⚠ Chờ quá lâu — máy chủ gửi thông báo (GitHub) có thể chưa cài khóa</span>' : '<span>⏳ Đang chờ gửi (khoảng 5–15 phút)</span>';
         }
         function hist() {
             var f = fs(), el = $('pushn-hist'); if (!f || !el) return;
@@ -15123,17 +15125,11 @@ window.QDXlsx = (function () {
             if (!body) return toast('Nhập nội dung thông báo.', 'error');
             if (one && !user) return toast('Nhập tên đăng nhập người nhận.', 'error');
             if (!one && !confirm('Gửi thông báo "' + title + '" đến TẤT CẢ thành viên?')) return;
-            var btn = $('pushn-send'); btn.disabled = true; status('⏳ Đang gửi...');
+            var btn = $('pushn-send'); btn.disabled = true; status('⏳ Đang xếp hàng...');
             f.collection('push_broadcast').add({ title: title, body: body, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: 'admin' }).then(function (ref) {
                 $('pushn-title').value = ''; $('pushn-body').value = '';
-                if (unsubOne) unsubOne();
-                var t0 = Date.now();
-                unsubOne = ref.onSnapshot(function (x) {
-                    var b = x.data(); if (!b) return;
-                    if (b.status === 'done') { status(result(b), 'ok'); btn.disabled = false; unsubOne(); unsubOne = null; }
-                    else if (b.status === 'error') { status(result(b), 'err'); btn.disabled = false; unsubOne(); unsubOne = null; }
-                });
-                setTimeout(function () { if (unsubOne && Date.now() - t0 >= 60000) { status('⚠ Chưa thấy máy chủ thông báo trả lời. Kiểm tra đã cài máy chủ (Cloud Functions) chưa.', 'err'); btn.disabled = false; unsubOne(); unsubOne = null; } }, 60000);
+                btn.disabled = false;
+                status('✓ Đã xếp hàng. Điện thoại sẽ nhận trong khoảng 5–15 phút — xem kết quả ở "Đã gửi gần đây".', 'ok');
             }).catch(function (e) { status('✗ Không gửi được' + (e && e.code ? ' (' + e.code + ')' : ''), 'err'); btn.disabled = false; });
         }
         (function boot(n) { if (!fs()) { if (n < 120) setTimeout(function () { boot(n + 1); }, 500); return; } devices(); hist(); })(0);
