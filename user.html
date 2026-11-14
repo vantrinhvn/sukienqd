@@ -23,7 +23,13 @@
             this.close = function () {}; this.addEventListener = function (t, f) { if (t === 'click') self.onclick = f; };
             if (room) clicks[room] = this;
             var from = String((opts.data && opts.data.from) || '');
-            try { if (from && typeof Q.notifyFrom === 'function') Q.notifyFrom(this.title, this.body, room, from); else Q.notify(this.title, this.body, room); } catch (e) {}
+            var av = ''; try { av = String(((window.State && State.avatars) || {})[from] || ''); } catch (e) {}
+            if (!/^(data:image\/|https:\/\/)/.test(av)) av = '';
+            try {
+                if (from && typeof Q.notifyAvatar === 'function') Q.notifyAvatar(this.title, this.body, room, from, av);   // ảnh đại diện trang đang có -> app dùng ngay
+                else if (from && typeof Q.notifyFrom === 'function') Q.notifyFrom(this.title, this.body, room, from);
+                else Q.notify(this.title, this.body, room);
+            } catch (e) {}
         }
         Object.defineProperty(N, 'permission', { get: perm });
         N.requestPermission = function (cb) {
