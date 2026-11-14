@@ -8,6 +8,46 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#fdebc0">
+    <script id="qd-native-notif">
+    /* App Android (WebView không có thông báo của trình duyệt): thay window.Notification + showNotification bằng thông báo Android thật của app
+       (window.QDNative.notify, cần bản app có thông báo). Mọi mã thông báo sẵn có (tin nhắn, nhắc tên, quay số trực tiếp...) chạy qua đây. */
+    (function () {
+        var Q = window.QDNative;
+        if (!Q || typeof Q.notify !== 'function' || typeof Q.notifyPermission !== 'function') return;
+        var clicks = {}, waiters = [];
+        function perm() { try { return String(Q.notifyPermission()); } catch (e) { return 'default'; } }
+        function roomOf(o) { o = o || {}; return String((o.data && o.data.roomId) || o.tag || ''); }
+        function N(title, opts) {
+            opts = opts || {}; var self = this, room = roomOf(opts);
+            this.title = String(title || ''); this.body = String(opts.body || ''); this.tag = room; this.data = opts.data; this.onclick = null;
+            this.close = function () {}; this.addEventListener = function (t, f) { if (t === 'click') self.onclick = f; };
+            if (room) clicks[room] = this;
+            try { Q.notify(this.title, this.body, room); } catch (e) {}
+        }
+        Object.defineProperty(N, 'permission', { get: perm });
+        N.requestPermission = function (cb) {
+            return new Promise(function (res) {
+                var p = perm();
+                if (p !== 'default') { if (cb) cb(p); return res(p); }
+                waiters.push(function (v) { if (cb) cb(v); res(v); });
+                try { Q.requestNotifyPermission(); } catch (e) { res(perm()); }
+            });
+        };
+        window.__qdNotifPerm = function (p) { var w = waiters; waiters = []; w.forEach(function (f) { try { f(p); } catch (e) {} }); try { window.Notif && Notif.updateUI(); } catch (e) {} };
+        // Bấm thông báo (app gọi): ưu tiên đúng hành động trang đã gắn, không thì mở phòng chat
+        window.__qdNotifOpen = function (r) {
+            var n = clicks[r];
+            if (n && typeof n.onclick === 'function') { try { n.onclick({ target: n }); } catch (e) {} return; }
+            if (r === 'lucky_live') { var a = document.getElementById('ln-live-banner'); if (a) a.click(); return; }
+            if (window.Chat && Chat.openFromNotif) Chat.openFromNotif(r);
+        };
+        window.Notification = N;
+        window.QDAppNotif = { open: function () { try { Q.openNotifySettings(); } catch (e) {} }, perm: perm };
+        try {
+            if (window.ServiceWorkerRegistration) ServiceWorkerRegistration.prototype.showNotification = function (title, opts) { new N(title, opts); return Promise.resolve(); };
+        } catch (e) {}
+    })();
+    </script>
     <script>try{var _tc=localStorage.getItem("qd_tet_color");if(_tc==="dao"||_tc==="chung")document.documentElement.setAttribute("data-tet-color",_tc);}catch(e){}</script>
     <script>document.documentElement.classList.add("qd-boot");</script>
     <style id="qd-boot-css">
@@ -18332,11 +18372,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     this.updateUI(); return { ok: false };
                 }
                 if (!this.enabled()) this.setEnabled(true);
-                var p = Notification.permission;
+                var p = Notification.permission, p0 = p;
                 if (p === 'default') {
                     try { p = await Notification.requestPermission(); } catch (e) { p = Notification.permission; }
                 }
                 this.updateUI();
+                if (p !== 'granted' && window.QDAppNotif) {
+                    this.toast(p === 'denied' ? 'Thông báo của app đang bị tắt. Đang mở Cài đặt → bật "Hiện thông báo" cho QD Elite rồi quay lại.' : 'Bạn chưa cho phép thông báo. Bấm lại và chọn "Cho phép".', 'warning');
+                    if (p0 === 'denied') setTimeout(function () { window.QDAppNotif.open(); }, 900);   // vừa bấm "Không cho phép" thì thôi, chặn từ trước mới mở Cài đặt
+                    return { ok: false };
+                }
                 if (p !== 'granted') {
                     this.toast(p === 'denied'
                         ? 'Thông báo đang bị chặn. Bấm biểu tượng ổ khóa cạnh địa chỉ web → Quyền → Thông báo → Cho phép, rồi tải lại trang.'
@@ -18382,6 +18427,7 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             // Nhờ Service Worker hẹn giờ (trang bị ẩn/đóng băng vẫn hiện thông báo). Trả về false nếu không làm được
             showLater: async function (title, body, roomId, ms) {
+                if (window.QDAppNotif) return false;   // app Android: trang tự hẹn giờ rồi gọi thông báo của app
                 var reg = await this.sw();
                 var sw = reg && (reg.active || navigator.serviceWorker.controller);
                 if (!sw) return false;
@@ -18397,6 +18443,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (p === 'unsupported') { msg = this.isIOS() && !this.standalone() ? 'iPhone/iPad: cần "Thêm vào MH chính" và mở web từ biểu tượng đó mới nhận được thông báo.' : 'Trình duyệt này không hỗ trợ thông báo.'; cls = 'text-warning'; }
                 else if (!on) { msg = 'Bạn sẽ không nhận được thông báo tin nhắn mới.'; cls = 'text-muted'; }
                 else if (p === 'granted') { msg = '✓ Đã cho phép - sẽ báo khi có tin nhắn mới.'; cls = 'text-main'; }
+                else if (p === 'denied' && window.QDAppNotif) { msg = 'Thông báo của app đang bị tắt. Bấm Bật / Tắt để mở Cài đặt và cho phép.'; cls = 'text-danger'; }
                 else if (p === 'denied') { msg = 'Trình duyệt đang chặn thông báo. Bấm ổ khóa cạnh địa chỉ web → Thông báo → Cho phép.'; cls = 'text-danger'; }
                 else { msg = 'Chưa cấp quyền - bấm Bật / Tắt rồi chọn "Cho phép".'; cls = 'text-warning'; }
                 el.textContent = msg; el.className = 'text-sm font-bold ' + cls;
