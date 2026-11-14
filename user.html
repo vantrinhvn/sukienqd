@@ -22,7 +22,8 @@
             this.title = String(title || ''); this.body = String(opts.body || ''); this.tag = room; this.data = opts.data; this.onclick = null;
             this.close = function () {}; this.addEventListener = function (t, f) { if (t === 'click') self.onclick = f; };
             if (room) clicks[room] = this;
-            try { Q.notify(this.title, this.body, room); } catch (e) {}
+            var from = String((opts.data && opts.data.from) || '');
+            try { if (from && typeof Q.notifyFrom === 'function') Q.notifyFrom(this.title, this.body, room, from); else Q.notify(this.title, this.body, room); } catch (e) {}
         }
         Object.defineProperty(N, 'permission', { get: perm });
         N.requestPermission = function (cb) {
@@ -11753,6 +11754,8 @@ html.qd-lite .qd-fx { display: none !important; }
                             localStorage.removeItem('qd_saved_usr');
                             localStorage.removeItem('qd_saved_pwd');
                         }
+                        // App Android: nhớ đăng nhập để mở lại app / mở bong bóng chat là vào thẳng (đăng xuất / hết phiên thì phải nhập lại)
+                        if (window.QDNative) { try { localStorage.setItem('qd_app_auth', JSON.stringify({ u: u, p: p, t: Date.now() })); } catch (e) {} }
                         
                         // Nếu tài khoản đang bị khóa
                         if(docData.isBlocked) { 
@@ -11959,6 +11962,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 const docId = State.currentDocId;
                 if (window.QDSession) window.QDSession.end('logout', true);
                 else { try { localStorage.removeItem('qd_current_username'); } catch (e) {} }
+                try { localStorage.removeItem('qd_app_auth'); } catch (e) {}
                 if(docId) { 
                     const offUpd = { lastActive: Date.now(), online: false };
                     // App Android: đăng xuất -> máy này thôi nhận thông báo đẩy của tài khoản này
@@ -12001,7 +12005,7 @@ html.qd-lite .qd-fx { display: none !important; }
 
         /** 6. PRIVATE CHAT MODULE WITH HEART, UNREAD BADGES & GENERAL CHANNEL */
         window.Chat = {
-            showNotification: (title, body, roomId) => {
+            showNotification: (title, body, roomId, from) => {
                 if (window.Notif && !window.Notif.enabled()) return;
 
                 try {
@@ -12012,7 +12016,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     }
                 } catch(e) {}
 
-                if (window.Notif) window.Notif.show(title, body, roomId);
+                if (window.Notif) window.Notif.show(title, body, roomId, from);
             },
             // Bấm vào thông báo -> mở đúng phòng chat
             openFromNotif: (roomId) => {
@@ -12112,7 +12116,7 @@ html.qd-lite .qd-fx { display: none !important; }
                                 if (data.bot) {   // Tin Bot báo cáo: luôn có chuông riêng (kể cả đang mở Kênh Chung)
                                     if (notifOn) { if (QM) QM.ding(true); if (away && window.Notif) window.Notif.show(forMe ? `📣 ${who} nhắc đến bạn trong Kênh Chung` : `${who} · Kênh Chung`, body, "general_room"); }
                                 }
-                                else if (State.chatTarget !== 'general' || document.hidden) window.Chat.showNotification(forMe ? `📣 ${who} nhắc đến bạn trong Kênh Chung` : "Kênh Chung", forMe ? body : `${who}: ${body}`, "general_room");
+                                else if (State.chatTarget !== 'general' || document.hidden) window.Chat.showNotification(forMe ? `📣 ${who} nhắc đến bạn trong Kênh Chung` : "Kênh Chung", forMe ? body : `${who}: ${body}`, "general_room", data.from);
                                 else if (forMe && notifOn) { if (QM) QM.ding(false); if (document.hidden && window.Notif) window.Notif.show(`📣 ${who} nhắc đến bạn trong Kênh Chung`, body, "general_room"); }
                             }
                         }
@@ -12138,7 +12142,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             const data = change.doc.data();
                             if (data.from !== State.currentUser && data.time > State.appStartTime && State.chatTarget !== data.from) {
                                 const dN = State.nicknames[data.from] || data.from;
-                                window.Chat.showNotification(`Tin nhắn từ ${dN}`, data.text || "Đã gửi một ảnh đính kèm", data.conversationId);
+                                window.Chat.showNotification(`Tin nhắn từ ${dN}`, data.text || "Đã gửi một ảnh đính kèm", data.conversationId, data.from);
                             }
                         }
                     });
@@ -18434,9 +18438,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     data: { roomId: roomId || '', url: url }
                 };
             },
-            show: function (title, body, roomId) {
+            show: function (title, body, roomId, from) {
                 if (!this.supported() || Notification.permission !== 'granted') return;
                 var self = this, opts = this.options(body, roomId);
+                if (from) { opts.data = opts.data || {}; opts.data.from = from; }
                 var direct = function () {
                     try {
                         var n = new Notification(title, opts);
@@ -25204,6 +25209,37 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         }
         d.addEventListener('touchend', end, { passive: true });
         d.addEventListener('touchcancel', end, { passive: true });
+    })();
+    </script>
+
+    <!-- ===== App Android: tự đăng nhập lại khi mở app / bong bóng chat (chỉ khi phiên còn hạn, chưa đăng xuất) ===== -->
+    <style id="qd-autologin-css">
+        html.qd-autologin #auth-gate { visibility: hidden !important; }
+        #qd-autologin-ov { position: fixed; inset: 0; z-index: 2147483000; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+            background: linear-gradient(160deg, #7a0000, #3d0000); color: #ffe7a3; font: 600 15px/1.4 system-ui, sans-serif; }
+        html.qd-autologin #qd-autologin-ov { display: flex; }
+        #qd-autologin-ov i { width: 38px; height: 38px; border-radius: 50%; border: 4px solid rgba(255,215,0,.25); border-top-color: #ffd700; animation: qdAl 0.8s linear infinite; }
+        @keyframes qdAl { to { transform: rotate(360deg); } }
+    </style>
+    <script id="qd-autologin-js">
+    (function () {
+        if (!window.QDNative) return;
+        var a = null, s = null;
+        try { a = JSON.parse(localStorage.getItem('qd_app_auth') || 'null'); s = JSON.parse(localStorage.getItem('qd_sess') || 'null'); } catch (e) {}
+        if (!a || !a.u || !a.p || !s || s.u !== a.u) return;   // phiên đã hết hạn / đăng xuất (QDSession đã xóa) -> nhập lại như thường
+        var root = document.documentElement; root.classList.add('qd-autologin');
+        var ov = document.createElement('div'); ov.id = 'qd-autologin-ov';
+        ov.innerHTML = '<i></i><span>' + (/[?&]bubble=1/.test(location.search) ? 'Đang mở cuộc trò chuyện…' : 'Đang đăng nhập…') + '</span>';
+        document.body.appendChild(ov);
+        function done() { root.classList.remove('qd-autologin'); ov.remove(); }
+        var n = 0;
+        (function go() {
+            if (window.State && State.currentUser) return done();
+            var usr = document.getElementById('login-usr'), pwd = document.getElementById('login-pwd'), btn = document.getElementById('btn-login');
+            if (usr && pwd && btn && window.Auth && n === 2) { usr.value = a.u; pwd.value = a.p; if (!btn.disabled) btn.click(); }
+            if (n > 8 && btn && !btn.disabled) return done();   // sai mật khẩu / tài khoản bị khóa... -> hiện màn đăng nhập để tự xử lý
+            if (n++ < 40) setTimeout(go, 400); else done();   // ~16 giây không vào được -> hiện màn đăng nhập
+        })();
     })();
     </script>
 
