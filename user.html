@@ -12523,7 +12523,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 const qdMsg = { conversationId: roomId, from: State.currentUser, to: targetUser, text: t, imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [] };
                 if (State.chatTarget === 'general' && window.QDMention) { window.QDMention.close(); const men = window.QDMention.extract(t); if (men.length) qdMsg.mentions = men; }
                 const ping = targetUser !== 'all' || (qdMsg.mentions && qdMsg.mentions.length);
-                db.collection("private_chat").add(qdMsg).then(() => { if (ping && window.QDPushPing) window.QDPushPing(); }).catch(() => {}); 
+                db.collection("private_chat").add(qdMsg).then(() => { if (window.QDPushPing) window.QDPushPing(!ping); }).catch(() => {}); 
             },
 
             revokeMsg: (msgId) => {
@@ -18460,19 +18460,23 @@ document.addEventListener("DOMContentLoaded", () => {
         /* Gõ cửa máy chủ thông báo (Apps Script "Ứng dụng web") -> báo app Android NGAY, không chờ lịch mỗi phút.
            Chỉ "nhắc" máy chủ kiểm tra, không gửi nội dung. Địa chỉ ở settings/push_server (hook do Admin dán / hookAuto máy chủ tự ghi). */
         window.QDPushPing = (function () {
-            var url = null, at = 0, last = 0, timer = null;
+            var url = null, at = 0, last = 0, timer = null, general = false;
             function hook() {
                 if (url !== null && Date.now() - at < 10 * 60000) return Promise.resolve(url);
                 if (!window.firebase || !firebase.apps || !firebase.apps.length) return Promise.resolve('');
                 return firebase.firestore().collection('settings').doc('push_server').get().then(function (d) {
-                    var x = d.exists ? d.data() : {}; url = String(x.hook || x.hookAuto || ''); at = Date.now(); return url;
+                    var x = d.exists ? d.data() : {}; url = String(x.hook || x.hookAuto || ''); general = x.general === true; at = Date.now(); return url;
                 }).catch(function () { return ''; });
             }
             function fire() {
                 last = Date.now();
                 hook().then(function (u) { if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); });
             }
-            return function () {   // nhiều tin liên tiếp -> gộp, tối đa 1 lần / 3 giây
+            return function (plainGeneral) {   // nhiều tin liên tiếp -> gộp, tối đa 1 lần / 3 giây
+                if (plainGeneral) return hook().then(function () { if (general) go(); });   // tin Kênh Chung thường: chỉ khi Admin bật "Mọi tin Kênh Chung"
+                go();
+            };
+            function go() {
                 var wait = 3000 - (Date.now() - last);
                 if (wait <= 0) return fire();
                 if (!timer) timer = setTimeout(function () { timer = null; fire(); }, wait);

@@ -793,7 +793,7 @@ html.qd-lite .qd-fx { display: none !important; }
             </div>
             <div class="pushn-phone mb-4"><div class="pushn-notif">
                 <div class="pushn-nh"><span class="pushn-ic"><i class="fa-solid fa-bell"></i></span><span>QD Elite</span><span class="pushn-dot">·</span><span>bây giờ</span></div>
-                <b id="pushn-cf-t"></b><p id="pushn-cf-b"></p>
+                <div class="pushn-row"><div style="min-width: 0; flex: 1;"><b id="pushn-cf-t"></b><p id="pushn-cf-b"></p></div><img class="pushn-logo" src="media/qd-logo.png" alt=""></div><img id="pushn-cf-img" class="pushn-big" alt="" hidden>
             </div></div>
             <p class="text-sm mb-6" id="pushn-cf-note" style="line-height: 1.5;"></p>
             <div class="flex gap-4">
@@ -3559,6 +3559,16 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                     </div>
 
+                    <div class="card mb-8" style="padding: 20px 24px;">
+                        <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-comments" style="color: #3b82f6;"></i> Tự báo tin nhắn lên điện thoại</h3>
+                        <p class="text-muted text-sm mt-2 mb-3">Máy chủ tự gửi thông báo khi có tin nhắn mới, kể cả khi người nhận đã tắt app. Đang mở app thì app tự báo như cũ.</p>
+                        <div class="pushn-sw">
+                            <label class="pushn-swi"><span><b>💬 Tin nhắn riêng</b><small>Báo người nhận tin nhắn 1–1.</small></span><span class="switch"><input type="checkbox" id="pushn-c-private" onchange="QDPushAdmin.setCfg('private', this)"><span class="slider"></span></span></label>
+                            <label class="pushn-swi"><span><b>📣 @Nhắc tên</b><small>Báo người được @nhắc trong Kênh Chung.</small></span><span class="switch"><input type="checkbox" id="pushn-c-mention" onchange="QDPushAdmin.setCfg('mention', this)"><span class="slider"></span></span></label>
+                            <label class="pushn-swi"><span><b>🗨️ Mọi tin Kênh Chung</b><small>Ai nhắn trong Kênh Chung cũng báo cho tất cả. Nhiều tin thì điện thoại chỉ giữ 1 thông báo mới nhất.</small></span><span class="switch"><input type="checkbox" id="pushn-c-general" onchange="QDPushAdmin.setCfg('general', this)"><span class="slider"></span></span></label>
+                        </div>
+                    </div>
+
                     <div class="pushn-grid">
                         <div class="card" id="pushn-card" style="padding: 24px;">
                             <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-pen-to-square" style="color: #3b82f6;"></i> Soạn thông báo</h3>
@@ -3583,6 +3593,20 @@ html.qd-lite .qd-fx { display: none !important; }
                                 <textarea id="pushn-body" class="form-control" rows="4" maxlength="300" placeholder="VD: Vào app nhận lì xì ngay hôm nay, số lượng có hạn."></textarea>
                             </div>
                             <div class="form-group mb-4">
+                                <label class="form-label">Ảnh lớn (tùy chọn)</label>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <select id="pushn-img-sel" class="form-control" style="flex: 1 1 200px; min-width: 0;" onchange="QDPushAdmin.imgSel()">
+                                        <option value="">Không có ảnh</option>
+                                        <option value="media/gioi-thieu-poster-ngang.jpg">Poster Mở cửa Rằm tháng Chạp</option>
+                                        <option value="media/nen-tet-ngang.jpg">Nền Tết</option>
+                                        <option value="media/anh1.jpg">Ảnh Quân đoàn</option>
+                                        <option value="url">Link ảnh khác...</option>
+                                    </select>
+                                    <input id="pushn-img-url" class="form-control" placeholder="https://... (link ảnh .jpg / .png)" autocomplete="off" spellcheck="false" style="flex: 1 1 240px; min-width: 0; display: none;">
+                                </div>
+                                <small class="text-muted text-xs">Ảnh ngang (2:1) hiện đẹp nhất. Người dùng kéo thông báo xuống để xem ảnh to.</small>
+                            </div>
+                            <div class="form-group mb-4">
                                 <label class="form-label">Mẫu nhanh</label>
                                 <div class="pushn-tpl" id="pushn-tpl"></div>
                             </div>
@@ -3590,8 +3614,9 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="pushn-phone">
                                 <div class="pushn-notif">
                                     <div class="pushn-nh"><span class="pushn-ic"><i class="fa-solid fa-bell"></i></span><span>QD Elite</span><span class="pushn-dot">·</span><span>bây giờ</span></div>
-                                    <b id="pushn-pv-t">Tiêu đề thông báo</b>
-                                    <p id="pushn-pv-b">Nội dung thông báo hiện ở đây.</p>
+                                    <div class="pushn-row"><div style="min-width: 0; flex: 1;"><b id="pushn-pv-t">Tiêu đề thông báo</b>
+                                    <p id="pushn-pv-b">Nội dung thông báo hiện ở đây.</p></div><img class="pushn-logo" src="media/qd-logo.png" alt="" id="pushn-pv-logo"></div>
+                                    <img id="pushn-pv-img" class="pushn-big" alt="" hidden>
                                 </div>
                             </div>
                             <button type="button" class="btn btn-primary w-full mt-4" id="pushn-send" onclick="QDPushAdmin.send()" style="padding: 14px;"><i class="fa-solid fa-paper-plane mr-2"></i> Gửi thông báo</button>
@@ -15211,6 +15236,16 @@ window.QDXlsx = (function () {
         .pushn-h { padding: 10px 12px; margin-top: 8px; border-radius: 12px; background: rgba(127,127,127,.08); font-size: 13px; line-height: 1.45; }
         .pushn-h .pushn-hb { color: var(--text-muted); white-space: pre-wrap; word-break: break-word; }
         .pushn-h .pushn-again { float: right; border: 0; background: transparent; color: #3b82f6; cursor: pointer; font: inherit; font-size: 12px; }
+        .pushn-row { display: flex; gap: 10px; align-items: flex-start; }
+        .pushn-logo { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #111; }
+        .pushn-big { display: block; width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; margin-top: 10px; }
+        .pushn-big[hidden] { display: none; }
+        .pushn-sw { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        @media (max-width: 900px) { .pushn-sw { grid-template-columns: minmax(0, 1fr); } }
+        .pushn-swi { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: rgba(127,127,127,.08); cursor: pointer; }
+        .pushn-swi > span:first-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .pushn-swi small { color: var(--text-muted); font-size: 12px; line-height: 1.4; }
+        .pushn-swi .switch { flex-shrink: 0; }
         .pushn-accs { display: flex; flex-wrap: wrap; gap: 8px; max-height: 320px; overflow: auto; }
         .pushn-accs button { border: 1px solid rgba(59,130,246,.4); background: rgba(59,130,246,.08); color: inherit; border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; }
         .pushn-accs button small { color: var(--text-muted); margin-left: 4px; }
@@ -15238,7 +15273,17 @@ window.QDXlsx = (function () {
             $('pushn-pv-t').textContent = t.value.trim() || 'Tiêu đề thông báo';
             $('pushn-pv-b').textContent = b.value.trim() || 'Nội dung thông báo hiện ở đây.';
             $('pushn-title-n').textContent = t.value.length + '/80'; $('pushn-body-n').textContent = b.value.length + '/300';
+            showImg($('pushn-pv-img'), img());
         }
+        var SITE = 'https://vantrinhvn.github.io/sukienqd/';
+        function img() {
+            var v = $('pushn-img-sel').value;
+            if (!v) return '';
+            if (v === 'url') { var u = ($('pushn-img-url').value || '').trim(); return /^https:\/\/\S+$/.test(u) ? u : ''; }
+            return SITE + v;
+        }
+        function imgSel() { $('pushn-img-url').style.display = $('pushn-img-sel').value === 'url' ? '' : 'none'; if ($('pushn-img-sel').value === 'url') $('pushn-img-url').focus(); pv(); }
+        function showImg(el, u) { if (u) { el.src = u; el.hidden = false; } else { el.hidden = true; el.removeAttribute('src'); } }
         function useTpl(i) { var x = TPL[i]; $('pushn-title').value = x[1]; $('pushn-body').value = x[2]; pv(); }
         function pick(u) { $('pushn-target').value = 'one'; target(); $('pushn-user').value = u; $('pushn-title').focus(); try { $('pushn-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }
         function accs() {
@@ -15274,7 +15319,7 @@ window.QDXlsx = (function () {
                 LAST = []; var h = [], st = new Date(); st.setHours(0, 0, 0, 0); var today = 0;
                 q.forEach(function (x) {
                     var b = x.data(); LAST.push(b); if ((b.createdAt || 0) >= st.getTime() && b.status === 'done') today += (b.sent || 0);
-                    h.push('<div class="pushn-h"><button type="button" class="pushn-again" data-i="' + (LAST.length - 1) + '" title="Chép lại để gửi lần nữa"><i class="fa-solid fa-copy"></i> Dùng lại</button><b>' + esc(b.title) + '</b> <span class="text-muted">· ' + (b.target === 'all' ? 'Tất cả' : '@' + esc(b.target)) + ' · ' + fmt(b.createdAt) + '</span><div class="pushn-hb">' + esc(b.body) + '</div>' + result(b) + '</div>');
+                    h.push('<div class="pushn-h"><button type="button" class="pushn-again" data-i="' + (LAST.length - 1) + '" title="Chép lại để gửi lần nữa"><i class="fa-solid fa-copy"></i> Dùng lại</button><b>' + (b.image ? '🖼️ ' : '') + esc(b.title) + '</b> <span class="text-muted">· ' + (b.target === 'all' ? 'Tất cả' : '@' + esc(b.target)) + ' · ' + fmt(b.createdAt) + '</span><div class="pushn-hb">' + esc(b.body) + '</div>' + result(b) + '</div>');
                 });
                 el.innerHTML = h.length ? h.join('') : '<div class="text-muted text-sm">Chưa gửi thông báo nào.</div>';
                 $('pushn-n-today').textContent = today;
@@ -15328,7 +15373,7 @@ window.QDXlsx = (function () {
         // Hộp xác nhận theo giao diện Admin (thay hộp hỏi mặc định của trình duyệt)
         var waiting = null;
         function ask(o) {
-            $('pushn-cf-t').textContent = o.title; $('pushn-cf-b').textContent = o.body;
+            $('pushn-cf-t').textContent = o.title; $('pushn-cf-b').textContent = o.body; showImg($('pushn-cf-img'), o.image || '');
             $('pushn-cf-to').innerHTML = o.to; $('pushn-cf-note').innerHTML = o.note || '';
             $('pushn-cf-note').style.color = o.warn ? '#f59e0b' : '';
             UI.openModal('modal-pushn-confirm');
@@ -15336,6 +15381,15 @@ window.QDXlsx = (function () {
             return new Promise(function (res) { waiting = res; });
         }
         function answer(ok) { UI.closeModal('modal-pushn-confirm'); var w = waiting; waiting = null; if (w) w(!!ok); }
+        var CFG = { private: true, mention: true, general: false };
+        function cfgUi() { ['private', 'mention', 'general'].forEach(function (k) { var el = $('pushn-c-' + k); if (el) el.checked = !!CFG[k]; }); }
+        function setCfg(k, el) {
+            var v = !!el.checked, p = {}; p[k] = v; p.updatedAt = Date.now();
+            fs().collection('settings').doc('push_config').set(p, { merge: true }).then(function () {
+                if (k === 'general') fs().collection('settings').doc('push_server').set({ general: v }, { merge: true }).catch(function () {});   // trang thành viên biết để gõ cửa máy chủ
+                toast({ private: 'Tin nhắn riêng', mention: '@Nhắc tên', general: 'Mọi tin Kênh Chung' }[k] + ': ' + (v ? 'BẬT báo lên điện thoại' : 'TẮT'), 'success');
+            }).catch(function (e) { el.checked = !v; toast('Không lưu được' + (e && e.code ? ' (' + e.code + ')' : ''), 'error'); });
+        }
         function send() {
             var f = fs(); if (!f) return toast('Chưa kết nối máy chủ, thử lại sau.', 'error');
             var title = $('pushn-title').value.trim(), body = $('pushn-body').value.trim(), one = $('pushn-target').value === 'one', user = $('pushn-user').value.trim().replace(/^@/, '');
@@ -15344,7 +15398,8 @@ window.QDXlsx = (function () {
             if (one && !user) return toast('Nhập tên đăng nhập người nhận.', 'error');
             var dev = 0; ACCS.forEach(function (a) { if (!one || a.u === user) dev += a.n; });
             var noDev = one && ACCS.length && !ACCS.some(function (a) { return a.u === user; });
-            ask({ title: title, body: body,
+            if ($('pushn-img-sel').value === 'url' && !img()) return toast('Link ảnh phải bắt đầu bằng https://', 'error');
+            ask({ title: title, body: body, image: img(),
                 to: one ? 'Gửi riêng cho <b>@' + esc(user) + '</b>' : 'Gửi đến <b>TẤT CẢ</b> thành viên',
                 note: noDev ? '⚠ @' + esc(user) + ' chưa có máy nào nhận thông báo (chưa cập nhật app hoặc chưa đăng nhập) — thông báo sẽ không đến đâu cả.'
                     : (dev ? '📱 Sẽ đến <b>' + dev + '</b> máy sau ' + eta() + '.' : 'Chưa có máy nào nhận thông báo.'),
@@ -15353,8 +15408,9 @@ window.QDXlsx = (function () {
         function queue(f, title, body, one, user) {
             var btn = $('pushn-send'); btn.disabled = true; status('⏳ Đang xếp hàng...');
             var by = ''; try { by = (window.State && State.currentUser) || ''; } catch (e) {}
-            f.collection('push_broadcast').add({ title: title, body: body, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: by || 'admin' }).then(function () {
-                $('pushn-title').value = ''; $('pushn-body').value = ''; pv();
+            var im = img();
+            f.collection('push_broadcast').add({ title: title, body: body, image: im, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: by || 'admin' }).then(function () {
+                $('pushn-title').value = ''; $('pushn-body').value = ''; $('pushn-img-sel').value = ''; $('pushn-img-url').value = ''; imgSel();
                 btn.disabled = false;
                 if (fast()) { status('⚡ Đang gửi ngay...'); ping().then(function (r) { status(r && r.ok ? '✓ Đã gửi đi — xem kết quả ở "Đã gửi gần đây".' : '✓ Đã xếp hàng, máy chủ sẽ gửi trong khoảng 1 phút.', 'ok'); }); }
                 else status('✓ Đã xếp hàng. Điện thoại sẽ nhận trong khoảng 1–2 phút — xem kết quả ở "Đã gửi gần đây".', 'ok');
@@ -15370,12 +15426,17 @@ window.QDXlsx = (function () {
             $('pushn-hist').addEventListener('click', function (e) {
                 var b = e.target.closest('.pushn-again'); if (!b) return; var x = LAST[+b.dataset.i]; if (!x) return;
                 $('pushn-title').value = x.title || ''; $('pushn-body').value = x.body || '';
+                var im = String(x.image || ''), pre = im.indexOf(SITE) === 0 ? im.slice(SITE.length) : '';
+                if (!im) $('pushn-img-sel').value = ''; else if (pre && $('pushn-img-sel').querySelector('option[value="' + pre + '"]')) $('pushn-img-sel').value = pre; else { $('pushn-img-sel').value = 'url'; $('pushn-img-url').value = im; }
+                imgSel();
                 $('pushn-target').value = x.target && x.target !== 'all' ? 'one' : 'all'; target(); $('pushn-user').value = x.target !== 'all' ? (x.target || '') : '';
                 pv(); try { $('pushn-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (er) {}
             });
             ['pushn-title', 'pushn-body'].forEach(function (id) { $(id).addEventListener('input', pv); });
             pv(); devices(); hist();
             fs().collection('settings').doc('push_server').onSnapshot(function (x) { SRV = x.exists ? x.data() : null; srv(); }, function () {});
+            fs().collection('settings').doc('push_config').onSnapshot(function (x) { var c = x.exists ? x.data() : {}; CFG = { private: c.private !== false, mention: c.mention !== false, general: c.general === true }; cfgUi(); }, function () {});
+            cfgUi(); $('pushn-img-url').addEventListener('input', pv);
             setInterval(srv, 60000);
         }
         // Chỉ nạp khi mở mục Thông báo app (đỡ đọc dữ liệu khi không dùng); mở lại -> đếm lại số máy
@@ -15385,7 +15446,7 @@ window.QDXlsx = (function () {
             UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'apppush') { if (booted) devices(); else boot(0); } return r; };
             var sec = $('view-apppush'); if (sec && sec.classList.contains('active')) boot(0);
         })(0);
-        return { send: send, target: target, devices: devices, accs: accs, pick: pick, answer: answer, saveHook: saveHook, testHook: testHook };
+        return { send: send, target: target, devices: devices, accs: accs, pick: pick, answer: answer, saveHook: saveHook, testHook: testHook, setCfg: setCfg, imgSel: imgSel };
     })();
     </script>
     <!-- ===== Bấm ra ngoài (vùng tối quanh hộp thoại) để đóng mọi hộp thoại / tab, không cần bấm nút X ===== -->
