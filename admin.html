@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="vi" data-theme="dark">
 <head>
+    <script id="qd-safe-js">/* Thoát ký tự khi chèn dữ liệu người dùng vào HTML (qdH) và vào chuỗi JS trong onclick (qdJ) */
+    window.qdH = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    window.qdJ = function (v) { return qdH(String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n')); };
+    window.QD_USER_OK = function (u) { return /^[A-Za-z0-9_.\-]{3,24}$/.test(String(u || '')); };
+    window.qdSha256 = function (s) { s = unescape(encodeURIComponent(s)); var K = [], H = [], i, j, p = 2, n, r = function (x, c) { return (x >>> c) | (x << (32 - c)); };
+        for (n = 0; n < 64; p++) { for (j = 2; j * j <= p && p % j; j++); if (j * j > p) { if (n < 8) H[n] = (Math.pow(p, 1 / 2) * 4294967296) | 0; K[n++] = (Math.pow(p, 1 / 3) * 4294967296) | 0; } }
+        var b = s.length * 8, w = []; s += '\x80'; while (s.length % 64 - 56) s += '\x00';
+        for (i = 0; i < s.length; i++) w[i >> 2] |= s.charCodeAt(i) << ((3 - i) % 4) * 8;
+        w[w.length] = (b / 4294967296) | 0; w[w.length] = b;
+        for (j = 0; j < w.length;) { var W = w.slice(j, j += 16), o = H.slice(0); for (i = 0; i < 64; i++) { var a = H[0], e = H[4];
+            if (i > 15) { var x = W[i - 15], y = W[i - 2]; W[i] = (W[i - 16] + (r(x, 7) ^ r(x, 18) ^ (x >>> 3)) + W[i - 7] + (r(y, 17) ^ r(y, 19) ^ (y >>> 10))) | 0; }
+            var t1 = H[7] + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & H[5]) ^ (~e & H[6])) + K[i] + W[i], t2 = (r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & H[1]) ^ (a & H[2]) ^ (H[1] & H[2]));
+            H = [(t1 + t2) | 0].concat(H); H[4] = (H[4] + t1) | 0; H.length = 8; }
+            for (i = 0; i < 8; i++) H[i] = (H[i] + o[i]) | 0; }
+        for (s = '', i = 0; i < 8; i++) s += ('00000000' + (H[i] >>> 0).toString(16)).slice(-8); return s; };
+    window.qdGate = function (code) { return qdSha256('qd-gate|' + String(code || '').trim()) === '22cc0bc97aeead86540c187c39a01014dcec61b5a955312cf0cf69d5bc56440a'; };</script>
     <script id="qd-gfx-boot">try{var g=localStorage.getItem("qd_gfx_eff");if(/^(high|mid|low)$/.test(g||""))document.documentElement.setAttribute("data-gfx",g);}catch(e){}</script>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="media/qd-logo.png">
@@ -509,6 +525,7 @@
         .input-ico .form-control { padding-left: 44px; }
         .input-ico:has(.pass-eye) .form-control { padding-right: 48px; }
         .pass-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 8px; color: var(--text-muted); }
+        .pw-mask { cursor: pointer; user-select: all; padding: 2px 6px; border-radius: 6px; background: var(--bg-elevated); }
         .pass-eye:hover { color: var(--text-main); }
         .auth-btn { padding: 16px; font-size: 15px; }
         .auth-back { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 18px; font-size: 13.5px; font-weight: 600; color: var(--text-muted); }
@@ -5013,7 +5030,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             if (o.itemId) t.set(db.collection('point_shop_stock').doc('counts'), { counts: { [o.itemId]: FV.increment(-(o.qty || 1)) } }, { merge: true });
                             t.set(db.collection('point_history').doc(), { user: o.user, action: 'refund', detail: `Hoàn điểm: đơn "${o.itemName}" bị từ chối`, pointsChanged: o.cost || 0, timestamp: Date.now() });
                         });
-                        Utils.toast(`Đã từ chối và hoàn ${o.cost} điểm cho ${o.user}.`, 'success');
+                        Utils.toast(`Đã từ chối và hoàn ${o.cost} điểm cho ${qdH(o.user)}.`, 'success');
                     } catch (e) { if (e === 'NOACC') Utils.toast('Không tìm thấy tài khoản ' + o.user, 'error'); else if (e === 'DONE') Utils.toast('Đơn này đã được xử lý rồi.', 'warning'); else { console.error(e); Utils.toast('Không xử lý được đơn.', 'error'); } }
                 }
             };
@@ -5399,7 +5416,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     if (hd.data().dateKey) t.set(db.collection('lixi_daily').doc(hd.data().dateKey), { count: firebase.firestore.FieldValue.increment(-1), points: firebase.firestore.FieldValue.increment(-amount) }, { merge: true });
                     t.set(db.collection('point_history').doc(), { user: h.user, action: 'revoke', detail: 'Admin thu hồi lì xì ngày ' + (hd.data().date || '') + (resetTurn ? ' (cấp lại lượt rút)' : ''), pointsChanged: -deducted, timestamp: Date.now() });
                 });
-                Utils.toast(`Đã thu hồi ${deducted} điểm của ${h.user}` + (resetTurn ? ' và cấp lại lượt rút.' : '.'), 'success');
+                Utils.toast(`Đã thu hồi ${deducted} điểm của ${qdH(h.user)}` + (resetTurn ? ' và cấp lại lượt rút.' : '.'), 'success');
             };
 
             return {
@@ -6167,8 +6184,8 @@ const QVis = {
                         
                         if(tbody) tbody.insertAdjacentHTML('beforeend', `
                             <tr>
-                                <td><b class="text-main">${d.user}</b></td>
-                                <td><span class="text-info font-bold">${d.detail}</span></td>
+                                <td><b class="text-main">${qdH(d.user)}</b></td>
+                                <td><span class="text-info font-bold">${qdH(d.detail)}</span></td>
                                 <td class="text-center"><span class="badge badge-success" style="font-size: 13px;">${d.pointsChanged} Điểm</span></td>
                                 <td class="text-right text-muted text-sm">${timeStr}</td>
                             </tr>`);
@@ -6284,19 +6301,19 @@ const QVis = {
                         tbody.insertAdjacentHTML('beforeend', `
                         <tr>
                             <td>
-                                <span class="font-bold text-main">${d.name}</span><br>
-                                <span class="text-xs text-muted"><i class="fa-solid fa-user text-primary mr-1"></i>${d.submitter}</span>
+                                <span class="font-bold text-main">${qdH(d.name)}</span><br>
+                                <span class="text-xs text-muted"><i class="fa-solid fa-user text-primary mr-1"></i>${qdH(d.submitter)}</span>
                             </td>
-                            <td style="font-family: var(--font-family-mono); font-size: 16px; color: var(--color-warning); font-weight: 700; letter-spacing: 1.5px;">${d.gameId}</td>
+                            <td style="font-family: var(--font-family-mono); font-size: 16px; color: var(--color-warning); font-weight: 700; letter-spacing: 1.5px;">${qdH(d.gameId)}</td>
                             <td class="text-muted text-sm">${timeStr}</td>
                             <td class="text-right">
-                                <button class="btn btn-warning" style="padding: 8px 12px; font-size: 12px; margin-right: 5px;" onclick="AdminActions.allowReregister('${doc.id}', '${d.submitter}')">
+                                <button class="btn btn-warning" style="padding: 8px 12px; font-size: 12px; margin-right: 5px;" onclick="AdminActions.allowReregister('${doc.id}', '${qdJ(d.submitter)}')">
                                     <i class="fa-solid fa-rotate-left mr-1"></i> Cho Phép Nộp Lại
                                 </button>
                             </td>
                         </tr>`);
 
-                        optionsHtml += `<option value="${d.submitter}" data-gameid="${d.gameId}" data-ingame="${d.name}">[${d.submitter}] - ID: ${d.gameId} (${d.name})</option>`;
+                        optionsHtml += `<option value="${qdH(d.submitter)}" data-gameid="${qdH(d.gameId)}" data-ingame="${qdH(d.name)}">[${qdH(d.submitter)}] - ID: ${qdH(d.gameId)} (${qdH(d.name)})</option>`;
                     });
 
                     if(selectTour) selectTour.innerHTML = optionsHtml;
@@ -6325,13 +6342,13 @@ const QVis = {
                         const timeStr = new Date(d.timestamp).toLocaleString('vi-VN');
                         if(tbody) tbody.insertAdjacentHTML('beforeend', `
                             <tr>
-                                <td><b class="text-main"><i class="fa-solid fa-user text-muted mr-2"></i>${d.username}</b></td>
-                                <td><span class="badge badge-warning" style="font-size: 13px; padding: 4px 10px;">${d.ingame}</span></td>
-                                <td style="font-family: var(--font-family-mono); letter-spacing: 1px; color: var(--color-info);">${d.gameId || '---'}</td>
-                                <td><span class="badge" style="background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-strong);">${d.team || '---'}</span></td>
+                                <td><b class="text-main"><i class="fa-solid fa-user text-muted mr-2"></i>${qdH(d.username)}</b></td>
+                                <td><span class="badge badge-warning" style="font-size: 13px; padding: 4px 10px;">${qdH(d.ingame)}</span></td>
+                                <td style="font-family: var(--font-family-mono); letter-spacing: 1px; color: var(--color-info);">${qdH(d.gameId || '---')}</td>
+                                <td><span class="badge" style="background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-strong);">${qdH(d.team || '---')}</span></td>
                                 <td class="text-muted text-sm">${timeStr}</td>
                                 <td class="text-right">
-                                    <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('tournament', '${d.id}', 'Bạn có muốn XÓA <b>${d.username}</b> khỏi danh sách giải đấu không?')" title="Xóa Khỏi Giải"><i class="fa-solid fa-trash-can"></i></button>
+                                    <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('tournament', '${d.id}', 'Bạn có muốn XÓA <b>${qdJ(qdH(d.username))}</b> khỏi danh sách giải đấu không?')" title="Xóa Khỏi Giải"><i class="fa-solid fa-trash-can"></i></button>
                                 </td>
                             </tr>`);
 
@@ -6339,8 +6356,8 @@ const QVis = {
                         <label class="flex items-center gap-3 mb-2 cursor-pointer p-2 rounded hover:bg-hover" style="transition: 0.2s;">
                             <input type="checkbox" class="tour-group-cb" value="${d.id}" style="width: 18px; height: 18px;">
                             <div class="flex-col">
-                                <b class="text-main">${d.username}</b>
-                                <span class="text-xs text-muted">ID: ${d.gameId || '---'} | Đội: ${d.team || 'Chưa phân đội'}</span>
+                                <b class="text-main">${qdH(d.username)}</b>
+                                <span class="text-xs text-muted">ID: ${qdH(d.gameId || '---')} | Đội: ${qdH(d.team || 'Chưa phân đội')}</span>
                             </div>
                         </label>`;
                     });
@@ -6351,10 +6368,10 @@ const QVis = {
                     sortedByPoints.forEach(d => {
                         if(ptbody) ptbody.insertAdjacentHTML('beforeend', `
                             <tr>
-                                <td style="white-space: nowrap;"><b class="text-main"><i class="fa-solid fa-user text-muted mr-2"></i>${d.username}</b></td>
+                                <td style="white-space: nowrap;"><b class="text-main"><i class="fa-solid fa-user text-muted mr-2"></i>${qdH(d.username)}</b></td>
                                 <td style="white-space: nowrap;"><span class="badge badge-success" style="font-size: 14px; padding: 4px 10px; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--color-success);"><i class="fa-solid fa-star mr-1"></i> ${d.points || 0}</span></td>
                                 <td class="text-right" style="white-space: nowrap;">
-                                    <button class="btn-icon" style="color: var(--color-success); border-color: rgba(16, 185, 129, 0.3); width: 36px; height: 36px;" onclick="AdminActions.openPointModal('${d.id}', '${d.username}', ${d.points || 0})" title="Cập Nhật Điểm">
+                                    <button class="btn-icon" style="color: var(--color-success); border-color: rgba(16, 185, 129, 0.3); width: 36px; height: 36px;" onclick="AdminActions.openPointModal('${d.id}', '${qdJ(d.username)}', ${d.points || 0})" title="Cập Nhật Điểm">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
                                 </td>
@@ -6462,23 +6479,23 @@ const QVis = {
                                         <i class="fa-solid ${roleIcon} ${roleColor}"></i>
                                     </div>
                                     <div class="flex-col">
-                                        <span class="font-bold ${isBlocked ? 'text-danger' : 'text-main'}">${d.user}</span>
+                                        <span class="font-bold ${isBlocked ? 'text-danger' : 'text-main'}">${qdH(d.user)}</span>
                                         ${roleHtml}
                                     </div>
                                 </div>
                             </td>
-                            <td style="font-family: var(--font-family-mono); letter-spacing: 1px;">${d.pass}</td>
+                            <td style="font-family: var(--font-family-mono); letter-spacing: 1px;"><span class="pw-mask" tabindex="0" role="button" title="Bấm để xem / ẩn mật khẩu" data-pw="${qdH(d.pass)}" onclick="var s=this;s.textContent=s.textContent.indexOf('•')===0?s.dataset.pw:'••••••'">••••••</span></td>
                             <td class="text-center"><button type="button" class="wl-cell" onclick="AccWallet.open('${doc.id}')" title="Xem ví giải trí: điểm và các loại lượt">
                                 <span class="wl-c pts" title="Điểm lì xì">💰 ${pointCount}</span><span class="wl-c spn" title="Lượt vòng quay">🎡 ${spinCount}</span><span class="wl-c tkt" title="Lượt rút lì xì">🧧 ${ticketCount}</span><span class="wl-c con" title="Lượt ném còn">🎯 ${conCount}</span>
                             </button></td>
                             <td>${statusHtml}</td>
                             <td class="text-right flex justify-end flex-wrap gap-1">
-                                <button class="btn-icon" style="color: var(--color-info); border-color: rgba(14, 165, 233, 0.3);" onclick="AdminActions.viewUserHistory('${d.user}')" title="Xem Lịch sử Biến động Dữ liệu"><i class="fa-solid fa-clock-rotate-left"></i></button>
-                                <button class="btn-icon" style="color: var(--brand-primary); border-color: var(--brand-primary-soft);" onclick="AdminActions.openRoleModal('${doc.id}', '${d.user}', '${uRole}', '${uPerms}')" title="Cấp Nhóm Quyền"><i class="fa-solid fa-id-card-clip"></i></button>
-                                <button class="btn-icon" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.3);" onclick="AdminActions.openSpinModal('${doc.id}', '${d.user}')" title="Cấp Lượt Giải Trí / Điểm"><i class="fa-solid fa-gift"></i></button>
-                                <button class="btn-icon acc-kick-btn" style="color: var(--color-danger); border-color: rgba(190, 18, 60, 0.3);" onclick="AdminActions.kickUser('${doc.id}', '${d.user}', this)" title="Đá ra khỏi hệ thống (đăng xuất mọi trang / thiết bị đang mở)"><i class="fa-solid fa-right-from-bracket"></i></button>
-                                <button class="btn-icon" style="color: ${lockBtnColor}; border-color: ${lockBtnColor}; background: ${lockBtnBg};" onclick="AdminActions.toggleLock('${doc.id}', ${isBlocked}, '${d.user}')" title="${lockBtnTitle}"><i class="fa-solid ${lockBtnIcon}"></i></button>
-                                <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('accounts', '${doc.id}', 'Hành động này sẽ XÓA VĨNH VIỄN tài khoản <b>${d.user}</b>.')" title="Xóa Tài Khoản"><i class="fa-solid fa-trash"></i></button>
+                                <button class="btn-icon" style="color: var(--color-info); border-color: rgba(14, 165, 233, 0.3);" onclick="AdminActions.viewUserHistory('${qdJ(d.user)}')" title="Xem Lịch sử Biến động Dữ liệu"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                                <button class="btn-icon" style="color: var(--brand-primary); border-color: var(--brand-primary-soft);" onclick="AdminActions.openRoleModal('${doc.id}', '${qdJ(d.user)}', '${uRole}', '${uPerms}')" title="Cấp Nhóm Quyền"><i class="fa-solid fa-id-card-clip"></i></button>
+                                <button class="btn-icon" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.3);" onclick="AdminActions.openSpinModal('${doc.id}', '${qdJ(d.user)}')" title="Cấp Lượt Giải Trí / Điểm"><i class="fa-solid fa-gift"></i></button>
+                                <button class="btn-icon acc-kick-btn" style="color: var(--color-danger); border-color: rgba(190, 18, 60, 0.3);" onclick="AdminActions.kickUser('${doc.id}', '${qdJ(d.user)}', this)" title="Đá ra khỏi hệ thống (đăng xuất mọi trang / thiết bị đang mở)"><i class="fa-solid fa-right-from-bracket"></i></button>
+                                <button class="btn-icon" style="color: ${lockBtnColor}; border-color: ${lockBtnColor}; background: ${lockBtnBg};" onclick="AdminActions.toggleLock('${doc.id}', ${isBlocked}, '${qdJ(d.user)}')" title="${lockBtnTitle}"><i class="fa-solid ${lockBtnIcon}"></i></button>
+                                <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('accounts', '${doc.id}', 'Hành động này sẽ XÓA VĨNH VIỄN tài khoản <b>${qdJ(qdH(d.user))}</b>.')" title="Xóa Tài Khoản"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>`);
                     });
@@ -6511,13 +6528,13 @@ const QVis = {
                         
                         const btnHtml = d.canEdit
                             ? `<button class="btn btn-outline w-full mb-2" style="padding: 6px 12px; font-size: 12px;" disabled><i class="fa-solid fa-check mr-1"></i> Đã Cấp Phép</button>`
-                            : `<button class="btn btn-warning w-full mb-2" style="padding: 6px 12px; font-size: 12px;" onclick="AdminActions.grantLuckyNumberEdit('${d.user}')"><i class="fa-solid fa-unlock mr-1"></i> Cấp Phép Sửa</button>`;
+                            : `<button class="btn btn-warning w-full mb-2" style="padding: 6px 12px; font-size: 12px;" onclick="AdminActions.grantLuckyNumberEdit('${qdJ(d.user)}')"><i class="fa-solid fa-unlock mr-1"></i> Cấp Phép Sửa</button>`;
 
                         const forceBtn = `<button class="btn btn-success w-full" style="padding: 6px 12px; font-size: 12px;" onclick="AdminActions.setWinningNumber(${d.number})"><i class="fa-solid fa-crosshairs mr-1"></i> Chọn Số Này</button>`;
 
                         tbody.insertAdjacentHTML('beforeend', `
                             <tr>
-                                <td><b class="text-main">${d.user}</b></td>
+                                <td><b class="text-main">${qdH(d.user)}</b></td>
                                 <td class="text-center"><b style="color: #ec4899; font-size: 20px;">${d.number}</b></td>
                                 <td class="text-center text-muted text-sm">${timeStr}</td>
                                 <td class="text-center">${statusHtml}</td>
@@ -6631,7 +6648,7 @@ const QVis = {
                     if(snap.empty) { listRender.innerHTML = `<div class="card p-10 text-center border-strong bg-elevated mb-0"><h4 class="text-muted font-normal m-0">Hệ thống chưa có bản tin nào được phát hành.</h4></div>`; return; }
                     snap.forEach(doc => {
                         const d = doc.data(); const timeFmt = new Date(d.time).toLocaleString('vi-VN');
-                        listRender.insertAdjacentHTML('beforeend', `<div class="card mb-0 p-6 border-l-4 border-info" style="border-left: 4px solid var(--color-info);"><div class="flex justify-between items-start mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-3"><div class="flex-center rounded-full bg-info-bg text-info" style="width: 36px; height: 36px; background: var(--color-info-bg); color: var(--color-info); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-bullhorn"></i></div><div class="flex-col"><span class="text-xs font-bold text-muted uppercase tracking-wide">THÔNG BÁO TỪ HỆ THỐNG</span><span class="text-xs text-muted"><i class="fa-regular fa-clock mr-1"></i> Phát hành: ${timeFmt}</span>${d.popup ? `<span class="text-xs font-bold" style="color:#d97706">📢 Hiện khi đăng nhập · ${({ every: 'mỗi lần', daily: '1 lần / ngày', once: '1 lần / người' })[d.popupMode] || 'mỗi lần'}${d.popupUntil ? ' · đến ' + d.popupUntil.split('-').reverse().join('/') : ''}</span>` : ''}</div></div><div class="flex gap-2"><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px;" onclick="AdminActions.openNewsEditor('${doc.id}', '${encodeURIComponent(d.content)}')" title="Chỉnh Sửa"><i class="fa-solid fa-pen"></i></button><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px; color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('news', '${doc.id}', 'Bạn có chắc chắn muốn gỡ bỏ bản tin này khỏi máy chủ?')" title="Xóa Bản Tin"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="text-main" style="font-size: 15px; line-height: 1.7; white-space: pre-wrap;">${d.content}</div></div>`);
+                        listRender.insertAdjacentHTML('beforeend', `<div class="card mb-0 p-6 border-l-4 border-info" style="border-left: 4px solid var(--color-info);"><div class="flex justify-between items-start mb-4 border-b border-strong pb-4" style="border-bottom: 1px solid var(--border-strong);"><div class="flex items-center gap-3"><div class="flex-center rounded-full bg-info-bg text-info" style="width: 36px; height: 36px; background: var(--color-info-bg); color: var(--color-info); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-bullhorn"></i></div><div class="flex-col"><span class="text-xs font-bold text-muted uppercase tracking-wide">THÔNG BÁO TỪ HỆ THỐNG</span><span class="text-xs text-muted"><i class="fa-regular fa-clock mr-1"></i> Phát hành: ${timeFmt}</span>${d.popup ? `<span class="text-xs font-bold" style="color:#d97706">📢 Hiện khi đăng nhập · ${({ every: 'mỗi lần', daily: '1 lần / ngày', once: '1 lần / người' })[d.popupMode] || 'mỗi lần'}${d.popupUntil ? ' · đến ' + d.popupUntil.split('-').reverse().join('/') : ''}</span>` : ''}</div></div><div class="flex gap-2"><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px;" onclick="AdminActions.openNewsEditor('${doc.id}', '${qdJ(encodeURIComponent(d.content))}')" title="Chỉnh Sửa"><i class="fa-solid fa-pen"></i></button><button class="btn-icon" style="width: 36px; height: 36px; font-size: 13px; color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('news', '${doc.id}', 'Bạn có chắc chắn muốn gỡ bỏ bản tin này khỏi máy chủ?')" title="Xóa Bản Tin"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="text-main" style="font-size: 15px; line-height: 1.7; white-space: pre-wrap;">${qdH(d.content)}</div></div>`);
                     });
                 });
             }
@@ -6680,7 +6697,9 @@ const QVis = {
                 }
 
                 let html = '';
+                State.pendingMap = {};
                 records.forEach(data => {
+                    State.pendingMap[data.id] = data;
                     let dateStr = 'Mới đây';
                     try {
                         if (data.createdAt && typeof data.createdAt.toDate === 'function') {
@@ -6691,11 +6710,11 @@ const QVis = {
                     html += `
                         <tr>
                             <td><span class="badge badge-offline">${dateStr}</span></td>
-                            <td class="font-bold text-primary" style="font-size: 16px;">${data.username}</td>
-                            <td class="font-bold text-main">${data.fullName || ''}</td>
+                            <td class="font-bold text-primary" style="font-size: 16px;">${qdH(data.username)}${QD_USER_OK(data.username) ? '' : ' <span class="badge badge-danger" title="Tên đăng nhập chứa ký tự không hợp lệ">⚠ tên lạ</span>'}</td>
+                            <td class="font-bold text-main">${qdH(data.fullName || '')}</td>
                             <td class="text-right" style="white-space: nowrap;">
-                                <button class="btn btn-success" style="padding: 8px 15px; font-size: 13px;" onclick="AdminActions.approveUser('${data.id}', '${data.username}', '${data.password}', '${data.fullName || ''}')"><i class="fa-solid fa-check"></i> Duyệt</button>
-                                <button class="btn btn-danger" style="padding: 8px 15px; font-size: 13px; margin-left: 5px;" onclick="AdminActions.rejectUser('${data.id}', '${data.username}')"><i class="fa-solid fa-xmark"></i> Từ Chối</button>
+                                <button class="btn btn-success" style="padding: 8px 15px; font-size: 13px;" onclick="AdminActions.approveUser('${qdJ(data.id)}')"><i class="fa-solid fa-check"></i> Duyệt</button>
+                                <button class="btn btn-danger" style="padding: 8px 15px; font-size: 13px; margin-left: 5px;" onclick="AdminActions.rejectUser('${qdJ(data.id)}')"><i class="fa-solid fa-xmark"></i> Từ Chối</button>
                             </td>
                         </tr>
                     `;
@@ -6812,10 +6831,14 @@ const QVis = {
             },
 
             approveUser: (id, username, password, fullName) => {
+                const rec = (State.pendingMap || {})[id];
+                if (rec) { username = rec.username; password = rec.password; fullName = rec.fullName; }
+                username = String(username || '').trim(); fullName = String(fullName || '').replace(/[<>]/g, '').trim().slice(0, 40);
+                if (!QD_USER_OK(username)) return Utils.toast('Tên đăng nhập chứa ký tự không hợp lệ — hãy Từ chối đơn này.', 'error');
                 const msgNode = document.getElementById('confirm-msg'); 
                 const btnExec = document.getElementById('btn-exec-confirm');
                 
-                msgNode.innerHTML = `Bạn có chắc chắn muốn duyệt và cấp quyền truy cập cho tài khoản <b class="text-success">${username}</b>?`;
+                msgNode.innerHTML = `Bạn có chắc chắn muốn duyệt và cấp quyền truy cập cho tài khoản <b class="text-success">${qdH(username)}</b>?`;
                 btnExec.className = 'btn btn-success w-full';
                 btnExec.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Đồng Ý Duyệt';
                 
@@ -6864,10 +6887,11 @@ const QVis = {
             },
             
             rejectUser: (id, username) => {
+                const rec = (State.pendingMap || {})[id]; if (rec) username = rec.username;
                 const msgNode = document.getElementById('confirm-msg'); 
                 const btnExec = document.getElementById('btn-exec-confirm');
                 
-                msgNode.innerHTML = `Bạn chắc chắn muốn <b>TỪ CHỐI</b> và <b>XÓA</b> đơn đăng ký của tài khoản <b class="text-danger">${username}</b>?`;
+                msgNode.innerHTML = `Bạn chắc chắn muốn <b>TỪ CHỐI</b> và <b>XÓA</b> đơn đăng ký của tài khoản <b class="text-danger">${qdH(username)}</b>?`;
                 btnExec.className = 'btn btn-danger w-full';
                 btnExec.innerHTML = '<i class="fa-solid fa-trash mr-2"></i> Từ Chối & Xóa';
                 
@@ -7136,7 +7160,7 @@ const QVis = {
                 let htmlTableStr = `<table border="1"><thead><tr><th bgcolor="#10b981"><font color="#ffffff">STT</font></th><th bgcolor="#10b981"><font color="#ffffff">Người Mua</font></th><th bgcolor="#10b981"><font color="#ffffff">Chi Tiết Sản Phẩm</font></th><th bgcolor="#10b981"><font color="#ffffff">Biến Động Điểm</font></th><th bgcolor="#10b981"><font color="#ffffff">Thời Gian Giao Dịch</font></th></tr></thead><tbody>`;
                 State.pointShopHistoryCache.forEach((row, index) => { 
                     const timeFmt = new Date(row.timestamp).toLocaleString('vi-VN'); 
-                    htmlTableStr += `<tr><td align="center">${index + 1}</td><td>${row.user}</td><td>${row.detail}</td><td align="center">${row.pointsChanged}</td><td align="center">${timeFmt}</td></tr>`; 
+                    htmlTableStr += `<tr><td align="center">${index + 1}</td><td>${qdH(row.user)}</td><td>${qdH(row.detail)}</td><td align="center">${row.pointsChanged}</td><td align="center">${timeFmt}</td></tr>`; 
                 });
                 htmlTableStr += `</tbody></table>`; 
                 AdminActions.downloadXLS(htmlTableStr, "Lich_Su_Cua_Hang_Diem_30Ngay");
@@ -7728,7 +7752,7 @@ saveRegistrationConfig: () => {
                                     <div style="font-size: 16px;">${amountHtml}</div>
                                     <div class="text-xs text-muted mt-1 font-bold">Dư: <span class="${balanceClass}">${log.balanceAfter}</span></div>
                                 </td>
-                                <td class="text-main">${log.reason}</td>
+                                <td class="text-main">${qdH(log.reason)}</td>
                             </tr>
                         `);
                     });
@@ -7748,7 +7772,7 @@ saveRegistrationConfig: () => {
                     const timeStr = new Date(log.time).toLocaleString('vi-VN');
                     let typeStr = log.type === 'spins' ? 'Lượt Quay' : (log.type === 'tickets' ? 'Lượt Rút Lì Xì' : (log.type === 'conThrows' ? 'Lượt Ném Còn' : 'Điểm'));
                     let amountStr = log.amount > 0 ? `+${log.amount}` : log.amount;
-                    htmlTableStr += `<tr><td align="center">${index + 1}</td><td align="center">${timeStr}</td><td align="center">${typeStr}</td><td align="center">${amountStr}</td><td align="center">${log.balanceAfter}</td><td>${log.reason}</td></tr>`; 
+                    htmlTableStr += `<tr><td align="center">${index + 1}</td><td align="center">${timeStr}</td><td align="center">${typeStr}</td><td align="center">${amountStr}</td><td align="center">${log.balanceAfter}</td><td>${qdH(log.reason)}</td></tr>`; 
                 });
                 htmlTableStr += `</tbody></table>`; 
                 AdminActions.downloadXLS(htmlTableStr, `Bien_Dong_Du_Lieu_${username}`);
@@ -7763,7 +7787,7 @@ exportAttendanceExcel: () => {
             exportRegistrationExcel: () => {
                 if(State.regCache.length === 0) return Utils.toast("Danh sách đăng ký hiện đang trống.", "warning");
                 let htmlTableStr = `<table border="1"><thead><tr><th bgcolor="#f59e0b"><font color="#ffffff">STT</font></th><th bgcolor="#f59e0b"><font color="#ffffff">Tên Nhân Vật (Ingame)</font></th><th bgcolor="#f59e0b"><font color="#ffffff">Mã Định Danh (ID Game)</font></th><th bgcolor="#f59e0b"><font color="#ffffff">Ngày Nộp Đơn</font></th><th bgcolor="#f59e0b"><font color="#ffffff">Tài Khoản Yêu Cầu</font></th></tr></thead><tbody>`;
-                State.regCache.forEach((row, index) => { htmlTableStr += `<tr><td align="center">${index + 1}</td><td>${row.name}</td><td style="mso-number-format:'\\@';">${row.gameId}</td><td align="center">${new Date(row.timestamp).toLocaleDateString('vi-VN')}</td><td>${row.submitter}</td></tr>`; });
+                State.regCache.forEach((row, index) => { htmlTableStr += `<tr><td align="center">${index + 1}</td><td>${qdH(row.name)}</td><td style="mso-number-format:'\\@';">${qdH(row.gameId)}</td><td align="center">${new Date(row.timestamp).toLocaleDateString('vi-VN')}</td><td>${qdH(row.submitter)}</td></tr>`; });
                 htmlTableStr += `</tbody></table>`; AdminActions.downloadXLS(htmlTableStr, "Danh_Sach_Dang_Ky_ID");
             },
 
@@ -15586,5 +15610,15 @@ window.QDXlsx = (function () {
         return { toggle: toggle, save: save, preview: preview, _c: C };
     })();
     </script>
+<style id="qd-balance">
+    /* ===== Cân đối giao diện chung (nút Hỗ trợ gọn, không che nội dung) ===== */
+    @media (max-width: 768px) {
+        #qd-help-btn .qh-txt { display: none; }
+        body:not(.qh-user) #qd-help-btn { width: 48px; height: 48px; padding: 0; justify-content: center; }
+    }
+    body.qh-admin #qd-help-btn { width: 48px; height: 48px; padding: 0; justify-content: center; }
+    body.qh-admin #qd-help-btn .qh-txt { display: none; }
+    .workspace { padding-bottom: 76px; }   /* chừa chỗ để nút Lưu cuối trang không bị nút Hỗ trợ che */
+</style>
 </body>
 </html>

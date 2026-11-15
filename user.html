@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="vi" data-theme="tet">
 <head>
+    <script id="qd-safe-js">/* Thoát ký tự khi chèn dữ liệu người dùng vào HTML (qdH) và vào chuỗi JS trong onclick (qdJ) */
+    window.qdH = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    window.qdJ = function (v) { return qdH(String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n')); };
+    window.QD_USER_OK = function (u) { return /^[A-Za-z0-9_.\-]{3,24}$/.test(String(u || '')); };
+    window.qdSha256 = function (s) { s = unescape(encodeURIComponent(s)); var K = [], H = [], i, j, p = 2, n, r = function (x, c) { return (x >>> c) | (x << (32 - c)); };
+        for (n = 0; n < 64; p++) { for (j = 2; j * j <= p && p % j; j++); if (j * j > p) { if (n < 8) H[n] = (Math.pow(p, 1 / 2) * 4294967296) | 0; K[n++] = (Math.pow(p, 1 / 3) * 4294967296) | 0; } }
+        var b = s.length * 8, w = []; s += '\x80'; while (s.length % 64 - 56) s += '\x00';
+        for (i = 0; i < s.length; i++) w[i >> 2] |= s.charCodeAt(i) << ((3 - i) % 4) * 8;
+        w[w.length] = (b / 4294967296) | 0; w[w.length] = b;
+        for (j = 0; j < w.length;) { var W = w.slice(j, j += 16), o = H.slice(0); for (i = 0; i < 64; i++) { var a = H[0], e = H[4];
+            if (i > 15) { var x = W[i - 15], y = W[i - 2]; W[i] = (W[i - 16] + (r(x, 7) ^ r(x, 18) ^ (x >>> 3)) + W[i - 7] + (r(y, 17) ^ r(y, 19) ^ (y >>> 10))) | 0; }
+            var t1 = H[7] + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & H[5]) ^ (~e & H[6])) + K[i] + W[i], t2 = (r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & H[1]) ^ (a & H[2]) ^ (H[1] & H[2]));
+            H = [(t1 + t2) | 0].concat(H); H[4] = (H[4] + t1) | 0; H.length = 8; }
+            for (i = 0; i < 8; i++) H[i] = (H[i] + o[i]) | 0; }
+        for (s = '', i = 0; i < 8; i++) s += ('00000000' + (H[i] >>> 0).toString(16)).slice(-8); return s; };
+    window.qdGate = function (code) { return qdSha256('qd-gate|' + String(code || '').trim()) === '22cc0bc97aeead86540c187c39a01014dcec61b5a955312cf0cf69d5bc56440a'; };</script>
     <script id="qd-gfx-boot">try{var g=localStorage.getItem("qd_gfx_eff");if(/^(high|mid|low)$/.test(g||""))document.documentElement.setAttribute("data-gfx",g);}catch(e){}</script>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="media/qd-logo.png">
@@ -11568,7 +11584,7 @@ html.qd-lite .qd-fx { display: none !important; }
             const pass = document.getElementById('admin-pass-inp').value;
             const errMsg = document.getElementById('admin-error-msg');
             
-            if (pass === "16062004") { 
+            if (qdGate(pass)) { 
                 sessionStorage.setItem('admin_bypass_mt', 'true');
                 document.getElementById('maintenance-blocker').style.display = 'none';
                 document.body.style.overflow = '';
@@ -13899,7 +13915,7 @@ html.qd-lite .qd-fx { display: none !important; }
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-main" style="font-size: 15px; line-height: 1.8; white-space: pre-wrap; padding-left: 4px;">${d.content}</div>
+                                <div class="text-main" style="font-size: 15px; line-height: 1.8; white-space: pre-wrap; padding-left: 4px;">${qdH(d.content)}</div>
                             </div>`);
                             
                         if(isF && p) { 
@@ -13914,7 +13930,7 @@ html.qd-lite .qd-fx { display: none !important; }
                                     <div class="badge badge-warning px-3 py-1" style="animation: pulseAlert 2s infinite;">MỚI NHẤT</div>
                                 </div>
                                 <div class="text-muted font-medium mb-3 pl-3 py-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; font-size: 14px; border-left: 3px solid var(--border-strong);">
-                                    ${d.content}
+                                    ${qdH(d.content)}
                                 </div>
                                 <div class="text-xs text-muted font-bold pl-3">
                                     <i class="fa-regular fa-calendar-check mr-1"></i> ${ts}
@@ -13990,13 +14006,13 @@ html.qd-lite .qd-fx { display: none !important; }
                                 <td class="p-4 font-bold text-muted text-center">${index + 1}</td>
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="avatar-circle" style="width:36px; height:36px; font-size:14px; background:var(--brand-primary-soft); color:var(--brand-primary);">${d.username.charAt(0).toUpperCase()}</div>
-                                        <b class="text-main">${d.username}</b>
+                                        <div class="avatar-circle" style="width:36px; height:36px; font-size:14px; background:var(--brand-primary-soft); color:var(--brand-primary);">${qdH(d.username.charAt(0).toUpperCase())}</div>
+                                        <b class="text-main">${qdH(d.username)}</b>
                                     </div>
                                 </td>
-                                <td class="p-4"><span class="text-main font-bold">${d.ingame || '---'}</span></td>
-                                <td class="p-4"><span class="badge badge-warning px-3 py-1" style="font-size: 13px; font-family: var(--font-family-mono); letter-spacing: 1px;">${d.gameId || 'Chưa cập nhật'}</span></td>
-                                <td class="p-4"><span class="badge badge-offline px-3 py-1" style="font-size: 12px;">${teamName}</span></td>
+                                <td class="p-4"><span class="text-main font-bold">${qdH(d.ingame || '---')}</span></td>
+                                <td class="p-4"><span class="badge badge-warning px-3 py-1" style="font-size: 13px; font-family: var(--font-family-mono); letter-spacing: 1px;">${qdH(d.gameId || 'Chưa cập nhật')}</span></td>
+                                <td class="p-4"><span class="badge badge-offline px-3 py-1" style="font-size: 12px;">${qdH(teamName)}</span></td>
                                 <td class="p-4 text-muted text-sm text-right hidden-mobile"><i class="fa-regular fa-clock mr-1"></i> ${timeStr}</td>
                             </tr>`;
                     });
@@ -14019,7 +14035,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         renderHtml += `
                             <div style="border-bottom: 4px solid var(--bg-body);">
                                 <div class="p-5 font-bold text-xl flex items-center gap-3" style="background: var(--bg-elevated); color: ${teamColor}; border-left: 4px solid ${teamColor};">
-                                    <i class="fa-solid fa-users"></i> ${tName.toUpperCase()} 
+                                    <i class="fa-solid fa-users"></i> ${qdH(tName.toUpperCase())} 
                                     <span class="text-muted text-sm font-normal ml-2">(${members.length} Tuyển thủ)</span>
                                 </div>
                                 <div class="table-responsive">
@@ -14043,12 +14059,12 @@ html.qd-lite .qd-fx { display: none !important; }
                                     <td class="p-4 font-bold text-muted text-center">${index + 1}</td>
                                     <td class="p-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="avatar-circle" style="width:36px; height:36px; font-size:14px; background:var(--brand-primary-soft); color:var(--brand-primary);">${d.username.charAt(0).toUpperCase()}</div>
-                                            <b class="text-main">${d.username}</b>
+                                            <div class="avatar-circle" style="width:36px; height:36px; font-size:14px; background:var(--brand-primary-soft); color:var(--brand-primary);">${qdH(d.username.charAt(0).toUpperCase())}</div>
+                                            <b class="text-main">${qdH(d.username)}</b>
                                         </div>
                                     </td>
-                                    <td class="p-4"><span class="text-main font-bold">${d.ingame || '---'}</span></td>
-                                    <td class="p-4"><span class="badge badge-warning px-3 py-1" style="font-size: 13px; font-family: var(--font-family-mono); letter-spacing: 1px;">${d.gameId || 'Chưa cập nhật'}</span></td>
+                                    <td class="p-4"><span class="text-main font-bold">${qdH(d.ingame || '---')}</span></td>
+                                    <td class="p-4"><span class="badge badge-warning px-3 py-1" style="font-size: 13px; font-family: var(--font-family-mono); letter-spacing: 1px;">${qdH(d.gameId || 'Chưa cập nhật')}</span></td>
                                     <td class="p-4 text-muted text-sm text-right hidden-mobile"><i class="fa-regular fa-clock mr-1"></i> ${timeStr}</td>
                                 </tr>`;
                         });
@@ -14086,10 +14102,10 @@ html.qd-lite .qd-fx { display: none !important; }
                                 </td>
                                 <td class="p-4" style="min-width: 150px;">
                                     <div class="flex items-center gap-2">
-                                        <div class="avatar-circle hidden-mobile" style="width:32px; height:32px; font-size:13px; background:var(--brand-primary-soft); color:var(--brand-primary);">${d.username.charAt(0).toUpperCase()}</div>
+                                        <div class="avatar-circle hidden-mobile" style="width:32px; height:32px; font-size:13px; background:var(--brand-primary-soft); color:var(--brand-primary);">${qdH(d.username.charAt(0).toUpperCase())}</div>
                                         <div class="flex-col" style="overflow: hidden;">
-                                            <b class="text-main" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: block;">${d.username}</b>
-                                            <span class="text-xs text-muted" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: block;">${d.team || 'Chưa phân đội'}</span>
+                                            <b class="text-main" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: block;">${qdH(d.username)}</b>
+                                            <span class="text-xs text-muted" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: block;">${qdH(d.team || 'Chưa phân đội')}</span>
                                         </div>
                                     </div>
                                 </td>
@@ -24767,7 +24783,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             gate.addEventListener('click', function (e) { e.stopPropagation(); if (e.target === gate || e.target.classList.contains('no')) gate.classList.remove('show'); });
             gate.querySelector('form').addEventListener('submit', function (e) {
                 e.preventDefault();
-                if (gin.value === '16062004') {   // cùng mã với Admin Gateway ở trang Bảo trì
+                if (qdGate(gin.value)) {   // cùng mã với Admin Gateway ở trang Bảo trì
                     try { sessionStorage.setItem('qd_intro_bypass', '1'); } catch (er) {}
                     gate.classList.remove('show'); render();
                 } else { gerr.style.display = 'block'; gin.select(); }
@@ -25280,6 +25296,30 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         })();
     })();
     </script>
+<style id="qd-balance">
+    /* ===== Cân đối giao diện chung (nút Hỗ trợ gọn, không che nội dung) ===== */
+    @media (max-width: 768px) {
+        #qd-help-btn .qh-txt { display: none; }
+        body:not(.qh-user) #qd-help-btn { width: 48px; height: 48px; padding: 0; justify-content: center; }
+    }
+    @media (max-width: 768px) {
+        #toast-container { top: calc(env(safe-area-inset-top, 0px) + 10px); left: 12px; right: 12px; align-items: center; gap: 8px; }
+        #toast-container .toast { padding: 10px 14px; gap: 10px; border-radius: 14px; max-width: 100%; transform: translateY(-160%); }
+        #toast-container .toast.show { transform: translateY(0); }
+        #toast-container .toast > div:first-child { font-size: 20px !important; }
+        #toast-container .toast span { font-size: 13.5px !important; line-height: 1.35; }
+    }
+    .lixi-paper small { font-size: 9.5px; }
+    /* Ô nhập trong hộp thoại Tết: một kiểu thống nhất (nền kem, viền vàng) */
+    html[data-theme="tet"] .modal-overlay .form-control:not([type=range]):not(#inp-invite-code),
+    html[data-theme="tet"] #inp-search-contact { background: #fffaf0 !important; color: #3a0d0d !important; border: 1.5px solid rgba(255, 214, 90, .6) !important; border-radius: 12px; min-height: 46px; font-size: 15px; box-shadow: none !important; }
+    html[data-theme="tet"] .modal-overlay .form-control:not([type=range]):not(#inp-invite-code)::placeholder,
+    html[data-theme="tet"] #inp-search-contact::placeholder { color: rgba(110, 40, 40, .5); }
+    html[data-theme="tet"] .modal-overlay .form-control:not([type=range]):not(#inp-invite-code):focus, html[data-theme="tet"] #inp-search-contact:focus { background: #fff !important; border-color: #ffd65a !important; box-shadow: 0 0 0 3px rgba(255, 214, 90, .35) !important; outline: none; }
+    html[data-theme="tet"] .modal-overlay .form-control:disabled { opacity: .55; }
+    html[data-theme="tet"] #inp-search-contact { border-radius: 999px !important; }
+    html[data-theme="tet"] #view-chat .fa-search { color: #b45309 !important; z-index: 1; }
+</style>
 </body>
 
 </html>

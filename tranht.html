@@ -2254,5 +2254,12 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
         if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
     })();
     </script>
+<style id="qd-balance">
+    /* ===== Cân đối giao diện chung (nút Hỗ trợ gọn, không che nội dung) ===== */
+    @media (max-width: 768px) {
+        #qd-help-btn .qh-txt { display: none; }
+        body:not(.qh-user) #qd-help-btn { width: 48px; height: 48px; padding: 0; justify-content: center; }
+    }
+</style>
 </body>
 </html>
