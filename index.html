@@ -589,6 +589,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="cta">
                         <a href="user.html" class="btn btn-red"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
                         <button type="button" class="btn btn-outline" onclick="openRegisterModal(this)"><i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản</button>
+                        <a href="#tai-app" class="btn btn-outline appdl-jump" hidden><i class="fa-brands fa-android"></i> Tải app Android</a>
                     </div>
                 </div>
                 <div class="hero-media">
@@ -672,6 +673,34 @@ html.qd-lite .qd-fx { display: none !important; }
                         <span class="gift-ico" aria-hidden="true"><i class="fa-solid fa-handshake"></i></span>
                         <div><h3>Mời bạn nhận quà</h3><p>Gửi mã mời cho bạn bè, cả hai cùng được thêm lượt rút lì xì.</p></div>
                     </article>
+                </div>
+            </section>
+
+            <!-- TẢI APP ANDROID (luôn là bản mới nhất: đọc apk-version.json ở nhánh apk) -->
+            <section class="block appdl" id="tai-app" aria-labelledby="app-title" hidden>
+                <div class="appdl-card">
+                    <img class="appdl-logo" src="media/qd-logo.png" alt="" width="96" height="96">
+                    <div class="appdl-main">
+                        <span class="eyebrow">Ứng dụng điện thoại</span>
+                        <h2 id="app-title">App QĐ TLH cho Android</h2>
+                        <p class="appdl-meta" id="appdl-meta">Đang kiểm tra bản mới nhất…</p>
+                        <ul class="appdl-feat">
+                            <li><i class="fa-solid fa-bell"></i> Báo tin nhắn, @nhắc tên ngay cả khi tắt app</li>
+                            <li><i class="fa-solid fa-comment-dots"></i> Bong bóng chat như Messenger</li>
+                            <li><i class="fa-solid fa-rotate"></i> Tự cập nhật, đăng nhập một lần là xong</li>
+                        </ul>
+                        <div class="cta">
+                            <a class="btn btn-red appdl-btn" id="appdl-btn" href="#" rel="noopener"><i class="fa-solid fa-download"></i> Tải app</a>
+                            <button type="button" class="btn btn-outline" id="appdl-how-btn"><i class="fa-solid fa-circle-question"></i> Cách cài</button>
+                        </div>
+                        <p class="appdl-ios" id="appdl-ios" hidden><i class="fa-brands fa-apple"></i> App hiện chỉ có cho Android. iPhone dùng trực tiếp trên web (Safari → Chia sẻ → Thêm vào MH chính).</p>
+                        <ol class="appdl-how" id="appdl-how" hidden>
+                            <li>Bấm <b>Tải app</b>, chờ tải xong tệp <b>.apk</b> (khoảng 25 MB).</li>
+                            <li>Mở tệp vừa tải (trong thông báo hoặc mục Tải xuống).</li>
+                            <li>Nếu máy hỏi, bật <b>"Cho phép cài từ nguồn này"</b> rồi quay lại.</li>
+                            <li>Bấm <b>Cài đặt</b> → <b>Mở</b> → đăng nhập. Từ sau app tự cập nhật.</li>
+                        </ol>
+                    </div>
                 </div>
             </section>
 
@@ -2546,6 +2575,54 @@ html.qd-lite .qd-fx { display: none !important; }
                 }, function (e) { try { console.warn('[QD intro] không đọc được settings/intro_video', e && e.code); } catch (er) {} });
             } catch (e) { if (n < 40) setTimeout(function () { listen(n + 1); }, 250); }
         })(0);
+    })();
+    </script>
+
+    <style id="appdl-css">
+        .appdl-card { display: flex; gap: 22px; align-items: flex-start; padding: 24px; border-radius: 24px; background: linear-gradient(135deg, #fff8e6, #ffeec4);
+            border: 2px solid var(--gold); box-shadow: 0 10px 30px rgba(163, 16, 28, .12); }
+        .appdl-logo { width: 96px; height: 96px; border-radius: 24px; flex-shrink: 0; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+        .appdl-main { min-width: 0; flex: 1; }
+        .appdl-main h2 { margin: 4px 0 6px; }
+        .appdl-meta { margin: 0 0 12px; color: var(--red-ink); font-weight: 600; font-size: 14px; }
+        .appdl-meta b { color: var(--red-deep); }
+        .appdl-feat { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 6px; font-size: 14.5px; }
+        .appdl-feat i { color: var(--red); width: 20px; text-align: center; margin-right: 4px; }
+        .appdl-how { margin: 14px 0 0; padding: 14px 14px 14px 34px; border-radius: 14px; background: rgba(255,255,255,.7); line-height: 1.6; font-size: 14.5px; }
+        .appdl-ios { margin: 12px 0 0; font-size: 13.5px; color: #6b4a10; }
+        .appdl-btn.dl-busy { opacity: .7; pointer-events: none; }
+        @media (max-width: 560px) { .appdl-card { flex-direction: column; align-items: center; text-align: center; padding: 20px 16px; } .appdl-feat, .appdl-how, .appdl-ios { text-align: left; } .appdl-main .cta { justify-content: center; } }
+    </style>
+    <script id="appdl-js">
+    (function () {
+        if (window.QDNative) return;   // đang ở trong app rồi -> không mời tải
+        var REPO = 'vantrinhvn/sukienqd', RAW = 'https://raw.githubusercontent.com/' + REPO + '/apk/';
+        var sec = document.getElementById('tai-app'); if (!sec) return;
+        sec.hidden = false; var j = document.querySelector('.appdl-jump'); if (j) j.hidden = false;
+        var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (ios) document.getElementById('appdl-ios').hidden = false;
+        document.getElementById('appdl-how-btn').onclick = function () { var h = document.getElementById('appdl-how'); h.hidden = !h.hidden; };
+        function mb(n) { return (n / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
+        function day(t) { var d = new Date(t), p = function (x) { return (x < 10 ? '0' : '') + x; }; return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear(); }
+        function get(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw r.status; return r.json(); }); }
+        get(RAW + 'apk-version.json?t=' + Date.now())
+            .catch(function () { return fetch('https://api.github.com/repos/' + REPO + '/contents/apk-version.json?ref=apk', { headers: { Accept: 'application/vnd.github.raw' } }).then(function (r) { return r.json(); }); })
+            .then(function (v) {
+                if (!v || !v.file) throw 0;
+                var btn = document.getElementById('appdl-btn');
+                btn.href = RAW + encodeURIComponent(v.file);
+                btn.setAttribute('download', v.file);
+                btn.innerHTML = '<i class="fa-solid fa-download"></i> Tải app v' + (v.versionName || '') + (v.size ? ' (' + mb(v.size) + ')' : '');
+                document.getElementById('appdl-meta').innerHTML = 'Bản mới nhất: <b>v' + (v.versionName || '?') + '</b>' + (v.time ? ' · cập nhật ' + day(v.time) : '') + (v.size ? ' · ' + mb(v.size) : '');
+                btn.onclick = function () {   // bấm rồi thì nhắc cách cài
+                    var h = document.getElementById('appdl-how'); h.hidden = false;
+                    btn.classList.add('dl-busy'); setTimeout(function () { btn.classList.remove('dl-busy'); }, 4000);
+                };
+            })
+            .catch(function () {
+                document.getElementById('appdl-meta').textContent = 'Chưa lấy được thông tin bản mới nhất, thử tải lại trang.';
+                document.getElementById('appdl-btn').href = 'https://github.com/' + REPO + '/tree/apk';
+            });
     })();
     </script>
 </body>
