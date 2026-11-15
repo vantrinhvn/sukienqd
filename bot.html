@@ -684,6 +684,7 @@
                 b.set(ref, { status: 'sent', msgId: mref.id, sentAt: t, counts: comp.counts, text: comp.text.slice(0, 6000) }, { merge: true });
                 await b.commit();
                 emit({ type: 'sent', runId: slot.runId });
+                try { D.collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {}); } catch (e) {}   // gõ cửa máy chủ -> báo cáo hiện lên điện thoại ngay
                 return { ok: true, msgId: mref.id, comp: comp };
             } catch (e) {
                 ref.set({ status: 'error', err: String((e && (e.message || e.code)) || e).slice(0, 200), errAt: Date.now() }, { merge: true }).catch(function () {});

@@ -3584,6 +3584,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             <label class="pushn-swi"><span><b>💬 Tin nhắn riêng</b><small>Báo người nhận tin nhắn 1–1.</small></span><span class="switch"><input type="checkbox" id="pushn-c-private" onchange="QDPushAdmin.setCfg('private', this)"><span class="slider"></span></span></label>
                             <label class="pushn-swi"><span><b>📣 @Nhắc tên</b><small>Báo người được @nhắc trong Kênh Chung.</small></span><span class="switch"><input type="checkbox" id="pushn-c-mention" onchange="QDPushAdmin.setCfg('mention', this)"><span class="slider"></span></span></label>
                             <label class="pushn-swi"><span><b>🗨️ Mọi tin Kênh Chung</b><small>Ai nhắn trong Kênh Chung cũng báo cho tất cả, mỗi tin một thông báo (người dùng bấm × để xóa).</small></span><span class="switch"><input type="checkbox" id="pushn-c-general" onchange="QDPushAdmin.setCfg('general', this)"><span class="slider"></span></span></label>
+                            <label class="pushn-swi"><span><b>📊 Bot báo cáo</b><small>Khi Bot gửi báo cáo vào Kênh Chung: người bị nhắc tên nhận "📣 nhắc đến bạn", mọi người khác nhận tóm tắt báo cáo. Cần máy chủ bản srv-9.</small></span><span class="switch"><input type="checkbox" id="pushn-c-bot" onchange="QDPushAdmin.setCfg('bot', this)"><span class="slider"></span></span></label>
                         </div>
                     </div>
 
@@ -13669,6 +13670,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 b.set(ref, { status: 'sent', msgId: mref.id, sentAt: t, counts: comp.counts, text: comp.text.slice(0, 6000) }, { merge: true });
                 await b.commit();
                 emit({ type: 'sent', runId: slot.runId });
+                try { D.collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {}); } catch (e) {}   // gõ cửa máy chủ -> báo cáo hiện lên điện thoại ngay
                 return { ok: true, msgId: mref.id, comp: comp };
             } catch (e) {
                 ref.set({ status: 'error', err: String((e && (e.message || e.code)) || e).slice(0, 200), errAt: Date.now() }, { merge: true }).catch(function () {});
@@ -15390,10 +15392,10 @@ window.QDXlsx = (function () {
             hookUi();
             var el = $('pushn-srv'); if (!el) return;
             var t = SRV && +SRV.lastRun || 0, age = Date.now() - t;
-            if (!t) el.innerHTML = '<span style="color:#f59e0b">⚠ Chưa cài</span><br><span class="text-muted text-xs">Cập nhật bot-server bản srv-5 trong Google Apps Script.</span>';
+            if (!t) el.innerHTML = '<span style="color:#f59e0b">⚠ Chưa cài</span><br><span class="text-muted text-xs">Dán bot-server bản srv-9 vào Google Apps Script rồi chạy CAI_DAT.</span>';
             else if (age > 12 * 60000) el.innerHTML = '<span style="color:#ef4444">● Ngưng</span><br><span class="text-muted text-xs">Lần cuối ' + fmt(t) + '. Mở Apps Script chạy lại CAI_DAT.</span>';
             else if (SRV.ok === false) el.innerHTML = '<span style="color:#ef4444">● Có lỗi</span><br><span class="text-muted text-xs">' + esc(SRV.err || '') + '</span>';
-            else el.innerHTML = '<span style="color:#22c55e">● Đang chạy</span><br><span class="text-muted text-xs">' + (fast() ? '⚡ Gửi nhanh' : 'Kiểm tra mỗi phút') + (SRV.lastSent ? ' · gửi gần nhất ' + fmt(SRV.lastSent) : '') + '</span>';
+            else el.innerHTML = '<span style="color:#22c55e">● Đang chạy</span><br><span class="text-muted text-xs">' + (fast() ? '⚡ Gửi nhanh' : 'Kiểm tra mỗi phút') + (SRV.lastSent ? ' · gửi gần nhất ' + fmt(SRV.lastSent) : '') + (SRV.ver && (+String(SRV.ver).replace(/\D/g, '') || 0) < 9 ? '<br><span style="color:#f59e0b">⚠ Máy chủ đang bản ' + esc(SRV.ver) + ' — cập nhật srv-9 để Bot báo cáo báo lên điện thoại.</span>' : '') + '</span>';
         }
         // Hộp xác nhận theo giao diện Admin (thay hộp hỏi mặc định của trình duyệt)
         var waiting = null;
@@ -15406,13 +15408,13 @@ window.QDXlsx = (function () {
             return new Promise(function (res) { waiting = res; });
         }
         function answer(ok) { UI.closeModal('modal-pushn-confirm'); var w = waiting; waiting = null; if (w) w(!!ok); }
-        var CFG = { private: true, mention: true, general: false };
-        function cfgUi() { ['private', 'mention', 'general'].forEach(function (k) { var el = $('pushn-c-' + k); if (el) el.checked = !!CFG[k]; }); }
+        var CFG = { private: true, mention: true, general: false, bot: true };
+        function cfgUi() { ['private', 'mention', 'general', 'bot'].forEach(function (k) { var el = $('pushn-c-' + k); if (el) el.checked = !!CFG[k]; }); }
         function setCfg(k, el) {
             var v = !!el.checked, p = {}; p[k] = v; p.updatedAt = Date.now();
             fs().collection('settings').doc('push_config').set(p, { merge: true }).then(function () {
                 if (k === 'general') fs().collection('settings').doc('push_server').set({ general: v }, { merge: true }).catch(function () {});   // trang thành viên biết để gõ cửa máy chủ
-                toast({ private: 'Tin nhắn riêng', mention: '@Nhắc tên', general: 'Mọi tin Kênh Chung' }[k] + ': ' + (v ? 'BẬT báo lên điện thoại' : 'TẮT'), 'success');
+                toast({ private: 'Tin nhắn riêng', mention: '@Nhắc tên', general: 'Mọi tin Kênh Chung', bot: 'Bot báo cáo' }[k] + ': ' + (v ? 'BẬT báo lên điện thoại' : 'TẮT'), 'success');
             }).catch(function (e) { el.checked = !v; toast('Không lưu được' + (e && e.code ? ' (' + e.code + ')' : ''), 'error'); });
         }
         function send() {
@@ -15460,7 +15462,7 @@ window.QDXlsx = (function () {
             ['pushn-title', 'pushn-body'].forEach(function (id) { $(id).addEventListener('input', pv); });
             pv(); devices(); hist();
             fs().collection('settings').doc('push_server').onSnapshot(function (x) { SRV = x.exists ? x.data() : null; srv(); }, function () {});
-            fs().collection('settings').doc('push_config').onSnapshot(function (x) { var c = x.exists ? x.data() : {}; CFG = { private: c.private !== false, mention: c.mention !== false, general: c.general === true }; cfgUi(); }, function () {});
+            fs().collection('settings').doc('push_config').onSnapshot(function (x) { var c = x.exists ? x.data() : {}; CFG = { private: c.private !== false, mention: c.mention !== false, general: c.general === true, bot: c.bot !== false }; cfgUi(); }, function () {});
             cfgUi(); $('pushn-img-url').addEventListener('input', pv);
             setInterval(srv, 60000);
         }

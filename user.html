@@ -12156,7 +12156,12 @@ html.qd-lite .qd-fx { display: none !important; }
                                 const body = String(data.text || "Gửi một ảnh đính kèm").slice(0, 180);
                                 const notifOn = !window.Notif || window.Notif.enabled(), away = State.chatTarget !== 'general' || document.hidden;
                                 if (data.bot) {   // Tin Bot báo cáo: luôn có chuông riêng (kể cả đang mở Kênh Chung)
-                                    if (notifOn) { if (QM) QM.ding(true); if (away && window.Notif) window.Notif.show(forMe ? `📣 ${who} nhắc đến bạn trong Kênh Chung` : `${who} · Kênh Chung`, body, "general_room"); }
+                                    // Cùng tiêu đề + nội dung với máy chủ (srv-9) -> app chỉ hiện 1 thông báo dù cả trang web lẫn máy chủ cùng báo
+                                    const bn = String(data.botName || 'Bot báo cáo').trim().slice(0, 40) || 'Bot báo cáo';
+                                    let bb = String(data.text || '').split('\n').map(l => l.replace(/\*\*|__/g, '').trim()).filter(l => l && !/^[─━—=\-_·.\s]+$/.test(l) && !/^(@\S+[\s,]*)+$/.test(l)).slice(0, 6).join('\n') || 'Có báo cáo mới trong Kênh Chung';
+                                    if (bb.length > 400) bb = bb.slice(0, 399) + '…';
+                                    const allTag = Array.isArray(data.mentions) && data.mentions.includes('all');
+                                    if (notifOn) { if (QM) QM.ding(true); if (away && window.Notif) window.Notif.show(forMe && !allTag ? `📣 ${bn} nhắc đến bạn trong Kênh Chung` : (allTag ? '📣 ' : '📊 ') + bn, bb, "general_room"); }
                                 }
                                 else if (State.chatTarget !== 'general' || document.hidden) window.Chat.showNotification(forMe ? `📣 ${who} nhắc đến bạn trong Kênh Chung` : "Kênh Chung", forMe ? body : `${who}: ${body}`, "general_room", data.from);
                                 else if (forMe && notifOn) { if (QM) QM.ding(false); if (document.hidden && window.Notif) window.Notif.show(`📣 ${who} nhắc đến bạn trong Kênh Chung`, body, "general_room"); }
@@ -23405,6 +23410,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 b.set(ref, { status: 'sent', msgId: mref.id, sentAt: t, counts: comp.counts, text: comp.text.slice(0, 6000) }, { merge: true });
                 await b.commit();
                 emit({ type: 'sent', runId: slot.runId });
+                try { D.collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {}); } catch (e) {}   // gõ cửa máy chủ -> báo cáo hiện lên điện thoại ngay
                 return { ok: true, msgId: mref.id, comp: comp };
             } catch (e) {
                 ref.set({ status: 'error', err: String((e && (e.message || e.code)) || e).slice(0, 200), errAt: Date.now() }, { merge: true }).catch(function () {});
