@@ -797,6 +797,36 @@ html.qd-lite .qd-fx { display: none !important; }
     if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
 })();
     </script>
+    <style id="vsh-admin-css">
+        #view-videos [hidden] { display: none !important; }
+        .vsh-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; align-items: start; }
+        @media (max-width: 1023px) { .vsh-grid { grid-template-columns: minmax(0, 1fr); } }
+        .vsh-chk { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; padding: 6px 0; cursor: pointer; }
+        .vsh-chk input { width: 18px; height: 18px; accent-color: var(--brand-primary); }
+        .vsh-prev { display: flex; gap: 12px; align-items: center; padding: 10px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--bg-elevated); margin-bottom: 16px; }
+        .vsh-prev-th { width: 112px; flex: none; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #111 center / cover no-repeat; position: relative; }
+        .vsh-prev-th.v { width: 60px; aspect-ratio: 9 / 16; }
+        .vsh-prev-in { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .vsh-prev-in b { font-size: 14px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .vsh-prev-in small { color: var(--text-muted); font-size: 12px; }
+        .vsh-pf { align-self: flex-start; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; color: #fff; background: #ff0033; }
+        .vsh-pf.tiktok { background: #111; box-shadow: inset 2px 0 #25f4ee, inset -2px 0 #fe2c55; }
+        .vsh-list { display: flex; flex-direction: column; gap: 10px; }
+        .vsh-row { display: flex; gap: 12px; align-items: center; padding: 10px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--bg-body); }
+        .vsh-row.off { opacity: .55; }
+        .vsh-row .vsh-prev-th { width: 96px; }
+        .vsh-row .vsh-prev-th.v { width: 54px; }
+        .vsh-row-in { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .vsh-row-in b { font-size: 14px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vsh-row-in small { color: var(--text-muted); font-size: 12px; }
+        .vsh-acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+        .vsh-acts button { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); cursor: pointer; font-size: 14px; }
+        .vsh-acts button:hover { border-color: var(--brand-primary); }
+        .vsh-acts button.on { background: #f59e0b; color: #111; border-color: #f59e0b; }
+        .vsh-acts button.del:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+        .vsh-play { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 18px; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+        @media (max-width: 600px) { .vsh-row { flex-wrap: wrap; } .vsh-acts { width: 100%; justify-content: flex-start; } }
+    </style>
 </head>
 <body>
 
@@ -1207,6 +1237,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="news"> Bản Tin</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="reportbot"> Bot Báo Cáo</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="apppush"> Thông Báo App</label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="videos"> Chia Sẻ Video</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="gifts"> Quà Toàn Hệ Thống</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="approvals"> Phê Duyệt TK</label>
                 </div>
@@ -1343,6 +1374,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('news')" style="--tone: var(--color-info);"><div class="m-menu-icon"><i class="fa-solid fa-newspaper"></i></div><span>Bản tin</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('reportbot')" style="--tone: #f59e0b;"><div class="m-menu-icon"><i class="fa-solid fa-robot"></i></div><span>Bot báo cáo</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('apppush')" style="--tone: #3b82f6;"><div class="m-menu-icon"><i class="fa-solid fa-bell"></i></div><span>Thông báo app</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('videos')" style="--tone: #ef4444;"><div class="m-menu-icon"><i class="fa-solid fa-film"></i></div><span>Chia sẻ video</span></div>
                 </div>
             </div>
 
@@ -1434,6 +1466,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <button type="button" title="Bản tin" class="nav-item" onclick="UI.navigate('news', this)" style="--tone: var(--color-info);"><i class="fa-solid fa-newspaper"></i><span>Bản tin</span></button>
                     <button type="button" title="Bot báo cáo" class="nav-item" onclick="UI.navigate('reportbot', this)" style="--tone: #f59e0b;"><i class="fa-solid fa-robot"></i><span>Bot báo cáo</span></button>
                     <button type="button" title="Thông báo app" class="nav-item" onclick="UI.navigate('apppush', this)" style="--tone: #3b82f6;"><i class="fa-solid fa-bell"></i><span>Thông báo app</span></button>
+                    <button type="button" title="Chia sẻ video" class="nav-item" onclick="UI.navigate('videos', this)" style="--tone: #ef4444;"><i class="fa-solid fa-film"></i><span>Chia sẻ video</span></button>
                 </div>
             </nav>
             <div class="sb-foot">
@@ -1607,6 +1640,10 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="card mod-card" onclick="UI.navigate('apppush')" style="--tone: #3b82f6;">
                                 <span class="mod-ico"><i class="fa-solid fa-bell"></i></span>
                                 <div><h4>Thông báo app</h4><p>Gửi thông báo đến điện thoại người dùng app Android, kể cả khi đã tắt app.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('videos')" style="--tone: #ef4444;">
+                                <span class="mod-ico"><i class="fa-solid fa-film"></i></span>
+                                <div><h4>Chia sẻ video</h4><p>Dán link YouTube / TikTok để thành viên xem ngay trong trang và app.</p></div>
                             </div>
                         </div>
                     </div>
@@ -3548,6 +3585,51 @@ html.qd-lite .qd-fx { display: none !important; }
 
 
                 <!-- VIEW THÔNG BÁO APP (push_broadcast -> máy chủ Apps Script gửi Firebase Cloud Messaging) -->
+                <section id="view-videos" class="view-section">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Chia Sẻ Video</h1>
+                            <p class="text-muted">Dán link YouTube hoặc TikTok — thành viên xem ngay trong trang / app ở mục 🎬 Video.</p>
+                        </div>
+                    </div>
+                    <div class="vsh-grid">
+                        <div class="card" id="vsh-form-card" style="padding: 20px 24px;">
+                            <h3 class="text-lg m-0 mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-plus" style="color: #ef4444;"></i> <span id="vsh-form-h">Thêm video</span></h3>
+                            <div class="form-group mb-4">
+                                <label class="form-label">Link video</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input id="vsh-url" class="form-control" placeholder="Dán link YouTube / TikTok…" autocomplete="off" spellcheck="false" inputmode="url" style="flex: 1; min-width: 0;">
+                                    <button type="button" class="btn btn-outline" id="vsh-check" onclick="QDVideoAdmin.check()" style="white-space: nowrap;">Kiểm tra</button>
+                                </div>
+                                <p class="text-muted text-xs mt-2 mb-0" id="vsh-hint">Hỗ trợ: youtube.com, youtu.be, YouTube Shorts, tiktok.com/@…/video/…, vt.tiktok.com / vm.tiktok.com.</p>
+                            </div>
+                            <div class="vsh-prev" id="vsh-prev" hidden>
+                                <div class="vsh-prev-th" id="vsh-prev-th"></div>
+                                <div class="vsh-prev-in"><span class="vsh-pf" id="vsh-prev-pf"></span><b id="vsh-prev-t"></b><small id="vsh-prev-a"></small></div>
+                            </div>
+                            <div class="form-group mb-4">
+                                <label class="form-label">Tiêu đề <span class="text-muted text-xs" id="vsh-title-n">0/100</span></label>
+                                <input id="vsh-title" class="form-control" maxlength="100" placeholder="Tự điền khi kiểm tra link — có thể sửa">
+                            </div>
+                            <div class="form-group mb-4">
+                                <label class="form-label">Lời giới thiệu (tùy chọn) <span class="text-muted text-xs" id="vsh-desc-n">0/300</span></label>
+                                <textarea id="vsh-desc" class="form-control" rows="3" maxlength="300" placeholder="VD: Highlight trận chung kết tối qua 🔥"></textarea>
+                            </div>
+                            <label class="vsh-chk"><input type="checkbox" id="vsh-pin"> 📌 Ghim lên đầu danh sách</label>
+                            <label class="vsh-chk" id="vsh-push-row"><input type="checkbox" id="vsh-push"> 🔔 Gửi thông báo "Video mới" đến app Android</label>
+                            <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-primary" id="vsh-save" onclick="QDVideoAdmin.save()" style="flex: 1 1 200px;"><i class="fa-solid fa-share-from-square"></i> <span>Đăng video</span></button>
+                                <button type="button" class="btn btn-outline" id="vsh-cancel" onclick="QDVideoAdmin.reset()" hidden>Hủy sửa</button>
+                            </div>
+                            <p class="text-sm mt-3 mb-0" id="vsh-status"></p>
+                        </div>
+                        <div class="card" style="padding: 20px 24px;">
+                            <h3 class="text-lg m-0 mb-4 flex items-center gap-2"><i class="fa-solid fa-film" style="color: #3b82f6;"></i> Video đã chia sẻ <span class="badge" id="vsh-count" style="background: var(--bg-elevated);">0</span></h3>
+                            <div id="vsh-list" class="vsh-list"><p class="text-muted text-sm">Đang tải…</p></div>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="view-apppush" class="view-section">
                     <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
@@ -5898,7 +5980,7 @@ const QVis = {
                                 return;
                             }
 
-                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals', 'reportbot', 'apppush', 'gifts'];
+                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals', 'reportbot', 'apppush', 'videos', 'gifts'];
                             
                             // 2. NẾU LÀ MANAGER THÌ ẨN/HIỆN CHỨC NĂNG THEO QUYỀN
                             if (myRole === 'manager') {
@@ -7897,6 +7979,7 @@ exportAttendanceExcel: () => {
             news: ['Thi đấu & tin tức', 'Bản tin'],
             reportbot: ['Thi đấu & tin tức', 'Bot báo cáo'],
             apppush: ['Thi đấu & tin tức', 'Thông báo app'],
+            videos: ['Thi đấu & tin tức', 'Chia sẻ video'],
             gifts: ['Giải trí & thưởng', 'Quà toàn hệ thống'],
             transfer: ['Giải trí & thưởng', 'Tặng lượt'],
             payout: ['Giải trí & thưởng', 'Trả thưởng tiền mặt'],
@@ -15610,6 +15693,214 @@ window.QDXlsx = (function () {
         }
         (function boot(n) { if (typeof db !== 'undefined' && $('pc-card')) start(); else if (n < 60) setTimeout(function () { boot(n + 1); }, 500); })(0);
         return { toggle: toggle, save: save, preview: preview, _c: C };
+    })();
+    </script>
+    <script id="qd-vid-parse">
+    /* Nhận diện link YouTube / TikTok -> { p: 'youtube'|'tiktok', id, v (dọc), t (giây bắt đầu), short (link rút gọn TikTok cần tra) } */
+    window.QDVid = window.QDVid || (function () {
+        function parse(u) {
+            u = String(u || '').trim(); if (!u) return null;
+            var m0 = u.match(/https?:\/\/[^\s"'<>]+/i); if (m0) u = m0[0];   // dán cả đoạn chữ kèm link -> lấy link
+            if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+            var x; try { x = new URL(u); } catch (e) { return null; }
+            var h = x.hostname.toLowerCase().replace(/^(www|m|music)\./, ''), path = x.pathname, id = '', m;
+            var t = parseInt(String(x.searchParams.get('t') || x.searchParams.get('start') || '').replace(/s$/, ''), 10) || 0;
+            if (h === 'youtu.be') id = path.split('/')[1] || '';
+            else if (/(^|\.)youtube(-nocookie)?\.com$/.test(h)) {
+                id = x.searchParams.get('v') || '';
+                if (!id && (m = path.match(/^\/(shorts|embed|live|v|e)\/([\w-]{11})/))) id = m[2];
+            }
+            if (id && /^[\w-]{11}$/.test(id)) return { p: 'youtube', id: id, v: /^\/shorts\//.test(path), t: t, url: 'https://www.youtube.com/' + (/^\/shorts\//.test(path) ? 'shorts/' + id : 'watch?v=' + id) };
+            if (/(^|\.)tiktok\.com$/.test(h)) {
+                if ((m = path.match(/\/(video|v|embed\/v2|player\/v1)\/(\d{8,25})/))) return { p: 'tiktok', id: m[2], v: true, t: 0, url: u.split('?')[0] };
+                if (/^(vm|vt)\.tiktok\.com$/.test(x.hostname.toLowerCase()) || /^\/t\/\w+/.test(path)) return { p: 'tiktok', id: '', v: true, t: 0, url: u.split('?')[0], short: true };
+                if (/\/photo\//.test(path)) return { p: 'tiktok', bad: 'Bài ảnh TikTok không phát được, hãy dùng link video.' };
+            }
+            return null;
+        }
+        function embed(o, auto) {
+            if (o.p === 'youtube') return 'https://www.youtube.com/embed/' + o.id + '?rel=0&playsinline=1&modestbranding=1' + (auto ? '&autoplay=1' : '') + (o.t ? '&start=' + o.t : '');
+            return 'https://www.tiktok.com/player/v1/' + o.id + '?' + (auto ? 'autoplay=1&' : '') + 'music_info=1&description=1&rel=0&controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=1';
+        }
+        function thumb(o) { return o.p === 'youtube' ? 'https://i.ytimg.com/vi/' + o.id + '/hqdefault.jpg' : (o.thumb || ''); }
+        // Tra tên / ảnh / mã video (link rút gọn TikTok) qua oEmbed; lỗi mạng -> trả {} (Admin tự nhập tên)
+        function meta(o) {
+            var enc = encodeURIComponent(o.url), list = o.p === 'tiktok'
+                ? ['https://www.tiktok.com/oembed?url=' + enc, 'https://noembed.com/embed?url=' + enc]
+                : ['https://noembed.com/embed?url=' + enc, 'https://www.youtube.com/oembed?format=json&url=' + enc];
+            function one(i) {
+                if (i >= list.length) return Promise.resolve({});
+                var ac = window.AbortController ? new AbortController() : null, tm = setTimeout(function () { if (ac) ac.abort(); }, 7000);
+                return fetch(list[i], ac ? { signal: ac.signal } : {}).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }).then(function (j) {
+                    clearTimeout(tm);
+                    if (!j || j.error || !(j.title || j.html)) return one(i + 1);
+                    var id = String(j.embed_product_id || ''), mm = String(j.html || '').match(/data-video-id="(\d+)"/) || String(j.url || '').match(/\/video\/(\d+)/);
+                    if (!id && mm) id = mm[1];
+                    return { title: String(j.title || '').replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim(), author: String(j.author_name || '').trim(), thumb: /^https:\/\//.test(j.thumbnail_url || '') ? j.thumbnail_url : '', id: id };
+                });
+            }
+            return one(0);
+        }
+        function name(p) { return p === 'youtube' ? 'YouTube' : 'TikTok'; }
+        return { parse: parse, embed: embed, thumb: thumb, meta: meta, name: name };
+    })();
+    </script>
+    <script id="vsh-admin-js">
+    /* ===== CHIA SẺ VIDEO (settings/video_share.items) — Admin dán link YouTube / TikTok, trang thành viên phát ngay ===== */
+    window.QDVideoAdmin = (function () {
+        var $ = function (id) { return document.getElementById(id); }, booted = false, ITEMS = [], cur = null, editId = null, seq = 0;
+        var H = window.qdH || function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        function fs() { return window.firebase && firebase.apps && firebase.apps.length ? firebase.firestore() : null; }
+        function ref() { var f = fs(); return f && f.collection('settings').doc('video_share'); }
+        function toast(m, t) { try { Utils.toast(m, t || 'info'); } catch (e) {} }
+        function status(m, k) { var el = $('vsh-status'); if (el) { el.textContent = m || ''; el.style.color = k === 'err' ? '#ef4444' : k === 'ok' ? '#22c55e' : ''; } }
+        function th(o) { var u = QDVid.thumb(o); return '<div class="vsh-prev-th' + (o.v ? ' v' : '') + '" style="' + (u ? "background-image:url('" + H(u) + "')" : 'background:linear-gradient(135deg,#111,#2b2b2b)') + '"><span class="vsh-play">▶</span></div>'; }
+        function counts() { $('vsh-title-n').textContent = $('vsh-title').value.length + '/100'; $('vsh-desc-n').textContent = $('vsh-desc').value.length + '/300'; }
+        function showPrev(o, title, author) {
+            var p = $('vsh-prev'); if (!o) { p.hidden = true; return; }
+            p.hidden = false; $('vsh-prev-th').outerHTML = th(o).replace('class="vsh-prev-th', 'id="vsh-prev-th" class="vsh-prev-th');
+            var pf = $('vsh-prev-pf'); pf.textContent = QDVid.name(o.p) + (o.v ? ' · dọc' : ''); pf.className = 'vsh-pf ' + o.p;
+            $('vsh-prev-t').textContent = title || '(chưa có tiêu đề)'; $('vsh-prev-a').textContent = author ? 'Kênh: ' + author : '';
+        }
+        // Đọc link -> nhận diện -> tra tên / ảnh (TikTok rút gọn: tra mã video)
+        function check() {
+            var raw = $('vsh-url').value, o = QDVid.parse(raw), my = ++seq;
+            cur = null; showPrev(null);
+            if (!raw.trim()) { status(''); return Promise.resolve(null); }
+            if (!o) { status('Link không đúng. Chỉ nhận link video YouTube hoặc TikTok.', 'err'); return Promise.resolve(null); }
+            if (o.bad) { status(o.bad, 'err'); return Promise.resolve(null); }
+            var dup = ITEMS.filter(function (x) { return x.p === o.p && x.id === o.id && x.id && x.uid !== editId; })[0];
+            status('⏳ Đang đọc thông tin video…'); $('vsh-check').disabled = true;
+            return QDVid.meta(o).then(function (m) {
+                if (my !== seq) return null;
+                $('vsh-check').disabled = false;
+                if (o.short) {
+                    if (!m.id) { status('Không đọc được link rút gọn TikTok. Mở link trên trình duyệt rồi chép link đầy đủ (dạng tiktok.com/@tên/video/123…).', 'err'); return null; }
+                    o.id = m.id; o.short = false;   // giữ link rút gọn gốc: mở bằng app TikTok vẫn đúng video
+                    dup = ITEMS.filter(function (x) { return x.p === o.p && x.id === o.id && x.uid !== editId; })[0];
+                }
+                if (m.thumb && o.p === 'tiktok') o.thumb = m.thumb;
+                o.title = m.title || ''; o.author = m.author || '';
+                if (o.title && (!$('vsh-title').value.trim() || $('vsh-title').dataset.auto === '1')) { $('vsh-title').value = o.title.slice(0, 100); $('vsh-title').dataset.auto = '1'; counts(); }
+                cur = o; showPrev(o, $('vsh-title').value.trim() || o.title, o.author);
+                status(dup ? '⚠ Video này đã được chia sẻ ("' + (dup.title || '') + '") — đăng nữa sẽ bị trùng.' : (m.title ? '✓ Link hợp lệ.' : '✓ Link hợp lệ. Không tự đọc được tiêu đề — hãy nhập tiêu đề.'), dup ? 'err' : 'ok');
+                return o;
+            });
+        }
+        function readAll() { var r = ref(); return r ? r.get().then(function (d) { return (d.exists && Array.isArray(d.data().items)) ? d.data().items.slice() : []; }) : Promise.reject('Chưa kết nối máy chủ'); }
+        function writeAll(items) { return ref().set({ items: items, updatedAt: Date.now() }, { merge: true }); }
+        function save() {
+            var go = cur && !cur.short && QDVid.parse($('vsh-url').value) ? Promise.resolve(cur) : check();
+            var btn = $('vsh-save');
+            go.then(function (o) {
+                if (!o) return;
+                var title = $('vsh-title').value.replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim().slice(0, 100), desc = $('vsh-desc').value.replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim().slice(0, 300);
+                if (!title) { status('Nhập tiêu đề video.', 'err'); $('vsh-title').focus(); return; }
+                var dup = ITEMS.filter(function (x) { return x.p === o.p && x.id === o.id && x.uid !== editId; })[0];
+                if (dup) { status('Video này đã có trong danh sách ("' + (dup.title || '') + '").', 'err'); return; }
+                btn.disabled = true; status('⏳ Đang lưu…');
+                var by = ''; try { by = State.currentUser || ''; } catch (e) {}
+                var push = !editId && $('vsh-push').checked, item;
+                return readAll().then(function (items) {
+                    if (editId) {
+                        var it = items.filter(function (x) { return x.uid === editId; })[0]; if (!it) throw 'Video đã bị xóa ở máy khác.';
+                        Object.assign(it, { p: o.p, id: o.id, v: !!o.v, t: o.t || 0, url: o.url, thumb: o.thumb || it.thumb || '', author: o.author || it.author || '', title: title, desc: desc, pin: $('vsh-pin').checked, editedAt: Date.now() });
+                        item = it;
+                    } else {
+                        item = { uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), p: o.p, id: o.id, v: !!o.v, t: o.t || 0, url: o.url, thumb: o.thumb || '', author: o.author || '', title: title, desc: desc, pin: $('vsh-pin').checked, hidden: false, createdAt: Date.now(), by: by || 'admin' };
+                        items.unshift(item);
+                        if (items.length > 60) items = items.slice(0, 60);   // giữ tối đa 60 video
+                    }
+                    return writeAll(items);
+                }).then(function () {
+                    var wasEdit = !!editId; reset();
+                    status(wasEdit ? '✓ Đã lưu thay đổi.' : '✓ Đã đăng — thành viên thấy ngay ở mục 🎬 Video.', 'ok');
+                    toast(wasEdit ? 'Đã lưu thay đổi video' : 'Đã chia sẻ video', 'success');
+                    if (push) notify(item);
+                });
+            }).catch(function (e) { status('✗ Không lưu được' + (e && e.code ? ' (' + e.code + ')' : typeof e === 'string' ? ': ' + e : ''), 'err'); })
+              .then(function () { btn.disabled = false; });
+        }
+        // Thông báo "Video mới" qua hàng đợi push_broadcast (máy chủ Apps Script gửi) + gõ cửa gửi nhanh
+        function notify(it) {
+            var f = fs(); if (!f) return;
+            var by = ''; try { by = State.currentUser || ''; } catch (e) {}
+            f.collection('push_broadcast').add({ title: '🎬 Video mới: ' + it.title.slice(0, 70), body: it.desc || 'Mở app, vào mục 🎬 Video để xem ngay!', image: QDVid.thumb(it) || '', target: 'all', status: 'pending', createdAt: Date.now(), by: by || 'admin' }).then(function () {
+                f.collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {});
+                toast('Đã xếp hàng gửi thông báo đến app', 'success');
+            }).catch(function () { toast('Không gửi được thông báo', 'error'); });
+        }
+        function reset() {
+            editId = null; cur = null; seq++;
+            ['vsh-url', 'vsh-title', 'vsh-desc'].forEach(function (id) { $(id).value = ''; }); $('vsh-title').dataset.auto = '';
+            $('vsh-pin').checked = false; $('vsh-push').checked = false; $('vsh-push-row').hidden = false;
+            $('vsh-form-h').textContent = 'Thêm video'; $('vsh-save').querySelector('span').textContent = 'Đăng video'; $('vsh-cancel').hidden = true;
+            showPrev(null); status(''); counts();
+        }
+        function edit(uid) {
+            var it = ITEMS.filter(function (x) { return x.uid === uid; })[0]; if (!it) return;
+            editId = uid; cur = { p: it.p, id: it.id, v: it.v, t: it.t, url: it.url, thumb: it.thumb, author: it.author };
+            $('vsh-url').value = it.url; $('vsh-title').value = it.title || ''; $('vsh-title').dataset.auto = ''; $('vsh-desc').value = it.desc || ''; $('vsh-pin').checked = !!it.pin;
+            $('vsh-push-row').hidden = true; $('vsh-form-h').textContent = 'Sửa video'; $('vsh-save').querySelector('span').textContent = 'Lưu thay đổi'; $('vsh-cancel').hidden = false;
+            showPrev(cur, it.title, it.author); status(''); counts();
+            try { $('vsh-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+        }
+        function patch(uid, fn, okMsg) {
+            return readAll().then(function (items) {
+                var it = items.filter(function (x) { return x.uid === uid; })[0]; if (!it) throw 'Video không còn trong danh sách.';
+                items = fn(items, it) || items; return writeAll(items);
+            }).then(function () { if (okMsg) toast(okMsg, 'success'); }).catch(function (e) { toast('Không lưu được' + (typeof e === 'string' ? ': ' + e : e && e.code ? ' (' + e.code + ')' : ''), 'error'); });
+        }
+        function pin(uid) { patch(uid, function (a, it) { it.pin = !it.pin; }, null); }
+        function hide(uid) { patch(uid, function (a, it) { it.hidden = !it.hidden; }, null); }
+        function del(uid) {
+            var it = ITEMS.filter(function (x) { return x.uid === uid; })[0]; if (!it) return;
+            $('confirm-msg').innerHTML = 'Gỡ video <b>' + H(it.title || '') + '</b> khỏi mục Video của thành viên?';
+            var btn = $('btn-exec-confirm'); btn.className = 'btn btn-danger w-full'; btn.innerHTML = 'Gỡ video';
+            State.activeDeleteAction = function () {
+                State.activeDeleteAction = null; UI.closeModal('modal-confirm'); btn.innerHTML = 'Đồng ý Xóa';
+                if (editId === uid) reset();
+                patch(uid, function (a) { return a.filter(function (x) { return x.uid !== uid; }); }, 'Đã gỡ video');
+            };
+            UI.openModal('modal-confirm');
+        }
+        function fmt(t) { var d = new Date(t || 0); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ' ' + d.getDate() + '/' + (d.getMonth() + 1); }
+        function render() {
+            var L = ITEMS.slice().sort(function (a, b) { return (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || (b.createdAt || 0) - (a.createdAt || 0); });
+            $('vsh-count').textContent = ITEMS.length;
+            $('vsh-list').innerHTML = L.length ? L.map(function (it) {
+                var u = qdJ(it.uid);
+                return '<div class="vsh-row' + (it.hidden ? ' off' : '') + '">' + th(it) +
+                    '<div class="vsh-row-in"><span class="vsh-pf ' + (it.p === 'tiktok' ? 'tiktok' : '') + '">' + QDVid.name(it.p) + '</span><b title="' + H(it.title) + '">' + (it.pin ? '📌 ' : '') + H(it.title || '(không tên)') + '</b>' +
+                    '<small>' + fmt(it.createdAt) + (it.by ? ' · ' + H(it.by) : '') + (it.hidden ? ' · <b style="color:#f59e0b">Đang ẩn</b>' : '') + '</small></div>' +
+                    '<div class="vsh-acts">' +
+                    '<button type="button" title="Mở link gốc" onclick="window.open(\'' + qdJ(it.url) + '\',\'_blank\',\'noopener\')"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>' +
+                    '<button type="button" class="' + (it.pin ? 'on' : '') + '" title="' + (it.pin ? 'Bỏ ghim' : 'Ghim lên đầu') + '" onclick="QDVideoAdmin.pin(\'' + u + '\')"><i class="fa-solid fa-thumbtack"></i></button>' +
+                    '<button type="button" title="' + (it.hidden ? 'Hiện lại' : 'Tạm ẩn') + '" onclick="QDVideoAdmin.hide(\'' + u + '\')"><i class="fa-solid ' + (it.hidden ? 'fa-eye-slash' : 'fa-eye') + '"></i></button>' +
+                    '<button type="button" title="Sửa" onclick="QDVideoAdmin.edit(\'' + u + '\')"><i class="fa-solid fa-pen"></i></button>' +
+                    '<button type="button" class="del" title="Gỡ video" onclick="QDVideoAdmin.del(\'' + u + '\')"><i class="fa-solid fa-trash"></i></button></div></div>';
+            }).join('') : '<p class="text-muted text-sm m-0">Chưa có video nào. Dán link YouTube / TikTok ở khung bên cạnh để chia sẻ.</p>';
+        }
+        function boot(n) {
+            if (booted) return;
+            var r = ref(); if (!r) { if (n < 120) setTimeout(function () { boot(n + 1); }, 500); return; }
+            booted = true;
+            r.onSnapshot(function (d) { ITEMS = d.exists && Array.isArray(d.data().items) ? d.data().items : []; render(); }, function (e) { $('vsh-list').innerHTML = '<p class="text-sm" style="color:#ef4444">Không đọc được danh sách (' + H(e && e.code || 'lỗi') + ').</p>'; });
+            var u = $('vsh-url'), tm = 0;
+            u.addEventListener('paste', function () { setTimeout(check, 30); });
+            u.addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(check, 700); });
+            u.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); check(); } });
+            $('vsh-title').addEventListener('input', function () { this.dataset.auto = ''; counts(); if (cur) $('vsh-prev-t').textContent = this.value.trim() || cur.title || '(chưa có tiêu đề)'; });
+            $('vsh-desc').addEventListener('input', counts);
+            counts();
+        }
+        (function hook(n) {
+            if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
+            var nav = UI.navigate;
+            UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'videos') boot(0); return r; };
+            var sec = $('view-videos'); if (sec && sec.classList.contains('active')) boot(0);
+        })(0);
+        return { check: check, save: save, reset: reset, edit: edit, pin: pin, hide: hide, del: del };
     })();
     </script>
 <style id="qd-balance">
