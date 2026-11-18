@@ -9959,6 +9959,11 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                         <button class="btn btn-info w-full" id="notif-test-btn" style="padding: 12px 20px; font-size: 13px;" onclick="window.Chat.testNotification()">Test (5s)</button>
                     </div>
+                    <div id="qd-callready-set" style="display: none; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-strong);">
+                        <div class="font-bold" style="margin-bottom: 6px;">📞 Nhận cuộc gọi khi tắt app</div>
+                        <div class="text-sm text-muted" style="margin-bottom: 10px; line-height: 1.5;">Bật đủ các mục dưới để điện thoại đổ chuông như cuộc gọi thường kể cả khi đã thoát / vuốt tắt app.</div>
+                        <div class="qcr-list" data-qcr-list></div>
+                    </div>
                     <div id="qd-bubble-set" style="display: none; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-strong);">
                         <div class="font-bold" style="margin-bottom: 6px;">🫧 Bong bóng chat (như Messenger)</div>
                         <div class="text-sm text-muted" style="margin-bottom: 12px; line-height: 1.5;">Tin nhắn mới nổi thành bong bóng tròn trên màn hình, bấm vào là chat ngay, không cần mở app. Bấm nút dưới → chọn <b>"Tất cả cuộc trò chuyện có thể hiện bong bóng"</b>.</div>
@@ -25406,6 +25411,13 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
 .vs-status.err { color: #ffb4a8; } .vs-status.ok { color: #b8f5b0; }
 html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-theme="tet"]) .vs-status.ok { color: #16a34a; }
 .vid-mine { margin-top: 10px; font: inherit; font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255, 140, 120, .5); background: rgba(255, 80, 60, .12); color: #ffc2b5; cursor: pointer; }
+.qcr-list { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.qcr-row { font: inherit; display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border-strong); background: var(--bg-body); color: var(--text-main); cursor: pointer; text-align: left; }
+.qcr-row b { display: block; font-size: 14px; } .qcr-row small { display: block; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.qcr-row .qcr-ic { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 14px; background: #dcfce7; color: #15803d; }
+.qcr-row.no { border-color: #f59e0b; } .qcr-row.no .qcr-ic { background: #fef3c7; color: #b45309; }
+.qcr-row .qcr-go { margin-left: auto; font-size: 12.5px; font-weight: 800; color: var(--brand-primary, #c1121f); white-space: nowrap; }
+html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-color: rgba(255, 214, 90, .6); } html[data-theme="tet"] .qcr-row small { color: #8a4a2a; }
 .vid-hint { margin: 10px 0 0 !important; padding: 8px 12px; border-radius: 10px; background: rgba(255, 214, 90, .12); border: 1px dashed rgba(255, 214, 90, .5); color: #ffe9a8 !important; font-size: 13px !important; }
 .vid-hint[hidden] { display: none !important; }
 .vid-fail { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; text-align: center; background: radial-gradient(circle at 50% 40%, #3a0a0a, #120202); color: #fff3d6; }
@@ -25428,6 +25440,15 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
             <div class="form-group mb-3 text-left"><label class="form-label">Lời nhắn (tùy chọn)</label><input type="text" id="vs-note" class="form-control" maxlength="200" placeholder="VD: Pha xử lý đỉnh của mình 😎"></div>
             <p class="vs-status" id="vs-status"></p>
             <div class="flex gap-4"><button type="button" class="btn btn-outline w-full" onclick="window.UI.closeModal('modal-vshare')">Hủy</button><button type="button" class="btn btn-primary w-full" id="vs-send" onclick="window.QDVideo.send()">Chia sẻ</button></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal-callready">
+        <div class="modal-box" style="max-width: 440px;">
+            <button class="modal-close-btn" onclick="window.UI.closeModal('modal-callready')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl mb-2">📞 Nhận cuộc gọi khi tắt app</h2>
+            <p class="text-muted mb-4" style="line-height: 1.5;">Điện thoại của bạn đang chặn một số mục nên khi tắt app sẽ <b>không đổ chuông</b> khi có người gọi. Bấm từng mục chưa bật (✗) để mở đúng chỗ cài đặt, bật lên rồi quay lại.</p>
+            <div class="qcr-list" data-qcr-list></div>
+            <button class="btn btn-primary w-full mt-4" onclick="window.UI.closeModal('modal-callready')">Xong</button>
         </div>
     </div>
     <div class="modal-overlay vid-ov" id="modal-vid" role="dialog" aria-modal="true" aria-label="Xem video">
@@ -25849,7 +25870,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
         }
         function st(txt) {
             if (!S) return; var m = S.mode;
-            $('qc-st').textContent = txt || (m === 'out' ? (S.ringing ? 'Đang đổ chuông…' : 'Đang gọi…') : m === 'in' ? (S.type === 'video' ? 'Cuộc gọi video đến…' : 'Cuộc gọi thoại đến…') : m === 'connecting' ? 'Đang kết nối…' : fmt(Date.now() - (S.liveAt || Date.now())));
+            $('qc-st').textContent = txt || (m === 'out' ? (S.ringing ? 'Đang đổ chuông…' : (S.wmsg || 'Đang gọi…')) : m === 'in' ? (S.type === 'video' ? 'Cuộc gọi video đến…' : 'Cuộc gọi thoại đến…') : m === 'connecting' ? 'Đang kết nối…' : fmt(Date.now() - (S.liveAt || Date.now())));
             var f = []; if (S.peerMic === false) f.push('🔇 Đã tắt micro'); if (S.type === 'video' && S.peerCam === false && m === 'live') f.push('📷 Đã tắt camera');
             $('qc-flags').innerHTML = f.map(function (x) { return '<span>' + x + '</span>'; }).join('');
             var o = $('qd-call'); if (S.type === 'video' && m === 'live') { o.classList.toggle('pcoff', S.peerCam === false); layout(); } 
@@ -25984,7 +26005,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
                 var mine = S.role === 'caller' ? 'From' : 'To', theirs = S.role === 'caller' ? 'To' : 'From';
                 S.peerMic = c['mic' + theirs]; S.peerCam = c['cam' + theirs];
                 if (S.role === 'caller') {
-                    if (c.status === 'ringing' && c.seen && !S.ringing) { S.ringing = true; st(); }
+                    if (c.status === 'ringing' && (c.seen || c.delivered) && !S.ringing) { S.ringing = true; clearTimeout(S.waitT); st(); }
                     if (c.status === 'accepted' && c.answer && !S.answered) {
                         S.answered = true; S.mode = 'connecting'; stopTone(); ui('connecting');
                         S.pc.setRemoteDescription(c.answer).then(function () { addRemote(c); }).catch(function () { finish('ended', 'Lỗi kết nối'); }); connTimer();
@@ -26023,6 +26044,15 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
                     return ref.set({ from: me(), to: S.peer, fromName: (State.fullName || me()), toName: nameOf(S.peer), type: S.type, status: 'ringing', created: Date.now(),
                         offer: { type: pc.localDescription.type, sdp: pc.localDescription.sdp }, micFrom: true, camFrom: S.type === 'video' && !S.camOff }).then(function () {
                         S.docReady = true; flushC(); S.unsub = watch(ref.id); pingHook();
+                        // Máy người nhận chưa phản hồi -> nói rõ đang chờ điện thoại họ đổ chuông (đã tắt app) / máy chủ chưa hỗ trợ
+                        var s1 = S; S.waitT = setTimeout(function () {
+                            if (S !== s1 || S.ringing || S.answered) return;
+                            db().collection('settings').doc('push_server').get().then(function (x) {
+                                if (S !== s1 || S.ringing || S.answered) return; var v = +String((x.exists && x.data().ver) || '').replace(/\D/g, '') || 0;
+                                S.wmsg = v && v < 10 ? '⚠ Người nhận đang tắt app — máy chủ chưa hỗ trợ đổ chuông khi tắt app' : 'Người nhận đang tắt app — đang gọi tới điện thoại…'; st();
+                                S.waitT = setTimeout(function () { if (S === s1 && !S.ringing && !S.answered) { S.wmsg = 'Chưa liên lạc được điện thoại người nhận (mất mạng / chặn thông báo) — vẫn đang chờ…'; st(); } }, 12000);
+                            }).catch(function () {});
+                        }, 5000);
                         S.ringT = setTimeout(function () { if (S && S.id === ref.id && !S.answered) finish('missed', 'Không có người nghe máy'); }, RING_MS);
                     });
                 });
@@ -26101,7 +26131,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
         }
         function cleanup(delay) {
             var s = S; S = null; if (!s) return; stopTone();
-            clearTimeout(s.ringT); clearInterval(s.tick); clearInterval(s.statT); clearTimeout(s.dropT); clearTimeout(s.connT); clearTimeout(idleT);
+            clearTimeout(s.ringT); clearTimeout(s.waitT); clearInterval(s.tick); clearInterval(s.statT); clearTimeout(s.dropT); clearTimeout(s.connT); clearTimeout(idleT);
             try { s.unsub && s.unsub(); } catch (e) {}
             try { s.pc && s.pc.close(); } catch (e) {}
             [s.local, s.screen].forEach(function (m) { try { m && m.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} });
@@ -26204,7 +26234,42 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
             (function wait(n) { if (window.firebase && firebase.apps && firebase.apps.length && me()) listen(); else if (n < 2000) setTimeout(function () { wait(n + 1); }, 1500); })(0);
         }
         if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
-        return { start: start, accept: accept, decline: decline, end: function () { finish('ended', ''); }, fromNotif: fromNotif, _s: function () { return S; } };
+        /* ---- App: kiểm tra điện thoại đã sẵn sàng đổ chuông khi tắt app ---- */
+        function readyInfo() { try { return Q && Q.callReady ? JSON.parse(Q.callReady()) : null; } catch (e) { return null; } }
+        function readyRows(r) {
+            var rows = [
+                ['notif', r.notif, 'Cho phép thông báo', 'Không có thông báo thì không thể báo cuộc gọi đến'],
+                ['call', r.call, 'Thông báo "Cuộc gọi đến" ở mức cao', 'Cho kêu chuông, hiện nổi trên màn hình'],
+                ['fullscreen', r.fullscreen, 'Hiện toàn màn hình khi có cuộc gọi', 'Màn hình khóa vẫn bật lên giao diện nghe máy'],
+                ['battery', r.battery, 'Không giới hạn pin', 'Chọn "Không hạn chế" để Android không tắt app khi chạy nền']
+            ];
+            if (r.xiaomi) rows.push(['autostart', null, 'Xiaomi / Redmi / POCO: Tự khởi chạy', 'Bật "Tự khởi chạy", "Hiện trên màn hình khóa", "Cửa sổ bật lên khi chạy nền"']);
+            return rows;
+        }
+        function renderReady() {
+            var r = readyInfo(); if (!r) return null;
+            var html = readyRows(r).map(function (x) {
+                var ok = x[1] === true, unk = x[1] == null;
+                return '<button type="button" class="qcr-row' + (ok ? '' : ' no') + '" data-k="' + x[0] + '"><span class="qcr-ic">' + (ok ? '✓' : unk ? '!' : '✗') + '</span><span><b>' + x[2] + '</b><small>' + x[3] + '</small></span><span class="qcr-go">' + (ok ? 'Đã bật' : 'Mở cài đặt ›') + '</span></button>';
+            }).join('');
+            Array.prototype.forEach.call(d.querySelectorAll('[data-qcr-list]'), function (el) { el.innerHTML = html; });
+            var set = $('qd-callready-set'); if (set) set.style.display = '';
+            return r;
+        }
+        function readyNeeds(r) { return r && (!r.notif || !r.call || !r.fullscreen || !r.battery); }
+        function bootReady() {
+            if (!Q || !Q.callReady || bubble()) return;
+            d.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.qcr-row'); if (!b) return; try { Q.openCallSetting(b.dataset.k); } catch (x) {} });
+            d.addEventListener('visibilitychange', function () { if (!d.hidden) setTimeout(renderReady, 400); });   // quay lại từ Cài đặt -> cập nhật ✓
+            (function wait(n) {
+                if (!me()) { if (n < 200) setTimeout(function () { wait(n + 1); }, 1500); return; }
+                var r = renderReady(), k = 'qd_callready_asked';
+                var asked = false; try { asked = localStorage.getItem(k) === '1'; } catch (e) {}
+                if (readyNeeds(r) && !asked) setTimeout(function () { try { localStorage.setItem(k, '1'); } catch (e) {} if (!S) UI.openModal('modal-callready'); }, 6000);
+            })(0);
+        }
+        bootReady();
+        return { start: start, accept: accept, decline: decline, end: function () { finish('ended', ''); }, fromNotif: fromNotif, _s: function () { return S; }, ready: renderReady };
     })();
     </script>
 <style id="qd-balance">
