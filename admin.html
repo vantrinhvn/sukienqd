@@ -15719,7 +15719,7 @@ window.QDXlsx = (function () {
             return null;
         }
         function embed(o, auto) {
-            if (o.p === 'youtube') return 'https://www.youtube.com/embed/' + o.id + '?rel=0&playsinline=1&modestbranding=1' + (auto ? '&autoplay=1' : '') + (o.t ? '&start=' + o.t : '');
+            if (o.p === 'youtube') return 'https://www.youtube.com/embed/' + o.id + '?rel=0&playsinline=1&modestbranding=1&enablejsapi=1' + (location.origin && /^https?:/.test(location.origin) ? '&origin=' + encodeURIComponent(location.origin) : '') + (auto ? '&autoplay=1' : '') + (o.t ? '&start=' + o.t : '');
             return 'https://www.tiktok.com/player/v1/' + o.id + '?' + (auto ? 'autoplay=1&' : '') + 'music_info=1&description=1&rel=0&controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=1';
         }
         function thumb(o) { return o.p === 'youtube' ? 'https://i.ytimg.com/vi/' + o.id + '/hqdefault.jpg' : (o.thumb || ''); }

@@ -10279,7 +10279,6 @@ html.qd-lite .qd-fx { display: none !important; }
                 <div class="nav-item" data-nv="chat" onclick="window.UI.navigate('chat', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 11.7a8 8 0 0 1-11.8 7L3.5 20.5l1.7-4.8a8 8 0 1 1 15.3-4z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg></span><span class="nv-txt"><b>Trò Chuyện</b><small>Kênh chung · nhắn tin</small></span><span class="nv-badge" hidden></span></div>
                 <div class="nav-item" data-nv="attendance" onclick="window.UI.navigate('attendance', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3.5 10h17"/><path d="m8.7 15.2 2.2 2.2 4.4-4.4"/></svg></span><span class="nv-txt"><b>Điểm Danh</b><small>Nhận thưởng mỗi ngày</small></span><span class="nv-badge" hidden></span></div>
                 <div class="nav-item" data-nv="news" onclick="window.UI.navigate('news', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="4" width="13.5" height="16.5" rx="2.2"/><path d="M17 8.5h1.8a1.7 1.7 0 0 1 1.7 1.7v7.6a2.7 2.7 0 0 1-2.7 2.7"/><path d="M7 8.5h6M7 12.2h6M7 16h3.5"/></svg></span><span class="nv-txt"><b>Bản Tin</b><small>Thông báo từ BQT</small></span><span class="nv-badge" hidden></span></div>
-                <div class="nav-item" data-nv="videos" onclick="window.UI.navigate('videos', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.2 9.3v5.4l4.6-2.7z"/></svg></span><span class="nv-txt"><b>Video</b><small>YouTube · TikTok</small></span><span class="nv-badge" hidden></span></div>
                 <div class="nav-item" data-nv="tournament" onclick="window.UI.navigate('tournament', this)"><span class="nv-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3.5h8v5.2a4 4 0 0 1-8 0z"/><path d="M8 5.5H5.2a.8.8 0 0 0-.8.9c.3 2.4 1.9 4 3.9 4.2M16 5.5h2.8a.8.8 0 0 1 .8.9c-.3 2.4-1.9 4-3.9 4.2"/><path d="M12 12.8V17M8.5 20.5h7M9.5 17h5"/></svg></span><span class="nv-txt"><b>Giải Đấu</b><small>Lịch đấu · kết quả</small></span><span class="nv-badge" hidden></span></div>
                 <div class="nav-item qd-off" onclick="window.RegID.open()"><i class="fa-solid fa-id-card"></i> <span>Đăng Ký ID Game</span></div>
                 <div class="nav-item qd-off" onclick="window.UI.navigate('rps', this)"><i class="fa-regular fa-hand-scissors"></i> <span>Kéo Búa Bao</span></div>
@@ -25392,6 +25391,12 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
 .vid-info h3 { margin: 6px 0 4px; font-size: 16px; line-height: 1.35; color: #ffe38a; }
 .vid-info p { margin: 0; font-size: 13.5px; line-height: 1.45; color: #f3dcc0; white-space: pre-wrap; }
 .vid-btns { display: flex; gap: 8px; margin-top: 12px; }
+.vid-hint { margin: 10px 0 0 !important; padding: 8px 12px; border-radius: 10px; background: rgba(255, 214, 90, .12); border: 1px dashed rgba(255, 214, 90, .5); color: #ffe9a8 !important; font-size: 13px !important; }
+.vid-hint[hidden] { display: none !important; }
+.vid-fail { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; text-align: center; background: radial-gradient(circle at 50% 40%, #3a0a0a, #120202); color: #fff3d6; }
+.vid-fail b { font-size: 16px; color: #ffe38a; }
+.vid-fail span { font-size: 13.5px; color: #f3dcc0; max-width: 320px; }
+.vid-fail a { margin-top: 6px; padding: 11px 20px; border-radius: 12px; background: linear-gradient(#ffe38a, #f6c445); color: #7a0b0b; font-weight: 900; text-decoration: none; }
 .vid-btns > * { flex: 1; font: inherit; font-size: 13.5px; font-weight: 800; min-height: 40px; border-radius: 12px; border: 1.5px solid rgba(255, 214, 90, .5); background: rgba(255, 255, 255, .06); color: #ffe9a8; cursor: pointer; display: grid; place-items: center; text-decoration: none; padding: 0 8px; }
 .vid-btns > a { background: linear-gradient(#ffe38a, #f6c445); color: #7a0b0b; border-color: #f6c445; flex: 1.4; }
 .vid-btns > button:disabled { opacity: .35; cursor: default; }
@@ -25405,6 +25410,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 <span class="vid-pf" id="vid-pf"></span>
                 <h3 id="vid-t"></h3>
                 <p id="vid-d"></p>
+                <p class="vid-hint" id="vid-hint" hidden>Video không chạy? Bấm <b>Mở trên YouTube/TikTok</b> bên dưới để xem bằng app.</p>
                 <div class="vid-btns"><button type="button" id="vid-prev" aria-label="Video trước">‹ Trước</button><a id="vid-open" href="#" target="_blank" rel="noopener">Mở trên YouTube</a><button type="button" id="vid-next" aria-label="Video tiếp theo">Tiếp ›</button></div>
             </div>
         </div>
@@ -25433,7 +25439,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             return null;
         }
         function embed(o, auto) {
-            if (o.p === 'youtube') return 'https://www.youtube.com/embed/' + o.id + '?rel=0&playsinline=1&modestbranding=1' + (auto ? '&autoplay=1' : '') + (o.t ? '&start=' + o.t : '');
+            if (o.p === 'youtube') return 'https://www.youtube.com/embed/' + o.id + '?rel=0&playsinline=1&modestbranding=1&enablejsapi=1' + (location.origin && /^https?:/.test(location.origin) ? '&origin=' + encodeURIComponent(location.origin) : '') + (auto ? '&autoplay=1' : '') + (o.t ? '&start=' + o.t : '');
             return 'https://www.tiktok.com/player/v1/' + o.id + '?' + (auto ? 'autoplay=1&' : '') + 'music_info=1&description=1&rel=0&controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=1';
         }
         function thumb(o) { return o.p === 'youtube' ? 'https://i.ytimg.com/vi/' + o.id + '/hqdefault.jpg' : (o.thumb || ''); }
@@ -25498,7 +25504,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             }).join('') : '<div class="vid-empty">' + (A.length ? 'Không có video nào ở mục này.' : 'Chưa có video nào được chia sẻ. Quay lại sau nhé! 🎬') + '</div>';
         }
         function render() { renderTab(); renderGrid(); }
-        function openList() { try { UI.navigate('videos', d.querySelector('.nav-item[data-nv="videos"]')); } catch (e) {} try { window.scrollTo(0, 0); } catch (e) {} }
+        function openList() { try { UI.navigate('videos'); } catch (e) {} try { window.scrollTo(0, 0); } catch (e) {} }
         function music(pause) {
             try {
                 var el = window.Music && Music.el; if (!el) return;
@@ -25510,6 +25516,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             var it = LIST[idx]; if (!it) return;
             $('vid-box').classList.toggle('v', !!it.v);
             $('vid-frame').innerHTML = '<iframe src="' + H(QDVid.embed(it, true)) + '" title="' + H(it.title || 'Video') + '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+            watch(it);
             var pf = $('vid-pf'); pf.textContent = QDVid.name(it.p); pf.className = 'vid-pf ' + (it.p === 'tiktok' ? 'tiktok' : '');
             $('vid-t').textContent = (it.pin ? '📌 ' : '') + (it.title || 'Video');
             $('vid-d').textContent = (it.desc ? it.desc + '\n' : '') + ago(it.createdAt) + (it.author ? ' · ' + it.author : '');
@@ -25517,6 +25524,35 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             a.textContent = 'Mở trên ' + QDVid.name(it.p);
             $('vid-prev').disabled = idx <= 0; $('vid-next').disabled = idx >= LIST.length - 1;
         }
+        // Trình phát YouTube / TikTok gửi tin báo sẵn sàng / lỗi -> chủ video chặn phát ngoài, video bị xóa... thì báo rõ thay vì màn đen
+        var ptok = 0, pready = false, ptm = 0;
+        var YTERR = { 2: 'Link video không đúng.', 5: 'Trình duyệt này không phát được video.', 100: 'Video đã bị xóa hoặc để riêng tư.', 101: 'Chủ video không cho phát ngoài YouTube.', 150: 'Chủ video không cho phát ngoài YouTube.', 153: 'YouTube từ chối phát ở trang này.' };
+        function fail(msg) {
+            var it = LIST[idx], f = $('vid-frame'); if (!it || !f || f.querySelector('.vid-fail')) return;
+            var el = d.createElement('div'); el.className = 'vid-fail';
+            el.innerHTML = '<div style="font-size:34px">😕</div><b>Không xem được video này ngay trong trang</b><span>' + H(msg || '') + '</span><a href="' + H($('vid-open').href) + '" target="_blank" rel="noopener">▶ Xem trên ' + QDVid.name(it.p) + '</a>';
+            f.appendChild(el);
+        }
+        function watch(it) {
+            var my = ++ptok; pready = false; clearTimeout(ptm); $('vid-hint').hidden = true;
+            var fr = $('vid-frame').querySelector('iframe'); if (!fr) return;
+            fr.addEventListener('load', function () {
+                if (my !== ptok) return;
+                if (it.p === 'youtube') { var k = 0; (function hi() { if (my !== ptok || pready || k++ > 8) return; try { fr.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'qdv', channel: 'widget' }), '*'); } catch (e) {} setTimeout(hi, 500); })(); }
+            });
+            ptm = setTimeout(function () { if (my === ptok && !pready) $('vid-hint').hidden = false; }, 9000);
+        }
+        window.addEventListener('message', function (e) {
+            if (idx < 0) return; var h = ''; try { h = new URL(e.origin).hostname; } catch (x) { return; }
+            var m = e.data; if (typeof m === 'string') { try { m = JSON.parse(m); } catch (x) { return; } } if (!m || typeof m !== 'object') return;
+            if (/(^|\.)youtube(-nocookie)?\.com$/.test(h)) {
+                if (m.event === 'onError') fail(YTERR[m.info] || 'YouTube báo lỗi ' + m.info + '.');
+                else if (m.event === 'onReady' || m.event === 'initialDelivery' || m.event === 'infoDelivery') { pready = true; $('vid-hint').hidden = true; }
+            } else if (/(^|\.)tiktok\.com$/.test(h) && (m['x-tiktok-player'] || /^on[A-Z]/.test(m.type || ''))) {
+                if (m.type === 'onError') fail('TikTok không cho phát video này ở đây (video riêng tư, đã xóa hoặc bị chặn).');
+                else if (m.type === 'onPlayerReady' || m.type === 'onStateChange' || m.type === 'onCurrentTime') { pready = true; $('vid-hint').hidden = true; }
+            }
+        });
         function play(i) {
             if (!LIST[i]) return; idx = i; show();
             var ov = $('modal-vid'); if (!ov.classList.contains('active')) { music(true); UI.openModal('modal-vid'); }
@@ -25539,7 +25575,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             $('vid-next').addEventListener('click', function () { if (idx < LIST.length - 1) play(idx + 1); });
             // Đóng trình phát (nút ✕, nút Quay lại, chạm ra ngoài) -> dừng video, bật lại nhạc nền nếu trước đó đang phát
             var ov = $('modal-vid');
-            new MutationObserver(function () { if (!ov.classList.contains('active') && $('vid-frame').firstChild) { $('vid-frame').innerHTML = ''; idx = -1; music(false); } }).observe(ov, { attributes: true, attributeFilter: ['class'] });
+            new MutationObserver(function () { if (!ov.classList.contains('active') && $('vid-frame').firstChild) { $('vid-frame').innerHTML = ''; idx = -1; ptok++; clearTimeout(ptm); music(false); } }).observe(ov, { attributes: true, attributeFilter: ['class'] });
             ov.addEventListener('click', function (e) { if (e.target === ov) UI.closeModal('modal-vid'); });
             // Vào mục Video -> đánh dấu đã xem
             (function hook(n) {
