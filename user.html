@@ -26129,18 +26129,20 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
                     return ref.set({ from: me(), to: S.peer, fromName: (State.fullName || me()), toName: nameOf(S.peer), type: S.type, status: 'ringing', created: Date.now(),
                         offer: { type: pc.localDescription.type, sdp: pc.localDescription.sdp }, micFrom: true, camFrom: S.type === 'video' && !S.camOff }).then(function () {
                         S.docReady = true; flushC(); S.unsub = watch(ref.id); pingHook();
-                        // Máy người nhận chưa phản hồi -> nói rõ đang chờ điện thoại họ đổ chuông (đã tắt app) / máy chủ chưa hỗ trợ
-                        var s1 = S; S.waitT = setTimeout(function () {
+                        // Máy chủ cũ (chưa srv-10) không tự gọi tới điện thoại -> gửi NGAY 1 tin "📞 Mình đang gọi cho bạn…":
+                        // máy chủ nào cũng đẩy tin nhắn lên điện thoại, app (1.1.0.71+) nhận tin đó là đổ chuông cuộc gọi luôn (Nghe / Từ chối), không cần mở app.
+                        var s1 = S;
+                        db().collection('settings').doc('push_server').get().then(function (x) { return new Promise(function (r) { setTimeout(function () { r(x); }, 1200); }); }).then(function (x) {   // chờ 1,2 giây: người nhận đang mở app thì đã đổ chuông rồi, khỏi gửi tin
+                            if (S !== s1 || S.answered) return; var v = +String((x.exists && x.data().ver) || '').replace(/\D/g, '') || 0;
+                            if (v && v < 10 && !s1.pinged && !S.ringing) {
+                                s1.pinged = true; try { db().collection('private_chat').add({ conversationId: Utils.getRoomId(me(), s1.peer), from: me(), to: s1.peer, text: (s1.type === 'video' ? '📹 Mình đang gọi video cho bạn' : '📞 Mình đang gọi cho bạn') + ' — bấm Nghe để trả lời nhé!', imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [], callPing: true }).then(pingHook, function () {}); } catch (e) {}
+                            }
+                        }).catch(function () {});
+                        S.waitT = setTimeout(function () {   // chưa đổ chuông được -> nói rõ đang chờ
                             if (S !== s1 || S.ringing || S.answered) return;
-                            db().collection('settings').doc('push_server').get().then(function (x) {
-                                if (S !== s1 || S.ringing || S.answered) return; var v = +String((x.exists && x.data().ver) || '').replace(/\D/g, '') || 0;
-                                S.wmsg = v && v < 10 ? 'Người nhận đang tắt app — đã gửi tin báo lên điện thoại họ, chờ họ mở app nghe máy…' : 'Người nhận đang tắt app — đang gọi tới điện thoại…'; st();
-                                if (v && v < 10 && !s1.pinged) {   // máy chủ cũ không đổ chuông được -> gửi 1 tin nhắn (máy chủ cũ vẫn đẩy tin nhắn lên điện thoại) để họ mở app nghe máy
-                                    s1.pinged = true; try { db().collection('private_chat').add({ conversationId: Utils.getRoomId(me(), s1.peer), from: me(), to: s1.peer, text: (s1.type === 'video' ? '📹 Mình đang gọi video cho bạn' : '📞 Mình đang gọi cho bạn') + ' — mở app để nghe máy nhé!', imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [], callPing: true }); } catch (e) {}
-                                }
-                                S.waitT = setTimeout(function () { if (S === s1 && !S.ringing && !S.answered) { S.wmsg = 'Chưa liên lạc được điện thoại người nhận (mất mạng / chặn thông báo) — vẫn đang chờ…'; st(); } }, 12000);
-                            }).catch(function () {});
-                        }, 5000);
+                            S.wmsg = 'Người nhận đang tắt app — đang gọi tới điện thoại…'; st();
+                            S.waitT = setTimeout(function () { if (S === s1 && !S.ringing && !S.answered) { S.wmsg = 'Chưa liên lạc được điện thoại người nhận (mất mạng / chặn thông báo) — vẫn đang chờ…'; st(); } }, 12000);
+                        }, 6000);
                         S.ringT = setTimeout(function () { if (S && S.id === ref.id && !S.answered) finish('missed', 'Không có người nghe máy'); }, RING_MS);
                     });
                 });
