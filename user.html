@@ -10538,9 +10538,10 @@ html.qd-lite .qd-fx { display: none !important; }
                         <button type="button" class="vid-back" aria-label="Về trang chủ" onclick="window.UI.navigate('dashboard', document.querySelector('.m-nav-item[data-nv=dashboard]'), true)">‹</button>
                         <div>
                             <h1>🎬 Video Chia Sẻ</h1>
-                            <p>Video hay do Ban Quản Trị chọn — chạm để xem ngay.</p>
+                            <p>Video hay của anh em Quân Đoàn — chạm để xem ngay.</p>
                         </div>
                     </div>
+                    <button type="button" class="vid-share-btn" onclick="window.QDVideo.share()"><span class="vid-share-ic">➕</span><span><b>Chia sẻ video của bạn</b><small>Dán link YouTube / TikTok · tối đa 3 video mỗi ngày</small></span></button>
                     <div class="vid-tabs" id="vid-tabs" hidden><button type="button" class="on" data-f="">Tất cả</button><button type="button" data-f="youtube">YouTube</button><button type="button" data-f="tiktok">TikTok</button></div>
                     <div class="vid-grid" id="vid-grid"><div class="vid-empty">Đang tải video…</div></div>
                 </section>
@@ -25391,6 +25392,20 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
 .vid-info h3 { margin: 6px 0 4px; font-size: 16px; line-height: 1.35; color: #ffe38a; }
 .vid-info p { margin: 0; font-size: 13.5px; line-height: 1.45; color: #f3dcc0; white-space: pre-wrap; }
 .vid-btns { display: flex; gap: 8px; margin-top: 12px; }
+#modal-vshare [hidden], #modal-vid [hidden] { display: none !important; }
+.vid-share-btn { font: inherit; width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 16px; margin: 0 0 14px; border-radius: 18px; border: 2px dashed var(--ts-gold-2, #f2b705); background: #fff6dc; color: #9b0d19; cursor: pointer; box-shadow: 0 8px 18px -12px rgba(120, 30, 0, .6); }
+.vid-share-btn:hover { background: #fff0c4; }
+.vid-share-ic { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(150deg, var(--ts-lq1, #c1121f), var(--ts-lq2, #8f0a14)); color: #fff; font-size: 16px; }
+.vid-share-btn b { display: block; font-size: 15px; } .vid-share-btn small { display: block; font-size: 12.5px; color: #8a4a2a; margin-top: 2px; }
+.vsh-box { max-width: 460px; text-align: center; }
+.vs-prev { display: flex; gap: 10px; align-items: center; text-align: left; padding: 8px; border-radius: 12px; border: 1.5px solid rgba(255, 214, 90, .6); background: rgba(0, 0, 0, .15); margin: 0 0 12px; }
+.vs-th { position: relative; flex: none; width: 96px; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #1a0303; }
+.vs-in { display: flex; flex-direction: column; gap: 4px; min-width: 0; } .vs-in .vid-pf { align-self: flex-start; }
+.vs-in b { font-size: 13.5px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.vs-status { min-height: 20px; margin: 0 0 12px; font-size: 13.5px; font-weight: 700; }
+.vs-status.err { color: #ffb4a8; } .vs-status.ok { color: #b8f5b0; }
+html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-theme="tet"]) .vs-status.ok { color: #16a34a; }
+.vid-mine { margin-top: 10px; font: inherit; font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255, 140, 120, .5); background: rgba(255, 80, 60, .12); color: #ffc2b5; cursor: pointer; }
 .vid-hint { margin: 10px 0 0 !important; padding: 8px 12px; border-radius: 10px; background: rgba(255, 214, 90, .12); border: 1px dashed rgba(255, 214, 90, .5); color: #ffe9a8 !important; font-size: 13px !important; }
 .vid-hint[hidden] { display: none !important; }
 .vid-fail { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; text-align: center; background: radial-gradient(circle at 50% 40%, #3a0a0a, #120202); color: #fff3d6; }
@@ -25402,6 +25417,19 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
 .vid-btns > button:disabled { opacity: .35; cursor: default; }
 @media (max-width: 600px) { #modal-vid.vid-ov { padding: 0; align-items: stretch; } .vid-box { border-radius: 0; border: none; max-height: none; height: 100%; justify-content: center; } .vid-box.v .vid-frame { height: calc(100dvh - 200px); } .vid-x { top: max(10px, env(safe-area-inset-top)); } }
 </style>
+    <div class="modal-overlay" id="modal-vshare">
+        <div class="modal-box vsh-box">
+            <button class="modal-close-btn" onclick="window.UI.closeModal('modal-vshare')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl mb-2">🎬 Chia sẻ video</h2>
+            <p class="text-muted mb-4">Video sẽ hiện ngay ở mục Video cho mọi người. Ban Quản Trị lưu lại lịch sử chia sẻ.</p>
+            <div class="form-group mb-3 text-left"><label class="form-label">Link video</label><input type="text" id="vs-url" class="form-control" placeholder="Dán link YouTube / TikTok…" inputmode="url" autocomplete="off" spellcheck="false"></div>
+            <div class="vs-prev" id="vs-prev" hidden><span class="vs-th" id="vs-th"></span><span class="vs-in"><span class="vid-pf" id="vs-pf"></span><b id="vs-t"></b></span></div>
+            <div class="form-group mb-3 text-left"><label class="form-label">Tiêu đề</label><input type="text" id="vs-title" class="form-control" maxlength="100" placeholder="Tự điền khi đọc được link — có thể sửa"></div>
+            <div class="form-group mb-3 text-left"><label class="form-label">Lời nhắn (tùy chọn)</label><input type="text" id="vs-note" class="form-control" maxlength="200" placeholder="VD: Pha xử lý đỉnh của mình 😎"></div>
+            <p class="vs-status" id="vs-status"></p>
+            <div class="flex gap-4"><button type="button" class="btn btn-outline w-full" onclick="window.UI.closeModal('modal-vshare')">Hủy</button><button type="button" class="btn btn-primary w-full" id="vs-send" onclick="window.QDVideo.send()">Chia sẻ</button></div>
+        </div>
+    </div>
     <div class="modal-overlay vid-ov" id="modal-vid" role="dialog" aria-modal="true" aria-label="Xem video">
         <div class="vid-box" id="vid-box">
             <button type="button" class="vid-x" onclick="window.UI.closeModal('modal-vid')" aria-label="Đóng">✕</button>
@@ -25410,6 +25438,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 <span class="vid-pf" id="vid-pf"></span>
                 <h3 id="vid-t"></h3>
                 <p id="vid-d"></p>
+                <button type="button" class="vid-mine" id="vid-mine" hidden>🗑 Gỡ video tôi đã chia sẻ</button>
                 <p class="vid-hint" id="vid-hint" hidden>Video không chạy? Bấm <b>Mở trên YouTube/TikTok</b> bên dưới để xem bằng app.</p>
                 <div class="vid-btns"><button type="button" id="vid-prev" aria-label="Video trước">‹ Trước</button><a id="vid-open" href="#" target="_blank" rel="noopener">Mở trên YouTube</a><button type="button" id="vid-next" aria-label="Video tiếp theo">Tiếp ›</button></div>
             </div>
@@ -25478,9 +25507,10 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         function img(it) { var u = QDVid.thumb(it); return u ? '<img src="' + H(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove()">' : ''; }
         function renderTab() {
             var tab = $('vid-tab'); if (!tab) return;
-            var L = all(), show = L.length > 0, was = tab.style.display !== 'none';
+            var L = all(), show = !!me(), was = tab.style.display !== 'none';
             tab.style.display = show ? '' : 'none';
-            if (show) {
+            if (show && !L.length) { $('vid-tab-sub').textContent = 'Chưa có video'; $('vid-mini').innerHTML = '<i class="vid-mini-play">＋</i>'; $('vid-tab-go').textContent = 'Chia sẻ video đầu tiên ›'; }
+            if (show && L.length) {
                 var nNew = L.filter(function (x) { return (x.createdAt || 0) > lastSeen(); }).length;
                 $('vid-tab-sub').textContent = nNew ? nNew + ' video mới' : L.length + ' video';
                 var newest = L.slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); })[0];
@@ -25500,7 +25530,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             g.innerHTML = LIST.length ? LIST.map(function (it, i) {
                 return '<button type="button" class="vid-card" data-i="' + i + '" aria-label="Xem video ' + H(it.title || '') + '">' +
                     '<span class="vid-th' + (it.v ? ' v' : '') + '">' + img(it) + ((it.createdAt || 0) > seen ? '<span class="vid-new">MỚI</span>' : '') + '<i class="vid-mini-play">▶</i><span class="vid-pf ' + (it.p === 'tiktok' ? 'tiktok' : '') + '">' + QDVid.name(it.p) + '</span></span>' +
-                    '<span class="vid-in"><b>' + (it.pin ? '📌 ' : '') + H(it.title || 'Video') + '</b>' + (it.desc ? '<span class="vid-ds">' + H(it.desc) + '</span>' : '') + '<small>' + ago(it.createdAt) + (it.author ? ' · ' + H(it.author) : '') + '</small></span></button>';
+                    '<span class="vid-in"><b>' + (it.pin ? '📌 ' : '') + H(it.title || 'Video') + '</b>' + (it.desc ? '<span class="vid-ds">' + H(it.desc) + '</span>' : '') + '<small>' + ago(it.createdAt) + (it.src === 'user' && it.byName ? ' · 👤 ' + H(it.byName) : (it.author ? ' · ' + H(it.author) : '')) + '</small></span></button>';
             }).join('') : '<div class="vid-empty">' + (A.length ? 'Không có video nào ở mục này.' : 'Chưa có video nào được chia sẻ. Quay lại sau nhé! 🎬') + '</div>';
         }
         function render() { renderTab(); renderGrid(); }
@@ -25519,7 +25549,8 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             watch(it);
             var pf = $('vid-pf'); pf.textContent = QDVid.name(it.p); pf.className = 'vid-pf ' + (it.p === 'tiktok' ? 'tiktok' : '');
             $('vid-t').textContent = (it.pin ? '📌 ' : '') + (it.title || 'Video');
-            $('vid-d').textContent = (it.desc ? it.desc + '\n' : '') + ago(it.createdAt) + (it.author ? ' · ' + it.author : '');
+            $('vid-d').textContent = (it.desc ? it.desc + '\n' : '') + ago(it.createdAt) + (it.src === 'user' && it.byName ? ' · chia sẻ bởi ' + it.byName : (it.author ? ' · ' + it.author : ''));
+            $('vid-mine').hidden = !(it.src === 'user' && it.by === me());
             var a = $('vid-open'); a.href = /^https:\/\//.test(it.url || '') ? it.url : (it.p === 'youtube' ? 'https://www.youtube.com/watch?v=' + it.id : 'https://www.tiktok.com/video/' + it.id);
             a.textContent = 'Mở trên ' + QDVid.name(it.p);
             $('vid-prev').disabled = idx <= 0; $('vid-next').disabled = idx >= LIST.length - 1;
@@ -25573,6 +25604,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             $('vid-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; filter = b.dataset.f || ''; Array.prototype.forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); }); renderGrid(); });
             $('vid-prev').addEventListener('click', function () { if (idx > 0) play(idx - 1); });
             $('vid-next').addEventListener('click', function () { if (idx < LIST.length - 1) play(idx + 1); });
+            $('vid-mine').addEventListener('click', removeMine);
             // Đóng trình phát (nút ✕, nút Quay lại, chạm ra ngoài) -> dừng video, bật lại nhạc nền nếu trước đó đang phát
             var ov = $('modal-vid');
             new MutationObserver(function () { if (!ov.classList.contains('active') && $('vid-frame').firstChild) { $('vid-frame').innerHTML = ''; idx = -1; ptok++; clearTimeout(ptm); music(false); } }).observe(ov, { attributes: true, attributeFilter: ['class'] });
@@ -25586,7 +25618,90 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             start();
         }
         if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
-        return { openList: openList, play: function (uid) { var i = LIST.map(function (x) { return x.uid; }).indexOf(uid); if (i < 0) { filter = ''; renderGrid(); i = LIST.map(function (x) { return x.uid; }).indexOf(uid); } play(i); } };
+        /* ---- Thành viên chia sẻ video (tối đa 3/ngày) + nhật ký video_share_log cho Admin ---- */
+        var LIMIT = 3, vsCur = null, vsSeq = 0;
+        function myName() { try { return (window.State && State.fullName) || me(); } catch (e) { return me(); } }
+        function log(act, it) {
+            try { firebase.firestore().collection('video_share_log').add({ act: act, user: me(), name: myName(), role: 'member', vuid: it.uid || '', p: it.p || '', id: it.id || '', url: it.url || '', title: it.title || '', time: Date.now() }); } catch (e) {}
+        }
+        function vsStatus(m, k) { var el = $('vs-status'); el.textContent = m || ''; el.className = 'vs-status' + (k ? ' ' + k : ''); }
+        function todayStart() { var x = new Date(); x.setHours(0, 0, 0, 0); return x.getTime(); }
+        function usedToday() {
+            return firebase.firestore().collection('video_share_log').where('user', '==', me()).get().then(function (q) {
+                var t0 = todayStart(), n = 0; q.forEach(function (doc) { var x = doc.data(); if (x.act === 'share' && x.role === 'member' && (x.time || 0) >= t0) n++; }); return n;
+            }).catch(function () { return ITEMS.filter(function (x) { return x.by === me() && x.src === 'user' && (x.createdAt || 0) >= todayStart(); }).length; });
+        }
+        function vsCheck() {
+            var raw = $('vs-url').value, o = QDVid.parse(raw), my = ++vsSeq; vsCur = null; $('vs-prev').hidden = true;
+            if (!raw.trim()) { vsStatus(''); return Promise.resolve(null); }
+            if (!o) { vsStatus('Link chưa đúng — chỉ nhận link video YouTube hoặc TikTok.', 'err'); return Promise.resolve(null); }
+            if (o.bad) { vsStatus(o.bad, 'err'); return Promise.resolve(null); }
+            vsStatus('⏳ Đang đọc video…');
+            return QDVid.meta(o).then(function (m) {
+                if (my !== vsSeq) return null;
+                if (o.short) { if (!m.id) { vsStatus('Không đọc được link rút gọn TikTok. Mở link rồi chép link đầy đủ (tiktok.com/@…/video/…).', 'err'); return null; } o.id = m.id; o.short = false; }
+                if (m.thumb && o.p === 'tiktok') o.thumb = m.thumb; o.title = m.title || ''; o.author = m.author || '';
+                if (o.title && (!$('vs-title').value.trim() || $('vs-title').dataset.auto === '1')) { $('vs-title').value = o.title.slice(0, 100); $('vs-title').dataset.auto = '1'; }
+                var dup = ITEMS.filter(function (x) { return x.p === o.p && x.id === o.id; })[0];
+                vsCur = o; $('vs-prev').hidden = false; $('vs-th').innerHTML = img(o) + '<i class="vid-mini-play" style="animation:none;width:28px;height:28px;margin:-14px 0 0 -14px;font-size:11px">▶</i>';
+                $('vs-pf').textContent = QDVid.name(o.p); $('vs-pf').className = 'vid-pf ' + (o.p === 'tiktok' ? 'tiktok' : ''); $('vs-t').textContent = $('vs-title').value.trim() || o.title || 'Video';
+                if (dup) { vsStatus('Video này đã có trong mục Video rồi.', 'err'); return null; }
+                vsStatus(o.title ? '✓ Link hợp lệ.' : '✓ Link hợp lệ — nhập thêm tiêu đề nhé.', 'ok'); return o;
+            });
+        }
+        function share() {
+            if (!me()) return;
+            ['vs-url', 'vs-title', 'vs-note'].forEach(function (id) { $(id).value = ''; }); $('vs-title').dataset.auto = ''; $('vs-prev').hidden = true; vsCur = null; vsStatus('');
+            UI.openModal('modal-vshare');
+            usedToday().then(function (n) { if (n >= LIMIT) vsStatus('Hôm nay bạn đã chia sẻ đủ ' + LIMIT + ' video. Mai quay lại nhé!', 'err'); });
+            if (!share.bound) {
+                share.bound = 1; var u = $('vs-url'), tm = 0;
+                u.addEventListener('paste', function () { setTimeout(vsCheck, 30); });
+                u.addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(vsCheck, 700); });
+                $('vs-title').addEventListener('input', function () { this.dataset.auto = ''; if (vsCur) $('vs-t').textContent = this.value.trim() || vsCur.title || 'Video'; });
+            }
+        }
+        function send() {
+            var btn = $('vs-send'); if (btn.disabled) return; btn.disabled = true;
+            var clean = function (v, n) { return String(v || '').replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim().slice(0, n); };
+            (vsCur ? Promise.resolve(vsCur) : vsCheck()).then(function (o) {
+                if (!o) return;
+                var title = clean($('vs-title').value, 100), note = clean($('vs-note').value, 200);
+                if (!title) { vsStatus('Nhập tiêu đề video.', 'err'); $('vs-title').focus(); return; }
+                return usedToday().then(function (n) {
+                    if (n >= LIMIT) { vsStatus('Hôm nay bạn đã chia sẻ đủ ' + LIMIT + ' video. Mai quay lại nhé!', 'err'); return; }
+                    vsStatus('⏳ Đang chia sẻ…');
+                    var db = firebase.firestore(), ref = db.collection('settings').doc('video_share');
+                    var item = { uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), p: o.p, id: o.id, v: !!o.v, t: o.t || 0, url: o.url, thumb: o.thumb || '', author: o.author || '', title: title, desc: note, pin: false, hidden: false, createdAt: Date.now(), by: me(), byName: myName(), src: 'user' };
+                    return db.runTransaction(function (tx) {
+                        return tx.get(ref).then(function (doc) {
+                            var items = doc.exists && Array.isArray(doc.data().items) ? doc.data().items.slice() : [];
+                            if (items.some(function (x) { return x.p === item.p && x.id === item.id; })) throw new Error('dup');
+                            items.unshift(item);
+                            if (items.length > 60) { var keep = items.filter(function (x) { return x.pin; }), rest = items.filter(function (x) { return !x.pin; }); items = keep.concat(rest).slice(0, 60); }
+                            tx.set(ref, { items: items, updatedAt: Date.now() }, { merge: true });
+                        });
+                    }).then(function () {
+                        log('share', item); UI.closeModal('modal-vshare');
+                        try { Utils.toast('Đã chia sẻ video 🎬', 'success'); } catch (e) {}
+                        filter = ''; setTimeout(function () { renderGrid(); }, 300);
+                    }).catch(function (e) { vsStatus(e && e.message === 'dup' ? 'Video này đã có trong mục Video rồi.' : 'Chưa chia sẻ được, thử lại sau.', 'err'); });
+                });
+            }).then(function () { btn.disabled = false; }, function () { btn.disabled = false; });
+        }
+        function removeMine() {
+            var it = LIST[idx]; if (!it || it.by !== me() || it.src !== 'user') return;
+            if (!confirm('Gỡ video "' + (it.title || '') + '" khỏi mục Video?')) return;
+            var db = firebase.firestore(), ref = db.collection('settings').doc('video_share');
+            db.runTransaction(function (tx) {
+                return tx.get(ref).then(function (doc) {
+                    var items = doc.exists && Array.isArray(doc.data().items) ? doc.data().items : [];
+                    tx.set(ref, { items: items.filter(function (x) { return !(x.uid === it.uid && x.by === me()); }), updatedAt: Date.now() }, { merge: true });
+                });
+            }).then(function () { log('self_remove', it); UI.closeModal('modal-vid'); try { Utils.toast('Đã gỡ video', 'success'); } catch (e) {} })
+              .catch(function () { try { Utils.toast('Chưa gỡ được, thử lại sau', 'error'); } catch (e) {} });
+        }
+        return { share: share, send: send, removeMine: removeMine, openList: openList, play: function (uid) { var i = LIST.map(function (x) { return x.uid; }).indexOf(uid); if (i < 0) { filter = ''; renderGrid(); i = LIST.map(function (x) { return x.uid; }).indexOf(uid); } play(i); } };
     })();
     </script>
 <style id="qd-balance">
