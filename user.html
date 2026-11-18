@@ -25869,7 +25869,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
             var onState = function () {
                 if (!S || S.pc !== pc) return;
                 var cs = pc.connectionState || pc.iceConnectionState;
-                if (cs === 'connected' || cs === 'completed') { $('qc-net').classList.remove('on'); clearTimeout(S.dropT); if (S.mode !== 'live') { S.mode = 'live'; S.liveAt = S.liveAt || Date.now(); stopTone(); ui('live'); wake(); clearInterval(S.tick); S.tick = setInterval(function () { st(); }, 1000); } }
+                if (cs === 'connected' || cs === 'completed') { $('qc-net').classList.remove('on'); clearTimeout(S.dropT); if (!S.statT) { sample(pc); S.statT = setInterval(function () { sample(pc); }, 4000); } if (S.mode !== 'live') { S.mode = 'live'; S.liveAt = S.liveAt || Date.now(); stopTone(); ui('live'); wake(); clearInterval(S.tick); S.tick = setInterval(function () { st(); }, 1000); } }
                 else if (cs === 'disconnected') { $('qc-net').classList.add('on'); clearTimeout(S.dropT); S.dropT = setTimeout(function () { if (S && S.pc === pc) finish('ended', 'Mất kết nối'); }, 15000); }
                 else if (cs === 'failed') finish('ended', S.liveAt ? 'Mất kết nối' : 'Không kết nối được (mạng chặn cuộc gọi)');
             };
@@ -25889,6 +25889,19 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
             for (; S.rc < list.length; S.rc++) { try { S.pc.addIceCandidate(JSON.parse(list[S.rc])).catch(function () {}); } catch (e) {} }
         }
         function connTimer() { clearTimeout(S.connT); var s0 = S; S.connT = setTimeout(function () { if (S === s0 && S.mode !== 'live') finish('ended', 'Không kết nối được — mạng đang chặn cuộc gọi. Thử Wi-Fi khác hoặc 4G.'); }, 25000); }
+        /* Đường đi của cuộc gọi: nối thẳng hay qua máy chủ trung chuyển (TURN), và dung lượng đã dùng -> Admin > Cuộc gọi */
+        function sample(pc) {
+            if (!pc || !pc.getStats) return; var s0 = S;
+            pc.getStats().then(function (rep) {
+                if (!s0 || S !== s0) return; var pair = null, byId = {};
+                rep.forEach(function (r) { byId[r.id] = r; });
+                rep.forEach(function (r) { if (r.type === 'transport' && r.selectedCandidatePairId && byId[r.selectedCandidatePairId]) pair = byId[r.selectedCandidatePairId]; });
+                if (!pair) rep.forEach(function (r) { if (r.type === 'candidate-pair' && r.state === 'succeeded' && (r.nominated || r.selected) && (!pair || (r.bytesReceived || 0) > (pair.bytesReceived || 0))) pair = r; });
+                if (!pair) return;
+                var lc = byId[pair.localCandidateId] || {}, rc = byId[pair.remoteCandidateId] || {};
+                s0.net = { relay: lc.candidateType === 'relay', path: lc.candidateType === 'relay' || rc.candidateType === 'relay' ? 'relay' : 'direct', bytes: (pair.bytesSent || 0) + (pair.bytesReceived || 0), proto: String(lc.relayProtocol || lc.protocol || ''), at: Date.now() };
+            }).catch(function () {});
+        }
         function gathered(pc) {   // chờ gom đủ địa chỉ mạng (tối đa 3,5 giây) -> gửi 1 lần, không cần trao đổi từng địa chỉ
             return new Promise(function (res) {
                 if (pc.iceGatheringState === 'complete') return res();
@@ -25986,13 +25999,21 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
                 var text = dur ? '📞 Cuộc gọi ' + kind + ' · ' + fmt(dur) : st2 === 'declined' ? '📵 Cuộc gọi ' + kind + ' bị từ chối' : st2 === 'busy' ? '📵 Cuộc gọi ' + kind + ' — người nhận đang bận' : '📵 Cuộc gọi ' + kind + ' nhỡ';
                 try { db().collection('private_chat').add({ conversationId: Utils.getRoomId(me(), s.peer), from: me(), to: s.peer, text: text, imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [], call: { type: s.type, dur: Math.round(dur / 1000), status: dur ? 'done' : st2 } }); } catch (e) {}
             }
+            if (s.id) try {
+                var side = s.role === 'caller' ? 'From' : 'To', L = { updatedAt: Date.now() };
+                if (s.role === 'caller') { L.from = me(); L.to = s.peer; L.fromName = State.fullName || me(); L.toName = nameOf(s.peer); L.type = s.type; L.created = (s.doc && s.doc.created) || Date.now(); L.status = dur ? 'done' : (logAs || status || (s.doc && s.doc.status) || 'ended'); L.dur = Math.round(dur / 1000); }
+                else if (dur) L.dur = Math.round(dur / 1000);
+                if (s.net) L['net' + side] = s.net;
+                db().collection('call_log').doc(s.id).set(L, { merge: true }).catch(function () {});
+                if (s.role === 'caller') { var cid = s.id; setTimeout(function () { var FV = firebase.firestore.FieldValue; db().collection('calls').doc(cid).update({ offer: FV.delete(), answer: FV.delete(), cFrom: FV.delete(), cTo: FV.delete() }).catch(function () {}); }, 8000); }
+            } catch (e) {}
             if (s.mode !== 'in') tone('end');
             if (msg) { $('qc-st').textContent = msg; $('qd-call').classList.remove('ring', 'live', 'idle'); }
             cleanup(msg ? 1300 : 0);
         }
         function cleanup(delay) {
             var s = S; S = null; if (!s) return; stopTone();
-            clearTimeout(s.ringT); clearInterval(s.tick); clearTimeout(s.dropT); clearTimeout(s.connT); clearTimeout(idleT);
+            clearTimeout(s.ringT); clearInterval(s.tick); clearInterval(s.statT); clearTimeout(s.dropT); clearTimeout(s.connT); clearTimeout(idleT);
             try { s.unsub && s.unsub(); } catch (e) {}
             try { s.pc && s.pc.close(); } catch (e) {}
             [s.local, s.screen].forEach(function (m) { try { m && m.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} });

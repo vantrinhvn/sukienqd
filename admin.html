@@ -798,6 +798,14 @@ html.qd-lite .qd-fx { display: none !important; }
 })();
     </script>
     <style id="vsh-admin-css">
+        .qcl-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        @media (max-width: 1023px) { .qcl-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .qcl-stats .card { padding: 14px 16px; } .qcl-stats small { display: block; color: var(--text-muted); font-size: 12.5px; } .qcl-stats b { display: block; font-size: 24px; margin: 4px 0 2px; } .qcl-stats span { font-size: 12.5px; color: var(--text-muted); }
+        .qq-bar { height: 10px; border-radius: 999px; background: var(--bg-elevated); overflow: hidden; margin: 6px 0 4px; } .qq-bar > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22c55e, #84cc16); }
+        .qq-bar.warn > i { background: linear-gradient(90deg, #f59e0b, #f97316); } .qq-bar.bad > i { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .qq-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } @media (max-width: 900px) { .qq-grid { grid-template-columns: 1fr; } }
+        .qq-big { font-size: 22px; font-weight: 800; color: var(--text-main); }
+        .qcl-ok { color: #22c55e; } .qcl-miss { color: #f59e0b; } .qcl-bad { color: #ef4444; }
         .qcall-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
         @media (max-width: 900px) { .qcall-grid { grid-template-columns: 1fr; } }
         #view-videos [hidden] { display: none !important; }
@@ -1253,6 +1261,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="reportbot"> Bot Báo Cáo</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="apppush"> Thông Báo App</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="videos"> Chia Sẻ Video</label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="calls"> Cuộc Gọi</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="gifts"> Quà Toàn Hệ Thống</label>
                     <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="approvals"> Phê Duyệt TK</label>
                 </div>
@@ -1390,6 +1399,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('reportbot')" style="--tone: #f59e0b;"><div class="m-menu-icon"><i class="fa-solid fa-robot"></i></div><span>Bot báo cáo</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('apppush')" style="--tone: #3b82f6;"><div class="m-menu-icon"><i class="fa-solid fa-bell"></i></div><span>Thông báo app</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('videos')" style="--tone: #ef4444;"><div class="m-menu-icon"><i class="fa-solid fa-film"></i></div><span>Chia sẻ video</span></div>
+                    <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('calls')" style="--tone: #22c55e;"><div class="m-menu-icon"><i class="fa-solid fa-phone"></i></div><span>Cuộc gọi</span></div>
                 </div>
             </div>
 
@@ -1482,6 +1492,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <button type="button" title="Bot báo cáo" class="nav-item" onclick="UI.navigate('reportbot', this)" style="--tone: #f59e0b;"><i class="fa-solid fa-robot"></i><span>Bot báo cáo</span></button>
                     <button type="button" title="Thông báo app" class="nav-item" onclick="UI.navigate('apppush', this)" style="--tone: #3b82f6;"><i class="fa-solid fa-bell"></i><span>Thông báo app</span></button>
                     <button type="button" title="Chia sẻ video" class="nav-item" onclick="UI.navigate('videos', this)" style="--tone: #ef4444;"><i class="fa-solid fa-film"></i><span>Chia sẻ video</span></button>
+                    <button type="button" title="Cuộc gọi" class="nav-item" onclick="UI.navigate('calls', this)" style="--tone: #22c55e;"><i class="fa-solid fa-phone"></i><span>Cuộc gọi</span></button>
                 </div>
             </nav>
             <div class="sb-foot">
@@ -1659,6 +1670,10 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="card mod-card" onclick="UI.navigate('videos')" style="--tone: #ef4444;">
                                 <span class="mod-ico"><i class="fa-solid fa-film"></i></span>
                                 <div><h4>Chia sẻ video</h4><p>Dán link YouTube / TikTok để thành viên xem ngay trong trang và app.</p></div>
+                            </div>
+                            <div class="card mod-card" onclick="UI.navigate('calls')" style="--tone: #22c55e;">
+                                <span class="mod-ico"><i class="fa-solid fa-phone"></i></span>
+                                <div><h4>Cuộc gọi</h4><p>Lịch sử gọi thoại / video, thời lượng, dung lượng máy chủ trung chuyển.</p></div>
                             </div>
                         </div>
                     </div>
@@ -3654,6 +3669,45 @@ html.qd-lite .qd-fx { display: none !important; }
                     </div>
                 </section>
 
+                <section id="view-calls" class="view-section">
+                    <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
+                        <div>
+                            <h1 style="font-size: 28px; margin-bottom: 4px;">Cuộc Gọi</h1>
+                            <p class="text-muted">Lịch sử gọi thoại / video giữa thành viên, thời lượng, và dung lượng máy chủ trung chuyển (TURN) đã dùng.</p>
+                        </div>
+                        <select id="qcl-month" class="form-control" style="width: auto; min-width: 160px;"></select>
+                    </div>
+                    <div class="qcl-stats mb-6" id="qcl-stats"></div>
+                    <div class="card mb-6" style="padding: 18px 22px;" id="qcl-turn">
+                        <div class="flex justify-between items-center flex-wrap gap-2"><h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-server" style="color: #8b5cf6;"></i> Máy chủ trung chuyển tháng này</h3><a class="text-sm" href="https://www.expressturn.com/" target="_blank" rel="noopener" style="color: var(--brand-primary)">Số chính xác: trang ExpressTURN ↗</a></div>
+                        <div id="qcl-turn-body" class="mt-3 text-sm text-muted">Đang tính…</div>
+                    </div>
+                    <div class="card" id="qcall-card" style="padding: 20px 24px;">
+                        <h3 class="text-lg m-0 mb-2 flex items-center gap-2"><i class="fa-solid fa-phone" style="color: #22c55e;"></i> Máy chủ trung chuyển cuộc gọi (TURN)</h3>
+                        <p class="text-muted text-sm mb-3">Khi 2 máy không nối thẳng được (hay gặp với 4G), cuộc gọi đi qua máy chủ này. Đăng ký miễn phí tại <a href="https://www.expressturn.com/signup" target="_blank" rel="noopener" style="color: var(--brand-primary)">expressturn.com</a> (1 TB/tháng), rồi chép 3 thông tin trong trang quản lý vào đây.</p>
+                        <div class="qcall-grid">
+                            <div class="form-group"><label class="form-label">Địa chỉ máy chủ</label><input id="qcall-url" class="form-control" placeholder="VD: relay1.expressturn.com:3478" autocomplete="off" spellcheck="false"></div>
+                            <div class="form-group"><label class="form-label">Tên (turn_username)</label><input id="qcall-user" class="form-control" autocomplete="off" spellcheck="false"></div>
+                            <div class="form-group"><label class="form-label">Mật khẩu (turn_password)</label><input id="qcall-pass" class="form-control" autocomplete="off" spellcheck="false"></div>
+                        </div>
+                        <div class="form-group mt-3" style="max-width: 260px;"><label class="form-label">Dung lượng gói (GB / tháng)</label><input id="qcall-gb" class="form-control" type="number" min="1" step="1" value="1000"></div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+                            <button type="button" class="btn btn-outline" onclick="QDCallAdmin.test()"><i class="fa-solid fa-stethoscope"></i> Kiểm tra</button>
+                            <button type="button" class="btn btn-primary" onclick="QDCallAdmin.save()"><i class="fa-solid fa-floppy-disk"></i> Lưu & dùng ngay</button>
+                            <button type="button" class="btn btn-outline" onclick="QDCallAdmin.clear()" title="Bỏ máy chủ riêng, dùng máy chủ công cộng">Bỏ</button>
+                        </div>
+                        <p class="text-sm mt-3 mb-0" id="qcall-st"></p>
+                    </div>
+                    <div class="card" style="padding: 20px 24px; margin-top: 24px;">
+                        <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+                            <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left" style="color: #f59e0b;"></i> Lịch sử cuộc gọi</h3>
+                            <div class="vsh-filt" id="qcl-filt"><button type="button" class="on" data-f="">Tất cả</button><button type="button" data-f="done">Đã nghe</button><button type="button" data-f="miss">Nhỡ / từ chối</button><button type="button" data-f="relay">Qua máy chủ</button></div>
+                        </div>
+                        <input id="qcl-q" class="form-control mb-3" placeholder="Tìm theo tên người gọi / người nhận…" autocomplete="off">
+                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Thời gian</th><th>Người gọi → Người nhận</th><th>Loại</th><th>Kết quả</th><th>Kết nối</th><th>Dung lượng</th></tr></thead><tbody id="qcl-list"><tr><td colspan="6" class="text-muted">Đang tải…</td></tr></tbody></table></div>
+                    </div>
+                </section>
+
                 <section id="view-apppush" class="view-section">
                     <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
@@ -3662,6 +3716,10 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                     </div>
 
+                    <div class="card mb-8 qq-card" id="qq-card" style="padding: 18px 22px;">
+                        <div class="flex justify-between items-center flex-wrap gap-2 mb-3"><h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-gauge-high" style="color: #22c55e;"></i> Hạn mức gửi thông báo hôm nay</h3><span class="text-muted text-xs" id="qq-at"></span></div>
+                        <div id="qq-body" class="text-sm text-muted">Đang đọc…</div>
+                    </div>
                     <div class="pushn-stats mb-8">
                         <div class="card pushn-stat"><span class="pushn-k">📱 Máy đang nhận</span><b id="pushn-n-dev">–</b></div>
                         <div class="card pushn-stat"><span class="pushn-k">👥 Tài khoản</span><b id="pushn-n-acc">–</b></div>
@@ -3764,21 +3822,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             </div>
                         </div>
                     </div>
-                    <div class="card" id="qcall-card" style="padding: 20px 24px; margin-top: 20px;">
-                        <h3 class="text-lg m-0 mb-2 flex items-center gap-2"><i class="fa-solid fa-phone" style="color: #22c55e;"></i> Máy chủ trung chuyển cuộc gọi (TURN)</h3>
-                        <p class="text-muted text-sm mb-3">Khi 2 máy không nối thẳng được (hay gặp với 4G), cuộc gọi đi qua máy chủ này. Đăng ký miễn phí tại <a href="https://www.expressturn.com/signup" target="_blank" rel="noopener" style="color: var(--brand-primary)">expressturn.com</a> (1 TB/tháng), rồi chép 3 thông tin trong trang quản lý vào đây.</p>
-                        <div class="qcall-grid">
-                            <div class="form-group"><label class="form-label">Địa chỉ máy chủ</label><input id="qcall-url" class="form-control" placeholder="VD: relay1.expressturn.com:3478" autocomplete="off" spellcheck="false"></div>
-                            <div class="form-group"><label class="form-label">Tên (turn_username)</label><input id="qcall-user" class="form-control" autocomplete="off" spellcheck="false"></div>
-                            <div class="form-group"><label class="form-label">Mật khẩu (turn_password)</label><input id="qcall-pass" class="form-control" autocomplete="off" spellcheck="false"></div>
-                        </div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
-                            <button type="button" class="btn btn-outline" onclick="QDCallAdmin.test()"><i class="fa-solid fa-stethoscope"></i> Kiểm tra</button>
-                            <button type="button" class="btn btn-primary" onclick="QDCallAdmin.save()"><i class="fa-solid fa-floppy-disk"></i> Lưu & dùng ngay</button>
-                            <button type="button" class="btn btn-outline" onclick="QDCallAdmin.clear()" title="Bỏ máy chủ riêng, dùng máy chủ công cộng">Bỏ</button>
-                        </div>
-                        <p class="text-sm mt-3 mb-0" id="qcall-st"></p>
-                    </div>
+
                 </section>
 
                 <!-- VIEW BOT BÁO CÁO (lịch + nội dung + xem trước + lịch sử, tất cả ngay trong Admin) -->
@@ -6019,7 +6063,7 @@ const QVis = {
                                 return;
                             }
 
-                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals', 'reportbot', 'apppush', 'videos', 'gifts'];
+                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals', 'reportbot', 'apppush', 'videos', 'calls', 'gifts'];
                             
                             // 2. NẾU LÀ MANAGER THÌ ẨN/HIỆN CHỨC NĂNG THEO QUYỀN
                             if (myRole === 'manager') {
@@ -8019,6 +8063,7 @@ exportAttendanceExcel: () => {
             reportbot: ['Thi đấu & tin tức', 'Bot báo cáo'],
             apppush: ['Thi đấu & tin tức', 'Thông báo app'],
             videos: ['Thi đấu & tin tức', 'Chia sẻ video'],
+            calls: ['Thi đấu & tin tức', 'Cuộc gọi'],
             gifts: ['Giải trí & thưởng', 'Quà toàn hệ thống'],
             transfer: ['Giải trí & thưởng', 'Tặng lượt'],
             payout: ['Giải trí & thưởng', 'Trả thưởng tiền mặt'],
@@ -15517,7 +15562,7 @@ window.QDXlsx = (function () {
             if (!t) el.innerHTML = '<span style="color:#f59e0b">⚠ Chưa cài</span><br><span class="text-muted text-xs">Dán bot-server bản srv-9 vào Google Apps Script rồi chạy CAI_DAT.</span>';
             else if (age > 12 * 60000) el.innerHTML = '<span style="color:#ef4444">● Ngưng</span><br><span class="text-muted text-xs">Lần cuối ' + fmt(t) + '. Mở Apps Script chạy lại CAI_DAT.</span>';
             else if (SRV.ok === false) el.innerHTML = '<span style="color:#ef4444">● Có lỗi</span><br><span class="text-muted text-xs">' + esc(SRV.err || '') + '</span>';
-            else el.innerHTML = '<span style="color:#22c55e">● Đang chạy</span><br><span class="text-muted text-xs">' + (fast() ? '⚡ Gửi nhanh' : 'Kiểm tra mỗi phút') + (SRV.lastSent ? ' · gửi gần nhất ' + fmt(SRV.lastSent) : '') + (SRV.ver && (+String(SRV.ver).replace(/\D/g, '') || 0) < 9 ? '<br><span style="color:#f59e0b">⚠ Máy chủ đang bản ' + esc(SRV.ver) + ' — cập nhật srv-9 để Bot báo cáo báo lên điện thoại.</span>' : '') + '</span>';
+            else el.innerHTML = '<span style="color:#22c55e">● Đang chạy</span><br><span class="text-muted text-xs">' + (fast() ? '⚡ Gửi nhanh' : 'Kiểm tra mỗi phút') + (SRV.lastSent ? ' · gửi gần nhất ' + fmt(SRV.lastSent) : '') + (SRV.ver && (+String(SRV.ver).replace(/\D/g, '') || 0) < 11 ? '<br><span style="color:#f59e0b">⚠ Máy chủ đang bản ' + esc(SRV.ver) + ' — cập nhật srv-11 (gọi điện, đếm hạn mức).</span>' : '') + '</span>';
         }
         // Hộp xác nhận theo giao diện Admin (thay hộp hỏi mặc định của trình duyệt)
         var waiting = null;
@@ -16001,20 +16046,127 @@ window.QDXlsx = (function () {
             var e = entry(); if (!e) return;
             test().then(function (ok) {
                 if (!ok && !confirm('Kiểm tra chưa đạt. Vẫn lưu?')) return;
-                return ref().set({ iceServers: [e], updatedAt: Date.now(), by: (window.State && State.currentUser) || 'admin' }, { merge: true }).then(function () { st('✓ Đã lưu — các cuộc gọi mới dùng máy chủ này ngay.', 'ok'); try { Utils.toast('Đã lưu máy chủ cuộc gọi', 'success'); } catch (x) {} });
+                return ref().set({ iceServers: [e], quotaGB: Math.max(1, +$('qcall-gb').value || 1000), updatedAt: Date.now(), by: (window.State && State.currentUser) || 'admin' }, { merge: true }).then(function () { st('✓ Đã lưu — các cuộc gọi mới dùng máy chủ này ngay.', 'ok'); try { Utils.toast('Đã lưu máy chủ cuộc gọi', 'success'); } catch (x) {} });
             }).catch(function (x) { st('✗ Không lưu được' + (x && x.code ? ' (' + x.code + ')' : ''), 'err'); });
         }
         function clear() { ref().set({ iceServers: [], updatedAt: Date.now() }, { merge: true }).then(function () { $('qcall-url').value = $('qcall-user').value = $('qcall-pass').value = ''; st('Đã bỏ — dùng máy chủ công cộng.', 'ok'); }); }
         function boot() {
             if (booted || !window.firebase || !firebase.apps || !firebase.apps.length) return; booted = true;
-            ref().get().then(function (d) { var c = d.exists ? d.data() : {}, e = (c.iceServers || [])[0]; if (!e) return st('Chưa có máy chủ riêng — đang dùng máy chủ công cộng (có thể không ổn định).');
+            ref().get().then(function (d) { var c = d.exists ? d.data() : {}, e = (c.iceServers || [])[0]; if (c.quotaGB) $('qcall-gb').value = c.quotaGB; if (!e) return st('Chưa có máy chủ riêng — đang dùng máy chủ công cộng (có thể không ổn định).');
                 var u = String((e.urls || [])[0] || '').replace(/^turns?:/, '').replace(/\?.*$/, ''); $('qcall-url').value = u; $('qcall-user').value = e.username || ''; $('qcall-pass').value = e.credential || ''; st('Đang dùng máy chủ riêng: ' + u, 'ok'); }).catch(function () {});
         }
         (function hook(n) {
             if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
-            var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'apppush') boot(); return r; };
+            var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'calls') boot(); return r; };
         })(0);
         return { test: test, save: save, clear: clear };
+    })();
+    </script>
+    <script id="qcl-admin-js">
+    /* ===== Admin > Cuộc gọi: lịch sử (call_log), thời lượng, dung lượng máy chủ trung chuyển ===== */
+    window.QDCallLog = (function () {
+        var $ = function (id) { return document.getElementById(id); }, H = window.qdH, booted = false, unsub = null, LOG = [], F = '', GB = 1000;
+        function fs() { return firebase.firestore(); }
+        function mStart(off) { var d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); d.setMonth(d.getMonth() - (off || 0)); return d; }
+        function mb(b) { b = +b || 0; return b >= 1e9 ? (b / 1e9).toFixed(2) + ' GB' : b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : b >= 1e3 ? Math.round(b / 1e3) + ' KB' : b + ' B'; }
+        function dur(sec) { sec = Math.round(sec || 0); var h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, x = sec % 60; return h ? h + ' giờ ' + m + ' phút' : m ? m + ' phút ' + (x < 10 ? '0' : '') + x + 's' : x + ' giây'; }
+        function mmss(sec) { sec = Math.round(sec || 0); var m = Math.floor(sec / 60), x = sec % 60; return (m < 10 ? '0' : '') + m + ':' + (x < 10 ? '0' : '') + x; }
+        function fmt(t) { var d = new Date(t || 0); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ' ' + d.getDate() + '/' + (d.getMonth() + 1); }
+        function relayBytes(x) { var b = 0; ['netFrom', 'netTo'].forEach(function (k) { var n = x[k]; if (n && n.relay) b += +n.bytes || 0; }); return b; }
+        function path(x) { var a = x.netFrom, b = x.netTo; if ((a && a.path === 'relay') || (b && b.path === 'relay')) return 'relay'; if (a || b) return 'direct'; return ''; }
+        function result(x) {
+            if (x.status === 'done' || x.dur > 0) return '<span class="qcl-ok">✓ Đã nghe · ' + mmss(x.dur) + '</span>';
+            if (x.status === 'missed') return '<span class="qcl-miss">Nhỡ</span>';
+            if (x.status === 'declined') return '<span class="qcl-miss">Từ chối</span>';
+            if (x.status === 'busy') return '<span class="qcl-miss">Máy bận</span>';
+            return '<span class="qcl-bad">Không nối được</span>';
+        }
+        function render() {
+            var t0 = new Date(); t0.setHours(0, 0, 0, 0);
+            var done = LOG.filter(function (x) { return x.dur > 0; }), miss = LOG.filter(function (x) { return !(x.dur > 0) && /missed|declined|busy/.test(x.status || ''); }), fail = LOG.filter(function (x) { return !(x.dur > 0) && !/missed|declined|busy/.test(x.status || ''); });
+            var today = LOG.filter(function (x) { return (x.created || 0) >= t0.getTime(); }), talk = done.reduce(function (a, x) { return a + (+x.dur || 0); }, 0);
+            var vid = LOG.filter(function (x) { return x.type === 'video'; }).length;
+            $('qcl-stats').innerHTML =
+                '<div class="card"><small>📞 Cuộc gọi trong tháng</small><b>' + LOG.length + '</b><span>' + vid + ' video · ' + (LOG.length - vid) + ' thoại</span></div>' +
+                '<div class="card"><small>⏱️ Tổng thời gian nói</small><b>' + Math.round(talk / 60) + ' phút</b><span>' + done.length + ' cuộc đã nghe' + (done.length ? ' · TB ' + mmss(talk / done.length) : '') + '</span></div>' +
+                '<div class="card"><small>📵 Nhỡ / từ chối / bận</small><b>' + miss.length + '</b><span>' + (fail.length ? '<span class="qcl-bad">' + fail.length + ' cuộc không nối được</span>' : 'Không có cuộc lỗi') + '</span></div>' +
+                '<div class="card"><small>📅 Hôm nay</small><b>' + today.length + '</b><span>' + Math.round(today.reduce(function (a, x) { return a + (+x.dur || 0); }, 0) / 60) + ' phút nói</span></div>';
+            var rb = LOG.reduce(function (a, x) { return a + relayBytes(x); }, 0), quota = GB * 1e9, pct = Math.min(100, rb / quota * 100), nRelay = LOG.filter(function (x) { return path(x) === 'relay'; }).length;
+            var cur = $('qcl-month').value === '0';
+            $('qcl-turn-body').innerHTML = '<div class="flex justify-between flex-wrap gap-2"><span>Đã dùng <b class="qq-big">' + mb(rb) + '</b> / ' + GB + ' GB</span><span>' + (cur ? 'Còn khoảng <b>' + mb(Math.max(0, quota - rb)) + '</b>' : 'Tháng đã chọn') + '</span></div>' +
+                '<div class="qq-bar' + (pct > 90 ? ' bad' : pct > 70 ? ' warn' : '') + '"><i style="width:' + Math.max(pct, rb ? 1 : 0).toFixed(1) + '%"></i></div>' +
+                '<span class="text-muted">' + nRelay + ' / ' + done.length + ' cuộc đã nghe phải đi qua máy chủ (các cuộc còn lại nối thẳng, không tốn dung lượng). Số đo do máy người gọi gửi về — có thể lệch nhẹ so với trang ExpressTURN.</span>';
+            var fold = function (v) { return String(v || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd'); }, q = fold($('qcl-q').value.trim());
+            var L = LOG.filter(function (x) {
+                if (F === 'done' && !(x.dur > 0)) return false; if (F === 'miss' && x.dur > 0) return false; if (F === 'relay' && path(x) !== 'relay') return false;
+                return !q || fold([x.from, x.to, x.fromName, x.toName].join(' ')).indexOf(q) >= 0;
+            });
+            $('qcl-list').innerHTML = L.length ? L.slice(0, 400).map(function (x) {
+                var pth = path(x), rbx = relayBytes(x), tot = ['netFrom', 'netTo'].reduce(function (a, k) { return Math.max(a, (x[k] && +x[k].bytes) || 0); }, 0);
+                return '<tr><td style="white-space:nowrap">' + fmt(x.created) + '</td><td class="vsh-who"><b>' + H(x.fromName || x.from || '?') + '</b> → <b>' + H(x.toName || x.to || '?') + '</b><small>@' + H(x.from || '') + ' → @' + H(x.to || '') + '</small></td>' +
+                    '<td style="white-space:nowrap">' + (x.type === 'video' ? '🎥 Video' : '📞 Thoại') + '</td><td style="white-space:nowrap">' + result(x) + '</td>' +
+                    '<td style="white-space:nowrap">' + (pth === 'relay' ? '<span style="color:#8b5cf6">🔁 Qua máy chủ</span>' : pth === 'direct' ? '↔️ Trực tiếp' : '<span class="text-muted">—</span>') + '</td>' +
+                    '<td style="white-space:nowrap">' + (rbx ? '<b>' + mb(rbx) + '</b>' : tot ? '<span class="text-muted">' + mb(tot) + '</span>' : '<span class="text-muted">—</span>') + '</td></tr>';
+            }).join('') : '<tr><td colspan="6" class="text-muted">Chưa có cuộc gọi' + (F || q ? ' phù hợp' : ' trong tháng này') + '.</td></tr>';
+        }
+        function load() {
+            var off = +$('qcl-month').value || 0, a = mStart(off).getTime(), b = mStart(off - 1).getTime();
+            if (unsub) try { unsub(); } catch (e) {}
+            $('qcl-list').innerHTML = '<tr><td colspan="6" class="text-muted">Đang tải…</td></tr>';
+            unsub = fs().collection('call_log').where('created', '>=', a).where('created', '<', b).orderBy('created', 'desc').limit(2000).onSnapshot(function (q) {
+                LOG = []; q.forEach(function (d) { var x = d.data(); x.id = d.id; LOG.push(x); }); LOG.sort(function (x, y) { return (y.created || 0) - (x.created || 0); }); render();
+            }, function (e) { $('qcl-list').innerHTML = '<tr><td colspan="6" style="color:#ef4444">Không đọc được lịch sử (' + H(e && e.code || 'lỗi') + ').</td></tr>'; });
+        }
+        function boot() {
+            if (booted) { return; } if (!window.firebase || !firebase.apps || !firebase.apps.length) return; booted = true;
+            var sel = $('qcl-month'); for (var i = 0; i < 6; i++) { var d = mStart(i), o = document.createElement('option'); o.value = String(i); o.textContent = (i ? '' : 'Tháng này · ') + 'Tháng ' + (d.getMonth() + 1) + '/' + d.getFullYear(); sel.appendChild(o); }
+            sel.addEventListener('change', load);
+            $('qcl-filt').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; F = b.dataset.f || ''; Array.prototype.forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); }); render(); });
+            var qt = 0; $('qcl-q').addEventListener('input', function () { clearTimeout(qt); qt = setTimeout(render, 200); });
+            fs().collection('settings').doc('call_config').onSnapshot(function (d) { var c = d.exists ? d.data() : {}; GB = +c.quotaGB || 1000; render(); }, function () {});
+            load();
+        }
+        (function hook(n) {
+            if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
+            var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'calls') boot(); return r; };
+        })(0);
+        return { reload: function () { if (booted) load(); } };
+    })();
+
+    /* ===== Admin > Thông báo app: hạn mức Google hôm nay (máy chủ srv-11 ghi vào settings/push_server.use) ===== */
+    window.QDQuota = (function () {
+        var $ = function (id) { return document.getElementById(id); }, booted = false, SRV = {};
+        function vnDay(t) { return new Date((t || Date.now()) + 7 * 3600000).toISOString().slice(0, 10); }
+        function minsVN() { var d = new Date(Date.now() + 7 * 3600000); return d.getUTCHours() * 60 + d.getUTCMinutes(); }
+        function num(n) { return Math.round(n).toLocaleString('vi-VN'); }
+        function bar(p) { return '<div class="qq-bar' + (p > 90 ? ' bad' : p > 70 ? ' warn' : '') + '"><i style="width:' + Math.min(100, Math.max(p, 1)).toFixed(1) + '%"></i></div>'; }
+        function render() {
+            var u = SRV.use, b = $('qq-body');
+            if (!u) { b.innerHTML = 'Máy chủ chưa gửi số đếm. Cập nhật máy chủ lên <b>srv-11</b> (trang <a href="https://vantrinhvn.github.io/sukienqd/server/" target="_blank" rel="noopener" style="color:var(--brand-primary)">lấy mã máy chủ</a>) để xem còn gửi được bao nhiêu thông báo.<br><span class="text-muted">Firebase (FCM) miễn phí và không giới hạn số tin — giới hạn nằm ở máy chủ Google Apps Script.</span>'; $('qq-at').textContent = ''; return; }
+            var same = u.day === vnDay(), f = same ? +u.f || 0 : 0, n = same ? +u.n || 0 : 0, ms = same ? +u.ms || 0 : 0, limF = +u.limF || 20000, limMs = (+u.limMin || 90) * 60000;
+            var el = Math.max(1, minsVN()), left = Math.max(0, 1440 - el);
+            var bg = Math.max(0, f - n), projF = bg / el * left, canPush = Math.max(0, limF - f - projF);
+            var projMs = ms / el * left, endAt = ms + projMs;
+            var pf = f / limF * 100, pm = ms / limMs * 100;
+            b.innerHTML = '<div class="qq-grid">' +
+                '<div><small class="text-muted">📨 Còn gửi được khoảng</small><div class="qq-big">' + num(canPush) + ' thông báo</div><span class="text-muted">Hôm nay đã gửi ' + num(n) + '. Mỗi máy nhận 1 tin = 1 lượt.</span></div>' +
+                '<div><small class="text-muted">🌐 Lượt gọi mạng (UrlFetch)</small><div><b>' + num(f) + '</b> / ' + num(limF) + '</div>' + bar(pf) + '<span class="text-muted">Máy chủ tự dùng ~' + num(bg / el * 60) + ' lượt/giờ để kiểm tra tin mới.</span></div>' +
+                '<div><small class="text-muted">⏱️ Thời gian chạy hẹn giờ</small><div><b>' + (ms / 60000).toFixed(1) + '</b> / ' + (limMs / 60000) + ' phút</div>' + bar(pm) +
+                (endAt > limMs ? '<span class="qcl-bad">⚠ Dự kiến hết hạn mức trước nửa đêm — máy chủ sẽ tạm ngừng tới khi Google đặt lại.</span>' : '<span class="text-muted">Dự kiến dùng ~' + (endAt / 60000).toFixed(0) + ' phút cả ngày — đủ.</span>') + '</div>' +
+                '</div><p class="text-muted text-xs mt-3 mb-0">Firebase (FCM) miễn phí, không giới hạn số tin; giới hạn là của Google Apps Script (tài khoản Gmail thường). Số đếm làm mới mỗi 5 phút.</p>';
+            $('qq-at').textContent = same ? 'Cập nhật ' + new Date(u.at || 0).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa có số của hôm nay';
+        }
+        function boot() {
+            if (booted || !window.firebase || !firebase.apps || !firebase.apps.length) return; booted = true;
+            firebase.firestore().collection('settings').doc('push_server').onSnapshot(function (d) { SRV = d.exists ? d.data() : {}; render(); }, function () {});
+            setInterval(function () { if (document.getElementById('view-apppush').classList.contains('active')) render(); }, 60000);
+        }
+        (function hook(n) {
+            if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
+            var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'apppush') boot(); return r; };
+            var sec = document.getElementById('view-apppush'); if (sec && sec.classList.contains('active')) boot();
+        })(0);
+        return { render: render };
     })();
     </script>
 <style id="qd-balance">

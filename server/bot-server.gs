@@ -1,5 +1,9 @@
 /* =====================================================================================
-   QD ELITE - MÁY CHỦ TỰ GỬI BOT BÁO CÁO + THÔNG BÁO APP ANDROID (Google Apps Script, miễn phí)  · bản srv-10
+   QD ELITE - MÁY CHỦ TỰ GỬI BOT BÁO CÁO + THÔNG BÁO APP ANDROID (Google Apps Script, miễn phí)  · bản srv-11
+   -------------------------------------------------------------------------------------
+   BẢN srv-11: ĐẾM HẠN MỨC GOOGLE ĐỂ ADMIN BIẾT CÒN GỬI ĐƯỢC BAO NHIÊU THÔNG BÁO
+   - Đếm số lượt gọi mạng (UrlFetch) và thời gian chạy hẹn giờ mỗi ngày -> Admin > Thông báo app hiện "Hạn mức hôm nay".
+   - Tài khoản Gmail thường: 20.000 lượt gọi mạng / ngày, 90 phút chạy hẹn giờ / ngày (sửa QUOTA bên dưới nếu dùng Google Workspace).
    -------------------------------------------------------------------------------------
    BẢN srv-10: GỌI THOẠI / GỌI VIDEO TRONG TIN NHẮN
    - Có người gọi mà máy người nhận đang tắt app -> điện thoại đổ chuông như cuộc gọi (bấm Nghe / Từ chối).
@@ -100,7 +104,25 @@ var PROJECT_ID = 'web-dangky-123';
 var API_KEY = 'AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ';
 // Chỉ điền khi KIEM_TRA báo "API key bị giới hạn theo trang web": ghi địa chỉ web của bạn, vd 'https://ten-web.github.io/'
 var REFERER = '';
-var VER = 'srv-10';
+var VER = 'srv-11';
+// Hạn mức Google Apps Script mỗi ngày: Gmail thường 20.000 lượt gọi mạng + 90 phút hẹn giờ; Google Workspace 100.000 + 360 phút
+var QUOTA = { fetch: 20000, triggerMin: 90 };
+var USE = { f: 0, n: 0, t0: Date.now() };   // lượt chạy này: f = lượt gọi mạng, n = thông báo đã gửi
+function useDay() { return Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd'); }
+function useGet() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('use_' + useDay()) || '{}'); } catch (e) { return {}; } }
+function useNow() { var u = useGet(); return { day: useDay(), f: (u.f || 0) + USE.f, n: (u.n || 0) + USE.n, ms: (u.ms || 0), r: u.r || 0, h: u.h || 0, at: Date.now(), limF: QUOTA.fetch, limMin: QUOTA.triggerMin }; }
+function useFlush(trig) {
+  try {
+    var P = PropertiesService.getScriptProperties(), day = useDay(), k = 'use_' + day, u = useGet();
+    u.f = (u.f || 0) + USE.f; u.n = (u.n || 0) + USE.n;
+    if (trig) { u.ms = (u.ms || 0) + (Date.now() - USE.t0); u.r = (u.r || 0) + 1; } else u.h = (u.h || 0) + 1;
+    P.setProperty(k, JSON.stringify(u)); USE.f = 0; USE.n = 0; USE.t0 = Date.now();
+    if (P.getProperty('use_last') !== day) {   // sang ngày mới: xóa số đếm cũ
+      P.setProperty('use_last', day);
+      Object.keys(P.getProperties()).forEach(function (x) { if (/^use_\d{4}-/.test(x) && x < 'use_' + Utilities.formatDate(new Date(Date.now() - 3 * 86400000), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd')) P.deleteProperty(x); });
+    }
+  } catch (e) {}
+}
 var WAIT_MAX = 75 * 1000;   // mốc giờ còn <= 75 giây nữa -> lượt này chờ tới đúng giây rồi gửi
 var BUSY_MS = 120 * 1000;   // máy khác đang gửi quá 2 phút mà chưa xong -> máy chủ gửi thay
 var MAX_TRIES = 10;         // số lần thử tối đa cho 1 mốc giờ (mỗi phút 1 lần)
@@ -204,6 +226,7 @@ function chayMoiPhut() {
   } catch (e) { st.err = msgOf(e); }
   finally {
     try { heartbeat(Date.now(), st.err, st.note, st.sent, st.cfg); } catch (e) { hbErr = msgOf(e); }
+    useFlush(true);
     lock.releaseLock();
   }
   if (st.err) Logger.log('Lỗi: ' + st.err);
@@ -497,7 +520,7 @@ function pushCfg() {
   return o;
 }
 function fcmCall(body) {
-  var r = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + PROJECT_ID + '/messages:send', fcmOpt(body));
+  USE.f++; var r = UrlFetchApp.fetch('https://fcm.googleapis.com/v1/projects/' + PROJECT_ID + '/messages:send', fcmOpt(body));
   return { code: r.getResponseCode(), text: r.getContentText() };
 }
 function fcmOpt(body) {
@@ -532,13 +555,14 @@ function pushSend(targets, data) {
   if (data.from) d.from = String(data.from).slice(0, 60);   // tên đăng nhập người gửi -> app lấy ảnh đại diện   // ảnh lớn (chỉ link https)
   for (var i = 0; i < targets.length; i += 50) {
     var part = targets.slice(i, i + 50);
+    USE.f += part.length;
     var res = UrlFetchApp.fetchAll(part.map(function (t) {
       var o = fcmOpt({ message: { token: t.token, data: d, android: { priority: 'HIGH', ttl: data.type === 'call' ? '40s' : data.type === 'call_end' ? '120s' : '21600s' } } });
       o.url = 'https://fcm.googleapis.com/v1/projects/' + PROJECT_ID + '/messages:send'; return o;
     }));
     res.forEach(function (r, k) {
       var c = r.getResponseCode();
-      if (c === 200) sent++;
+      if (c === 200) { sent++; USE.n++; }
       else { failed++; if (c === 404 || /UNREGISTERED|registration token is not a valid/i.test(r.getContentText())) dead.push(part[k]); }
     });
   }
@@ -595,6 +619,7 @@ function pushNow(waitMs) {
 function doGet(e) {
   var r;
   try { r = pushNow(20000); } catch (er) { r = { ok: false, err: msgOf(er) }; }
+  useFlush(false);
   r.ver = VER;
   return ContentService.createTextOutput(JSON.stringify(r)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -672,7 +697,7 @@ function pushRun() {
   var last = +P.getProperty('pushHb') || 0;
   if (sentAll || err || now - last > 5 * 60000) {
     var hook = ''; try { hook = ScriptApp.getService().getUrl() || ''; } catch (e) {}
-    try { fsPatch('settings/push_server', { lastRun: now, ok: !err, err: String(err || '').slice(0, 300), by: 'apps-script', ver: VER, lastSent: sentAll ? now : (+P.getProperty('pushLastSent') || 0), hookAuto: /\/exec$/.test(hook) ? hook : '' }); P.setProperty('pushHb', String(now)); } catch (e) {}
+    try { fsPatch('settings/push_server', { lastRun: now, ok: !err, err: String(err || '').slice(0, 300), by: 'apps-script', ver: VER, lastSent: sentAll ? now : (+P.getProperty('pushLastSent') || 0), use: useNow(), hookAuto: /\/exec$/.test(hook) ? hook : '' }); P.setProperty('pushHb', String(now)); } catch (e) {}
     if (sentAll) P.setProperty('pushLastSent', String(now));
   }
 }
@@ -690,7 +715,7 @@ function fsCall(method, suffix, body, query) {
   if (body) opt.payload = JSON.stringify(body);
   var r = null, code = 0, txt = '';
   for (var i = 0; i < 3; i++) {                 // lỗi mạng / máy chủ Google bận: thử lại 2 lần
-    try { r = UrlFetchApp.fetch(url, opt); code = r.getResponseCode(); txt = r.getContentText(); }
+    try { USE.f++; r = UrlFetchApp.fetch(url, opt); code = r.getResponseCode(); txt = r.getContentText(); }
     catch (e) { if (i === 2) throw new Error('Mạng: ' + msgOf(e)); Utilities.sleep(800 * (i + 1)); continue; }
     if ((code === 429 || code === 500 || code === 503) && i < 2 && suffix.indexOf(':commit') < 0) { Utilities.sleep(800 * (i + 1)); continue; }
     break;
