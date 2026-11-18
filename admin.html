@@ -5210,9 +5210,9 @@ html.qd-lite .qd-fx { display: none !important; }
                     if (dir < 0) tr.parentNode.insertBefore(tr, sib); else tr.parentNode.insertBefore(sib, tr);
                     dirty = true; recalc();
                 },
-                resetDefaults: () => { if (!confirm('Đưa danh mục về mặc định? Bấm "Lưu Danh Mục" để áp dụng.')) return; render(norm({ items: DEF })); dirty = true; recalc(); },
+                resetDefaults: () => { if (!qdOk('Đưa danh mục về mặc định? Bấm "Lưu Danh Mục" để áp dụng.', () => ShopAdmin.resetDefaults(), { title: 'Về mặc định?', tone: 'warn', ok: 'Về mặc định' })) return; render(norm({ items: DEF })); dirty = true; recalc(); },
                 resetCounts: () => {
-                    if (!confirm('Đặt lại số "Đã đổi" của tất cả vật phẩm về 0? (Kho sẽ đầy lại. Lịch sử và đơn quà vẫn giữ.)')) return;
+                    if (!qdOk('Đặt lại số "Đã đổi" của tất cả vật phẩm về 0?\nKho sẽ đầy lại. Lịch sử và đơn quà vẫn giữ.', () => ShopAdmin.resetCounts(), { title: 'Làm mới số đã đổi?', tone: 'warn', ok: 'Làm mới' })) return;
                     db.collection('point_shop_stock').doc('counts').set({ counts: {}, resetAt: Date.now() }).then(() => Utils.toast('Đã làm mới số đã đổi!', 'success')).catch(() => Utils.toast('Lỗi làm mới.', 'error'));
                 },
                 save: () => {
@@ -5250,7 +5250,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 },
                 reject: async (id) => {
                     const o = orders.find(x => x.id === id); if (!o) return;
-                    if (!confirm(`Từ chối đơn "${o.itemName}${o.qty > 1 ? ' ×' + o.qty : ''}" của ${o.user} và hoàn lại ${o.cost} điểm?`)) return;
+                    if (!qdOk(`Từ chối đơn "${o.itemName}${o.qty > 1 ? ' ×' + o.qty : ''}" của @${o.user} và hoàn lại ${o.cost} điểm?`, () => ShopAdmin.reject(id), { title: 'Từ chối đơn quà?', ok: 'Từ chối & hoàn điểm' })) return;
                     try {
                         // NHANH: tìm tài khoản song song với đọc đơn trong giao dịch
                         const accP = db.collection('accounts').where('user', '==', o.user).limit(1).get(); accP.catch(() => {});
@@ -5376,11 +5376,11 @@ html.qd-lite .qd-fx { display: none !important; }
                     btn.closest('tr').remove(); dirty = true; recalc();
                 },
                 resetDefaults: () => {
-                    if (!confirm(`Đưa bảng phần thưởng ${o.label} về mặc định (${o.defLabel})? Bấm "Lưu Phần Thưởng" để áp dụng.`)) return;
+                    if (!qdOk(`Đưa bảng phần thưởng ${o.label} về mặc định (${o.defLabel})? Bấm "Lưu Phần Thưởng" để áp dụng.`, null, { title: 'Về mặc định?', tone: 'warn', ok: 'Về mặc định' })) return;
                     render(norm(DEF)); dirty = true;
                 },
                 resetCounts: () => {
-                    if (!confirm(`Đặt lại số "Đã trúng" của ${o.label} về 0? (Số lượng giải sẽ đầy lại, lịch sử vẫn được giữ.)`)) return;
+                    if (!qdOk(`Đặt lại số "Đã trúng" của ${o.label} về 0?\nSố lượng giải sẽ đầy lại, lịch sử vẫn được giữ.`, null, { title: 'Làm mới số đã trúng?', tone: 'warn', ok: 'Làm mới' })) return;
                     db.collection(o.stockColl).doc('counts').set({ counts: {}, resetAt: Date.now() })
                         .then(() => Utils.toast('Đã làm mới số đã trúng!', 'success'))
                         .catch(() => Utils.toast('Lỗi làm mới số đã trúng.', 'error'));
@@ -6649,7 +6649,7 @@ const QVis = {
                             }
 
                             if (shouldLock) {
-                                db.collection("accounts").doc(doc.id).update({ isBlocked: true, lockedAt: now });
+                                db.collection("accounts").doc(doc.id).update({ isBlocked: true, lockedAt: now, lockReason: "idle" });
                                 d.isBlocked = true; 
                             }
                         } else {
@@ -7252,7 +7252,7 @@ const QVis = {
                     updateData.lockedAt = null;
                     updateData.unlockRequestedAt = null; 
                 } else {
-                    updateData.lockedAt = Date.now();
+                    updateData.lockedAt = Date.now(); updateData.lockReason = 'manual';
                     updateData.unlockRequestedAt = null; 
                 }
 
@@ -9831,7 +9831,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         $('nc-g-all').onclick = function () {
             var n = parseInt($('nc-g-alln').value, 10), btn = this;
             if (isNaN(n) || n < 1) return toast('Số lượt phải từ 1 trở lên.', 'warning');
-            if (!confirm('Tặng ' + n + ' lượt ném còn cho TẤT CẢ thành viên (trừ tài khoản đang bị khóa)?')) return;
+            if (!qdOk('Tặng ' + n + ' lượt ném còn cho TẤT CẢ thành viên (trừ tài khoản đang bị khóa)?', function () { btn.click(); }, { title: 'Tặng lượt cho tất cả?', tone: 'info', icon: '🎯', ok: 'Tặng ' + n + ' lượt' })) return;
             btn.disabled = true;
             db.collection('accounts').get().then(function (snap) {
                 var refs = []; snap.forEach(function (d) { if (d.data().isBlocked !== true) refs.push(d.ref); });
@@ -9865,7 +9865,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             }).join('') : '<tr><td colspan="8" class="text-center text-muted py-8">Chưa có ai ném còn.</td></tr>';
         }
         $('nc-reset').onclick = function () {
-            if (!confirm('Làm mới bảng xếp hạng Ném Còn? Thống kê lượt ném / lọt vòng / chuỗi của mọi người về 0 (điểm đã thưởng và lượt ném trong tài khoản giữ nguyên).')) return;
+            if (!qdOk('Thống kê lượt ném / lọt vòng / chuỗi của mọi người về 0.\nĐiểm đã thưởng và lượt ném trong tài khoản giữ nguyên.', function () { $('nc-reset').click(); }, { title: 'Làm mới BXH Ném Còn?', ok: 'Làm mới' })) return;
             db.collection('con_stats').get().then(function (snap) {
                 var refs = []; snap.forEach(function (d) { refs.push(d.ref); });
                 var chunks = []; for (var i = 0; i < refs.length; i += 450) chunks.push(refs.slice(i, i + 450));
@@ -9945,7 +9945,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             body.insertAdjacentHTML('beforeend', pkRow({ id: 'nc' + Date.now().toString(36), icon: '🎯', name: '', type: 'conThrows', amount: 3, cost: 60, stock: null, dailyLimit: null, active: true }));
             pkDirty(true); var last = body.querySelector('tr[data-id]:last-child .pk-name'); if (last) last.focus();
         };
-        $('nc-pk-def').onclick = function () { if (!confirm('Đưa các gói về 3 gói mặc định? Bấm "Lưu Gói" để áp dụng.')) return; pkRender(PK_DEF.map(function (x) { return Object.assign({}, x); })); pkDirty(true); };
+        $('nc-pk-def').onclick = function () { if (!qdOk('Đưa các gói về 3 gói mặc định? Bấm "Lưu Gói" để áp dụng.', function () { $('nc-pk-def').click(); }, { title: 'Về mặc định?', tone: 'warn', ok: 'Về mặc định' })) return; pkRender(PK_DEF.map(function (x) { return Object.assign({}, x); })); pkDirty(true); };
         $('nc-pk-save').onclick = function () {
             var r = pkRead(); if (r.err) return toast(r.err, 'warning');
             var btn = this; btn.disabled = true;
@@ -16114,7 +16114,9 @@ window.QDXlsx = (function () {
         function save() {
             var e = entry(); if (!e) return;
             test().then(function (ok) {
-                if (!ok && !confirm('Kiểm tra chưa đạt. Vẫn lưu?')) return;
+                return ok ? true : qdAsk({ title: 'Kiểm tra chưa đạt', tone: 'warn', text: 'Máy chủ TURN chưa trả lời đúng. Vẫn lưu?', ok: 'Vẫn lưu' });
+            }).then(function (go) {
+                if (!go) return;
                 return ref().set({ iceServers: [e], quotaGB: Math.max(1, +$('qcall-gb').value || 1000), updatedAt: Date.now(), by: (window.State && State.currentUser) || 'admin' }, { merge: true }).then(function () { st('✓ Đã lưu — các cuộc gọi mới dùng máy chủ này ngay.', 'ok'); try { Utils.toast('Đã lưu máy chủ cuộc gọi', 'success'); } catch (x) {} });
             }).catch(function (x) { st('✗ Không lưu được' + (x && x.code ? ' (' + x.code + ')' : ''), 'err'); });
         }
@@ -16294,7 +16296,9 @@ window.QDXlsx = (function () {
         }
         function unblock(id) {
             var b = BL.filter(function (x) { return x.id === id; })[0]; if (!b) return;
-            if (!confirm('Gỡ chặn: @' + b.by + ' đang chặn @' + b.blocked + '.\nSau khi gỡ, @' + b.blocked + ' gọi được cho @' + b.by + ' trở lại?')) return;
+            qdAsk({ title: 'Gỡ chặn cuộc gọi?', tone: 'success', icon: '🔓', ok: 'Gỡ chặn', html: qdPair(b.by, NAMES[b.by], b.blocked, NAMES[b.blocked]) + 'Sau khi gỡ, <b>' + H(NAMES[b.blocked] || '@' + b.blocked) + '</b> gọi được cho <b>' + H(NAMES[b.by] || '@' + b.by) + '</b> trở lại.' + (b.reason ? '\nLý do chặn: ' + H(RS[b.reason] || b.reason) : '') }).then(function (y) { if (y) doUnblock(b); });
+        }
+        function doUnblock(b) { var id = b.id;
             fs().collection('call_blocks').doc(id).delete().then(function () {
                 fs().collection('call_bot_log').add({ kind: 'unblock', user: b.blocked, target: b.by, action: 'Admin gỡ chặn (' + me() + ')', detail: '@' + b.by + ' đã chặn từ ' + fmt(b.at) + (b.reason ? ' · ' + (RS[b.reason] || b.reason) : ''), at: Date.now(), by: me() }).catch(function () {});
                 toast('Đã gỡ chặn — @' + b.blocked + ' gọi được cho @' + b.by, 'success');
@@ -16330,7 +16334,7 @@ window.QDXlsx = (function () {
             var up = { handledBy: me(), handledAt: Date.now() };
             if (kind === 'dismiss') { up.status = 'dismissed'; up.action = 'Bỏ qua'; return fs().collection('call_reports').doc(id).update(up).then(function () { toast('Đã bỏ qua báo cáo'); }); }
             var ban = kind === 'ban' ? Date.now() + (days || 1) * 86400000 : 0;
-            if (ban && !confirm('Khóa gọi thoại / video của @' + r.reported + ' trong ' + days + ' ngày?')) return;
+            if (ban && !qdOk('', function () { act(id, kind, days); }, { title: 'Khóa gọi ' + days + ' ngày?', icon: '🔒', ok: '🔒 Khóa gọi', html: '<b>' + H(r.reportedName || '@' + r.reported) + '</b> (@' + H(r.reported) + ') sẽ không gọi thoại / video được đến <b>' + fmt(ban) + '</b>.\nLý do: ' + H(r.reasonLabel || r.reason) })) return;
             var w = { user: r.reported, name: r.reportedName || r.reported, reason: r.reason, label: r.reasonLabel || r.reason, note: r.note ? 'Nội dung báo cáo: “' + r.note + '”' : '', by: me(), at: Date.now(), seen: false, reportId: id };
             if (ban) w.banUntil = ban;
             up.status = ban ? 'banned' : 'warned'; up.action = ban ? 'Khóa gọi ' + days + ' ngày' : 'Đã gửi cảnh báo';
@@ -16342,9 +16346,8 @@ window.QDXlsx = (function () {
             }).catch(function (e) { toast('Lỗi: ' + (e && e.code || e), 'error'); });
         }
         function unban(user, wid) {
-            if (!confirm('Mở khóa gọi cho @' + user + '?')) return;
-            accRef(user).then(function (ref) { return Promise.all([ref ? ref.update({ callBanUntil: 0 }) : null, fs().collection('call_warnings').doc(wid).update({ banUntil: Date.now(), unbannedBy: me() })]); })
-                .then(function () { toast('Đã mở khóa gọi cho @' + user, 'success'); }).catch(function () { toast('Không mở khóa được', 'error'); });
+            qdAsk({ title: 'Mở khóa gọi?', tone: 'success', icon: '📵', ok: 'Mở khóa gọi', html: '<b>@' + H(user) + '</b> sẽ gọi thoại / video được ngay.\nGỡ luôn mọi lần khóa gọi còn hạn (kể cả do 🤖 Bot).' }).then(function (y) { if (y) qdUnbanCalls(user, me())
+                .then(function () { toast('Đã mở khóa gọi cho @' + user, 'success'); }).catch(function () { toast('Không mở khóa được', 'error'); }); });
         }
         function boot() {
             if (booted || !window.firebase || !firebase.apps || !firebase.apps.length) return; booted = true;
@@ -16369,6 +16372,299 @@ window.QDXlsx = (function () {
             box.hidden = v >= 11; document.getElementById('qsrv-ver').textContent = x.ver ? x.ver : 'cũ (chưa rõ)';
         }, function () {});
     })(0);
+    </script>
+    <style id="qk-css">
+        /* ===== Hộp thoại xác nhận (thay hộp confirm mặc định của trình duyệt) ===== */
+        .qa-ov { position: fixed; inset: 0; z-index: 2147482000; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(2, 6, 12, .62); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: qaFade .16s ease-out; }
+        .qa-box { width: min(440px, 100%); border-radius: 20px; padding: 24px 22px 18px; background: var(--bg-surface, #15161b); border: 1px solid var(--border-strong, #2a2c35); box-shadow: 0 30px 80px rgba(0, 0, 0, .55); color: var(--text-main, #e7e9ee); text-align: center; animation: qaPop .2s cubic-bezier(.2, .9, .3, 1.2); }
+        .qa-ic { width: 58px; height: 58px; margin: 0 auto 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; background: rgba(239, 68, 68, .14); box-shadow: 0 0 0 6px rgba(239, 68, 68, .06); }
+        .qa-box[data-tone=success] .qa-ic { background: rgba(34, 197, 94, .14); box-shadow: 0 0 0 6px rgba(34, 197, 94, .06); }
+        .qa-box[data-tone=warn] .qa-ic { background: rgba(245, 158, 11, .14); box-shadow: 0 0 0 6px rgba(245, 158, 11, .06); }
+        .qa-box[data-tone=info] .qa-ic { background: rgba(99, 102, 241, .14); box-shadow: 0 0 0 6px rgba(99, 102, 241, .06); }
+        .qa-box h3 { margin: 0 0 8px; font-size: 19px; font-weight: 800; }
+        .qa-msg { font-size: 14px; line-height: 1.55; color: var(--text-muted, #a1a6b3); white-space: pre-line; }
+        .qa-msg b { color: var(--text-main, #fff); }
+        .qa-pair { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px 0 6px; }
+        .qa-who { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; max-width: 42%; }
+        .qa-av { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: #fff; background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .qa-who:last-child .qa-av { background: linear-gradient(135deg, #64748b, #334155); }
+        .qa-who b { font-size: 13px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .qa-who small { font-size: 11px; color: var(--text-muted, #a1a6b3); }
+        .qa-arr { display: flex; flex-direction: column; align-items: center; font-size: 11px; font-weight: 700; color: #ef4444; gap: 2px; }
+        .qa-arr i { font-size: 20px; }
+        .qa-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .qa-btns button { flex: 1; font: inherit; font-weight: 800; font-size: 14px; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid var(--border-strong, #2a2c35); background: var(--bg-elevated, #1c1d24); color: var(--text-main, #e7e9ee); transition: filter .15s, transform .1s; }
+        .qa-btns button:active { transform: scale(.97); }
+        .qa-btns .ok { border-color: transparent; background: #ef4444; color: #fff; }
+        .qa-box[data-tone=success] .qa-btns .ok { background: #16a34a; } .qa-box[data-tone=warn] .qa-btns .ok { background: #d97706; } .qa-box[data-tone=info] .qa-btns .ok { background: var(--brand-primary, #6366f1); }
+        .qa-btns button:hover { filter: brightness(1.12); }
+        @keyframes qaFade { from { opacity: 0; } } @keyframes qaPop { from { opacity: 0; transform: translateY(10px) scale(.96); } }
+
+        /* ===== Nút menu nổi: Truy cập nhanh ===== */
+        #qk-fab { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px)); z-index: 9040; width: 52px; height: 52px; border-radius: 50%; border: 0; cursor: pointer; color: #fff; font-size: 20px;
+            background: linear-gradient(135deg, var(--brand-primary, #6366f1), #8b5cf6); box-shadow: 0 10px 26px rgba(79, 70, 229, .45); display: none; align-items: center; justify-content: center; transition: transform .2s; }
+        body.qk-on #qk-fab { display: flex; }
+        #qk-fab:active { transform: scale(.93); } #qk-fab.open { transform: rotate(45deg); }
+        #qk-fab .qk-dot { position: absolute; top: -3px; right: -3px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff; font: 800 11px/20px system-ui, sans-serif; border: 2px solid var(--bg-main, #0b0c10); }
+        #qk-fab.open .qk-dot { display: none; }
+        @media (max-width: 1023px) { #qk-fab { bottom: calc(env(safe-area-inset-bottom) + 156px); } }
+        #qk-menu { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(140px, calc(env(safe-area-inset-bottom) + 134px)); z-index: 9041; width: min(380px, calc(100vw - 28px)); max-height: min(70vh, 620px); overflow: auto;
+            border-radius: 20px; padding: 14px; background: var(--bg-surface, #15161b); border: 1px solid var(--border-strong, #2a2c35); box-shadow: 0 24px 60px rgba(0, 0, 0, .55); animation: qaPop .18s ease-out; }
+        @media (max-width: 1023px) { #qk-menu { bottom: calc(env(safe-area-inset-bottom) + 220px); max-height: calc(100vh - 290px); } }
+        #qk-menu[hidden], #qk-drw[hidden] { display: none; }
+        #qk-menu h4 { margin: 2px 4px 10px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        #qk-q { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border-strong, #2a2c35); background: var(--bg-elevated, #1c1d24); color: var(--text-main, #fff); font: inherit; font-size: 14px; margin-bottom: 12px; }
+        .qk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .qk-t { position: relative; text-align: left; display: flex; flex-direction: column; gap: 3px; padding: 12px; border-radius: 14px; border: 1px solid var(--border-strong, #2a2c35); background: var(--bg-elevated, #1c1d24); color: var(--text-main, #fff); cursor: pointer; font: inherit; transition: border-color .15s, transform .1s; }
+        .qk-t:hover { border-color: var(--tone, #6366f1); } .qk-t:active { transform: scale(.97); }
+        .qk-t .e { font-size: 20px; } .qk-t b { font-size: 13px; line-height: 1.25; } .qk-t small { font-size: 11.5px; color: var(--text-muted, #a1a6b3); line-height: 1.3; }
+        .qk-t .n { position: absolute; top: 8px; right: 8px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; font: 800 12px/22px system-ui, sans-serif; text-align: center; background: var(--tone, #6366f1); color: #fff; }
+        .qk-t .n.z { background: rgba(148, 163, 184, .18); color: var(--text-muted, #a1a6b3); }
+        .qk-all { margin-top: 12px; display: flex; flex-direction: column; gap: 2px; }
+        .qk-all button { text-align: left; font: inherit; font-size: 13.5px; padding: 9px 10px; border-radius: 10px; border: 0; background: none; color: var(--text-main, #fff); cursor: pointer; display: flex; gap: 10px; align-items: center; }
+        .qk-all button:hover { background: var(--bg-elevated, #1c1d24); } .qk-all i { width: 18px; text-align: center; color: var(--text-muted, #a1a6b3); }
+        .qk-sec { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted, #a1a6b3); margin: 14px 4px 6px; }
+        .qk-flash { animation: qkFlash 1.6s ease-out 1; border-radius: 16px; }
+        @keyframes qkFlash { 0%, 30% { box-shadow: 0 0 0 3px var(--brand-primary, #6366f1), 0 0 30px rgba(99, 102, 241, .45); } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+        /* ===== Ngăn kéo: Tài khoản bị khóa ===== */
+        #qk-drw { position: fixed; inset: 0; z-index: 9100; display: flex; justify-content: flex-end; background: rgba(2, 6, 12, .5); animation: qaFade .15s; }
+        .qk-pan { width: min(560px, 100%); height: 100%; display: flex; flex-direction: column; background: var(--bg-surface, #15161b); border-left: 1px solid var(--border-strong, #2a2c35); box-shadow: -20px 0 60px rgba(0, 0, 0, .45); animation: qkIn .22s ease-out; }
+        @keyframes qkIn { from { transform: translateX(40px); opacity: 0; } }
+        .qk-hd { padding: 18px 20px 12px; border-bottom: 1px solid var(--border-strong, #2a2c35); }
+        .qk-hd h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; } .qk-hd p { margin: 6px 0 0; font-size: 12.5px; color: var(--text-muted, #a1a6b3); }
+        .qk-x { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-strong, #2a2c35); background: var(--bg-elevated, #1c1d24); color: var(--text-main, #fff); cursor: pointer; font-size: 16px; }
+        .qk-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+        .qk-tabs button { font: inherit; font-size: 12.5px; font-weight: 700; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--border-strong, #2a2c35); background: none; color: var(--text-muted, #a1a6b3); cursor: pointer; }
+        .qk-tabs button.on { background: var(--brand-primary, #6366f1); border-color: transparent; color: #fff; }
+        .qk-bar { display: flex; gap: 8px; align-items: center; padding: 10px 20px; border-bottom: 1px solid var(--border-strong, #2a2c35); }
+        .qk-bar input { flex: 1; min-width: 0; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border-strong, #2a2c35); background: var(--bg-elevated, #1c1d24); color: var(--text-main, #fff); font: inherit; font-size: 13.5px; }
+        .qk-btn { font: inherit; font-weight: 800; font-size: 12.5px; padding: 9px 12px; border-radius: 10px; border: 0; cursor: pointer; background: #16a34a; color: #fff; white-space: nowrap; }
+        .qk-btn:disabled { opacity: .45; cursor: default; } .qk-btn.o { background: var(--bg-elevated, #1c1d24); color: var(--text-main, #fff); border: 1px solid var(--border-strong, #2a2c35); }
+        .qk-list { flex: 1; overflow: auto; padding: 8px 12px 24px; }
+        .qk-row { display: flex; align-items: center; gap: 12px; padding: 12px 10px; border-radius: 14px; }
+        .qk-row:hover { background: var(--bg-elevated, #1c1d24); }
+        .qk-row .av { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; background: linear-gradient(135deg, #64748b, #334155); }
+        .qk-row .mid { flex: 1; min-width: 0; } .qk-row .mid b { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .qk-row .mid small { display: block; font-size: 12px; color: var(--text-muted, #a1a6b3); line-height: 1.45; }
+        .qk-chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; margin: 3px 4px 0 0; }
+        .qk-chip.idle { background: rgba(245, 158, 11, .15); color: #f59e0b; } .qk-chip.sec { background: rgba(239, 68, 68, .15); color: #ef4444; } .qk-chip.man { background: rgba(148, 163, 184, .18); color: #cbd5e1; }
+        .qk-chip.req { background: rgba(34, 197, 94, .15); color: #22c55e; } .qk-chip.call { background: rgba(168, 85, 247, .15); color: #c084fc; }
+        .qk-row .go { flex: 0 0 auto; font: inherit; font-weight: 800; font-size: 12.5px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(34, 197, 94, .5); background: rgba(34, 197, 94, .12); color: #22c55e; cursor: pointer; white-space: nowrap; }
+        .qk-row .go:hover { background: #16a34a; color: #fff; }
+        .qk-empty { text-align: center; padding: 40px 20px; color: var(--text-muted, #a1a6b3); font-size: 14px; }
+    </style>
+    <button type="button" id="qk-fab" title="Truy cập nhanh" aria-label="Truy cập nhanh"><i class="fa-solid fa-bolt"></i><span class="qk-dot" hidden></span></button>
+    <div id="qk-menu" hidden role="dialog" aria-label="Truy cập nhanh">
+        <h4><i class="fa-solid fa-bolt" style="color: var(--brand-primary)"></i> Truy cập nhanh</h4>
+        <input type="search" id="qk-q" placeholder="Tìm mục quản lý…" autocomplete="off">
+        <div class="qk-grid" id="qk-tiles"></div>
+        <div class="qk-sec" id="qk-allh">Tất cả mục</div>
+        <div class="qk-all" id="qk-all"></div>
+    </div>
+    <div id="qk-drw" hidden>
+        <div class="qk-pan" role="dialog" aria-label="Tài khoản bị khóa">
+            <div class="qk-hd">
+                <h3>🔒 Tài khoản bị khóa <button type="button" class="qk-x" id="qk-x" aria-label="Đóng">✕</button></h3>
+                <p>Mở khóa có hiệu lực ngay — thành viên đăng nhập lại được luôn. Khóa do <b>nghi gian lận</b> nên xem kỹ ở mục Chống gian lận trước khi mở.</p>
+                <div class="qk-tabs" id="qk-tabs"></div>
+            </div>
+            <div class="qk-bar"><input type="search" id="qk-s" placeholder="Tìm tên / tên đăng nhập…"><button type="button" class="qk-btn" id="qk-bulk">🔓 Mở tất cả</button></div>
+            <div class="qk-list" id="qk-list"></div>
+        </div>
+    </div>
+    <script id="qk-js">
+    /* ===== ADMIN: hộp thoại đẹp (qdAsk) + nút menu nổi "Truy cập nhanh" + ngăn "Tài khoản bị khóa" =====
+       qdAsk({ title, text | html, ok, cancel, tone: danger|success|warn|info, icon }) -> Promise<true|false>
+       qdOk(text, again, opt): dùng thay "if (!confirm(..)) return;" -> hiện hộp thoại, đồng ý thì chạy lại again() và lần đó cho qua. */
+    (function () {
+        var d = document, $ = function (id) { return d.getElementById(id); };
+        var E = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var ICON = { danger: '⚠️', success: '🔓', warn: '⚠️', info: '❔' };
+        window.qdAsk = function (o) {
+            if (typeof o === 'string') o = { text: o };
+            o = o || {}; var tone = o.tone || 'danger';
+            return new Promise(function (res) {
+                var prev = d.activeElement, ov = d.createElement('div'); ov.className = 'qa-ov';
+                ov.innerHTML = '<div class="qa-box" role="alertdialog" aria-modal="true" data-tone="' + E(tone) + '"><div class="qa-ic">' + (o.icon || ICON[tone] || '⚠️') + '</div>' +
+                    '<h3>' + E(o.title || 'Xác nhận') + '</h3><div class="qa-msg">' + (o.html != null ? o.html : E(o.text || '')) + '</div>' +
+                    '<div class="qa-btns"><button type="button" class="no">' + E(o.cancel || 'Hủy') + '</button><button type="button" class="ok">' + E(o.ok || 'Đồng ý') + '</button></div></div>';
+                function done(v) { d.removeEventListener('keydown', key, true); ov.remove(); try { prev && prev.focus && prev.focus(); } catch (e) {} res(v); }
+                function key(e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(false); } else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); done(true); } }
+                ov.addEventListener('click', function (e) { if (e.target === ov) done(false); });
+                ov.querySelector('.no').onclick = function () { done(false); }; ov.querySelector('.ok').onclick = function () { done(true); };
+                d.addEventListener('keydown', key, true); d.body.appendChild(ov); ov.querySelector('.ok').focus();
+            });
+        };
+        window.qdOk = function (text, again, opt) {
+            if (qdOk.pass) { qdOk.pass = false; return true; }
+            var t = window.event && window.event.target && window.event.target.closest ? window.event.target.closest('button, a, [onclick]') : null;
+            again = again || (t ? function () { t.click(); } : null);
+            var o = Object.assign({ text: text }, opt || {});
+            qdAsk(o).then(function (y) { if (y && again) { qdOk.pass = true; try { again(); } finally { qdOk.pass = false; } } });
+            return false;
+        };
+        // Avatar 2 người: "A đang chặn B"
+        window.qdPair = function (a, an, b, bn, mid) {
+            function who(u, n) { return '<div class="qa-who"><div class="qa-av">' + E((n || u || '?').trim().charAt(0).toUpperCase()) + '</div><b>' + E(n || '@' + u) + '</b>' + (n ? '<small>@' + E(u) + '</small>' : '') + '</div>'; }
+            return '<div class="qa-pair">' + who(a, an) + '<div class="qa-arr"><i class="fa-solid fa-ban"></i>' + E(mid || 'đang chặn') + '</div>' + who(b, bn) + '</div>';
+        };
+
+        /* ---------- Mở khóa gọi (gỡ hết: tài khoản + mọi cảnh báo còn hạn khóa, kể cả của bot) ---------- */
+        window.qdUnbanCalls = function (user, by) {
+            var fs = firebase.firestore(), now = Date.now();
+            return Promise.all([
+                fs.collection('accounts').where('user', '==', user).limit(1).get().then(function (q) { if (!q.empty) return q.docs[0].ref.update({ callBanUntil: 0 }); }),
+                fs.collection('call_warnings').where('user', '==', user).get().then(function (q) { var ps = []; q.forEach(function (x) { if ((+x.data().banUntil || 0) > now) ps.push(x.ref.update({ banUntil: now, unbannedBy: by || 'admin', unbannedAt: now })); }); return Promise.all(ps); })
+            ]);
+        };
+
+        /* ---------- Dữ liệu sống cho menu ---------- */
+        var fs, started = false, LOCK = [], CBAN = [], N = { blocks: 0, reports: 0 }, REG = null, CFG = {}, NAMES = {};
+        function me() { try { return State.currentUser || 'admin'; } catch (e) { return 'admin'; } }
+        function toast(m, t) { try { Utils.toast(m, t || 'info'); } catch (e) {} }
+        function fmt(t) { if (!t) return '—'; var x = new Date(t); return ('0' + x.getHours()).slice(-2) + ':' + ('0' + x.getMinutes()).slice(-2) + ' ' + x.getDate() + '/' + (x.getMonth() + 1); }
+        function ago(t) { if (!t) return 'chưa rõ'; var m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : m < 1440 ? Math.round(m / 60) + ' giờ trước' : Math.round(m / 1440) + ' ngày trước'; }
+        function kind(a) {   // lý do khóa
+            if (a.lockReason === 'security') return 'sec';
+            if (a.lockReason === 'manual') return 'man';
+            if (a.lockReason === 'idle') return 'idle';
+            var inact = (CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) * 60000, temp = (+CFG.tempUnlockMinutes || 0) * 60000, ref = Math.max(+a.lastActive || 0, +a.created_at || 0, +a.unlockedAt || 0);
+            if (a.lockedAt && ((inact > 0 && a.lockedAt - ref >= inact - 120000) || (temp > 0 && a.unlockedAt && a.lockedAt - a.unlockedAt >= temp - 120000))) return 'idle';
+            return 'man';
+        }
+        var KL = { idle: ['idle', '⏰ Quá giờ không hoạt động'], sec: ['sec', '🛡️ Nghi gian lận'], man: ['man', '✋ Admin khóa tay'] };
+        function start() {
+            if (started || !window.firebase || !firebase.apps || !firebase.apps.length) return; started = true; fs = firebase.firestore();
+            fs.collection('settings').doc('account_config').onSnapshot(function (x) { CFG = x.exists ? x.data() : {}; paint(); }, function () {});
+            fs.collection('accounts').where('isBlocked', '==', true).onSnapshot(function (q) { LOCK = []; q.forEach(function (x) { var a = x.data(); a.docId = x.id; LOCK.push(a); }); paint(); }, function () {});
+            fs.collection('accounts').where('callBanUntil', '>', Date.now()).onSnapshot(function (q) { CBAN = []; q.forEach(function (x) { var a = x.data(); a.docId = x.id; if (a.callBanUntil > Date.now()) CBAN.push(a); }); paint(); }, function () {});
+            fs.collection('call_blocks').onSnapshot(function (q) { N.blocks = q.size; paint(); }, function () {});
+            fs.collection('call_reports').where('status', '==', 'new').onSnapshot(function (q) { N.reports = q.size; paint(); }, function () {});
+            fs.collection('settings').doc('registration_config').onSnapshot(function (x) { REG = x.exists ? x.data() : {}; paint(); }, function () {});
+        }
+        function regText() {
+            if (!REG) return 'Đang tải…'; if (REG.isEnabled === false) return '🔴 Đang đóng';
+            if (REG.endDate && REG.endTime) { var t = new Date(REG.endDate + 'T' + REG.endTime).getTime(); if (t && t < Date.now()) return '🔴 Đã quá hạn ' + fmt(t); if (t) return '🟢 Mở · đóng lúc ' + fmt(t); }
+            return '🟢 Đang mở · chưa hẹn giờ đóng';
+        }
+        function allowed(v) { var n = d.querySelector('.nav-item[onclick*="\'' + v + '\'"]'); return !!n && n.style.display !== 'none'; }
+        function tiles() {
+            var idle = LOCK.filter(function (a) { return kind(a) === 'idle'; }).length, req = LOCK.filter(function (a) { return a.unlockRequestedAt; }).length;
+            var pend = +(($('pending-count') || {}).textContent || 0) || 0;
+            return [
+                { k: 'locked', v: 'accounts', e: '🔒', t: 'Tài khoản bị khóa', s: LOCK.length ? idle + ' quá giờ' + (req ? ' · ' + req + ' xin mở' : '') : 'Không có ai bị khóa', n: LOCK.length, tone: '#f59e0b', act: function () { openDrawer(idle ? 'idle' : 'all'); } },
+                { k: 'reg', v: 'registration', e: '⏰', t: 'Thời gian đăng ký', s: regText(), tone: '#eab308', act: function () { go('registration', 'cfg-reg-toggle'); } },
+                { k: 'blocks', v: 'calls', e: '🚫', t: 'Thành viên chặn nhau', s: N.blocks ? N.blocks + ' lượt chặn' : 'Không ai chặn ai', n: N.blocks, tone: '#ef4444', act: function () { go('calls', 'qbl-card'); } },
+                { k: 'cban', v: 'calls', e: '📵', t: 'Đang bị khóa gọi', s: CBAN.length ? CBAN.length + ' thành viên' : 'Không có', n: CBAN.length, tone: '#a855f7', act: function () { openDrawer('call'); } },
+                { k: 'reports', v: 'calls', e: '🚩', t: 'Báo cáo khi gọi', s: N.reports ? N.reports + ' chờ xử lý' : 'Không có báo cáo mới', n: N.reports, tone: '#ef4444', act: function () { go('calls', 'qrp-card'); } },
+                { k: 'pend', v: 'approvals', e: '🧾', t: 'Phê duyệt tài khoản', s: pend ? pend + ' chờ duyệt' : 'Không có đơn chờ', n: pend, tone: '#6366f1', act: function () { go('approvals'); } },
+                { k: 'idlecfg', v: 'accounts', e: '⏱️', t: 'Tự khóa khi không hoạt động', s: (CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) ? 'Sau ' + hrs(CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) + ' không vào' : 'Đang tắt', tone: '#38bdf8', act: function () { go('accounts', 'cfg-acc-inactivity'); } },
+                { k: 'bot', v: 'calls', e: '🤖', t: 'Bot kiểm soát cuộc gọi', s: 'Ngưỡng & nhật ký bot', tone: '#38bdf8', act: function () { go('calls', 'qgd-card'); } }
+            ].filter(function (x) { return allowed(x.v); });
+        }
+        function hrs(m) { m = +m || 0; return m >= 1440 && m % 1440 === 0 ? (m / 1440) + ' ngày' : m >= 60 ? Math.round(m / 6) / 10 + ' giờ' : m + ' phút'; }
+        var TT = [];
+        function paint() {
+            if (!$('qk-fab')) return;
+            var urgent = N.reports + LOCK.filter(function (a) { return a.unlockRequestedAt; }).length, dot = $('qk-fab').querySelector('.qk-dot');
+            dot.hidden = !urgent; dot.textContent = urgent > 99 ? '99+' : urgent;
+            if (!$('qk-menu').hidden) renderMenu();
+            if (!$('qk-drw').hidden) renderDrawer();
+        }
+        function renderMenu() {
+            var q = String($('qk-q').value || '').trim().toLowerCase(); TT = tiles();
+            var T = TT.filter(function (x) { return !q || (x.t + ' ' + x.s).toLowerCase().indexOf(q) >= 0; });
+            $('qk-tiles').innerHTML = T.map(function (x, i) { return '<button type="button" class="qk-t" data-i="' + TT.indexOf(x) + '" style="--tone:' + x.tone + '"><span class="e">' + x.e + '</span><b>' + E(x.t) + '</b><small>' + E(x.s) + '</small>' + (x.n != null ? '<span class="n' + (x.n ? '' : ' z') + '">' + x.n + '</span>' : '') + '</button>'; }).join('');
+            var navs = Array.prototype.filter.call(d.querySelectorAll('.sidebar .nav-item[onclick]'), function (n) { return n.style.display !== 'none' && (!q || n.textContent.toLowerCase().indexOf(q) >= 0); });
+            $('qk-allh').hidden = !navs.length;
+            $('qk-all').innerHTML = navs.map(function (n) { var m = /navigate\('([\w-]+)'/.exec(n.getAttribute('onclick')) || []; var ic = n.querySelector('i'); return '<button type="button" data-v="' + E(m[1] || '') + '"><i class="' + E(ic ? ic.className : 'fa-solid fa-angle-right') + '"></i>' + E((n.querySelector('span') || n).textContent.trim()) + '</button>'; }).join('');
+        }
+        function menu(open) {
+            var m = $('qk-menu'), f = $('qk-fab'); open = open == null ? m.hidden : open; m.hidden = !open; f.classList.toggle('open', open);
+            if (open) { start(); $('qk-q').value = ''; renderMenu(); setTimeout(function () { if (window.matchMedia('(pointer:fine)').matches) $('qk-q').focus(); }, 30); }
+        }
+        function go(view, id) {
+            menu(false);
+            try { var nav = d.querySelector('.nav-item[onclick*="\'' + view + '\'"]'); UI.navigate(view, nav); } catch (e) {}
+            if (!id) return;
+            setTimeout(function () {
+                var el = $(id); if (!el) return; var card = el.closest('.card') || el;
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' }); card.classList.remove('qk-flash'); void card.offsetWidth; card.classList.add('qk-flash');
+                setTimeout(function () { card.classList.remove('qk-flash'); }, 1800);
+            }, 350);
+        }
+
+        /* ---------- Ngăn "Tài khoản bị khóa" ---------- */
+        var TAB = 'all';
+        function rows() {
+            if (TAB === 'call') return CBAN.slice().sort(function (a, b) { return b.callBanUntil - a.callBanUntil; });
+            return LOCK.filter(function (a) { return TAB === 'all' || (TAB === 'req' ? a.unlockRequestedAt : kind(a) === TAB); })
+                .sort(function (a, b) { return (b.unlockRequestedAt ? 1 : 0) - (a.unlockRequestedAt ? 1 : 0) || (b.lockedAt || 0) - (a.lockedAt || 0); });
+        }
+        function renderDrawer() {
+            var c = { all: LOCK.length, idle: 0, req: 0, sec: 0, man: 0, call: CBAN.length };
+            LOCK.forEach(function (a) { c[kind(a)]++; if (a.unlockRequestedAt) c.req++; });
+            $('qk-tabs').innerHTML = [['all', 'Tất cả'], ['idle', '⏰ Quá giờ'], ['req', '🙋 Xin mở'], ['sec', '🛡️ Gian lận'], ['man', '✋ Khóa tay'], ['call', '📵 Khóa gọi']].map(function (t) { return '<button type="button" data-t="' + t[0] + '" class="' + (TAB === t[0] ? 'on' : '') + '">' + t[1] + ' · ' + c[t[0]] + '</button>'; }).join('');
+            var q = String($('qk-s').value || '').trim().toLowerCase(), L = rows().filter(function (a) { return !q || ((a.user || '') + ' ' + (a.fullName || '')).toLowerCase().indexOf(q) >= 0; });
+            var bulkN = TAB === 'call' ? L.length : L.filter(function (a) { return kind(a) !== 'sec'; }).length, b = $('qk-bulk');
+            b.disabled = !bulkN; b.textContent = TAB === 'call' ? '📵 Mở khóa gọi tất cả (' + bulkN + ')' : TAB === 'idle' ? '🔓 Mở tất cả TK quá giờ (' + bulkN + ')' : '🔓 Mở tất cả (' + bulkN + ')';
+            b.title = TAB === 'call' || TAB === 'sec' ? '' : 'Không mở các tài khoản nghi gian lận';
+            if (TAB === 'sec') { b.disabled = true; b.textContent = 'Mở từng tài khoản'; }
+            $('qk-list').innerHTML = L.length ? L.map(function (a) {
+                var nm = a.fullName || a.name || '', chips;
+                if (TAB === 'call') chips = '<span class="qk-chip call">📵 Khóa gọi đến ' + fmt(a.callBanUntil) + '</span>';
+                else { var k = KL[kind(a)]; chips = '<span class="qk-chip ' + k[0] + '">' + k[1] + '</span>' + (a.unlockRequestedAt ? '<span class="qk-chip req">🙋 Xin mở ' + ago(a.unlockRequestedAt) + '</span>' : '') + (a.lockNote ? '<span class="qk-chip sec">' + E(String(a.lockNote).slice(0, 60)) + '</span>' : ''); }
+                return '<div class="qk-row"><div class="av">' + E((nm || a.user || '?').charAt(0).toUpperCase()) + '</div><div class="mid"><b>' + E(nm || '@' + a.user) + '</b><small>@' + E(a.user) + (TAB === 'call' ? '' : ' · khóa ' + ago(a.lockedAt) + ' · vào lần cuối ' + ago(a.lastActive)) + '</small>' + chips + '</div>' +
+                    '<button type="button" class="go" data-id="' + E(a.docId) + '">' + (TAB === 'call' ? '📵 Mở gọi' : '🔓 Mở khóa') + '</button></div>';
+            }).join('') : '<div class="qk-empty">' + (q ? 'Không tìm thấy.' : TAB === 'call' ? 'Không ai đang bị khóa gọi 👍' : 'Không có tài khoản nào ở mục này 👍') + '</div>';
+        }
+        function openDrawer(tab) { menu(false); start(); TAB = tab || 'all'; $('qk-s').value = ''; $('qk-drw').hidden = false; renderDrawer(); }
+        function unlockAcc(a) {
+            return fs.collection('accounts').doc(a.docId).update({ isBlocked: false, unlockedAt: Date.now(), lockedAt: null, unlockRequestedAt: null, lockReason: null, lockNote: null })
+                .then(function () { fs.collection('admin_logs').add({ type: 'lock', action: 'unlock', user: a.user, reason: kind(a), by: me(), timestamp: Date.now() }).catch(function () {}); });
+        }
+        function one(id) {
+            var call = TAB === 'call', a = (call ? CBAN : LOCK).filter(function (x) { return x.docId === id; })[0]; if (!a) return;
+            var nm = a.fullName || a.name || '', sec = !call && kind(a) === 'sec';
+            qdAsk(call ? { title: 'Mở khóa gọi?', tone: 'success', icon: '📵', ok: 'Mở khóa gọi', html: '<b>' + E(nm || '@' + a.user) + '</b> (@' + E(a.user) + ') đang bị khóa gọi đến <b>' + fmt(a.callBanUntil) + '</b>.\nMở khóa thì gọi thoại / video được ngay.' }
+                : { title: sec ? 'Mở tài khoản nghi gian lận?' : 'Mở khóa tài khoản?', tone: sec ? 'warn' : 'success', icon: sec ? '🛡️' : '🔓', ok: 'Mở khóa',
+                    html: '<b>' + E(nm || '@' + a.user) + '</b> (@' + E(a.user) + ')\n' + KL[kind(a)][1] + ' · khóa ' + ago(a.lockedAt) + (sec ? '\n\nTài khoản này bị khóa vì nghi gian lận' + (a.lockNote ? ': “' + E(a.lockNote) + '”' : '') + '. Bạn chắc chắn đã kiểm tra?' : '\nThành viên đăng nhập lại được ngay.') })
+                .then(function (y) {
+                    if (!y) return;
+                    (call ? qdUnbanCalls(a.user, me()) : unlockAcc(a)).then(function () { toast((call ? 'Đã mở khóa gọi cho @' : 'Đã mở khóa @') + a.user, 'success'); }).catch(function (e) { toast('Không mở được: ' + (e && e.code || e), 'error'); });
+                });
+        }
+        function bulk() {
+            var call = TAB === 'call', q = String($('qk-s').value || '').trim().toLowerCase();
+            var L = rows().filter(function (a) { return (!q || ((a.user || '') + ' ' + (a.fullName || '')).toLowerCase().indexOf(q) >= 0) && (call || kind(a) !== 'sec'); });
+            if (!L.length) return;
+            qdAsk({ title: call ? 'Mở khóa gọi cho ' + L.length + ' người?' : 'Mở khóa ' + L.length + ' tài khoản?', tone: 'success', icon: '🔓', ok: 'Mở tất cả',
+                html: L.slice(0, 6).map(function (a) { return '<b>' + E(a.fullName || '@' + a.user) + '</b>'; }).join(', ') + (L.length > 6 ? ' và ' + (L.length - 6) + ' người khác' : '') + '.' + (call ? '' : '\n\nKhông gồm tài khoản nghi gian lận.') })
+                .then(function (y) {
+                    if (!y) return; var b = $('qk-bulk'); b.disabled = true;
+                    Promise.all(L.map(function (a) { return (call ? qdUnbanCalls(a.user, me()) : unlockAcc(a)).then(function () { return 1; }, function () { return 0; }); }))
+                        .then(function (r) { var ok = r.reduce(function (s, x) { return s + x; }, 0); toast('Đã mở ' + ok + '/' + L.length + (call ? ' khóa gọi' : ' tài khoản'), ok === L.length ? 'success' : 'warning'); });
+                });
+        }
+
+        /* ---------- Gắn sự kiện ---------- */
+        function shown() { var s = $('app-shell'); return !!s && s.style.display !== 'none' && getComputedStyle(s).display !== 'none'; }
+        setInterval(function () { var on = shown(); d.body.classList.toggle('qk-on', on); if (on) start(); else { $('qk-menu').hidden = true; } }, 1000);
+        $('qk-fab').addEventListener('click', function (e) { e.stopPropagation(); menu(); });
+        $('qk-q').addEventListener('input', renderMenu);
+        $('qk-tiles').addEventListener('click', function (e) { var t = e.target.closest('.qk-t'); if (t && TT[+t.dataset.i]) TT[+t.dataset.i].act(); });
+        $('qk-all').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b && b.dataset.v) go(b.dataset.v); });
+        d.addEventListener('click', function (e) { if (!$('qk-menu').hidden && !e.target.closest('#qk-menu, #qk-fab, .qa-ov')) menu(false); });
+        d.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (!$('qk-drw').hidden && !d.querySelector('.qa-ov')) $('qk-drw').hidden = true; else if (!$('qk-menu').hidden) menu(false); } });
+        $('qk-x').addEventListener('click', function () { $('qk-drw').hidden = true; });
+        $('qk-drw').addEventListener('click', function (e) { if (e.target.id === 'qk-drw') $('qk-drw').hidden = true; });
+        $('qk-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { TAB = b.dataset.t; renderDrawer(); } });
+        $('qk-s').addEventListener('input', renderDrawer);
+        $('qk-list').addEventListener('click', function (e) { var b = e.target.closest('.go'); if (b) one(b.dataset.id); });
+        $('qk-bulk').addEventListener('click', bulk);
+        window.QDQuick = { open: function () { menu(true); }, locked: openDrawer, go: go };
+    })();
     </script>
 <style id="qd-balance">
     /* ===== Cân đối giao diện chung (nút Hỗ trợ gọn, không che nội dung) ===== */
