@@ -25704,6 +25704,357 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
         return { share: share, send: send, removeMine: removeMine, openList: openList, play: function (uid) { var i = LIST.map(function (x) { return x.uid; }).indexOf(uid); if (i < 0) { filter = ''; renderGrid(); i = LIST.map(function (x) { return x.uid; }).indexOf(uid); } play(i); } };
     })();
     </script>
+<style id="qd-call-css">
+/* ===== 📞 GỌI THOẠI / GỌI VIDEO (toàn màn hình như Messenger) ===== */
+.qc-hbtn { width: 38px; height: 38px; font-size: 15px; }
+.qc-hbtn.qc-v { color: #16a34a; } .qc-hbtn.qc-a { color: #16a34a; }
+#qd-call { position: fixed; inset: 0; z-index: 10080; display: none; background: radial-gradient(120% 90% at 50% 0%, #4a0b0b 0%, #1a0404 55%, #0b0202 100%); color: #fff; font-family: inherit; overflow: hidden; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+#qd-call.on { display: block; }
+#qd-call video { background: #000; }
+#qc-rv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+#qd-call.vid.live #qc-rv { display: block; }
+#qd-call.rv-contain #qc-rv { object-fit: contain; }
+#qc-lv { position: absolute; z-index: 3; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 14px); width: 112px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 16px; border: 2px solid rgba(255, 255, 255, .85); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); display: none; transform: scaleX(-1); }
+#qc-lv.screen, #qc-lv.back { transform: none; }
+#qd-call.vid #qc-lv.has { display: block; }
+#qd-call.vid:not(.live) #qc-lv.has { inset: 0; width: 100%; height: 100%; aspect-ratio: auto; border: 0; border-radius: 0; z-index: 0; opacity: .55; }
+@media (min-width: 900px) { #qc-lv { width: 200px; aspect-ratio: 16 / 10; } }
+.qc-mid { position: absolute; z-index: 2; left: 0; right: 0; top: 16%; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 0 20px; text-align: center; pointer-events: none; }
+#qd-call.vid.live .qc-mid { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 128px); gap: 4px; }
+#qd-call.vid.live .qc-av { display: none; }
+.qc-av { width: 128px; height: 128px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; font-size: 52px; font-weight: 900; background: linear-gradient(150deg, #c1121f, #8f0a14); box-shadow: 0 0 0 4px rgba(255, 214, 90, .8), 0 20px 50px rgba(0, 0, 0, .6); }
+.qc-av img { width: 100%; height: 100%; object-fit: cover; }
+#qd-call.ring .qc-av { animation: qcPulse 1.6s ease-out infinite; }
+@keyframes qcPulse { 0% { box-shadow: 0 0 0 4px rgba(255, 214, 90, .8), 0 0 0 0 rgba(255, 214, 90, .45); } 100% { box-shadow: 0 0 0 4px rgba(255, 214, 90, .8), 0 0 0 36px rgba(255, 214, 90, 0); } }
+.qc-name { font-size: 26px; font-weight: 900; text-shadow: 0 2px 10px rgba(0, 0, 0, .6); max-width: 92vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qc-st { font-size: 15px; color: #ffe9a8; text-shadow: 0 1px 6px rgba(0, 0, 0, .7); min-height: 20px; }
+.qc-flags { display: flex; gap: 6px; justify-content: center; min-height: 0; }
+.qc-flags span { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: rgba(0, 0, 0, .55); }
+.qc-bar { position: absolute; z-index: 4; left: 0; right: 0; bottom: 0; padding: 18px 12px calc(env(safe-area-inset-bottom, 0px) + 22px); display: flex; justify-content: center; align-items: flex-end; gap: 14px; flex-wrap: wrap; background: linear-gradient(to top, rgba(0, 0, 0, .7), transparent); transition: opacity .3s; }
+#qd-call.idle .qc-bar, #qd-call.idle #qc-top { opacity: 0; pointer-events: none; }
+.qc-b { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: #f6e6c8; background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; min-width: 58px; }
+.qc-b i { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; font-style: normal; background: rgba(255, 255, 255, .16); color: #fff; backdrop-filter: blur(6px); transition: transform .12s, background .2s; }
+.qc-b:active i { transform: scale(.92); }
+.qc-b.off i { background: #fff; color: #111; }
+.qc-b.end i { background: #ef4444; } .qc-b.ok i { background: #22c55e; } .qc-b.okv i { background: #16a34a; }
+.qc-b.big i { width: 70px; height: 70px; font-size: 26px; }
+#qd-call.ring .qc-b.ok i, #qd-call.ring .qc-b.okv i { animation: qcShake 1.2s ease-in-out infinite; }
+@keyframes qcShake { 0%, 60%, 100% { transform: rotate(0); } 10%, 30%, 50% { transform: rotate(-12deg); } 20%, 40% { transform: rotate(12deg); } }
+.qc-b[hidden] { display: none !important; }
+#qc-top { position: absolute; z-index: 4; left: 12px; top: calc(env(safe-area-inset-top, 0px) + 12px); display: flex; gap: 8px; transition: opacity .3s; }
+#qc-top button { width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(0, 0, 0, .45); color: #fff; font-size: 16px; cursor: pointer; }
+#qc-top button[hidden] { display: none; }
+.qc-net { position: absolute; z-index: 5; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 16px); transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: rgba(245, 158, 11, .92); color: #111; font-size: 13px; font-weight: 800; display: none; }
+.qc-net.on { display: block; }
+@media (prefers-reduced-motion: reduce) { #qd-call.ring .qc-av, #qd-call.ring .qc-b.ok i, #qd-call.ring .qc-b.okv i { animation: none; } }
+</style>
+    <div id="qd-call" role="dialog" aria-modal="true" aria-label="Cuộc gọi">
+        <video id="qc-rv" autoplay playsinline></video>
+        <audio id="qc-ra" autoplay></audio>
+        <video id="qc-lv" autoplay playsinline muted></video>
+        <div id="qc-top"><button type="button" id="qc-fit" title="Vừa khung / phủ kín" hidden><i class="fa-solid fa-expand"></i></button></div>
+        <div class="qc-net" id="qc-net">Mạng yếu — đang kết nối lại…</div>
+        <div class="qc-mid">
+            <div class="qc-av" id="qc-av">?</div>
+            <div class="qc-name" id="qc-name"></div>
+            <div class="qc-st" id="qc-st"></div>
+            <div class="qc-flags" id="qc-flags"></div>
+        </div>
+        <div class="qc-bar" id="qc-bar">
+            <button type="button" class="qc-b end big" data-k="decline"><i class="fa-solid fa-phone-slash"></i>Từ chối</button>
+            <button type="button" class="qc-b ok big" data-k="accept"><i class="fa-solid fa-phone"></i>Nghe</button>
+            <button type="button" class="qc-b okv big" data-k="acceptv"><i class="fa-solid fa-video"></i>Nghe video</button>
+            <button type="button" class="qc-b" data-k="mic"><i class="fa-solid fa-microphone"></i>Micro</button>
+            <button type="button" class="qc-b" data-k="cam"><i class="fa-solid fa-video"></i>Camera</button>
+            <button type="button" class="qc-b" data-k="flip"><i class="fa-solid fa-camera-rotate"></i>Đổi cam</button>
+            <button type="button" class="qc-b" data-k="screen"><i class="fa-solid fa-desktop"></i>Chia sẻ MH</button>
+            <button type="button" class="qc-b" data-k="spk"><i class="fa-solid fa-volume-high"></i>Loa ngoài</button>
+            <button type="button" class="qc-b end big" data-k="end"><i class="fa-solid fa-phone-slash"></i>Kết thúc</button>
+        </div>
+    </div>
+    <script id="qd-call-js">
+    /* ===== 📞 GỌI THOẠI / GỌI VIDEO 1-1 (WebRTC, báo hiệu qua Firestore "calls/{id}") =====
+       - Người gọi: tạo lời mời (offer, đã gom đủ địa chỉ mạng) -> status 'ringing' -> gõ cửa máy chủ để điện thoại người nhận đổ chuông.
+       - Người nhận: nghe máy -> trả lời (answer) -> status 'accepted' -> hai máy nối thẳng với nhau (âm thanh / hình không qua máy chủ).
+       - Kết thúc / từ chối / nhỡ (45 giây) -> người gọi ghi 1 dòng vào tin nhắn riêng: "📞 Cuộc gọi video · 02:31" / "📵 Cuộc gọi nhỡ". */
+    window.QDCall = (function () {
+        var d = document, $ = function (id) { return d.getElementById(id); }, Q = window.QDNative || null;
+        var RING_MS = 45000, S = null, listening = false, cfgIce = null, booted = false;
+        var ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }, { urls: 'stun:stun.cloudflare.com:3478' },
+            { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }];
+        function db() { return firebase.firestore(); }
+        function me() { return (window.State && State.currentUser) || ''; }
+        function nameOf(u) { var N = (window.State && State.nicknames) || {}; if (N[u]) return N[u]; if (u === me() && State.fullName) return State.fullName; var c = (State.usersFull || State.fullNames || {})[u]; return c || u; }
+        function avatarHTML(u) { var n = nameOf(u); try { if (window.Avatar && Avatar.inner) return Avatar.inner((State.avatars || {})[u], n); } catch (e) {} return window.qdH(String(n || '?').charAt(0).toUpperCase()); }
+        function toast(m, t) { try { Utils.toast(m, t || 'info'); } catch (e) {} }
+        function supported() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
+        function pingHook() { try { db().collection('settings').doc('push_server').get().then(function (x) { var o = x.exists ? x.data() : {}, u = String(o.hook || o.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {}); } catch (e) {} }
+        function fmt(ms) { var s = Math.max(0, Math.round(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; s = s % 60; return (h ? h + ':' : '') + (h && m < 10 ? '0' : '') + (m < 10 && !h ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+        function iceCfg() { return { iceServers: (cfgIce && cfgIce.length ? cfgIce : ICE), iceCandidatePoolSize: 2 }; }
+        /* ---------- Âm báo (tự tạo bằng WebAudio, không cần file) ---------- */
+        var AC = null, toneT = 0, vibT = 0;
+        function ac() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} return AC; }
+        function beep(freqs, dur, vol) { var a = ac(); if (!a) return; var t = a.currentTime; freqs.forEach(function (f) { var o = a.createOscillator(), g = a.createGain(); o.frequency.value = f; o.type = 'sine'; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.setValueAtTime(vol, t + dur - .05); g.gain.linearRampToValueAtTime(0, t + dur); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + .02); }); }
+        function tone(kind) {
+            stopTone();
+            if (kind === 'in') { var f = function () { beep([660, 880], .35, .16); setTimeout(function () { beep([880, 1100], .35, .16); }, 420); }; f(); toneT = setInterval(f, 2200); try { navigator.vibrate && (vibT = setInterval(function () { navigator.vibrate([600, 300, 600]); }, 2200), navigator.vibrate([600, 300, 600])); } catch (e) {} }
+            else if (kind === 'out') { var g = function () { beep([425], 1.0, .09); }; g(); toneT = setInterval(g, 3500); }
+            else if (kind === 'end') { beep([480], .25, .12); setTimeout(function () { beep([380], .35, .12); }, 300); }
+        }
+        function stopTone() { clearInterval(toneT); clearInterval(vibT); toneT = vibT = 0; try { navigator.vibrate && navigator.vibrate(0); } catch (e) {} }
+        /* ---------- Giao diện ---------- */
+        var idleT = 0;
+        function ui(mode) {   // mode: out | in | connecting | live
+            var o = $('qd-call'); o.classList.add('on'); o.classList.toggle('vid', S.type === 'video'); o.classList.toggle('ring', mode === 'in' || mode === 'out'); o.classList.toggle('live', mode === 'live');
+            $('qc-name').textContent = S.pname || nameOf(S.peer); $('qc-av').innerHTML = avatarHTML(S.peer);
+            var show = function (k, on) { var b = o.querySelector('[data-k="' + k + '"]'); if (b) b.hidden = !on; };
+            var inc = mode === 'in';
+            show('decline', inc); show('accept', inc && S.type !== 'video'); show('acceptv', inc && S.type === 'video'); if (inc && S.type === 'video') show('accept', true);
+            if (inc && S.type === 'video') o.querySelector('[data-k="accept"]').lastChild.textContent = 'Chỉ nghe';
+            else o.querySelector('[data-k="accept"]').lastChild.textContent = 'Nghe';
+            show('mic', !inc); show('cam', !inc && S.type === 'video'); show('flip', !inc && S.type === 'video' && S.cams > 1 && !S.screen);
+            show('screen', !inc && S.type === 'video' && !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) && !Q && !/Android|iPhone|iPad/i.test(navigator.userAgent));
+            show('spk', !inc && !!(Q && Q.callMode)); show('end', !inc);
+            $('qc-fit').hidden = !(S.type === 'video' && mode === 'live');
+            st();
+            try { if (!d.fullscreenElement && /Android|iPhone/i.test(navigator.userAgent) && !Q && o.requestFullscreen) o.requestFullscreen().catch(function () {}); } catch (e) {}
+        }
+        function st(txt) {
+            if (!S) return; var m = S.mode;
+            $('qc-st').textContent = txt || (m === 'out' ? (S.ringing ? 'Đang đổ chuông…' : 'Đang gọi…') : m === 'in' ? (S.type === 'video' ? 'Cuộc gọi video đến…' : 'Cuộc gọi thoại đến…') : m === 'connecting' ? 'Đang kết nối…' : fmt(Date.now() - (S.liveAt || Date.now())));
+            var f = []; if (S.peerMic === false) f.push('🔇 Đã tắt micro'); if (S.type === 'video' && S.peerCam === false && m === 'live') f.push('📷 Đã tắt camera');
+            $('qc-flags').innerHTML = f.map(function (x) { return '<span>' + x + '</span>'; }).join('');
+            var o = $('qd-call'); if (S.type === 'video' && m === 'live') o.classList.toggle('vid', S.peerCam !== false); 
+        }
+        function btn(k, on, icon, label) { var b = $('qd-call').querySelector('[data-k="' + k + '"]'); if (!b) return; b.classList.toggle('off', !on); if (icon) b.querySelector('i').className = 'fa-solid ' + icon; if (label) b.lastChild.textContent = label; }
+        function wake() { var o = $('qd-call'); o.classList.remove('idle'); clearTimeout(idleT); if (S && S.mode === 'live' && S.type === 'video') idleT = setTimeout(function () { if (S && S.mode === 'live') o.classList.add('idle'); }, 5000); }
+        function hideUI() { var o = $('qd-call'); o.className = ''; $('qc-rv').srcObject = null; $('qc-ra').srcObject = null; $('qc-lv').srcObject = null; $('qc-lv').className = ''; $('qc-net').classList.remove('on'); try { if (d.fullscreenElement && d.exitFullscreen) d.exitFullscreen().catch(function () {}); } catch (e) {} }
+        /* ---------- Thiết bị ---------- */
+        function media(video, facing) {
+            var c = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: video ? { facingMode: facing || 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 24, max: 30 } } : false };
+            return navigator.mediaDevices.getUserMedia(c).catch(function (e) {
+                if (video) return navigator.mediaDevices.getUserMedia({ audio: c.audio, video: false }).then(function (s) { toast('Không mở được camera — gọi bằng giọng nói.', 'warning'); return s; });
+                throw e;
+            });
+        }
+        function mediaErr(e) {
+            var n = e && e.name || '';
+            toast(n === 'NotAllowedError' || n === 'SecurityError' ? 'Bạn chưa cho phép dùng micro / camera. Hãy bấm "Cho phép" rồi gọi lại.' : n === 'NotFoundError' ? 'Máy không có micro / camera.' : n === 'NotReadableError' ? 'Micro / camera đang bị ứng dụng khác dùng.' : 'Không mở được micro / camera.', 'error');
+        }
+        function showLocal() { var lv = $('qc-lv'), v = S.local && S.local.getVideoTracks()[0]; lv.srcObject = S.local; lv.classList.toggle('has', !!v && v.enabled); lv.classList.toggle('screen', !!S.screen); lv.classList.toggle('back', S.facing === 'environment'); }
+        function countCams() { try { navigator.mediaDevices.enumerateDevices().then(function (l) { if (S) { S.cams = l.filter(function (x) { return x.kind === 'videoinput'; }).length; if (S.mode === 'live' || S.mode === 'connecting') ui(S.mode); } }); } catch (e) {} }
+        /* ---------- Kết nối ---------- */
+        function newPC() {
+            var pc = new RTCPeerConnection(iceCfg());
+            pc.ontrack = function (e) {
+                var stm = e.streams && e.streams[0] ? e.streams[0] : new MediaStream([e.track]);
+                if (S.type === 'video') { $('qc-rv').srcObject = stm; var p = $('qc-rv').play(); if (p && p.catch) p.catch(function () {}); }
+                else { $('qc-ra').srcObject = stm; var q = $('qc-ra').play(); if (q && q.catch) q.catch(function () {}); }
+            };
+            var onState = function () {
+                if (!S || S.pc !== pc) return;
+                var cs = pc.connectionState || pc.iceConnectionState;
+                if (cs === 'connected' || cs === 'completed') { $('qc-net').classList.remove('on'); clearTimeout(S.dropT); if (S.mode !== 'live') { S.mode = 'live'; S.liveAt = S.liveAt || Date.now(); stopTone(); ui('live'); wake(); clearInterval(S.tick); S.tick = setInterval(function () { st(); }, 1000); } }
+                else if (cs === 'disconnected') { $('qc-net').classList.add('on'); clearTimeout(S.dropT); S.dropT = setTimeout(function () { if (S && S.pc === pc) finish('ended', 'Mất kết nối'); }, 15000); }
+                else if (cs === 'failed') finish('ended', S.liveAt ? 'Mất kết nối' : 'Không kết nối được (mạng chặn cuộc gọi)');
+            };
+            pc.onconnectionstatechange = onState; pc.oniceconnectionstatechange = onState;
+            return pc;
+        }
+        function gathered(pc) {   // chờ gom đủ địa chỉ mạng (tối đa 3,5 giây) -> gửi 1 lần, không cần trao đổi từng địa chỉ
+            return new Promise(function (res) {
+                if (pc.iceGatheringState === 'complete') return res();
+                var t = setTimeout(res, 3500);
+                pc.addEventListener('icegatheringstatechange', function () { if (pc.iceGatheringState === 'complete') { clearTimeout(t); res(); } });
+            });
+        }
+        function watch(id) {
+            return db().collection('calls').doc(id).onSnapshot(function (doc) {
+                if (!S || S.id !== id || !doc.exists) return; var c = doc.data(); S.doc = c;
+                var mine = S.role === 'caller' ? 'From' : 'To', theirs = S.role === 'caller' ? 'To' : 'From';
+                S.peerMic = c['mic' + theirs]; S.peerCam = c['cam' + theirs];
+                if (S.role === 'caller') {
+                    if (c.status === 'ringing' && c.seen && !S.ringing) { S.ringing = true; st(); }
+                    if (c.status === 'accepted' && c.answer && !S.answered) {
+                        S.answered = true; S.mode = 'connecting'; stopTone(); ui('connecting');
+                        S.pc.setRemoteDescription(c.answer).catch(function () { finish('ended', 'Lỗi kết nối'); });
+                    }
+                    if (c.status === 'declined') return finish(null, 'Đã từ chối cuộc gọi', 'declined');
+                    if (c.status === 'busy') return finish(null, 'Đang bận cuộc gọi khác', 'busy');
+                } else if (c.status === 'accepted' && !S.acceptedHere) return finish(null, 'Đã nghe máy trên thiết bị khác');
+                if (c.status === 'ended' || c.status === 'missed' || (c.status === 'declined' && S.role !== 'caller')) {
+                    if (c.status === 'missed' && S.role === 'callee') return finish(null, 'Cuộc gọi nhỡ');
+                    return finish(null, c.endedBy && c.endedBy !== me() ? 'Cuộc gọi đã kết thúc' : '');
+                }
+                if (S.mode !== 'in') st();
+            }, function () {});
+        }
+        /* ---------- Gọi đi ---------- */
+        function start(type) {
+            var to = window.State && State.chatTarget;
+            if (!to || to === 'general' || to === me()) return toast('Chọn 1 người trong danh bạ để gọi.', 'warning');
+            if (!supported()) return toast('Trình duyệt này chưa hỗ trợ gọi. Hãy dùng Chrome / app QD Elite bản mới.', 'error');
+            if (S) return toast('Bạn đang trong một cuộc gọi.', 'warning');
+            if (!window.isSecureContext) return toast('Cần mở trang bằng https để gọi.', 'error');
+            S = { role: 'caller', peer: to, type: type === 'video' ? 'video' : 'audio', mode: 'out', cams: 1, facing: 'user', speaker: type === 'video' };
+            ui('out'); st('Đang mở micro' + (S.type === 'video' ? ' / camera' : '') + '…');
+            media(S.type === 'video').then(function (stm) {
+                if (!S || S.role !== 'caller') { stm.getTracks().forEach(function (t) { t.stop(); }); return; }
+                S.local = stm; if (!stm.getVideoTracks().length && S.type === 'video') S.camOff = true; showLocal(); countCams();
+                if (Q && Q.callMode) try { Q.callMode(true, S.speaker); } catch (e) {}
+                var pc = S.pc = newPC(); stm.getTracks().forEach(function (t) { pc.addTrack(t, stm); });
+                if (S.type === 'video' && !stm.getVideoTracks().length) pc.addTransceiver('video', { direction: 'recvonly' });
+                tone('out'); st();
+                return pc.createOffer().then(function (o) { return pc.setLocalDescription(o); }).then(function () { return gathered(pc); }).then(function () {
+                    if (!S || S.pc !== pc) return;
+                    var ref = db().collection('calls').doc(); S.id = ref.id;
+                    return ref.set({ from: me(), to: S.peer, fromName: (State.fullName || me()), toName: nameOf(S.peer), type: S.type, status: 'ringing', created: Date.now(),
+                        offer: { type: pc.localDescription.type, sdp: pc.localDescription.sdp }, micFrom: true, camFrom: S.type === 'video' && !S.camOff }).then(function () {
+                        S.unsub = watch(ref.id); pingHook();
+                        S.ringT = setTimeout(function () { if (S && S.id === ref.id && !S.answered) finish('missed', 'Không có người nghe máy'); }, RING_MS);
+                    });
+                });
+            }).catch(function (e) { if (e && /NotAllowed|NotFound|NotReadable|Security|Overconstrained/.test(e.name || '')) mediaErr(e); else toast('Chưa gọi được, thử lại sau.', 'error'); cleanup(); });
+        }
+        /* ---------- Gọi đến ---------- */
+        function incoming(id, c) {
+            if (S) { if (S.id !== id) db().collection('calls').doc(id).update({ status: 'busy', endedAt: Date.now() }).catch(function () {}); return; }
+            if (!supported()) { db().collection('calls').doc(id).update({ status: 'declined', endedAt: Date.now(), reason: 'unsupported' }).catch(function () {}); return; }
+            S = { id: id, role: 'callee', peer: c.from, pname: (window.State && State.nicknames && State.nicknames[c.from]) || c.fromName || c.from, type: c.type === 'video' ? 'video' : 'audio', mode: 'in', offer: c.offer, cams: 1, facing: 'user', speaker: c.type === 'video' };
+            S.unsub = watch(id); ui('in'); tone('in');
+            db().collection('calls').doc(id).update({ seen: Date.now() }).catch(function () {});
+            S.ringT = setTimeout(function () { if (S && S.id === id && S.mode === 'in') finish(null, 'Cuộc gọi nhỡ'); }, Math.max(3000, RING_MS - (Date.now() - (c.created || Date.now()))));
+            if (d.hidden && window.Notif && Notif.show) try { Notif.show('📞 ' + (c.fromName || nameOf(c.from)) + (c.type === 'video' ? ' đang gọi video cho bạn' : ' đang gọi cho bạn'), 'Chạm để nghe máy', 'call:' + id, c.from); } catch (e) {}
+        }
+        function accept(withVideo) {
+            if (!S || S.mode !== 'in') return; stopTone(); S.acceptedHere = true; clearTimeout(S.ringT);
+            var vid = S.type === 'video' && withVideo !== false; if (S.type === 'video' && !vid) S.camOff = true;
+            S.mode = 'connecting'; ui('connecting');
+            media(vid).then(function (stm) {
+                if (!S || S.role !== 'callee') { stm.getTracks().forEach(function (t) { t.stop(); }); return; }
+                S.local = stm; if (!stm.getVideoTracks().length) S.camOff = true; showLocal(); countCams();
+                if (Q && Q.callMode) try { Q.callMode(true, S.speaker); } catch (e) {}
+                var pc = S.pc = newPC(); stm.getTracks().forEach(function (t) { pc.addTrack(t, stm); });
+                return pc.setRemoteDescription(S.offer).then(function () { return pc.createAnswer(); }).then(function (a) { return pc.setLocalDescription(a); }).then(function () { return gathered(pc); }).then(function () {
+                    if (!S || S.pc !== pc) return;
+                    return db().collection('calls').doc(S.id).update({ status: 'accepted', acceptedAt: Date.now(), answer: { type: pc.localDescription.type, sdp: pc.localDescription.sdp }, micTo: true, camTo: S.type === 'video' && !S.camOff });
+                });
+            }).catch(function (e) { if (e && /NotAllowed|NotFound|NotReadable|Security/.test(e.name || '')) mediaErr(e); else toast('Không nghe máy được.', 'error'); finish('ended', ''); });
+        }
+        function decline() { if (!S || S.mode !== 'in') return; var id = S.id; db().collection('calls').doc(id).update({ status: 'declined', endedAt: Date.now(), endedBy: me() }).catch(function () {}); pingHook(); cleanup(); }
+        /* ---------- Kết thúc ---------- */
+        function finish(status, msg, logAs) {
+            if (!S) return; var s = S, dur = s.liveAt ? Date.now() - s.liveAt : 0;
+            if (status && s.id) { var up = { status: status, endedAt: Date.now(), endedBy: me() }; if (dur) up.duration = dur; db().collection('calls').doc(s.id).update(up).catch(function () {}); pingHook(); }
+            if (s.role === 'caller' && s.id && !s.logged) {   // người gọi ghi 1 dòng vào cuộc trò chuyện
+                s.logged = true; var st2 = logAs || status || (s.doc && s.doc.status) || 'ended';
+                var kind = s.type === 'video' ? 'video' : 'thoại';
+                var text = dur ? '📞 Cuộc gọi ' + kind + ' · ' + fmt(dur) : st2 === 'declined' ? '📵 Cuộc gọi ' + kind + ' bị từ chối' : st2 === 'busy' ? '📵 Cuộc gọi ' + kind + ' — người nhận đang bận' : '📵 Cuộc gọi ' + kind + ' nhỡ';
+                try { db().collection('private_chat').add({ conversationId: Utils.getRoomId(me(), s.peer), from: me(), to: s.peer, text: text, imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [], call: { type: s.type, dur: Math.round(dur / 1000), status: dur ? 'done' : st2 } }); } catch (e) {}
+            }
+            if (s.mode !== 'in') tone('end');
+            if (msg) { $('qc-st').textContent = msg; $('qd-call').classList.remove('ring', 'live', 'idle'); }
+            cleanup(msg ? 1300 : 0);
+        }
+        function cleanup(delay) {
+            var s = S; S = null; if (!s) return; stopTone();
+            clearTimeout(s.ringT); clearInterval(s.tick); clearTimeout(s.dropT); clearTimeout(idleT);
+            try { s.unsub && s.unsub(); } catch (e) {}
+            try { s.pc && s.pc.close(); } catch (e) {}
+            [s.local, s.screen].forEach(function (m) { try { m && m.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} });
+            if (Q && Q.callMode) try { Q.callMode(false, false); } catch (e) {}
+            if (Q && Q.cancelCallNotif && s.id) try { Q.cancelCallNotif('call:' + s.id); } catch (e) {}
+            setTimeout(function () { if (!S) hideUI(); }, delay || 0);
+        }
+        /* ---------- Nút trong cuộc gọi ---------- */
+        function setFlag(k, v) { if (S && S.id) { var o = {}; o[k + (S.role === 'caller' ? 'From' : 'To')] = v; db().collection('calls').doc(S.id).update(o).catch(function () {}); } }
+        function toggleMic() { var t = S && S.local && S.local.getAudioTracks()[0]; if (!t) return; t.enabled = !t.enabled; btn('mic', t.enabled, t.enabled ? 'fa-microphone' : 'fa-microphone-slash', t.enabled ? 'Micro' : 'Đã tắt mic'); setFlag('mic', t.enabled); }
+        function toggleCam() {
+            if (!S || S.type !== 'video') return; var t = S.local && S.local.getVideoTracks()[0];
+            if (!t) {   // chưa có camera (nghe bằng giọng / không mở được) -> mở camera và gửi đi
+                return media(true, S.facing).then(function (m) { var v = m.getVideoTracks()[0]; m.getAudioTracks().forEach(function (a) { a.stop(); }); if (!v) return; S.local.addTrack(v); var tr = S.pc.getTransceivers().filter(function (x) { return x.receiver.track && x.receiver.track.kind === 'video'; })[0]; if (tr && tr.sender) { tr.sender.replaceTrack(v); try { tr.direction = 'sendrecv'; } catch (e) {} } S.camOff = false; showLocal(); btn('cam', true, 'fa-video', 'Camera'); setFlag('cam', true); }).catch(mediaErr);
+            }
+            t.enabled = !t.enabled; S.camOff = !t.enabled; showLocal(); btn('cam', t.enabled, t.enabled ? 'fa-video' : 'fa-video-slash', t.enabled ? 'Camera' : 'Đã tắt cam'); setFlag('cam', t.enabled);
+        }
+        function sender(kind) { return S && S.pc ? S.pc.getSenders().filter(function (x) { return x.track && x.track.kind === kind; })[0] : null; }
+        function flip() {
+            if (!S || !S.local || S.screen) return; var old = S.local.getVideoTracks()[0]; if (!old) return;
+            var want = S.facing === 'user' ? 'environment' : 'user'; old.stop();
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: want }, width: { ideal: 1280 }, height: { ideal: 720 } } }).catch(function () { return navigator.mediaDevices.getUserMedia({ video: { facingMode: want } }); }).then(function (m) {
+                var v = m.getVideoTracks()[0]; S.local.removeTrack(old); S.local.addTrack(v); var sd = sender('video'); if (sd) sd.replaceTrack(v); S.facing = want; showLocal();
+            }).catch(function () { toast('Không đổi được camera.', 'error'); });
+        }
+        function screenShare() {
+            if (!S || S.type !== 'video' || !navigator.mediaDevices.getDisplayMedia) return;
+            if (S.screen) return stopScreen();
+            navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 15 }, audio: false }).then(function (m) {
+                var v = m.getVideoTracks()[0], sd = sender('video') || (S.pc.getTransceivers().filter(function (x) { return x.receiver.track && x.receiver.track.kind === 'video'; })[0] || {}).sender;
+                if (!sd) { m.getTracks().forEach(function (t) { t.stop(); }); return toast('Không chia sẻ được màn hình.', 'error'); }
+                S.screen = m; sd.replaceTrack(v); v.onended = stopScreen;
+                $('qc-lv').srcObject = m; $('qc-lv').classList.add('has', 'screen'); btn('screen', false, 'fa-desktop', 'Dừng chia sẻ'); ui('live'); setFlag('cam', true);
+            }).catch(function () {});
+        }
+        function stopScreen() {
+            if (!S || !S.screen) return; var m = S.screen; S.screen = null; m.getTracks().forEach(function (t) { t.stop(); });
+            var cam = S.local && S.local.getVideoTracks()[0], sd = sender('video') || (S.pc.getTransceivers().filter(function (x) { return x.receiver.track && x.receiver.track.kind === 'video'; })[0] || {}).sender;
+            if (sd) sd.replaceTrack(cam || null); showLocal(); btn('screen', true, 'fa-desktop', 'Chia sẻ MH'); ui('live'); setFlag('cam', !!(cam && cam.enabled));
+        }
+        function speaker() { if (!S || !Q || !Q.callMode) return; S.speaker = !S.speaker; try { Q.callMode(true, S.speaker); } catch (e) {} btn('spk', !S.speaker ? false : true, S.speaker ? 'fa-volume-high' : 'fa-phone-volume', S.speaker ? 'Loa ngoài' : 'Loa trong'); }
+        /* ---------- Lắng nghe cuộc gọi đến ---------- */
+        function listen() {
+            if (listening || !me()) return; listening = true;
+            db().collection('settings').doc('call_config').get().then(function (x) { var c = x.exists ? x.data() : {}; if (Array.isArray(c.iceServers) && c.iceServers.length) cfgIce = c.iceServers; }).catch(function () {});
+            db().collection('calls').where('to', '==', me()).onSnapshot(function (q) {
+                (q.docChanges ? q.docChanges() : []).forEach(function (ch) {
+                    if (ch.type === 'removed') return; var c = ch.doc.data(), id = ch.doc.id;
+                    if (c.status === 'ringing' && Date.now() - (c.created || 0) < RING_MS - 2000 && c.from !== me() && !(S && S.id === id)) incoming(id, c);
+                });
+            }, function () { listening = false; });
+        }
+        function fromNotif(r) {   // bấm thông báo cuộc gọi: "call:<mã>[:accept|:decline]"
+            var p = String(r).split(':'), id = p[1], act = p[2] || '';
+            if (!id) return;
+            var go = function () {
+                if (S && S.id === id) { if (act === 'accept') accept(true); else if (act === 'decline') decline(); return; }
+                db().collection('calls').doc(id).get().then(function (x) {
+                    var c = x.exists ? x.data() : null;
+                    if (!c || c.status !== 'ringing' || Date.now() - (c.created || 0) > RING_MS) { try { window.UI && UI.navigate('chat'); if (c && c.from && window.Chat && Chat.openFromNotif) Chat.openFromNotif(Utils.getRoomId(me(), c.from)); } catch (e) {} return toast('Cuộc gọi đã kết thúc.', 'info'); }
+                    incoming(id, c); if (act === 'accept') setTimeout(function () { accept(true); }, 300); else if (act === 'decline') decline();
+                });
+            };
+            if (me()) go(); else { var n = 0; (function w() { if (me()) go(); else if (n++ < 60) setTimeout(w, 500); })(); }
+        }
+        /* ---------- Gắn vào trang ---------- */
+        function boot() {
+            if (booted) return; booted = true;
+            var bar = $('qc-bar');
+            bar.addEventListener('click', function (e) {
+                var b = e.target.closest('.qc-b'); if (!b) return; var k = b.dataset.k; wake();
+                if (k === 'accept') accept(S && S.type === 'video' ? false : true); else if (k === 'acceptv') accept(true); else if (k === 'decline') decline();
+                else if (k === 'end') finish(S && S.mode === 'out' ? (S.id ? 'missed' : null) : 'ended', '', S && S.mode === 'out' ? 'missed' : null);
+                else if (k === 'mic') toggleMic(); else if (k === 'cam') toggleCam(); else if (k === 'flip') flip(); else if (k === 'screen') screenShare(); else if (k === 'spk') speaker();
+            });
+            $('qd-call').addEventListener('pointerdown', function (e) { if (!e.target.closest('.qc-bar')) wake(); });
+            $('qc-fit').addEventListener('click', function () { $('qd-call').classList.toggle('rv-contain'); });
+            // nút gọi trên đầu khung chat
+            var hdr = d.querySelector('#chat-active-ui .chat-header .flex.gap-2.flex-shrink-0');
+            if (hdr && !$('qc-btn-a')) {
+                hdr.insertAdjacentHTML('afterbegin', '<button type="button" class="btn-icon qc-hbtn qc-a" id="qc-btn-a" title="Gọi thoại" aria-label="Gọi thoại" onclick="window.QDCall.start(\'audio\')"><i class="fa-solid fa-phone"></i></button><button type="button" class="btn-icon qc-hbtn qc-v" id="qc-btn-v" title="Gọi video" aria-label="Gọi video" onclick="window.QDCall.start(\'video\')"><i class="fa-solid fa-video"></i></button>');
+            }
+            var sync = function () { var t = window.State && State.chatTarget, on = !!t && t !== 'general'; ['qc-btn-a', 'qc-btn-v'].forEach(function (id) { var b = $(id); if (b) b.style.display = on ? '' : 'none'; }); };
+            (function hook(n) {
+                if (!window.Chat || !Chat.updateHeader) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
+                var uh = Chat.updateHeader; Chat.updateHeader = function () { var r = uh.apply(this, arguments); sync(); return r; }; sync();
+                if (Chat.openFromNotif) { var of = Chat.openFromNotif; Chat.openFromNotif = function (r) { if (/^call:/.test(String(r || ''))) return fromNotif(r); return of.apply(this, arguments); }; }
+            })(0);
+            var nf = window.__qdNotifOpen; if (typeof nf === 'function') window.__qdNotifOpen = function (r) { if (/^call:/.test(String(r || ''))) return fromNotif(r); return nf.apply(this, arguments); };
+            window.addEventListener('pagehide', function () { if (S && S.id) { var up = S.mode === 'in' ? null : { status: S.liveAt ? 'ended' : 'missed', endedAt: Date.now(), endedBy: me() }; if (up) try { db().collection('calls').doc(S.id).update(up); } catch (e) {} } });
+            (function wait(n) { if (window.firebase && firebase.apps && firebase.apps.length && me()) listen(); else if (n < 2000) setTimeout(function () { wait(n + 1); }, 1500); })(0);
+        }
+        if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();
+        return { start: start, accept: accept, decline: decline, end: function () { finish('ended', ''); }, fromNotif: fromNotif, _s: function () { return S; } };
+    })();
+    </script>
 <style id="qd-balance">
     /* ===== Cân đối giao diện chung (nút Hỗ trợ gọn, không che nội dung) ===== */
     @media (max-width: 768px) {
