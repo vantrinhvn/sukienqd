@@ -26126,7 +26126,10 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
                             if (S !== s1 || S.ringing || S.answered) return;
                             db().collection('settings').doc('push_server').get().then(function (x) {
                                 if (S !== s1 || S.ringing || S.answered) return; var v = +String((x.exists && x.data().ver) || '').replace(/\D/g, '') || 0;
-                                S.wmsg = v && v < 10 ? '⚠ Người nhận đang tắt app — máy chủ chưa hỗ trợ đổ chuông khi tắt app' : 'Người nhận đang tắt app — đang gọi tới điện thoại…'; st();
+                                S.wmsg = v && v < 10 ? 'Người nhận đang tắt app — đã gửi tin báo lên điện thoại họ, chờ họ mở app nghe máy…' : 'Người nhận đang tắt app — đang gọi tới điện thoại…'; st();
+                                if (v && v < 10 && !s1.pinged) {   // máy chủ cũ không đổ chuông được -> gửi 1 tin nhắn (máy chủ cũ vẫn đẩy tin nhắn lên điện thoại) để họ mở app nghe máy
+                                    s1.pinged = true; try { db().collection('private_chat').add({ conversationId: Utils.getRoomId(me(), s1.peer), from: me(), to: s1.peer, text: (s1.type === 'video' ? '📹 Mình đang gọi video cho bạn' : '📞 Mình đang gọi cho bạn') + ' — mở app để nghe máy nhé!', imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [], callPing: true }); } catch (e) {}
+                                }
                                 S.waitT = setTimeout(function () { if (S === s1 && !S.ringing && !S.answered) { S.wmsg = 'Chưa liên lạc được điện thoại người nhận (mất mạng / chặn thông báo) — vẫn đang chờ…'; st(); } }, 12000);
                             }).catch(function () {});
                         }, 5000);
