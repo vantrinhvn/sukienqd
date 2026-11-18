@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex, nofollow">
+<title>Mã máy chủ QD (Google Apps Script)</title>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#1a0404;color:#fff3d6;padding:18px;line-height:1.5}
+.box{max-width:640px;margin:0 auto}
+h1{font-size:22px;color:#ffd65a;margin:0 0 6px}
+p{margin:6px 0;font-size:15px}
+.b{display:block;width:100%;margin:14px 0 8px;padding:16px;border:0;border-radius:14px;background:linear-gradient(#ffe38a,#f6c445);color:#7a0b0b;font-size:18px;font-weight:900;cursor:pointer}
+.b.s{background:#3b0a0a;color:#ffe9a8;border:1.5px solid #f6c445;font-size:15px;padding:12px}
+#st{min-height:22px;font-weight:700;color:#b8f5b0}
+pre{white-space:pre-wrap;word-break:break-all;font-size:11px;background:#000;color:#cfc;padding:10px;border-radius:10px;max-height:240px;overflow:auto}
+ol{padding-left:20px} li{margin:6px 0}
+</style></head><body><div class="box">
+<h1>Mã máy chủ QD · <span id="ver">…</span></h1>
+<p>Dán đè toàn bộ vào Google Apps Script (tệp <b>bot-server</b>).</p>
+<button class="b" id="cp">📋 Sao chép toàn bộ mã</button>
+<div id="st"></div>
+<ol>
+<li>Mở <a style="color:#ffd65a" href="https://script.google.com/home" target="_blank" rel="noopener">script.google.com</a> → dự án máy chủ QD (điện thoại: bật <b>Trang web cho máy tính</b> trong trình duyệt).</li>
+<li>Bấm vào tệp mã → chọn hết mã cũ, xóa → dán mã vừa sao chép → bấm 💾 <b>Lưu</b>.</li>
+<li><b>Triển khai</b> → <b>Quản lý các lần triển khai</b> → ✏️ → Phiên bản: <b>Phiên bản mới</b> → <b>Triển khai</b>.</li>
+</ol>
+<button class="b s" id="cpj">Sao chép appsscript.json (chỉ khi được yêu cầu)</button>
+<pre id="pv">Đang tải…</pre>
+</div>
+<script>
+var CODE='',JS='';
+function st(m){document.getElementById('st').textContent=m}
+fetch('bot-server.gs?'+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){CODE=t;var m=t.match(/var VER = '([^']+)'/);document.getElementById('ver').textContent=m?m[1]:'';document.getElementById('pv').textContent=t.slice(0,1500)+'\n…';});
+fetch('appsscript.json?'+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){JS=t});
+function copy(t,ok){if(!t)return st('Chưa tải xong, đợi 1 giây rồi bấm lại.');
+ (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):Promise.reject()).then(function(){st(ok)}).catch(function(){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');st(ok)}catch(e){st('Không tự sao chép được — giữ tay vào khung mã để chọn.')}a.remove()})}
+document.getElementById('cp').onclick=function(){copy(CODE,'✓ Đã sao chép '+CODE.split('\n').length+' dòng mã. Giờ dán vào Apps Script.')};
+document.getElementById('cpj').onclick=function(){copy(JS,'✓ Đã sao chép appsscript.json.')};
+</script></body></html>
