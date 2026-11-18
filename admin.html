@@ -3765,6 +3765,15 @@ html.qd-lite .qd-fx { display: none !important; }
                         <h4 class="mt-6 mb-3 flex items-center gap-2" style="font-size: 16px;"><i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Lịch sử cảnh báo & khóa gọi</h4>
                         <div class="table-container"><table class="vsh-log"><thead><tr><th>Thời gian</th><th>Thành viên</th><th>Lý do</th><th>Khóa gọi đến</th><th>Đã xem</th><th>Người xử lý</th><th></th></tr></thead><tbody id="qwn-list"><tr><td colspan="7" class="text-muted">Đang tải…</td></tr></tbody></table></div>
                     </div>
+                    <div class="card" style="padding: 20px 24px; margin-top: 24px;" id="qbl-card">
+                        <div class="flex justify-between items-center flex-wrap gap-3 mb-3">
+                            <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-ban" style="color: #ef4444;"></i> Thành viên chặn nhau</h3>
+                            <input type="search" id="qbl-q" class="form-control" placeholder="Tìm tên đăng nhập…" style="width: 220px;">
+                        </div>
+                        <p class="text-muted text-sm mb-3">Ai đã chặn ai không cho gọi (khi báo cáo 🚩 có tích "chặn người này"). Người bị chặn gọi tới sẽ tự bị từ chối. Admin gỡ chặn được — gỡ xong có hiệu lực ngay và được ghi vào Nhật ký bot.</p>
+                        <div class="vsh-stats" id="qbl-stats"></div>
+                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Thời gian chặn</th><th>Người chặn</th><th>Người bị chặn</th><th>Lý do</th><th></th></tr></thead><tbody id="qbl-list"><tr><td colspan="5" class="text-muted">Đang tải…</td></tr></tbody></table></div>
+                    </div>
                     <div id="qrp-img" class="qrp-img" hidden onclick="this.hidden=true"><img alt=""></div>
                 </section>
 
@@ -16262,7 +16271,35 @@ window.QDXlsx = (function () {
             }).join('') : '<tr><td colspan="7" class="text-muted">Chưa gửi cảnh báo nào.</td></tr>';
         }
         var GD0 = { on: true, winDays: 30, warnAt: 1, ban1At: 2, ban7At: 3, missMax: 3, missMin: 30, spamWarn: 3, spamBanH: 3, rateMax: 8, rateMin: 10, loud: true }, NUM = ['winDays', 'warnAt', 'ban1At', 'ban7At', 'missMax', 'missMin', 'spamWarn', 'spamBanH', 'rateMax', 'rateMin'];
-        var KIND = { report: '🚩 Báo cáo', spam: '📵 Gọi dồn dập', 'spam-ban': '📵 Làm phiền nhiều lần', rate: '⏱️ Gọi quá nhiều', loud: '🔊 La hét to' };
+        var KIND = { unblock: '🔓 Gỡ chặn', report: '🚩 Báo cáo', spam: '📵 Gọi dồn dập', 'spam-ban': '📵 Làm phiền nhiều lần', rate: '⏱️ Gọi quá nhiều', loud: '🔊 La hét to' };
+        var BL = [], NAMES = {};
+        var RS = { harass: '😠 Quấy rối', violence: '👊 Bạo lực', threat: '🔪 Đe dọa', sexual: '🔞 Khiêu dâm / nhạy cảm', abuse: '🤬 Xúc phạm, lăng mạ', other: '❓ Khác' };
+        function nm(u) { return NAMES[u] ? '<b>' + H(NAMES[u]) + '</b><small>@' + H(u) + '</small>' : '<b>@' + H(u) + '</b>'; }
+        function renderBlocks() {
+            var q = String($('qbl-q').value || '').trim().toLowerCase(), by = {};
+            BL.forEach(function (b) { by[b.blocked] = (by[b.blocked] || 0) + 1; });
+            var top = Object.keys(by).filter(function (u) { return by[u] > 1; }).sort(function (a, b) { return by[b] - by[a]; }).slice(0, 5);
+            $('qbl-stats').innerHTML = '<span>Đang chặn: <b>' + BL.length + '</b></span>' + (top.length ? '<span>Bị nhiều người chặn: <b>' + top.map(function (u) { return '@' + H(u) + ' (' + by[u] + ')'; }).join(', ') + '</b></span>' : '');
+            var L = BL.filter(function (b) { return !q || [b.by, b.blocked, NAMES[b.by], NAMES[b.blocked]].join(' ').toLowerCase().indexOf(q) >= 0; });
+            $('qbl-list').innerHTML = L.length ? L.map(function (b) {
+                return '<tr><td style="white-space:nowrap">' + fmt(b.at) + '</td><td class="vsh-who">' + nm(b.by) + '</td><td class="vsh-who">' + nm(b.blocked) + (by[b.blocked] > 1 ? '<small style="color:#ef4444">bị ' + by[b.blocked] + ' người chặn</small>' : '') + '</td>' +
+                    '<td>' + (b.reason ? '<span class="qrp-chip">' + H(RS[b.reason] || b.reason) + '</span>' : '<span class="text-muted">—</span>') + '</td>' +
+                    '<td><div class="qrp-acts"><button onclick="QDCallReports.unblock(\'' + qdJ(b.id) + '\')">🔓 Gỡ chặn</button></div></td></tr>';
+            }).join('') : '<tr><td colspan="5" class="text-muted">' + (q ? 'Không tìm thấy.' : 'Chưa có ai chặn ai 👍') + '</td></tr>';
+        }
+        function bootBlocks() {
+            fs().collection('accounts').get().then(function (q) { q.forEach(function (d) { var x = d.data(); if (x.user) NAMES[x.user] = x.fullName || x.displayName || ''; }); renderBlocks(); }).catch(function () {});
+            fs().collection('call_blocks').onSnapshot(function (q) { BL = []; q.forEach(function (d) { var x = d.data(); x.id = d.id; if (x.by && x.blocked) BL.push(x); }); BL.sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); renderBlocks(); }, function (e) { $('qbl-list').innerHTML = '<tr><td colspan="5" style="color:#ef4444">Không đọc được (' + H(e && e.code || '') + ')</td></tr>'; });
+            $('qbl-q').addEventListener('input', renderBlocks);
+        }
+        function unblock(id) {
+            var b = BL.filter(function (x) { return x.id === id; })[0]; if (!b) return;
+            if (!confirm('Gỡ chặn: @' + b.by + ' đang chặn @' + b.blocked + '.\nSau khi gỡ, @' + b.blocked + ' gọi được cho @' + b.by + ' trở lại?')) return;
+            fs().collection('call_blocks').doc(id).delete().then(function () {
+                fs().collection('call_bot_log').add({ kind: 'unblock', user: b.blocked, target: b.by, action: 'Admin gỡ chặn (' + me() + ')', detail: '@' + b.by + ' đã chặn từ ' + fmt(b.at) + (b.reason ? ' · ' + (RS[b.reason] || b.reason) : ''), at: Date.now(), by: me() }).catch(function () {});
+                toast('Đã gỡ chặn — @' + b.blocked + ' gọi được cho @' + b.by, 'success');
+            }).catch(function (e) { toast('Không gỡ được: ' + (e && e.code || e), 'error'); });
+        }
         function bootGuard() {
             var dirty = false; $('qgd-card').addEventListener('input', function () { dirty = true; });
             fs().collection('settings').doc('call_guard').onSnapshot(function (d) {
@@ -16283,7 +16320,7 @@ window.QDXlsx = (function () {
                 var day = Date.now() - 864e5, c = {}; L.forEach(function (o) { if ((o.at || 0) > day) c[o.kind] = (c[o.kind] || 0) + 1; });
                 $('qgd-stats').innerHTML = '<span>24 giờ qua:</span>' + (Object.keys(c).length ? Object.keys(c).map(function (k) { return '<span>' + (KIND[k] || H(k)) + ': <b>' + c[k] + '</b></span>'; }).join('') : '<span><b>yên bình 👍</b></span>');
                 $('qgd-log').innerHTML = L.length ? L.slice(0, 200).map(function (o) {
-                    return '<tr><td style="white-space:nowrap">' + fmt(o.at) + '</td><td><span class="qgd-k">' + (KIND[o.kind] || H(o.kind)) + '</span></td><td class="vsh-who"><b>@' + H(o.user || '') + '</b>' + (o.target ? '<small>gọi cho @' + H(o.target) + '</small>' : '') + '</td><td>' + H(o.action || '') + '</td><td class="text-sm">' + H(o.detail || '') + '</td></tr>';
+                    return '<tr><td style="white-space:nowrap">' + fmt(o.at) + '</td><td><span class="qgd-k">' + (KIND[o.kind] || H(o.kind)) + '</span></td><td class="vsh-who"><b>@' + H(o.user || '') + '</b>' + (o.target ? '<small>' + (o.kind === 'unblock' ? 'đã bị @' + H(o.target) + ' chặn' : 'gọi cho @' + H(o.target)) + '</small>' : '') + '</td><td>' + H(o.action || '') + '</td><td class="text-sm">' + H(o.detail || '') + '</td></tr>';
                 }).join('') : '<tr><td colspan="5" class="text-muted">Bot chưa phải xử lý việc gì.</td></tr>';
             }, function () {});
         }
@@ -16313,14 +16350,14 @@ window.QDXlsx = (function () {
             if (booted || !window.firebase || !firebase.apps || !firebase.apps.length) return; booted = true;
             fs().collection('call_reports').orderBy('at', 'desc').limit(500).onSnapshot(function (q) { REP = []; q.forEach(function (d) { var x = d.data(); x.id = d.id; REP.push(x); }); REP.sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); render(); }, function (e) { $('qrp-list').innerHTML = '<tr><td colspan="6" style="color:#ef4444">Không đọc được (' + H(e && e.code || '') + ')</td></tr>'; });
             fs().collection('call_warnings').orderBy('at', 'desc').limit(500).onSnapshot(function (q) { WRN = []; q.forEach(function (d) { var x = d.data(); x.id = d.id; WRN.push(x); }); WRN.sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); render(); }, function () {});
-            bootGuard();
+            bootGuard(); bootBlocks();
             $('qrp-filt').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; F = b.dataset.f || ''; Array.prototype.forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); }); render(); });
         }
         (function hook(n) {
             if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
             var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'calls') boot(); return r; };
         })(0);
-        return { act: act, unban: unban, big: function (src) { var o = $('qrp-img'); o.querySelector('img').src = src; o.hidden = false; } };
+        return { act: act, unban: unban, unblock: unblock, big: function (src) { var o = $('qrp-img'); o.querySelector('img').src = src; o.hidden = false; } };
     })();
     </script>
     <script id="qsrv-js">
