@@ -25876,6 +25876,19 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
             pc.onconnectionstatechange = onState; pc.oniceconnectionstatechange = onState;
             return pc;
         }
+        /* Trao đổi địa chỉ mạng từng cái ngay khi tìm thấy (không chờ gom đủ) -> nối nhanh hơn vài giây */
+        function trickle(pc) {
+            var q = [], tm = 0;
+            function flush() { tm = 0; if (!S || S.pc !== pc || !S.docReady || !q.length) return; var b = q.splice(0); var o = {}; o['c' + (S.role === 'caller' ? 'From' : 'To')] = firebase.firestore.FieldValue.arrayUnion.apply(null, b); db().collection('calls').doc(S.id).update(o).catch(function () {}); }
+            pc.onicecandidate = function (e) { if (!e.candidate || !e.candidate.candidate) return; try { q.push(JSON.stringify(e.candidate.toJSON ? e.candidate.toJSON() : e.candidate)); } catch (x) { return; } if (!tm) tm = setTimeout(flush, 120); };
+            return flush;
+        }
+        function addRemote(c) {   // địa chỉ mạng của máy bên kia
+            if (!S || !S.pc) return; var list = c['c' + (S.role === 'caller' ? 'To' : 'From')] || []; S.rc = S.rc || 0;
+            if (!S.pc.remoteDescription || !S.pc.remoteDescription.type) return;
+            for (; S.rc < list.length; S.rc++) { try { S.pc.addIceCandidate(JSON.parse(list[S.rc])).catch(function () {}); } catch (e) {} }
+        }
+        function connTimer() { clearTimeout(S.connT); var s0 = S; S.connT = setTimeout(function () { if (S === s0 && S.mode !== 'live') finish('ended', 'Không kết nối được — mạng đang chặn cuộc gọi. Thử Wi-Fi khác hoặc 4G.'); }, 25000); }
         function gathered(pc) {   // chờ gom đủ địa chỉ mạng (tối đa 3,5 giây) -> gửi 1 lần, không cần trao đổi từng địa chỉ
             return new Promise(function (res) {
                 if (pc.iceGatheringState === 'complete') return res();
@@ -25892,7 +25905,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
                     if (c.status === 'ringing' && c.seen && !S.ringing) { S.ringing = true; st(); }
                     if (c.status === 'accepted' && c.answer && !S.answered) {
                         S.answered = true; S.mode = 'connecting'; stopTone(); ui('connecting');
-                        S.pc.setRemoteDescription(c.answer).catch(function () { finish('ended', 'Lỗi kết nối'); });
+                        S.pc.setRemoteDescription(c.answer).then(function () { addRemote(c); }).catch(function () { finish('ended', 'Lỗi kết nối'); }); connTimer();
                     }
                     if (c.status === 'declined') return finish(null, 'Đã từ chối cuộc gọi', 'declined');
                     if (c.status === 'busy') return finish(null, 'Đang bận cuộc gọi khác', 'busy');
@@ -25901,6 +25914,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
                     if (c.status === 'missed' && S.role === 'callee') return finish(null, 'Cuộc gọi nhỡ');
                     return finish(null, c.endedBy && c.endedBy !== me() ? 'Cuộc gọi đã kết thúc' : '');
                 }
+                addRemote(c);
                 if (S.mode !== 'in') st();
             }, function () {});
         }
@@ -25921,12 +25935,12 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
                 var pc = S.pc = newPC(); stm.getTracks().forEach(function (t) { pc.addTrack(t, stm); });
                 if (S.type === 'video' && !stm.getVideoTracks().length) pc.addTransceiver('video', { direction: 'recvonly' });
                 tone('out'); st();
-                return pc.createOffer().then(function (o) { return pc.setLocalDescription(o); }).then(function () { return gathered(pc); }).then(function () {
+                var ref = db().collection('calls').doc(); S.id = ref.id; var flushC = trickle(pc);
+                return pc.createOffer().then(function (o) { return pc.setLocalDescription(o); }).then(function () {
                     if (!S || S.pc !== pc) return;
-                    var ref = db().collection('calls').doc(); S.id = ref.id;
                     return ref.set({ from: me(), to: S.peer, fromName: (State.fullName || me()), toName: nameOf(S.peer), type: S.type, status: 'ringing', created: Date.now(),
                         offer: { type: pc.localDescription.type, sdp: pc.localDescription.sdp }, micFrom: true, camFrom: S.type === 'video' && !S.camOff }).then(function () {
-                        S.unsub = watch(ref.id); pingHook();
+                        S.docReady = true; flushC(); S.unsub = watch(ref.id); pingHook();
                         S.ringT = setTimeout(function () { if (S && S.id === ref.id && !S.answered) finish('missed', 'Không có người nghe máy'); }, RING_MS);
                     });
                 });
@@ -25952,9 +25966,12 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
                 S.local = stm; if (!stm.getVideoTracks().length) S.camOff = true; showLocal(); countCams();
                 if (Q && Q.callMode) try { Q.callMode(true, S.speaker); } catch (e) {}
                 var pc = S.pc = newPC(); stm.getTracks().forEach(function (t) { pc.addTrack(t, stm); });
-                return pc.setRemoteDescription(S.offer).then(function () { return pc.createAnswer(); }).then(function (a) { return pc.setLocalDescription(a); }).then(function () { return gathered(pc); }).then(function () {
+                var flushC = trickle(pc);
+                return pc.setRemoteDescription(S.offer).then(function () { addRemote(S.doc || {}); return pc.createAnswer(); }).then(function (a) { return pc.setLocalDescription(a); }).then(function () {
                     if (!S || S.pc !== pc) return;
-                    return db().collection('calls').doc(S.id).update({ status: 'accepted', acceptedAt: Date.now(), answer: { type: pc.localDescription.type, sdp: pc.localDescription.sdp }, micTo: true, camTo: S.type === 'video' && !S.camOff });
+                    connTimer();
+                    return db().collection('calls').doc(S.id).update({ status: 'accepted', acceptedAt: Date.now(), answer: { type: pc.localDescription.type, sdp: pc.localDescription.sdp }, micTo: true, camTo: S.type === 'video' && !S.camOff })
+                        .then(function () { if (S && S.pc === pc) { S.docReady = true; flushC(); } });
                 });
             }).catch(function (e) { if (e && /NotAllowed|NotFound|NotReadable|Security/.test(e.name || '')) mediaErr(e); else toast('Không nghe máy được.', 'error'); finish('ended', ''); });
         }
@@ -25975,7 +25992,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
         }
         function cleanup(delay) {
             var s = S; S = null; if (!s) return; stopTone();
-            clearTimeout(s.ringT); clearInterval(s.tick); clearTimeout(s.dropT); clearTimeout(idleT);
+            clearTimeout(s.ringT); clearInterval(s.tick); clearTimeout(s.dropT); clearTimeout(s.connT); clearTimeout(idleT);
             try { s.unsub && s.unsub(); } catch (e) {}
             try { s.pc && s.pc.close(); } catch (e) {}
             [s.local, s.screen].forEach(function (m) { try { m && m.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} });
