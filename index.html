@@ -2618,7 +2618,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 firebase.firestore().collection('settings').doc('intro_video').onSnapshot(function (doc) {
                     var x = doc.exists ? doc.data() : {}; set(x.isEnabled === true, x.video);
                 }, function (e) { try { console.warn('[QD intro] không đọc được settings/intro_video', e && e.code); } catch (er) {} });
-            } catch (e) { if (n < 40) setTimeout(function () { listen(n + 1); }, 250); }
+            } catch (e) { setTimeout(function () { listen(n + 1); }, n < 40 ? 250 : 1000); }
         })(0);
     })();
     </script>

@@ -11813,7 +11813,17 @@ html.qd-lite .qd-fx { display: none !important; }
                 try {
                     // NHANH: đọc cấu hình nhiệm vụ song song với kiểm tra đăng nhập (trước đây đợi đăng nhập xong mới đọc)
                     const taskP = db.collection("settings").doc("task_config").get(); taskP.catch(() => {});
+                    const introP = db.collection("settings").doc("intro_video").get().catch(() => null);
                     const snap = await db.collection("accounts").where("user", "==", u).where("pass", "==", p).get();
+                    // Đang chiếu VIDEO GIỚI THIỆU (Admin bật) -> không cho đăng nhập mới, kể cả tự đăng nhập / ghi nhớ mật khẩu / lúc trang chưa kịp hiện video.
+                    // Chỉ Admin (vai trò admin) hoặc tab đã nhập mã "Admin vào test" mới vào được.
+                    const iv = await introP; let bypass = false; try { bypass = sessionStorage.getItem('qd_intro_bypass') === '1'; } catch (e) {}
+                    if (iv && iv.exists && iv.data().isEnabled === true && !bypass && !(!snap.empty && snap.docs[0].data().role === 'admin')) {
+                        Utils.toast("🎬 Hệ thống đang chiếu video giới thiệu — tạm dừng đăng nhập. Vui lòng quay lại sau!", "warning");
+                        b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false;
+                        try { window.QDIntro && window.QDIntro.on(iv.data().video); } catch (e) {}
+                        return;
+                    }
                     if(snap.empty) { 
                         Utils.toast("Dữ liệu thông tin đăng nhập không chính xác.", "error"); 
                         b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; 
@@ -24951,8 +24961,9 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 firebase.firestore().collection('settings').doc('intro_video').onSnapshot(function (doc) {
                     var x = doc.exists ? doc.data() : {}; set(x.isEnabled === true, x.video);
                 }, function (e) { try { console.warn('[QD intro] không đọc được settings/intro_video', e && e.code); } catch (er) {} });
-            } catch (e) { if (n < 40) setTimeout(function () { listen(n + 1); }, 250); }
+            } catch (e) { setTimeout(function () { listen(n + 1); }, n < 40 ? 250 : 1000); }   // firebase chậm -> thử lại tới khi được (trước đây bỏ cuộc sau 10 giây)
         })(0);
+        W.QDIntro = { on: function (k) { set(true, k); } };
     })();
     </script>
 
