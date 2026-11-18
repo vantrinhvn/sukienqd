@@ -4394,7 +4394,15 @@ html.qd-lite .qd-fx { display: none !important; }
             var id = s.id;
             unAcc = D.collection('accounts').doc(id).onSnapshot(function (doc) {
                 var c = had; if (!c || c.id !== id) return;
-                if (!doc.exists) { if (!doc.metadata.fromCache) end('deleted'); return; }
+                if (!doc.exists) {   // không thấy theo mã cũ -> tìm lại theo tên đăng nhập (tài khoản được tạo lại / đổi mã) rồi mới kết luận đã bị xóa
+                    if (doc.metadata.fromCache || c.relook) return; c.relook = true;
+                    D.collection('accounts').where('user', '==', c.u).limit(1).get().then(function (q) {
+                        var cur = sess(); if (!cur || cur.u !== c.u) return;
+                        if (q.empty || q.docs[0].id === id) return end('deleted');
+                        cur.id = q.docs[0].id; jset(KEY, cur); had = cur; unlisten(); listen();
+                    }, function () { c.relook = false; });
+                    return;
+                }
                 var a = doc.data() || {};
                 if (a.role !== undefined && (a.role || '') !== (c.role || '')) { c.role = a.role || ''; var cur = sess(); if (cur && cur.u === c.u) { cur.role = c.role; jset(KEY, cur); } }
                 if (+a.kickAt && +a.kickAt > Math.max(c.s, c.kack || 0)) return end('admin');
