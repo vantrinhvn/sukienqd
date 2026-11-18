@@ -25444,6 +25444,27 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
             </div>
         </div>
     </div>
+    <script id="qd-hush-js">
+    /* Tạm tắt nhạc nền khi đang gọi / xem video: QDHush.on('call') ... QDHush.off('call').
+       Trong lúc tắt, mọi lệnh phát nhạc (quay lại trang, chạm màn hình...) đều bị chặn; xong việc thì phát lại nếu trước đó đang phát. */
+    window.QDHush = (function () {
+        var keys = {}, was = false, hooked = false;
+        function busy() { for (var k in keys) if (keys[k]) return true; return false; }
+        function M() { return window.Music && Music.el ? Music : null; }
+        function hook() {
+            var m = M(); if (!m || hooked) return m; hooked = true;
+            var play = m.play;
+            m.play = function () { if (busy()) { was = was || this.enabled !== false; return this.updateUI && this.updateUI(); } return play.apply(this, arguments); };
+            m.el.addEventListener('play', function () { if (busy() && !m.el.muted) { was = true; m.el.pause(); } });
+            return m;
+        }
+        return {
+            on: function (k) { var m = hook(); if (!busy() && m) was = !m.el.paused; keys[k] = 1; if (m && !m.el.paused) m.el.pause(); },
+            off: function (k) { delete keys[k]; if (busy()) return; var m = hook(); if (m && was && m.enabled !== false) { was = false; try { m.play(true); } catch (e) {} } was = false; },
+            busy: busy
+        };
+    })();
+    </script>
     <script id="qd-vid-parse">
     /* Nhận diện link YouTube / TikTok -> { p: 'youtube'|'tiktok', id, v (dọc), t (giây bắt đầu), short (link rút gọn TikTok cần tra) } */
     window.QDVid = window.QDVid || (function () {
@@ -25535,13 +25556,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
         }
         function render() { renderTab(); renderGrid(); }
         function openList() { try { UI.navigate('videos'); } catch (e) {} try { window.scrollTo(0, 0); } catch (e) {} }
-        function music(pause) {
-            try {
-                var el = window.Music && Music.el; if (!el) return;
-                if (pause) { musicWas = !el.paused; if (musicWas) el.pause(); }
-                else if (musicWas) { musicWas = false; var p = el.play(); if (p && p.catch) p.catch(function () {}); }
-            } catch (e) {}
-        }
+        function music(pause) { try { if (pause) QDHush.on('video'); else QDHush.off('video'); } catch (e) {} }
         function show() {
             var it = LIST[idx]; if (!it) return;
             $('vid-box').classList.toggle('v', !!it.v);
@@ -25897,6 +25912,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
             if (S) return toast('Bạn đang trong một cuộc gọi.', 'warning');
             if (!window.isSecureContext) return toast('Cần mở trang bằng https để gọi.', 'error');
             S = { role: 'caller', peer: to, type: type === 'video' ? 'video' : 'audio', mode: 'out', cams: 1, facing: 'user', speaker: type === 'video' };
+            try { QDHush.on('call'); } catch (e) {}
             ui('out'); st('Đang mở micro' + (S.type === 'video' ? ' / camera' : '') + '…');
             media(S.type === 'video').then(function (stm) {
                 if (!S || S.role !== 'caller') { stm.getTracks().forEach(function (t) { t.stop(); }); return; }
@@ -25921,6 +25937,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
             if (S) { if (S.id !== id) db().collection('calls').doc(id).update({ status: 'busy', endedAt: Date.now() }).catch(function () {}); return; }
             if (!supported()) { db().collection('calls').doc(id).update({ status: 'declined', endedAt: Date.now(), reason: 'unsupported' }).catch(function () {}); return; }
             S = { id: id, role: 'callee', peer: c.from, pname: (window.State && State.nicknames && State.nicknames[c.from]) || c.fromName || c.from, type: c.type === 'video' ? 'video' : 'audio', mode: 'in', offer: c.offer, cams: 1, facing: 'user', speaker: c.type === 'video' };
+            try { QDHush.on('call'); } catch (e) {}
             S.unsub = watch(id); ui('in'); tone('in');
             db().collection('calls').doc(id).update({ seen: Date.now() }).catch(function () {});
             S.ringT = setTimeout(function () { if (S && S.id === id && S.mode === 'in') finish(null, 'Cuộc gọi nhỡ'); }, Math.max(3000, RING_MS - (Date.now() - (c.created || Date.now()))));
@@ -25964,6 +25981,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
             [s.local, s.screen].forEach(function (m) { try { m && m.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} });
             if (Q && Q.callMode) try { Q.callMode(false, false); } catch (e) {}
             if (Q && Q.cancelCallNotif && s.id) try { Q.cancelCallNotif('call:' + s.id); } catch (e) {}
+            setTimeout(function () { if (!S) try { QDHush.off('call'); } catch (e) {} }, (delay || 0) + 400);   // tiếng "tút tút" kết thúc xong mới bật lại nhạc
             setTimeout(function () { if (!S) hideUI(); }, delay || 0);
         }
         /* ---------- Nút trong cuộc gọi ---------- */
