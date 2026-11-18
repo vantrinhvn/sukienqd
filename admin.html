@@ -798,6 +798,8 @@ html.qd-lite .qd-fx { display: none !important; }
 })();
     </script>
     <style id="vsh-admin-css">
+        .qcall-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
+        @media (max-width: 900px) { .qcall-grid { grid-template-columns: 1fr; } }
         #view-videos [hidden] { display: none !important; }
         .vsh-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; align-items: start; }
         @media (max-width: 1023px) { .vsh-grid { grid-template-columns: minmax(0, 1fr); } }
@@ -3761,6 +3763,21 @@ html.qd-lite .qd-fx { display: none !important; }
                                 <div id="pushn-accs" class="pushn-accs"></div>
                             </div>
                         </div>
+                    </div>
+                    <div class="card" id="qcall-card" style="padding: 20px 24px; margin-top: 20px;">
+                        <h3 class="text-lg m-0 mb-2 flex items-center gap-2"><i class="fa-solid fa-phone" style="color: #22c55e;"></i> Máy chủ trung chuyển cuộc gọi (TURN)</h3>
+                        <p class="text-muted text-sm mb-3">Khi 2 máy không nối thẳng được (hay gặp với 4G), cuộc gọi đi qua máy chủ này. Đăng ký miễn phí tại <a href="https://www.expressturn.com/signup" target="_blank" rel="noopener" style="color: var(--brand-primary)">expressturn.com</a> (1 TB/tháng), rồi chép 3 thông tin trong trang quản lý vào đây.</p>
+                        <div class="qcall-grid">
+                            <div class="form-group"><label class="form-label">Địa chỉ máy chủ</label><input id="qcall-url" class="form-control" placeholder="VD: relay1.expressturn.com:3478" autocomplete="off" spellcheck="false"></div>
+                            <div class="form-group"><label class="form-label">Tên (turn_username)</label><input id="qcall-user" class="form-control" autocomplete="off" spellcheck="false"></div>
+                            <div class="form-group"><label class="form-label">Mật khẩu (turn_password)</label><input id="qcall-pass" class="form-control" autocomplete="off" spellcheck="false"></div>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+                            <button type="button" class="btn btn-outline" onclick="QDCallAdmin.test()"><i class="fa-solid fa-stethoscope"></i> Kiểm tra</button>
+                            <button type="button" class="btn btn-primary" onclick="QDCallAdmin.save()"><i class="fa-solid fa-floppy-disk"></i> Lưu & dùng ngay</button>
+                            <button type="button" class="btn btn-outline" onclick="QDCallAdmin.clear()" title="Bỏ máy chủ riêng, dùng máy chủ công cộng">Bỏ</button>
+                        </div>
+                        <p class="text-sm mt-3 mb-0" id="qcall-st"></p>
                     </div>
                 </section>
 
@@ -15952,6 +15969,52 @@ window.QDXlsx = (function () {
             var sec = $('view-videos'); if (sec && sec.classList.contains('active')) boot(0);
         })(0);
         return { check: check, save: save, reset: reset, edit: edit, pin: pin, hide: hide, del: del };
+    })();
+    </script>
+    <script id="qcall-admin-js">
+    /* Máy chủ trung chuyển cuộc gọi (TURN) -> settings/call_config.iceServers (trang thành viên đọc trực tiếp) */
+    window.QDCallAdmin = (function () {
+        var $ = function (id) { return document.getElementById(id); }, booted = false;
+        function ref() { return firebase.firestore().collection('settings').doc('call_config'); }
+        function st(m, k) { var e = $('qcall-st'); e.textContent = m || ''; e.style.color = k === 'err' ? '#ef4444' : k === 'ok' ? '#22c55e' : ''; }
+        function entry() {
+            var u = $('qcall-url').value.trim().replace(/^(turns?:)?\/*/i, '').replace(/\?.*$/, ''), user = $('qcall-user').value.trim(), pass = $('qcall-pass').value.trim();
+            if (!u || !user || !pass) { st('Điền đủ địa chỉ, tên và mật khẩu.', 'err'); return null; }
+            if (!/^[a-z0-9.-]+(:\d{2,5})?$/i.test(u)) { st('Địa chỉ máy chủ chưa đúng (VD: relay1.expressturn.com:3478).', 'err'); return null; }
+            var host = u.split(':')[0], port = u.split(':')[1] || '3478';
+            return { urls: ['turn:' + host + ':' + port, 'turn:' + host + ':' + port + '?transport=tcp', 'turns:' + host + ':' + (port === '3478' ? '5349' : '443') + '?transport=tcp'], username: user, credential: pass };
+        }
+        function test() {
+            var e = entry(); if (!e) return Promise.resolve(false);
+            if (!window.RTCPeerConnection) { st('Trình duyệt này không kiểm tra được.', 'err'); return Promise.resolve(false); }
+            st('⏳ Đang thử kết nối tới máy chủ…');
+            return new Promise(function (res) {
+                var pc, done = false, fin = function (ok, m) { if (done) return; done = true; try { pc.close(); } catch (x) {} st(m, ok ? 'ok' : 'err'); res(ok); };
+                try { pc = new RTCPeerConnection({ iceServers: [e], iceTransportPolicy: 'relay' }); } catch (x) { return fin(false, '✗ Thông tin máy chủ không hợp lệ.'); }
+                pc.createDataChannel('t');
+                pc.onicecandidate = function (ev) { if (ev.candidate && / relay /.test(ev.candidate.candidate)) fin(true, '✓ Máy chủ hoạt động — bấm "Lưu & dùng ngay".'); else if (!ev.candidate) fin(false, '✗ Không vào được máy chủ: kiểm tra lại địa chỉ / tên / mật khẩu.'); };
+                pc.createOffer().then(function (o) { return pc.setLocalDescription(o); }).catch(function () { fin(false, '✗ Lỗi khi thử.'); });
+                setTimeout(function () { fin(false, '✗ Hết thời gian chờ: máy chủ không trả lời.'); }, 9000);
+            });
+        }
+        function save() {
+            var e = entry(); if (!e) return;
+            test().then(function (ok) {
+                if (!ok && !confirm('Kiểm tra chưa đạt. Vẫn lưu?')) return;
+                return ref().set({ iceServers: [e], updatedAt: Date.now(), by: (window.State && State.currentUser) || 'admin' }, { merge: true }).then(function () { st('✓ Đã lưu — các cuộc gọi mới dùng máy chủ này ngay.', 'ok'); try { Utils.toast('Đã lưu máy chủ cuộc gọi', 'success'); } catch (x) {} });
+            }).catch(function (x) { st('✗ Không lưu được' + (x && x.code ? ' (' + x.code + ')' : ''), 'err'); });
+        }
+        function clear() { ref().set({ iceServers: [], updatedAt: Date.now() }, { merge: true }).then(function () { $('qcall-url').value = $('qcall-user').value = $('qcall-pass').value = ''; st('Đã bỏ — dùng máy chủ công cộng.', 'ok'); }); }
+        function boot() {
+            if (booted || !window.firebase || !firebase.apps || !firebase.apps.length) return; booted = true;
+            ref().get().then(function (d) { var c = d.exists ? d.data() : {}, e = (c.iceServers || [])[0]; if (!e) return st('Chưa có máy chủ riêng — đang dùng máy chủ công cộng (có thể không ổn định).');
+                var u = String((e.urls || [])[0] || '').replace(/^turns?:/, '').replace(/\?.*$/, ''); $('qcall-url').value = u; $('qcall-user').value = e.username || ''; $('qcall-pass').value = e.credential || ''; st('Đang dùng máy chủ riêng: ' + u, 'ok'); }).catch(function () {});
+        }
+        (function hook(n) {
+            if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
+            var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'apppush') boot(); return r; };
+        })(0);
+        return { test: test, save: save, clear: clear };
     })();
     </script>
 <style id="qd-balance">

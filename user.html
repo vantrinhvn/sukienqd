@@ -25805,7 +25805,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
         function supported() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
         function pingHook() { try { db().collection('settings').doc('push_server').get().then(function (x) { var o = x.exists ? x.data() : {}, u = String(o.hook || o.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {}); } catch (e) {} }
         function fmt(ms) { var s = Math.max(0, Math.round(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; s = s % 60; return (h ? h + ':' : '') + (h && m < 10 ? '0' : '') + (m < 10 && !h ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
-        function iceCfg() { return { iceServers: (cfgIce && cfgIce.length ? cfgIce : ICE), iceCandidatePoolSize: 2 }; }
+        function iceCfg() { return { iceServers: (cfgIce && cfgIce.length ? [ICE[0], ICE[1]].concat(cfgIce) : ICE), iceCandidatePoolSize: 2 }; }   // có máy chủ riêng (Admin) -> STUN + máy chủ riêng
         /* ---------- Âm báo (tự tạo bằng WebAudio, không cần file) ---------- */
         var AC = null, toneT = 0, vibT = 0;
         function ac() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} return AC; }
@@ -26038,7 +26038,7 @@ html:not([data-theme="tet"]) .vs-status.err { color: #dc2626; } html:not([data-t
         /* ---------- Lắng nghe cuộc gọi đến ---------- */
         function listen() {
             if (listening || !me()) return; listening = true;
-            db().collection('settings').doc('call_config').get().then(function (x) { var c = x.exists ? x.data() : {}; if (Array.isArray(c.iceServers) && c.iceServers.length) cfgIce = c.iceServers; }).catch(function () {});
+            db().collection('settings').doc('call_config').onSnapshot(function (x) { var c = x.exists ? x.data() : {}; cfgIce = Array.isArray(c.iceServers) && c.iceServers.length ? c.iceServers : null; }, function () {});
             db().collection('calls').where('to', '==', me()).onSnapshot(function (q) {
                 (q.docChanges ? q.docChanges() : []).forEach(function (ch) {
                     if (ch.type === 'removed') return; var c = ch.doc.data(), id = ch.doc.id;
