@@ -805,6 +805,11 @@ html.qd-lite .qd-fx { display: none !important; }
         .qq-bar.warn > i { background: linear-gradient(90deg, #f59e0b, #f97316); } .qq-bar.bad > i { background: linear-gradient(90deg, #ef4444, #dc2626); }
         .qq-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } @media (max-width: 900px) { .qq-grid { grid-template-columns: 1fr; } }
         .qq-big { font-size: 22px; font-weight: 800; color: var(--text-main); }
+        .qrp-chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(239,68,68,.15); color: #ef4444; white-space: nowrap; }
+        .qrp-acts { display: flex; gap: 6px; flex-wrap: wrap; } .qrp-acts button { font: inherit; font-size: 12px; font-weight: 700; padding: 5px 9px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); cursor: pointer; white-space: nowrap; }
+        .qrp-acts button.w { border-color: #f59e0b; color: #f59e0b; } .qrp-acts button.b { border-color: #ef4444; color: #ef4444; }
+        .qrp-thumb { width: 72px; border-radius: 8px; cursor: zoom-in; border: 1px solid var(--border-strong); display: block; }
+        .qrp-img { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.85); display: flex; align-items: center; justify-content: center; cursor: zoom-out; } .qrp-img[hidden] { display: none; } .qrp-img img { max-width: 92vw; max-height: 88vh; border-radius: 12px; }
         .qcl-ok { color: #22c55e; } .qcl-miss { color: #f59e0b; } .qcl-bad { color: #ef4444; }
         .qcall-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
         @media (max-width: 900px) { .qcall-grid { grid-template-columns: 1fr; } }
@@ -3706,6 +3711,18 @@ html.qd-lite .qd-fx { display: none !important; }
                         <input id="qcl-q" class="form-control mb-3" placeholder="Tìm theo tên người gọi / người nhận…" autocomplete="off">
                         <div class="table-container"><table class="vsh-log"><thead><tr><th>Thời gian</th><th>Người gọi → Người nhận</th><th>Loại</th><th>Kết quả</th><th>Kết nối</th><th>Dung lượng</th></tr></thead><tbody id="qcl-list"><tr><td colspan="6" class="text-muted">Đang tải…</td></tr></tbody></table></div>
                     </div>
+                    <div class="card" style="padding: 20px 24px; margin-top: 24px;" id="qrp-card">
+                        <div class="flex justify-between items-center flex-wrap gap-3 mb-3">
+                            <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-flag" style="color: #ef4444;"></i> Báo cáo vi phạm khi gọi <span class="badge" id="qrp-new" style="background:#ef4444;color:#fff" hidden></span></h3>
+                            <div class="vsh-filt" id="qrp-filt"><button type="button" class="on" data-f="new">Chưa xử lý</button><button type="button" data-f="done">Đã xử lý</button><button type="button" data-f="">Tất cả</button></div>
+                        </div>
+                        <p class="text-muted text-sm mb-3">Thành viên bấm 🚩 trong cuộc gọi khi bị quấy rối, bạo lực, đe dọa… Người bị báo cáo nhận cảnh báo ngay trên màn hình. Admin xử lý: gửi cảnh báo, khóa gọi, hoặc bỏ qua.</p>
+                        <div class="vsh-stats" id="qrp-stats"></div>
+                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Thời gian</th><th>Người báo cáo → Bị báo cáo</th><th>Lý do</th><th>Bằng chứng</th><th>Trạng thái</th><th>Xử lý</th></tr></thead><tbody id="qrp-list"><tr><td colspan="6" class="text-muted">Đang tải…</td></tr></tbody></table></div>
+                        <h4 class="mt-6 mb-3 flex items-center gap-2" style="font-size: 16px;"><i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Lịch sử cảnh báo & khóa gọi</h4>
+                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Thời gian</th><th>Thành viên</th><th>Lý do</th><th>Khóa gọi đến</th><th>Đã xem</th><th>Người xử lý</th><th></th></tr></thead><tbody id="qwn-list"><tr><td colspan="7" class="text-muted">Đang tải…</td></tr></tbody></table></div>
+                    </div>
+                    <div id="qrp-img" class="qrp-img" hidden onclick="this.hidden=true"><img alt=""></div>
                 </section>
 
                 <section id="view-apppush" class="view-section">
@@ -16167,6 +16184,73 @@ window.QDXlsx = (function () {
             var sec = document.getElementById('view-apppush'); if (sec && sec.classList.contains('active')) boot();
         })(0);
         return { render: render };
+    })();
+    </script>
+    <script id="qrp-admin-js">
+    /* ===== Admin > Cuộc gọi > Báo cáo vi phạm (call_reports) + Lịch sử cảnh báo / khóa gọi (call_warnings) ===== */
+    window.QDCallReports = (function () {
+        var $ = function (id) { return document.getElementById(id); }, H = window.qdH, booted = false, REP = [], WRN = [], F = 'new';
+        function fs() { return firebase.firestore(); }
+        function me() { try { return State.currentUser || 'admin'; } catch (e) { return 'admin'; } }
+        function fmt(t) { var d = new Date(t || 0); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ' ' + d.getDate() + '/' + (d.getMonth() + 1); }
+        function toast(m, t) { try { Utils.toast(m, t || 'info'); } catch (e) {} }
+        var ST = { 'new': ['Chưa xử lý', '#ef4444'], warned: ['Đã cảnh báo', '#f59e0b'], banned: ['Đã khóa gọi', '#a855f7'], dismissed: ['Bỏ qua', '#94a3b8'] };
+        function render() {
+            var cnt = {}; REP.forEach(function (r) { cnt[r.reported] = (cnt[r.reported] || 0) + 1; });
+            var nNew = REP.filter(function (r) { return r.status === 'new'; }).length, nb = $('qrp-new'); nb.hidden = !nNew; nb.textContent = nNew + ' mới';
+            var top = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 3).map(function (u) { return H(u) + ' (' + cnt[u] + ')'; }).join(', ');
+            $('qrp-stats').innerHTML = '<span>Chưa xử lý: <b>' + nNew + '</b></span><span>Tổng báo cáo: <b>' + REP.length + '</b></span>' + (top ? '<span>Bị báo cáo nhiều nhất: <b>' + top + '</b></span>' : '');
+            var L = REP.filter(function (r) { return !F || (F === 'new' ? r.status === 'new' : r.status !== 'new'); });
+            $('qrp-list').innerHTML = L.length ? L.slice(0, 300).map(function (r) {
+                var st = ST[r.status] || [r.status, '#94a3b8'], id = qdJ(r.id);
+                return '<tr><td style="white-space:nowrap">' + fmt(r.at) + '<small class="text-muted" style="display:block">' + (r.type === 'video' ? '🎥 video' : '📞 thoại') + (r.dur ? ' · ' + Math.round(r.dur / 60) + ' phút' : '') + '</small></td>' +
+                    '<td class="vsh-who"><b>' + H(r.reporterName || r.reporter) + '</b> → <b style="color:#ef4444">' + H(r.reportedName || r.reported) + '</b><small>@' + H(r.reporter) + ' → @' + H(r.reported) + ' · bị báo cáo ' + (cnt[r.reported] || 1) + ' lần' + (r.blocked ? ' · đã chặn' : '') + '</small></td>' +
+                    '<td><span class="qrp-chip">' + H(r.reasonLabel || r.reason) + '</span>' + (r.note ? '<div class="text-sm" style="margin-top:4px;max-width:260px">“' + H(r.note) + '”</div>' : '') + '</td>' +
+                    '<td>' + (/^data:image\/jpeg;base64,/.test(r.snap || '') ? '<img class="qrp-thumb" src="' + H(r.snap) + '" onclick="QDCallReports.big(this.src)">' : '<span class="text-muted">—</span>') + '</td>' +
+                    '<td style="white-space:nowrap"><b style="color:' + st[1] + '">' + st[0] + '</b>' + (r.handledBy ? '<small class="text-muted" style="display:block">' + H(r.handledBy) + ' · ' + fmt(r.handledAt) + '</small>' : '') + '</td>' +
+                    '<td><div class="qrp-acts">' + (r.status === 'new' ? '<button class="w" onclick="QDCallReports.act(\'' + id + '\',\'warn\')">⚠ Cảnh báo</button><button class="b" onclick="QDCallReports.act(\'' + id + '\',\'ban\',1)">🔒 Khóa 1 ngày</button><button class="b" onclick="QDCallReports.act(\'' + id + '\',\'ban\',7)">🔒 7 ngày</button><button onclick="QDCallReports.act(\'' + id + '\',\'dismiss\')">Bỏ qua</button>' : '<span class="text-muted text-sm">' + H(r.action || '') + '</span>') + '</div></td></tr>';
+            }).join('') : '<tr><td colspan="6" class="text-muted">' + (F === 'new' ? 'Không có báo cáo nào chờ xử lý 👍' : 'Chưa có báo cáo.') + '</td></tr>';
+            $('qwn-list').innerHTML = WRN.length ? WRN.slice(0, 300).map(function (w) {
+                var act = w.banUntil && w.banUntil > Date.now();
+                return '<tr><td style="white-space:nowrap">' + fmt(w.at) + '</td><td><b>' + H(w.name || w.user) + '</b><small class="text-muted" style="display:block">@' + H(w.user) + '</small></td><td><span class="qrp-chip">' + H(w.label || w.reason || '') + '</span></td>' +
+                    '<td style="white-space:nowrap">' + (w.banUntil ? (act ? '<b style="color:#a855f7">' + fmt(w.banUntil) + '</b>' : '<span class="text-muted">' + fmt(w.banUntil) + ' (hết)</span>') : '<span class="text-muted">Chỉ cảnh báo</span>') + '</td>' +
+                    '<td>' + (w.seen ? '<span style="color:#22c55e">✓ ' + fmt(w.seen) + '</span>' : '<span class="text-muted">Chưa</span>') + '</td><td>' + H(w.by || '') + '</td>' +
+                    '<td>' + (act ? '<div class="qrp-acts"><button onclick="QDCallReports.unban(\'' + qdJ(w.user) + '\',\'' + qdJ(w.id) + '\')">Mở khóa</button></div>' : '') + '</td></tr>';
+            }).join('') : '<tr><td colspan="7" class="text-muted">Chưa gửi cảnh báo nào.</td></tr>';
+        }
+        function accRef(user) { return fs().collection('accounts').where('user', '==', user).limit(1).get().then(function (q) { return q.empty ? null : q.docs[0].ref; }); }
+        function act(id, kind, days) {
+            var r = REP.filter(function (x) { return x.id === id; })[0]; if (!r) return;
+            var up = { handledBy: me(), handledAt: Date.now() };
+            if (kind === 'dismiss') { up.status = 'dismissed'; up.action = 'Bỏ qua'; return fs().collection('call_reports').doc(id).update(up).then(function () { toast('Đã bỏ qua báo cáo'); }); }
+            var ban = kind === 'ban' ? Date.now() + (days || 1) * 86400000 : 0;
+            if (ban && !confirm('Khóa gọi thoại / video của @' + r.reported + ' trong ' + days + ' ngày?')) return;
+            var w = { user: r.reported, name: r.reportedName || r.reported, reason: r.reason, label: r.reasonLabel || r.reason, note: r.note ? 'Nội dung báo cáo: “' + r.note + '”' : '', by: me(), at: Date.now(), seen: false, reportId: id };
+            if (ban) w.banUntil = ban;
+            up.status = ban ? 'banned' : 'warned'; up.action = ban ? 'Khóa gọi ' + days + ' ngày' : 'Đã gửi cảnh báo';
+            var jobs = [fs().collection('call_warnings').add(w), fs().collection('call_reports').doc(id).update(up),
+                fs().collection('push_broadcast').add({ title: '⚠️ Cảnh báo từ Ban Quản Trị', body: 'Bạn bị báo cáo vì ' + (r.reasonLabel || r.reason) + ' khi gọi' + (ban ? '. Tài khoản bị khóa gọi ' + days + ' ngày.' : '. Tái phạm sẽ bị khóa gọi.'), target: r.reported, status: 'pending', createdAt: Date.now(), by: me() })];
+            if (ban) jobs.push(accRef(r.reported).then(function (ref) { if (ref) return ref.update({ callBanUntil: ban }); }));
+            Promise.all(jobs).then(function () { toast(ban ? 'Đã khóa gọi @' + r.reported + ' ' + days + ' ngày' : 'Đã gửi cảnh báo cho @' + r.reported, 'success');
+                fs().collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store' }).catch(function () {}); }).catch(function () {});
+            }).catch(function (e) { toast('Lỗi: ' + (e && e.code || e), 'error'); });
+        }
+        function unban(user, wid) {
+            if (!confirm('Mở khóa gọi cho @' + user + '?')) return;
+            accRef(user).then(function (ref) { return Promise.all([ref ? ref.update({ callBanUntil: 0 }) : null, fs().collection('call_warnings').doc(wid).update({ banUntil: Date.now(), unbannedBy: me() })]); })
+                .then(function () { toast('Đã mở khóa gọi cho @' + user, 'success'); }).catch(function () { toast('Không mở khóa được', 'error'); });
+        }
+        function boot() {
+            if (booted || !window.firebase || !firebase.apps || !firebase.apps.length) return; booted = true;
+            fs().collection('call_reports').orderBy('at', 'desc').limit(500).onSnapshot(function (q) { REP = []; q.forEach(function (d) { var x = d.data(); x.id = d.id; REP.push(x); }); REP.sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); render(); }, function (e) { $('qrp-list').innerHTML = '<tr><td colspan="6" style="color:#ef4444">Không đọc được (' + H(e && e.code || '') + ')</td></tr>'; });
+            fs().collection('call_warnings').orderBy('at', 'desc').limit(500).onSnapshot(function (q) { WRN = []; q.forEach(function (d) { var x = d.data(); x.id = d.id; WRN.push(x); }); WRN.sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); render(); }, function () {});
+            $('qrp-filt').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; F = b.dataset.f || ''; Array.prototype.forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); }); render(); });
+        }
+        (function hook(n) {
+            if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
+            var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'calls') boot(); return r; };
+        })(0);
+        return { act: act, unban: unban, big: function (src) { var o = $('qrp-img'); o.querySelector('img').src = src; o.hidden = false; } };
     })();
     </script>
 <style id="qd-balance">

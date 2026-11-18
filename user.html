@@ -25442,6 +25442,17 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             <div class="flex gap-4"><button type="button" class="btn btn-outline w-full" onclick="window.UI.closeModal('modal-vshare')">Hủy</button><button type="button" class="btn btn-primary w-full" id="vs-send" onclick="window.QDVideo.send()">Chia sẻ</button></div>
         </div>
     </div>
+    <div class="qc-sheet qc-warnbox qc-aw" id="qc-aw" hidden>
+        <div class="qc-sheet-b">
+            <div class="qc-warn-ic">⚠️</div>
+            <h3>Cảnh báo từ Ban Quản Trị</h3>
+            <p>Bạn đã vi phạm quy định khi gọi thoại / video: <b id="qc-aw-r"></b></p>
+            <p id="qc-aw-note" style="font-style: italic;"></p>
+            <p id="qc-aw-ban" style="font-weight: 800; color: #fecaca;"></p>
+            <p>Hãy giữ văn minh khi trò chuyện. Tái phạm có thể bị khóa tài khoản.</p>
+            <div class="qc-sheet-btns"><button type="button" class="pri" id="qc-aw-ok">Tôi đã hiểu</button></div>
+        </div>
+    </div>
     <div class="modal-overlay" id="modal-callready">
         <div class="modal-box" style="max-width: 440px;">
             <button class="modal-close-btn" onclick="window.UI.closeModal('modal-callready')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
@@ -25784,6 +25795,30 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
 #qd-call.ring .qc-b.ok i, #qd-call.ring .qc-b.okv i { animation: qcShake 1.2s ease-in-out infinite; }
 @keyframes qcShake { 0%, 60%, 100% { transform: rotate(0); } 10%, 30%, 50% { transform: rotate(-12deg); } 20%, 40% { transform: rotate(12deg); } }
 .qc-b[hidden] { display: none !important; }
+#qc-repbtn { font-size: 18px !important; }
+.qc-rules { position: absolute; z-index: 6; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 178px); transform: translateX(-50%); width: min(92vw, 460px); padding: 10px 14px; border-radius: 14px; background: rgba(0, 0, 0, .72); border: 1px solid rgba(255, 214, 90, .45); color: #ffe9a8; font-size: 13px; font-weight: 700; text-align: center; line-height: 1.4; animation: qcIn .3s ease-out; }
+.qc-rules[hidden] { display: none; }
+@keyframes qcIn { from { opacity: 0; transform: translate(-50%, -8px); } }
+.qc-sheet { position: absolute; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; background: rgba(0, 0, 0, .55); }
+#qc-aw.qc-sheet { position: fixed; z-index: 10090; align-items: center; padding: 16px; }
+.qc-sheet[hidden] { display: none; }
+.qc-sheet-b { width: 100%; max-width: 480px; max-height: 88%; overflow-y: auto; background: #1d0606; border: 1.5px solid rgba(255, 214, 90, .45); border-radius: 22px 22px 0 0; padding: 18px 18px calc(env(safe-area-inset-bottom, 0px) + 18px); color: #fff3d6; font-size: 14px; }
+.qc-warnbox .qc-sheet-b { border-radius: 22px; align-self: center; border-color: #ef4444; background: linear-gradient(180deg, #4c0a0a, #1d0505); text-align: center; box-shadow: 0 0 0 4px rgba(239, 68, 68, .25), 0 20px 60px #000; }
+.qc-sheet-b h3 { margin: 0 0 6px; font-size: 18px; color: #ffe38a; } .qc-warnbox h3 { color: #fecaca; font-size: 20px; }
+.qc-sheet-b p { margin: 0 0 10px; color: #f3dcc0; line-height: 1.5; }
+.qc-warn-ic { font-size: 46px; animation: qcShake 1s ease-in-out 2; }
+.qc-rep-r { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; }
+.qc-rep-r button { font: inherit; font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: 999px; border: 1.5px solid rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .06); color: #fff3d6; cursor: pointer; }
+.qc-rep-r button.on { background: #ef4444; border-color: #ef4444; color: #fff; }
+.qc-rep-snap { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; font-size: 12.5px; } .qc-rep-snap img { width: 86px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .3); }
+.qc-rep-snap[hidden] { display: none; }
+#qc-rep-note { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 12px; border: 1.5px solid rgba(255, 214, 90, .45); background: #fffaf0; color: #3a0d0d; font: inherit; font-size: 14px; margin-bottom: 10px; }
+.qc-rep-blk { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-bottom: 8px; }
+.qc-rep-st { min-height: 18px; color: #fca5a5; font-weight: 700; font-size: 13px; }
+.qc-sheet-btns { display: flex; gap: 10px; margin-top: 8px; }
+.qc-sheet-btns button { flex: 1; font: inherit; font-weight: 800; font-size: 14px; min-height: 44px; border-radius: 12px; border: 1.5px solid rgba(255, 214, 90, .45); background: rgba(255, 255, 255, .06); color: #ffe9a8; cursor: pointer; }
+.qc-sheet-btns button.pri { background: linear-gradient(#ffe38a, #f6c445); color: #7a0b0b; border-color: #f6c445; }
+.qc-warnbox .qc-sheet-btns button.pri { background: #ef4444; color: #fff; border-color: #ef4444; }
 .qc-fx { position: absolute; z-index: 5; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 116px); display: flex; gap: 10px; overflow-x: auto; padding: 10px 14px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .qc-fx::-webkit-scrollbar { display: none; }
 .qc-fx[hidden] { display: none; }
@@ -25808,7 +25843,29 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         <video id="qc-rv" autoplay playsinline></video>
         <audio id="qc-ra" autoplay></audio>
         <div id="qc-pip" role="button" aria-label="Chạm để đổi khung hình"><video id="qc-lv" autoplay playsinline muted></video><span id="qc-tag">Bạn</span><i class="qc-sw" aria-hidden="true">⇄</i></div>
-        <div id="qc-top"><button type="button" id="qc-fit" title="Vừa khung / phủ kín" hidden><i class="fa-solid fa-expand"></i></button></div>
+        <div id="qc-top"><button type="button" id="qc-fit" title="Vừa khung / phủ kín" hidden><i class="fa-solid fa-expand"></i></button><button type="button" id="qc-repbtn" title="Báo cáo quấy rối / bạo lực / đe dọa" hidden>🚩</button></div>
+        <div class="qc-rules" id="qc-rules" hidden>🛡️ Giữ văn minh: quấy rối, bạo lực, đe dọa sẽ bị báo cáo và khóa gọi. Gặp vi phạm bấm 🚩.</div>
+        <div class="qc-sheet" id="qc-rep" hidden>
+            <div class="qc-sheet-b">
+                <h3>🚩 Báo cáo <span id="qc-rep-who"></span></h3>
+                <p>Ban Quản Trị sẽ xem xét. Người này nhận cảnh báo ngay trên màn hình.</p>
+                <div class="qc-rep-r" id="qc-rep-r"></div>
+                <div class="qc-rep-snap" id="qc-rep-snap" hidden><img alt="Ảnh bằng chứng"><label><input type="checkbox" id="qc-rep-snapuse" checked> Gửi kèm ảnh bằng chứng (khung hình lúc bấm 🚩)</label></div>
+                <input id="qc-rep-note" maxlength="300" placeholder="Mô tả thêm (không bắt buộc)">
+                <label class="qc-rep-blk"><input type="checkbox" id="qc-rep-block"> Kết thúc cuộc gọi và chặn người này gọi cho tôi</label>
+                <div class="qc-rep-st" id="qc-rep-st"></div>
+                <div class="qc-sheet-btns"><button type="button" id="qc-rep-cancel">Hủy</button><button type="button" id="qc-rep-send" class="pri">Gửi báo cáo</button></div>
+            </div>
+        </div>
+        <div class="qc-sheet qc-warnbox" id="qc-warn" hidden>
+            <div class="qc-sheet-b">
+                <div class="qc-warn-ic">⚠️</div>
+                <h3>Cảnh báo vi phạm</h3>
+                <p>Bạn vừa bị báo cáo trong cuộc gọi này vì: <b id="qc-warn-r"></b></p>
+                <p>Quấy rối, bạo lực, đe dọa vi phạm quy định của Quân Đoàn. Ban Quản Trị đã nhận báo cáo — tiếp tục vi phạm có thể bị <b>khóa gọi</b> hoặc <b>khóa tài khoản</b>.</p>
+                <div class="qc-sheet-btns"><button type="button" class="pri" id="qc-warn-ok">Tôi đã hiểu</button></div>
+            </div>
+        </div>
         <div class="qc-net" id="qc-net">Mạng yếu — đang kết nối lại…</div>
         <div class="qc-q" id="qc-q" hidden></div>
         <div class="qc-mid">
@@ -25875,6 +25932,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             show('screen', !inc && S.type === 'video' && !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) && !Q && !/Android|iPhone|iPad/i.test(navigator.userAgent));
             show('spk', !inc && !!(Q && Q.callMode)); show('end', !inc);
             $('qc-fit').hidden = !(S.type === 'video' && mode === 'live');
+            $('qc-repbtn').hidden = !(S.id && (mode === 'live' || mode === 'connecting'));
             st();
             try { if (!d.fullscreenElement && /Android|iPhone/i.test(navigator.userAgent) && !Q && o.requestFullscreen) o.requestFullscreen().catch(function () {}); } catch (e) {}
         }
@@ -25938,7 +25996,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             var onState = function () {
                 if (!S || S.pc !== pc) return;
                 var cs = pc.connectionState || pc.iceConnectionState;
-                if (cs === 'connected' || cs === 'completed') { $('qc-net').classList.remove('on'); clearTimeout(S.dropT); if (!S.statT) { sample(pc); S.statT = setInterval(function () { sample(pc); }, 2000); } if (S.mode !== 'live') { S.mode = 'live'; S.liveAt = S.liveAt || Date.now(); stopTone(); ui('live'); nativeInfo(); wake(); clearInterval(S.tick); S.tick = setInterval(function () { st(); }, 1000); } }
+                if (cs === 'connected' || cs === 'completed') { $('qc-net').classList.remove('on'); clearTimeout(S.dropT); if (!S.statT) { sample(pc); S.statT = setInterval(function () { sample(pc); }, 2000); } if (S.mode !== 'live') { S.mode = 'live'; S.liveAt = S.liveAt || Date.now(); stopTone(); ui('live'); nativeInfo(); var rl = $('qc-rules'); rl.hidden = false; clearTimeout(S.rulesT); S.rulesT = setTimeout(function () { rl.hidden = true; }, 5500); wake(); clearInterval(S.tick); S.tick = setInterval(function () { st(); }, 1000); } }
                 else if (cs === 'disconnected') { $('qc-net').classList.add('on'); clearTimeout(S.dropT); S.dropT = setTimeout(function () { if (S && S.pc === pc) finish('ended', 'Mất kết nối'); }, 15000); }
                 else if (cs === 'failed') finish('ended', S.liveAt ? 'Mất kết nối' : 'Không kết nối được (mạng chặn cuộc gọi)');
             };
@@ -26028,6 +26086,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
                     return finish(null, c.endedBy && c.endedBy !== me() ? 'Cuộc gọi đã kết thúc' : '');
                 }
                 addRemote(c);
+                if (c.warn && c.warn.to === me()) warnShow(c.warn);
                 if (S.mode !== 'in') st();
             }, function () {});
         }
@@ -26038,6 +26097,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             if (!supported()) return toast('Trình duyệt này chưa hỗ trợ gọi. Hãy dùng Chrome / app QD Elite bản mới.', 'error');
             if (S) return toast('Bạn đang trong một cuộc gọi.', 'warning');
             if (!window.isSecureContext) return toast('Cần mở trang bằng https để gọi.', 'error');
+            if (start.banUntil > Date.now()) return toast('🔒 Bạn đang bị khóa gọi đến ' + fmtTime(start.banUntil) + ' do vi phạm quy định.', 'error');
             S = { role: 'caller', peer: to, type: type === 'video' ? 'video' : 'audio', mode: 'out', cams: 1, facing: 'user', speaker: type === 'video' };
             try { QDHush.on('call'); } catch (e) {}
             ui('out'); st('Đang mở micro' + (S.type === 'video' ? ' / camera' : '') + '…');
@@ -26073,6 +26133,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         function incoming(id, c) {
             if (S) { if (S.id !== id) db().collection('calls').doc(id).update({ status: 'busy', endedAt: Date.now() }).catch(function () {}); return; }
             if (!supported()) { db().collection('calls').doc(id).update({ status: 'declined', endedAt: Date.now(), reason: 'unsupported' }).catch(function () {}); return; }
+            if (incoming.blocked && incoming.blocked[c.from]) { db().collection('calls').doc(id).update({ status: 'declined', endedAt: Date.now(), reason: 'blocked' }).catch(function () {}); return; }
             S = { id: id, role: 'callee', peer: c.from, pname: (window.State && State.nicknames && State.nicknames[c.from]) || c.fromName || c.from, type: c.type === 'video' ? 'video' : 'audio', mode: 'in', offer: c.offer, cams: 1, facing: 'user', speaker: c.type === 'video' };
             try { QDHush.on('call'); } catch (e) {}
             S.unsub = watch(id); ui('in'); tone('in'); setTimeout(prewarm, 0);
@@ -26143,7 +26204,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         }
         function cleanup(delay) {
             var s = S; S = null; if (!s) return; stopTone();
-            clearTimeout(s.ringT); clearTimeout(s.waitT); clearInterval(s.tick); clearInterval(s.statT); clearTimeout(s.dropT); clearTimeout(s.connT); clearTimeout(idleT);
+            clearTimeout(s.ringT); clearTimeout(s.waitT); clearTimeout(s.rulesT); try { $('qc-rep').hidden = true; $('qc-warn').hidden = true; $('qc-rules').hidden = true; } catch (e) {} clearInterval(s.tick); clearInterval(s.statT); clearTimeout(s.dropT); clearTimeout(s.connT); clearTimeout(idleT);
             try { s.unsub && s.unsub(); } catch (e) {}
             if (s.fx) { var S0 = S; S = s; fxStop(); S = S0; }
             try { $('qc-fx').hidden = true; } catch (e) {}
@@ -26270,6 +26331,66 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         }
         function fxRestore() { var k = ''; try { k = localStorage.getItem(FXK) || ''; } catch (e) {} if (k && S && S.type === 'video' && !S.camOff) fxApply(k); }   // dùng lại hiệu ứng lần trước
         function fxToggle() { var box = $('qc-fx'); box.hidden = !box.hidden; if (!box.hidden) { fxUI(); wake(); } }
+        /* ---------- 🛡️ AN TOÀN KHI GỌI: báo cáo quấy rối / bạo lực / đe dọa, cảnh báo người vi phạm, chặn, khóa gọi ----------
+           call_reports  : báo cáo (kèm ảnh bằng chứng chụp từ hình người kia) -> Admin > Cuộc gọi > Báo cáo & cảnh báo
+           calls/{id}.warn: cảnh báo hiện ngay trên màn hình người bị báo cáo
+           call_blocks   : "{tôi}__{người kia}" -> người kia không gọi được cho tôi nữa
+           call_warnings : cảnh báo / khóa gọi do Admin gửi -> hiện hộp cảnh báo khi người đó mở app
+           accounts.callBanUntil: đang bị khóa gọi tới thời điểm này */
+        var REASONS = [['harass', '😠 Quấy rối'], ['violence', '👊 Bạo lực'], ['threat', '🔪 Đe dọa'], ['sexual', '🔞 Khiêu dâm / nhạy cảm'], ['abuse', '🤬 Xúc phạm, lăng mạ'], ['other', '❓ Khác']];
+        function reasonLabel(k) { for (var i = 0; i < REASONS.length; i++) if (REASONS[i][0] === k) return REASONS[i][1]; return k || ''; }
+        function snapRemote() {   // chụp 1 khung hình người kia làm bằng chứng (nhỏ gọn ~40KB)
+            try {
+                var v = $('qc-rv'), src = S && S.rstream; if (!src || S.type !== 'video') return '';
+                if (v.srcObject !== src) { v = $('qc-lv'); if (v.srcObject !== src) return ''; }
+                if (!v.videoWidth) return ''; var w = Math.min(480, v.videoWidth), h = Math.round(v.videoHeight * w / v.videoWidth);
+                var c = d.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(v, 0, 0, w, h);
+                var url = c.toDataURL('image/jpeg', 0.6); return url.length < 180000 ? url : c.toDataURL('image/jpeg', 0.4);
+            } catch (e) { return ''; }
+        }
+        function repOpen() {
+            if (!S || !S.id) return; var box = $('qc-rep'); S.repSnap = snapRemote(); S.repReason = '';
+            $('qc-rep-who').textContent = S.pname || nameOf(S.peer);
+            $('qc-rep-r').innerHTML = REASONS.map(function (r) { return '<button type="button" data-r="' + r[0] + '">' + r[1] + '</button>'; }).join('');
+            $('qc-rep-note').value = ''; $('qc-rep-block').checked = false; $('qc-rep-st').textContent = '';
+            var pv = $('qc-rep-snap'); pv.hidden = !S.repSnap; if (S.repSnap) pv.querySelector('img').src = S.repSnap;
+            box.hidden = false; wake();
+        }
+        function repSend() {
+            if (!S || !S.id) return; var s0 = S, r = S.repReason;
+            if (!r) { $('qc-rep-st').textContent = 'Chọn lý do báo cáo.'; return; }
+            var note = String($('qc-rep-note').value || '').replace(/[<>]/g, '').trim().slice(0, 300), block = $('qc-rep-block').checked, withSnap = !$('qc-rep-snap').hidden && $('qc-rep-snapuse').checked;
+            var btn = $('qc-rep-send'); btn.disabled = true;
+            var rep = { callId: S.id, reporter: me(), reporterName: (State.fullName || me()), reported: S.peer, reportedName: S.pname || nameOf(S.peer), reason: r, reasonLabel: reasonLabel(r), note: note, snap: withSnap ? (S.repSnap || '') : '', type: S.type, dur: S.liveAt ? Math.round((Date.now() - S.liveAt) / 1000) : 0, at: Date.now(), status: 'new', blocked: block };
+            db().collection('call_reports').add(rep).then(function () {
+                db().collection('calls').doc(s0.id).update({ warn: { to: s0.peer, reason: r, label: reasonLabel(r), at: Date.now() } }).catch(function () {});
+                if (block) db().collection('call_blocks').doc(me() + '__' + s0.peer).set({ by: me(), blocked: s0.peer, at: Date.now(), reason: r }).catch(function () {});
+                $('qc-rep').hidden = true; toast('Đã gửi báo cáo cho Ban Quản Trị. Người kia đã nhận cảnh báo.', 'success');
+                if (block && S === s0) finish('ended', 'Đã kết thúc và chặn người này');
+            }).catch(function () { $('qc-rep-st').textContent = 'Chưa gửi được, thử lại.'; }).then(function () { btn.disabled = false; });
+        }
+        function warnShow(w) {   // người bị báo cáo: cảnh báo đỏ ngay trong cuộc gọi
+            if (!S || !w || S.warnAt >= w.at) return; S.warnAt = w.at;
+            $('qc-warn-r').textContent = w.label || reasonLabel(w.reason);
+            $('qc-warn').hidden = false; try { navigator.vibrate && navigator.vibrate([300, 120, 300]); } catch (e) {}
+        }
+        function blockedBy(callee, caller) { return db().collection('call_blocks').doc(callee + '__' + caller).get().then(function (x) { return x.exists; }).catch(function () { return false; }); }
+        function myBan() {
+            var id = window.State && State.currentDocId; if (!id) return Promise.resolve(0);
+            return db().collection('accounts').doc(id).get().then(function (x) { var b = x.exists ? +x.data().callBanUntil || 0 : 0; return b > Date.now() ? b : 0; }).catch(function () { return 0; });
+        }
+        function fmtTime(t) { var x = new Date(t); return ('0' + x.getHours()).slice(-2) + ':' + ('0' + x.getMinutes()).slice(-2) + ' ' + x.getDate() + '/' + (x.getMonth() + 1); }
+        // Cảnh báo / khóa gọi do Ban Quản Trị gửi -> hiện 1 lần
+        function adminWarnings() {
+            db().collection('call_warnings').where('user', '==', me()).onSnapshot(function (q) {
+                var list = []; q.forEach(function (doc) { var x = doc.data(); if (!x.seen) list.push({ id: doc.id, x: x }); });
+                if (!list.length) return; list.sort(function (a, b) { return (a.x.at || 0) - (b.x.at || 0); }); var w = list[list.length - 1];
+                $('qc-aw-r').textContent = w.x.label || reasonLabel(w.x.reason) || 'Vi phạm quy định khi gọi';
+                $('qc-aw-note').textContent = w.x.note || '';
+                $('qc-aw-ban').textContent = w.x.banUntil && w.x.banUntil > Date.now() ? '🔒 Bạn bị khóa gọi thoại / video đến ' + fmtTime(w.x.banUntil) + '.' : '';
+                $('qc-aw').hidden = false; $('qc-aw').dataset.ids = list.map(function (a) { return a.id; }).join(','); if (w.x.banUntil > Date.now()) start.banUntil = Math.max(start.banUntil || 0, w.x.banUntil);
+            }, function () {});
+        }
         /* ---------- Nút trong cuộc gọi ---------- */
         function setFlag(k, v) { if (S && S.id) { var o = {}; o[k + (S.role === 'caller' ? 'From' : 'To')] = v; db().collection('calls').doc(S.id).update(o).catch(function () {}); } }
         function toggleMic() { var t = S && S.local && S.local.getAudioTracks()[0]; if (!t) return; t.enabled = !t.enabled; btn('mic', t.enabled, t.enabled ? 'fa-microphone' : 'fa-microphone-slash', t.enabled ? 'Micro' : 'Đã tắt mic'); setFlag('mic', t.enabled); }
@@ -26308,6 +26429,10 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         function bubble() { try { return !!(Q && Q.isBubble && Q.isBubble()) || d.documentElement.classList.contains('qd-bubble'); } catch (e) { return false; } }
         function listen() {
             if (listening || !me() || bubble()) return; listening = true;
+            incoming.blocked = {};   // người mình đã chặn
+            db().collection('call_blocks').where('by', '==', me()).onSnapshot(function (q) { var b = {}; q.forEach(function (x) { b[x.data().blocked] = 1; }); incoming.blocked = b; }, function () {});
+            var refreshBan = function () { myBan().then(function (t) { start.banUntil = t; }); }; refreshBan(); setInterval(refreshBan, 5 * 60000);
+            adminWarnings();
             db().collection('settings').doc('call_config').onSnapshot(function (x) { var c = x.exists ? x.data() : {}; cfgIce = Array.isArray(c.iceServers) && c.iceServers.length ? c.iceServers : null; }, function () {});
             db().collection('calls').where('to', '==', me()).onSnapshot(function (q) {
                 (q.docChanges ? q.docChanges() : []).forEach(function (ch) {
@@ -26344,6 +26469,12 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             });
             $('qd-call').addEventListener('pointerdown', function (e) { if (!e.target.closest('.qc-bar')) wake(); });
             $('qc-fit').addEventListener('click', function () { $('qd-call').classList.toggle('rv-contain'); });
+            $('qc-repbtn').addEventListener('click', function (e) { e.stopPropagation(); repOpen(); });
+            $('qc-rep-r').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b || !S) return; S.repReason = b.dataset.r; Array.prototype.forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); }); $('qc-rep-st').textContent = ''; });
+            $('qc-rep-cancel').addEventListener('click', function () { $('qc-rep').hidden = true; });
+            $('qc-rep-send').addEventListener('click', repSend);
+            $('qc-warn-ok').addEventListener('click', function () { $('qc-warn').hidden = true; });
+            $('qc-aw-ok').addEventListener('click', function () { var ids = ($('qc-aw').dataset.ids || '').split(',').filter(Boolean); ids.forEach(function (id) { db().collection('call_warnings').doc(id).update({ seen: Date.now() }).catch(function () {}); }); $('qc-aw').hidden = true; });
             $('qc-fx').innerHTML = FX.map(function (x) { return '<button type="button" data-fx="' + x.k + '"><span>' + x.ic + '</span>' + x.n + '</button>'; }).join('');
             $('qc-fx').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; e.stopPropagation(); fxApply(b.dataset.fx || ''); wake(); });
             $('qc-pip').addEventListener('click', function (e) { e.stopPropagation(); if (S && S.mode === 'live' && S.rstream) { S.swap = !S.swap; layout(); wake(); } });
