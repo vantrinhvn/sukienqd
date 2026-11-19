@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-2';
+const VER = 'qd-vps-3';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -264,8 +264,14 @@ function pushQuery(s, force) {
   s.ids = ids; STAT.r += docs.length || 1;
   send(s.conn, { ev: 'q', sid: s.sid, ids, docs });
 }
+let NQ = null;   // gom thay đổi trong 15 ms rồi mới đẩy cho người nghe (nhiều lệnh ghi dồn dập -> 1 lần đẩy)
 function notify(changed) {
-  const cols = new Set(changed.map(c => c.col)), paths = new Set(changed.map(c => c.col + '/' + c.id));
+  if (!NQ) { NQ = { cols: new Set(), paths: new Set() }; setTimeout(flushNotify, 15); }
+  for (const c of changed) { NQ.cols.add(c.col); NQ.paths.add(c.col + '/' + c.id); }
+}
+function flushNotify() {
+  const q = NQ; NQ = null; if (!q) return;
+  const cols = q.cols, paths = q.paths;
   for (const s of SUBS) {
     if (s.kind === 'doc') { if (paths.has(s.path)) pushDoc(s); }
     else if (cols.has(s.q.col)) pushQuery(s);

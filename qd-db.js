@@ -121,7 +121,7 @@
     Object.defineProperty(DocRef.prototype, 'parent', { get: function () { return new ColRef(this.path.split('/').slice(0, -1).join('/')); } });
     DocRef.prototype.collection = function (c) { return new ColRef(this.path + '/' + c); };
     DocRef.prototype.isEqual = function (o) { return o instanceof DocRef && o.path === this.path; };
-    DocRef.prototype.get = function () { var me = this; return req({ op: 'get', path: this.path }).then(function (m) { return new DocSnap(me, m.exists, m.d, m.ut); }); };
+    DocRef.prototype.get = function () { var me = this; return req({ op: 'get', path: this.path }).then(function (m) { var o = ov(me.path, m.exists, m.d); return new DocSnap(me, o[0], o[1], m.ut); }); };
     DocRef.prototype.set = function (data, opt) { return commit([{ op: 'set', path: this.path, data: enc(data || {}), merge: !!(opt && (opt.merge || opt.mergeFields)) }]); };
     DocRef.prototype.update = function (a, b) {
         var data = a; if (typeof a === 'string') { data = {}; var args = arguments; for (var i = 0; i < args.length; i += 2) data[args[i]] = args[i + 1]; }
@@ -131,7 +131,7 @@
     DocRef.prototype.onSnapshot = function () {
         var L = listenArgs(arguments), me = this, sid = 's' + (++sidN), lastV = -2;
         subs[sid] = { sid: sid, path: this.path,
-            onDoc: function (m) { if (m.v === lastV) return; lastV = m.v; try { L.next(new DocSnap(me, m.exists, m.d, m.ut)); } catch (e) { setTimeout(function () { throw e; }); } },
+            onDoc: function (m) { if (m.v === lastV) return; lastV = m.v; var o = ov(me.path, m.exists, m.d); try { L.next(new DocSnap(me, o[0], o[1], m.ut)); } catch (e) { setTimeout(function () { throw e; }); } },
             onErr: function (e) { if (L.error) L.error(e); else console.error('[qd-db]', e); } };
         raw({ op: 'sub', sid: sid, path: this.path });
         return function () { if (subs[sid]) { delete subs[sid]; raw({ op: 'unsub', sid: sid }); } };
@@ -143,7 +143,7 @@
     Query.prototype.limit = function (n) { var q = ext(this, 'limit', +n); q._s.limitToLast = 0; return q; };
     Query.prototype.limitToLast = function (n) { var q = ext(this, 'limitToLast', +n); q._s.limit = 0; return q; };
     Query.prototype._q = function () { return { col: this._col, where: this._s.where, orderBy: this._s.orderBy, limit: this._s.limit || 0, limitToLast: this._s.limitToLast || 0 }; };
-    Query.prototype._snap = function (list) { var col = this._col; return list.map(function (x) { var s = new DocSnap(new DocRef(col + '/' + x.id), true, x.d, x.ut); s._v = x.v; return s; }); };
+    Query.prototype._snap = function (list) { var col = this._col; return list.map(function (x) { var p = col + '/' + x.id, o = PW[p] ? ov(p, true, x.d) : [true, x.d], s = new DocSnap(new DocRef(p), true, o[1] || {}, x.ut); s._v = x.v; return s; }); };
     Query.prototype.get = function () {
         var me = this, q = this._q(), cu = null, cp = null;
         if (q.col === 'accounts') q.where.forEach(function (w) { if (w[1] === '==' && w[0] === 'user') cu = w[2]; if (w[1] === '==' && w[0] === 'pass') cp = w[2]; });
@@ -177,7 +177,39 @@
     Object.defineProperty(ColRef.prototype, 'parent', { get: function () { var p = this.path.split('/'); return p.length > 1 ? new DocRef(p.slice(0, -1).join('/')) : null; } });
 
     /* ---------------------------------- GHI: lẻ / batch / giao dịch ---------------------------------- */
-    function commit(writes, pre) { return req({ op: 'commit', writes: writes, pre: pre || null, cid: cid() }).then(function () {}); }
+    /* Ghi đang chờ máy chủ xác nhận -> phủ lên ảnh chụp nhận được (như Firestore "latency compensation").
+       Không có cái này, trang nào "thấy dữ liệu -> ghi" trong onSnapshot sẽ ghi lặp vô hạn (ảnh chụp cũ tới trước khi lệnh ghi được xử lý). */
+    var PW = {}, pwN = 0;
+    function pwAdd(writes) { var id = ++pwN; writes.forEach(function (w) { (PW[w.path] = PW[w.path] || []).push({ id: id, w: w }); }); return id; }
+    function pwDel(id) { Object.keys(PW).forEach(function (p) { PW[p] = PW[p].filter(function (e) { return e.id !== id; }); if (!PW[p].length) delete PW[p]; }); }
+    function lv(cur, x) {   // giá trị sau khi áp 1 trường (có FieldValue)
+        if (x && typeof x === 'object' && x.$fv) {
+            if (x.$fv === 'inc') return (typeof cur === 'number' ? cur : 0) + x.n;
+            if (x.$fv === 'ts') return Date.now();
+            if (x.$fv === 'au') { var a = Array.isArray(cur) ? cur.slice() : []; (x.a || []).forEach(function (v) { if (!a.some(function (y) { return JSON.stringify(y) === JSON.stringify(v); })) a.push(v); }); return a; }
+            if (x.$fv === 'ar') return (Array.isArray(cur) ? cur : []).filter(function (y) { return !(x.a || []).some(function (v) { return JSON.stringify(y) === JSON.stringify(v); }); });
+            return cur;
+        }
+        return x;
+    }
+    function isDel(x) { return x && typeof x === 'object' && x.$fv === 'del'; }
+    function deep(dst, src) { Object.keys(src).forEach(function (k) { var x = src[k]; if (isDel(x)) delete dst[k]; else if (x && typeof x === 'object' && !Array.isArray(x) && !x.$fv) { if (!dst[k] || typeof dst[k] !== 'object' || Array.isArray(dst[k])) dst[k] = {}; deep(dst[k], x); } else dst[k] = lv(dst[k], x); }); return dst; }
+    function dotted(dst, src) { Object.keys(src).forEach(function (k) { var ks = k.split('.'), o = dst; for (var i = 0; i < ks.length - 1; i++) { if (!o[ks[i]] || typeof o[ks[i]] !== 'object') o[ks[i]] = {}; o = o[ks[i]]; } var last = ks[ks.length - 1]; if (isDel(src[k])) delete o[last]; else o[last] = lv(o[last], src[k]); }); return dst; }
+    function ov(path, exists, d) {   // -> [exists, d] sau khi phủ các lệnh ghi đang chờ
+        var L = PW[path]; if (!L) return [exists, d];
+        d = exists ? clone(d) : undefined;
+        L.forEach(function (e) { var w = e.w;
+            if (w.op === 'delete') { exists = false; d = undefined; }
+            else if (w.op === 'set' && !w.merge) { exists = true; d = deep({}, w.data || {}); }
+            else if (w.op === 'set') { exists = true; d = deep(d || {}, w.data || {}); }
+            else if (w.op === 'update' && exists) d = dotted(d, w.data || {});
+        });
+        return [exists, d];
+    }
+    function commit(writes, pre) {
+        var id = pwAdd(writes);
+        return req({ op: 'commit', writes: writes, pre: pre || null, cid: cid() }).then(function () { pwDel(id); }, function (e) { pwDel(id); throw e; });
+    }
     function Batch() { this._w = []; }
     Batch.prototype.set = function (ref, data, opt) { this._w.push({ op: 'set', path: ref.path, data: enc(data || {}), merge: !!(opt && (opt.merge || opt.mergeFields)) }); return this; };
     Batch.prototype.update = function (ref, data) { this._w.push({ op: 'update', path: ref.path, data: enc(data || {}) }); return this; };
