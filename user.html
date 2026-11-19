@@ -11252,7 +11252,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     D.collection('accounts').where('user', '==', c.u).limit(1).get().then(function (q) {
                         var cur = sess(); if (!cur || cur.u !== c.u) return;
                         if (q.empty || q.docs[0].id === id) return end('deleted');
-                        cur.id = q.docs[0].id; jset(KEY, cur); had = cur; unlisten(); listen();
+                        cur.id = q.docs[0].id; jset(KEY, cur); had = cur; try { if (window.State && State.currentUser === c.u) State.currentDocId = cur.id; } catch (e) {} unlisten(); listen();
                     }, function () { c.relook = false; });
                     return;
                 }
@@ -18896,7 +18896,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Mọi kiểm tra (đã rút chưa / đóng cửa / hết ngân sách) và việc chọn phần thưởng
                 // diễn ra TRONG giao dịch để không thể rút trùng hay vượt ngân sách ngày.
-                var ref = db.collection('accounts').doc(window.State.currentDocId);
+                var ref = db.collection('accounts').doc(window.State.currentDocId);   // (đổi lại nếu mã tài khoản cũ không còn — xem fix() bên dưới)
                 var cfgRef = db.collection('settings').doc('lixi_config');
                 var dayRef = db.collection('lixi_daily').doc(key);
                 var big = false;
@@ -18930,7 +18930,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     t.set(db.collection('point_history').doc(), { user: window.State.currentUser, action: 'add', detail: 'Rút lì xì: +' + prize + ' điểm', pointsChanged: prize, timestamp: Date.now() });
                     return { prize: prize, count: used + 1, total: sum + prize };
                 }); };
-                var tx = run(false).catch(function (e) { if (e && e.code === 'EXACT') return run(true); throw e; });
+                // Tự thử lại khi lỗi tạm thời (nhiều người rút cùng lúc tranh bộ đếm ngân sách ngày, mạng chập chờn),
+                // mã tài khoản cũ không còn (phiên khôi phục) -> tìm lại theo tên đăng nhập rồi rút tiếp.
+                var BIZ = { LIXI_CLAIMED: 1, LIXI_CLOSED: 1, LIXI_SOLDOUT: 1 };
+                var TEMP = /aborted|failed-precondition|unavailable|deadline-exceeded|resource-exhausted|internal|cancelled|unknown/;
+                var fix = function () {
+                    return db.collection('accounts').where('user', '==', window.State.currentUser).limit(1).get().then(function (q) {
+                        if (q.empty) throw { code: 'not-found' };
+                        if (q.docs[0].id !== window.State.currentDocId) { window.State.currentDocId = q.docs[0].id; try { var ss = JSON.parse(localStorage.getItem('qd_sess') || 'null'); if (ss && ss.u === window.State.currentUser) { ss.id = q.docs[0].id; localStorage.setItem('qd_sess', JSON.stringify(ss)); } } catch (e) {} }
+                        ref = db.collection('accounts').doc(window.State.currentDocId);
+                    });
+                };
+                var attempt = function (n, exact) {
+                    return run(exact).catch(function (e) {
+                        var c = (e && e.code) || '';
+                        if (c === 'EXACT') return attempt(n, true);
+                        if (BIZ[c] || n >= 3) throw e;
+                        if (c === 'not-found' || /No document to update/i.test((e && e.message) || '')) return fix().then(function () { return attempt(n + 1, exact); });
+                        if (TEMP.test(c) || !c) { msg.textContent = 'Đông người rút quá, đang thử lại…'; return sleep(400 + Math.random() * 700 * (n + 1)).then(function () { return attempt(n + 1, true); }); }
+                        throw e;
+                    });
+                };
+                var tx = attempt(0, false);
 
                 var prize = 0;
                 Promise.all([tx, sleep(650)]).then(function (res) {
@@ -18958,7 +18979,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (code === 'LIXI_CLAIMED') { self.cfg = err.cfg; self.justClaimed = { date: today, count: err.count, total: err.total, last: err.last }; toast(drawLimit(err.cfg) > 1 ? 'Bạn đã hết lượt rút hôm nay, mai quay lại nhé!' : 'Hôm nay bạn đã rút lì xì rồi, mai quay lại nhé!', 'warning'); }
                     else if (code === 'LIXI_CLOSED') { self.cfg = err.cfg; toast(cfgPhase(err.cfg).phase === 'upcoming' ? 'Lì xì chưa tới giờ mở cửa!' : 'Lì xì vừa đóng cửa!', 'warning'); }
                     else if (code === 'LIXI_SOLDOUT') { self.cfg = err.cfg; self.daily = { points: err.spent, count: (self.daily && self.daily.count) || 0 }; toast('Lì xì hôm nay đã phát hết!', 'warning'); }
-                    else { console.error('LiXi error', err); toast('Không rút được lì xì, vui lòng thử lại.', 'error'); }
+                    else {
+                        console.error('LiXi error', err);
+                        var ec = (err && (err.code || err.name)) || 'lỗi lạ', em = String((err && err.message) || err || '').slice(0, 300);
+                        toast(ec === 'permission-denied' ? 'Không rút được lì xì: hệ thống chặn quyền ghi (báo Admin kiểm tra). Mã: permission-denied' : !navigator.onLine ? 'Không rút được lì xì: mất mạng, kiểm tra kết nối rồi thử lại.' : 'Không rút được lì xì, vui lòng thử lại. (Mã: ' + ec + ')', 'error');
+                        try { db.collection('app_errors').add({ where: 'lixi', user: window.State.currentUser || '', docId: window.State.currentDocId || '', code: String(ec), msg: em, online: navigator.onLine, ua: navigator.userAgent.slice(0, 160), at: Date.now() }).catch(function () {}); } catch (e) {}
+                    }
                     self.render();
                 });
             }
