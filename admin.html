@@ -814,6 +814,12 @@ html.qd-lite .qd-fx { display: none !important; }
         .qgd-box { display: flex; flex-direction: column; gap: 7px; padding: 14px; border-radius: 12px; border: 1px solid var(--border-strong); background: var(--bg-elevated); }
         .qgd-box small { color: var(--text-muted); font-size: 12px; margin-bottom: 4px; } .qgd-box label { font-size: 13px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .qgd-box input[type=number] { width: 64px; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--bg-main, transparent); color: var(--text-main); font: inherit; text-align: center; }
+        .qgd-ex { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; padding: 12px 14px; border-radius: 12px; border: 1px dashed var(--border-strong); font-size: 13.5px; }
+        .qgd-ex .chip { display: inline-flex; gap: 6px; align-items: center; padding: 3px 4px 3px 10px; border-radius: 999px; background: rgba(34,197,94,.13); color: #4ade80; font-weight: 700; font-size: 12.5px; }
+        .qgd-ex .chip button { border: 0; background: rgba(0,0,0,.2); color: inherit; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; line-height: 1; }
+        .qgd-exadd { display: inline-flex; gap: 6px; margin-left: auto; } .qgd-exadd input { width: 170px; padding: 6px 10px; }
+        .qgd-acts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; } .qgd-acts button { font: inherit; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 9px; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-main); cursor: pointer; white-space: nowrap; }
+        .qgd-acts button.ok { border-color: rgba(34,197,94,.5); color: #22c55e; } .qgd-acts button.ex { border-color: rgba(56,189,248,.5); color: #38bdf8; }
         .qgd-k { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(56,189,248,.15); color: #38bdf8; white-space: nowrap; }
         .qdv-card { padding: 16px 20px; margin: 0 0 24px; } .qdv-card[hidden] { display: none !important; }
         .qdv-hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; } .qdv-hd h3 { margin: 0; font-size: 16px; } .qdv-hd small { font-weight: 500; color: var(--text-muted); font-size: 12.5px; margin-left: 6px; }
@@ -3902,9 +3908,14 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                         <p class="text-muted text-sm" style="margin:8px 0 0">Đặt 0 để tắt một quy tắc.</p>
                         <div class="flex gap-2 mt-3"><button type="button" class="btn btn-primary" id="qgd-save"><i class="fa-solid fa-floppy-disk"></i> Lưu cài đặt bot</button><span id="qgd-st" class="text-muted text-sm" style="align-self:center"></span></div>
+                        <h4 class="mt-6 mb-2 flex items-center gap-2" style="font-size: 16px;"><i class="fa-solid fa-hand" style="color: #f59e0b;"></i> Admin can thiệp</h4>
+                        <p class="text-muted text-sm mb-3">Thành viên bị bot chặn / khóa gọi trong 7 ngày qua. <b>Gỡ chặn</b>: mở khóa gọi ngay, xóa các lần bị chặn gọi lại / tạm dừng gọi, bot bỏ qua vi phạm cũ (không tự khóa lại vì báo cáo cũ). <b>Miễn bot</b>: bot không bao giờ chặn / khóa người đó nữa. Ban Quản Trị luôn được miễn.</p>
+                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Thành viên</th><th>Bot đã làm gần nhất</th><th>Lần</th><th>Đang khóa gọi</th><th></th></tr></thead><tbody id="qgd-hit"><tr><td colspan="5" class="text-muted">Đang tải…</td></tr></tbody></table></div>
+                        <div class="qgd-ex"><b>🛡️ Được miễn bot:</b> <span id="qgd-exl" class="text-muted">chưa có ai</span>
+                            <span class="qgd-exadd"><input id="qgd-exu" class="form-control" placeholder="tên đăng nhập" autocomplete="off" list="qgd-exdl"><datalist id="qgd-exdl"></datalist><button type="button" class="btn btn-outline btn-sm" id="qgd-exbtn">+ Miễn bot</button></span></div>
                         <h4 class="mt-6 mb-3 flex items-center gap-2" style="font-size: 16px;"><i class="fa-solid fa-list" style="color: #38bdf8;"></i> Nhật ký bot</h4>
                         <div class="vsh-stats" id="qgd-stats"></div>
-                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Thời gian</th><th>Quy tắc</th><th>Thành viên</th><th>Bot đã làm</th><th>Chi tiết</th></tr></thead><tbody id="qgd-log"><tr><td colspan="5" class="text-muted">Đang tải…</td></tr></tbody></table></div>
+                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Thời gian</th><th>Quy tắc</th><th>Thành viên</th><th>Bot đã làm</th><th>Chi tiết</th><th></th></tr></thead><tbody id="qgd-log"><tr><td colspan="5" class="text-muted">Đang tải…</td></tr></tbody></table></div>
                     </div>
                     <div class="card" style="padding: 20px 24px; margin-top: 24px;" id="qrp-card">
                         <div class="flex justify-between items-center flex-wrap gap-3 mb-3">
@@ -16342,7 +16353,7 @@ window.QDXlsx = (function () {
             }).join('') : '<tr><td colspan="7" class="text-muted">Chưa gửi cảnh báo nào.</td></tr>';
         }
         var GD0 = { on: true, winDays: 30, warnAt: 1, ban1At: 2, ban7At: 3, missMax: 3, missMin: 30, spamWarn: 3, spamBanH: 3, rateMax: 8, rateMin: 10, loud: true }, NUM = ['winDays', 'warnAt', 'ban1At', 'ban7At', 'missMax', 'missMin', 'spamWarn', 'spamBanH', 'rateMax', 'rateMin'];
-        var KIND = { unblock: '🔓 Gỡ chặn', report: '🚩 Báo cáo', spam: '📵 Gọi dồn dập', 'spam-ban': '📵 Làm phiền nhiều lần', rate: '⏱️ Gọi quá nhiều', loud: '🔊 La hét to' };
+        var KIND = { pardon: '🛡️ Admin gỡ chặn', exempt: '🛡️ Miễn bot', unexempt: '↩️ Bỏ miễn bot', unblock: '🔓 Gỡ chặn', report: '🚩 Báo cáo', spam: '📵 Gọi dồn dập', 'spam-ban': '📵 Làm phiền nhiều lần', rate: '⏱️ Gọi quá nhiều', loud: '🔊 La hét to' };
         var BL = [], NAMES = {};
         var RS = { harass: '😠 Quấy rối', violence: '👊 Bạo lực', threat: '🔪 Đe dọa', sexual: '🔞 Khiêu dâm / nhạy cảm', abuse: '🤬 Xúc phạm, lăng mạ', other: '❓ Khác' };
         function nm(u) { return NAMES[u] ? '<b>' + H(NAMES[u]) + '</b><small>@' + H(u) + '</small>' : '<b>@' + H(u) + '</b>'; }
@@ -16376,7 +16387,7 @@ window.QDXlsx = (function () {
         function bootGuard() {
             var dirty = false; $('qgd-card').addEventListener('input', function () { dirty = true; });
             fs().collection('settings').doc('call_guard').onSnapshot(function (d) {
-                var c = Object.assign({}, GD0, d.exists ? d.data() : {});
+                var c = Object.assign({}, GD0, d.exists ? d.data() : {}); GDC = c; renderHit();
                 $('qgd-on').checked = c.on !== false; $('qgd-on').nextElementSibling.textContent = c.on !== false ? 'Bot đang bật' : 'Bot đang tắt';
                 if (dirty) return; $('qgd-loud').checked = c.loud !== false;
                 NUM.forEach(function (k) { var el = $('qgd-' + k); if (el) el.value = c[k]; });
@@ -16389,13 +16400,46 @@ window.QDXlsx = (function () {
             });
             $('qgd-on').addEventListener('change', function () { $('qgd-save').click(); });
             fs().collection('call_bot_log').orderBy('at', 'desc').limit(300).onSnapshot(function (q) {
-                var L = []; q.forEach(function (d) { L.push(d.data()); }); L.sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+                var L = []; q.forEach(function (d) { L.push(d.data()); }); L.sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); LOG = L; renderHit();
                 var day = Date.now() - 864e5, c = {}; L.forEach(function (o) { if ((o.at || 0) > day) c[o.kind] = (c[o.kind] || 0) + 1; });
                 $('qgd-stats').innerHTML = '<span>24 giờ qua:</span>' + (Object.keys(c).length ? Object.keys(c).map(function (k) { return '<span>' + (KIND[k] || H(k)) + ': <b>' + c[k] + '</b></span>'; }).join('') : '<span><b>yên bình 👍</b></span>');
                 $('qgd-log').innerHTML = L.length ? L.slice(0, 200).map(function (o) {
-                    return '<tr><td style="white-space:nowrap">' + fmt(o.at) + '</td><td><span class="qgd-k">' + (KIND[o.kind] || H(o.kind)) + '</span></td><td class="vsh-who"><b>@' + H(o.user || '') + '</b>' + (o.target ? '<small>' + (o.kind === 'unblock' ? 'đã bị @' + H(o.target) + ' chặn' : 'gọi cho @' + H(o.target)) + '</small>' : '') + '</td><td>' + H(o.action || '') + '</td><td class="text-sm">' + H(o.detail || '') + '</td></tr>';
-                }).join('') : '<tr><td colspan="5" class="text-muted">Bot chưa phải xử lý việc gì.</td></tr>';
+                    return '<tr><td style="white-space:nowrap">' + fmt(o.at) + '</td><td><span class="qgd-k">' + (KIND[o.kind] || H(o.kind)) + '</span></td><td class="vsh-who"><b>@' + H(o.user || '') + '</b>' + (o.target ? '<small>' + (o.kind === 'unblock' ? 'đã bị @' + H(o.target) + ' chặn' : 'gọi cho @' + H(o.target)) + '</small>' : '') + '</td><td>' + H(o.action || '') + '</td><td class="text-sm">' + H(o.detail || '') + '</td><td>' + (o.user && BOTK[o.kind] ? acts(o.user) : '') + '</td></tr>';
+                }).join('') : '<tr><td colspan="6" class="text-muted">Bot chưa phải xử lý việc gì.</td></tr>';
             }, function () {});
+        }
+        /* ---------- Admin can thiệp việc bot làm ---------- */
+        var GDC = {}, LOG = [], BOTK = { report: 1, spam: 1, 'spam-ban': 1, rate: 1, loud: 1 };
+        function exL() { return Array.isArray(GDC.exempt) ? GDC.exempt : []; }
+        function acts(u) {
+            var j = qdJ(u), isEx = exL().indexOf(u) >= 0;
+            return '<div class="qgd-acts"><button type="button" class="ok" onclick="QDCallReports.pardon(\'' + j + '\')">🔓 Gỡ chặn</button><button type="button" class="ex" onclick="QDCallReports.exempt(\'' + j + '\',' + (isEx ? 'false' : 'true') + ')">' + (isEx ? '↩️ Bỏ miễn' : '🛡️ Miễn bot') + '</button></div>';
+        }
+        function renderHit() {
+            var el = $('qgd-hit'); if (!el) return;
+            var now = Date.now(), wk = now - 7 * 864e5, P = GDC.pardon || {}, by = {};
+            LOG.forEach(function (o) { if (!o.user || !BOTK[o.kind] || (o.at || 0) < wk || (o.at || 0) <= (+P[o.user] || 0)) return; var x = by[o.user] = by[o.user] || { u: o.user, n: 0, last: o, ban: 0 }; x.n++; if ((o.at || 0) > (x.last.at || 0)) x.last = o; });
+            WRN.forEach(function (w) { if (!w.bot || !w.user || (+w.banUntil || 0) <= now) return; var x = by[w.user] = by[w.user] || { u: w.user, n: 0, last: { at: w.at, kind: w.rule === 'spam' ? 'spam-ban' : 'report', action: w.label }, ban: 0 }; x.ban = Math.max(x.ban, +w.banUntil); });
+            var L = Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return (b.ban ? 1 : 0) - (a.ban ? 1 : 0) || (b.last.at || 0) - (a.last.at || 0); });
+            el.innerHTML = L.length ? L.map(function (x) {
+                return '<tr><td class="vsh-who">' + nm(x.u) + (exL().indexOf(x.u) >= 0 ? '<small style="color:#22c55e">🛡️ đã miễn bot</small>' : '') + '</td><td><span class="qgd-k">' + (KIND[x.last.kind] || H(x.last.kind || '')) + '</span> <span class="text-sm">' + H(x.last.action || '') + '</span><br><small class="text-muted">' + fmt(x.last.at) + '</small></td><td>' + x.n + '</td><td>' + (x.ban ? '<span style="color:#ef4444;font-weight:700">🔒 đến ' + fmt(x.ban) + '</span>' : '<span class="text-muted">—</span>') + '</td><td>' + acts(x.u) + '</td></tr>';
+            }).join('') : '<tr><td colspan="5" class="text-muted">Không ai đang bị bot chặn 👍</td></tr>';
+            var ex = exL(); $('qgd-exl').innerHTML = ex.length ? ex.map(function (u) { return '<span class="chip">@' + H(u) + '<button type="button" title="Bỏ miễn" onclick="QDCallReports.exempt(\'' + qdJ(u) + '\',false)">✕</button></span>'; }).join(' ') : 'chưa có ai';
+        }
+        function guardLog(o) { o.at = Date.now(); o.by = me(); return fs().collection('call_bot_log').add(o).catch(function () {}); }
+        function pardon(u) {
+            qdAsk({ title: 'Gỡ chặn cho @' + u + '?', tone: 'success', icon: '🔓', ok: 'Gỡ chặn', html: '<b>@' + H(u) + '</b> gọi được ngay: mở mọi lần khóa gọi (kể cả do 🤖 Bot), xóa các lần bị chặn gọi lại / tạm dừng gọi.\nBot bỏ qua các vi phạm trước lúc này (không tự khóa lại vì báo cáo cũ).' }).then(function (y) {
+                if (!y) return; var p = {}; p[u] = Date.now();
+                Promise.all([qdUnbanCalls(u, me()), fs().collection('settings').doc('call_guard').set({ pardon: p, updatedAt: Date.now(), updatedBy: me() }, { merge: true }), guardLog({ kind: 'pardon', user: u, action: 'Admin @' + me() + ' gỡ chặn', detail: 'Mở khóa gọi + xóa chặn của bot' })])
+                    .then(function () { toast('Đã gỡ chặn cho @' + u, 'success'); }).catch(function (e) { toast('Không gỡ được: ' + (e && (e.message || e.code) || e), 'error'); });
+            });
+        }
+        function exempt(u, on) {
+            u = String(u || '').trim().replace(/^@/, ''); if (!u) return toast('Nhập tên đăng nhập', 'warning');
+            var FV = firebase.firestore.FieldValue;
+            fs().collection('settings').doc('call_guard').set({ exempt: on ? FV.arrayUnion(u) : FV.arrayRemove(u), updatedAt: Date.now(), updatedBy: me() }, { merge: true })
+                .then(function () { guardLog({ kind: on ? 'exempt' : 'unexempt', user: u, action: on ? 'Admin @' + me() + ' cho miễn bot' : 'Admin @' + me() + ' bỏ miễn bot' }); toast(on ? '@' + u + ' được miễn bot' : 'Đã bỏ miễn bot cho @' + u, 'success'); if (on) { var p = $('qgd-exu'); if (p) p.value = ''; } })
+                .catch(function (e) { toast('Không lưu được: ' + (e && (e.message || e.code) || e), 'error'); });
         }
         function accRef(user) { return fs().collection('accounts').where('user', '==', user).limit(1).get().then(function (q) { return q.empty ? null : q.docs[0].ref; }); }
         function act(id, kind, days) {
@@ -16420,15 +16464,18 @@ window.QDXlsx = (function () {
         function boot() {
             if (booted || !window.firebase || !firebase.apps || !firebase.apps.length) return; booted = true;
             fs().collection('call_reports').orderBy('at', 'desc').limit(500).onSnapshot(function (q) { REP = []; q.forEach(function (d) { var x = d.data(); x.id = d.id; REP.push(x); }); REP.sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); render(); }, function (e) { $('qrp-list').innerHTML = '<tr><td colspan="6" style="color:#ef4444">Không đọc được (' + H(e && e.code || '') + ')</td></tr>'; });
-            fs().collection('call_warnings').orderBy('at', 'desc').limit(500).onSnapshot(function (q) { WRN = []; q.forEach(function (d) { var x = d.data(); x.id = d.id; WRN.push(x); }); WRN.sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); render(); }, function () {});
+            fs().collection('call_warnings').orderBy('at', 'desc').limit(500).onSnapshot(function (q) { WRN = []; q.forEach(function (d) { var x = d.data(); x.id = d.id; WRN.push(x); }); WRN.sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); render(); renderHit(); }, function () {});
             bootGuard(); bootBlocks();
+            $('qgd-exbtn').addEventListener('click', function () { exempt($('qgd-exu').value, true); });
+            $('qgd-exu').addEventListener('keydown', function (e) { if (e.key === 'Enter') exempt(this.value, true); });
+            fs().collection('accounts').get().then(function (q) { var h = []; q.forEach(function (d) { var a = d.data(); if (a.user) h.push('<option value="' + H(a.user) + '">' + H(a.fullName || '') + '</option>'); }); $('qgd-exdl').innerHTML = h.join(''); }).catch(function () {});
             $('qrp-filt').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; F = b.dataset.f || ''; Array.prototype.forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); }); render(); });
         }
         (function hook(n) {
             if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
             var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'calls') boot(); return r; };
         })(0);
-        return { act: act, unban: unban, unblock: unblock, big: function (src) { var o = $('qrp-img'); o.querySelector('img').src = src; o.hidden = false; } };
+        return { act: act, unban: unban, unblock: unblock, pardon: pardon, exempt: exempt, big: function (src) { var o = $('qrp-img'); o.querySelector('img').src = src; o.hidden = false; } };
     })();
     </script>
 <style id="qk-css">

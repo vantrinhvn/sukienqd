@@ -25903,13 +25903,18 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         function beep(freqs, dur, vol) { var a = ac(); if (!a) return; var t = a.currentTime; freqs.forEach(function (f) { var o = a.createOscillator(), g = a.createGain(); o.frequency.value = f; o.type = 'sine'; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.setValueAtTime(vol, t + dur - .05); g.gain.linearRampToValueAtTime(0, t + dur); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + .02); }); }
         function tone(kind) {
             stopTone();
-            if (kind === 'in' && window.QDNative && typeof QDNative.ringStart === 'function') { try { QDNative.ringStart(); nativeRing = true; return; } catch (e) {} }   // app Android: nhạc chuông của máy
-            if (kind === 'in') { var f = function () { beep([660, 880], .35, .16); setTimeout(function () { beep([880, 1100], .35, .16); }, 420); }; f(); toneT = setInterval(f, 2200); try { navigator.vibrate && (vibT = setInterval(function () { navigator.vibrate([600, 300, 600]); }, 2200), navigator.vibrate([600, 300, 600])); } catch (e) {} }
+            if (kind === 'in' && window.QDNative && typeof QDNative.ringStart === 'function') { try { QDNative.ringStart(); nativeRing = true; return; } catch (e) {} }   // app Android: nhạc chuông của app
+            if (kind === 'in') {   // trình duyệt: cùng nhạc chuông của app; không phát được (chưa chạm trang) -> bíp
+                try { if (!ringAu) { ringAu = new Audio('media/qd-ring.mp3'); ringAu.loop = true; ringAu.preload = 'auto'; } ringAu.currentTime = 0; var pr = ringAu.play(); webRing = true; if (pr && pr.catch) pr.catch(function () { if (webRing) { webRing = false; beepIn(); } }); try { navigator.vibrate && (vibT = setInterval(function () { navigator.vibrate([400, 300, 400]); }, 2200)); } catch (e) {} return; } catch (e) {}
+            }
+            if (kind === 'in') beepIn();
+            if (kind === 'in') { /* chuông đến: đã xử lý ở trên */ }
             else if (kind === 'out') { var g = function () { beep([425], 1.0, .09); }; g(); toneT = setInterval(g, 3500); }
             else if (kind === 'end') { beep([480], .25, .12); setTimeout(function () { beep([380], .35, .12); }, 300); }
         }
-        var nativeRing = false;
-        function stopTone() { if (nativeRing) { nativeRing = false; try { QDNative.ringStop(); } catch (e) {} } clearInterval(toneT); clearInterval(vibT); toneT = vibT = 0; try { navigator.vibrate && navigator.vibrate(0); } catch (e) {} }
+        var nativeRing = false, webRing = false, ringAu = null;
+        function beepIn() { var f = function () { beep([660, 880], .35, .16); setTimeout(function () { beep([880, 1100], .35, .16); }, 420); }; f(); toneT = setInterval(f, 2200); }
+        function stopTone() { if (nativeRing) { nativeRing = false; try { QDNative.ringStop(); } catch (e) {} } if (webRing) { webRing = false; try { ringAu.pause(); ringAu.currentTime = 0; } catch (e) {} } clearInterval(toneT); clearInterval(vibT); toneT = vibT = 0; try { navigator.vibrate && navigator.vibrate(0); } catch (e) {} }
         /* ---------- Giao diện ---------- */
         var idleT = 0;
         function ui(mode) {   // mode: out | in | connecting | live
@@ -26395,7 +26400,10 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
            3. Gọi quá nhiều người trong thời gian ngắn -> tạm dừng gọi
            4. Nói / la hét quá to kéo dài -> nhắc nhở nhẹ trên màn hình chính người đó (không phạt, không ghi âm)
            Mọi việc bot làm ghi vào call_bot_log + call_warnings (by '🤖 Bot') để Admin xem lại. */
-        var GD = { on: true, winDays: 30, warnAt: 1, ban1At: 2, ban7At: 3, missMax: 3, missMin: 30, spamWarn: 3, spamBanH: 3, rateMax: 8, rateMin: 10, loud: true };
+        var GD = { on: true, winDays: 30, warnAt: 1, ban1At: 2, ban7At: 3, missMax: 3, missMin: 30, spamWarn: 3, spamBanH: 3, rateMax: 8, rateMin: 10, loud: true, exempt: [], pardon: {} };
+        // Admin can thiệp: exempt = danh sách được miễn bot; pardon[user] = lúc Admin gỡ chặn (bot bỏ qua mọi vi phạm trước mốc này)
+        function ex(u) { return !!u && Array.isArray(GD.exempt) && GD.exempt.indexOf(u) >= 0; }
+        function pd(u) { return (GD.pardon && +GD.pardon[u]) || 0; }
         var banA = 0, banW = 0;
         function setBan() { start.banUntil = Math.max(banA || 0, banW || 0); }
         function LSget(k, def) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? def : v; } catch (e) { return def; } }
@@ -26405,7 +26413,11 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         function accRef(user) { return db().collection('accounts').where('user', '==', user).limit(1).get().then(function (q) { return q.empty ? null : q.docs[0].ref; }).catch(function () { return null; }); }
         function botPunish(id, w, push) {   // ghi cảnh báo (mã cố định -> 2 máy cùng xét không bị trùng) + khóa gọi + đẩy thông báo
             var ref = db().collection('call_warnings').doc(id);
-            return ref.get().then(function (x) {
+            if (ex(w.user)) return Promise.resolve(false);
+            return db().collection('accounts').where('user', '==', w.user).limit(1).get().then(function (q) {
+                var r = q.empty ? '' : q.docs[0].data().role; if (r === 'admin' || r === 'manager') return { exists: true };   // Ban Quản Trị: bot không phạt
+                return ref.get();
+            }).then(function (x) {
                 if (x.exists) return false;
                 w.by = '🤖 Bot'; w.bot = true; w.seen = false; w.at = w.at || Date.now();
                 return ref.set(w).then(function () {
@@ -26417,8 +26429,8 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         }
         // 1. Xét báo cáo -> trả về mô tả hành động nếu bot vừa xử lý
         function guardReports(user, push) {
-            if (!GD.on || !user) return Promise.resolve('');
-            var since = Date.now() - GD.winDays * 864e5;
+            if (!GD.on || !user || ex(user)) return Promise.resolve('');
+            var since = Math.max(Date.now() - GD.winDays * 864e5, pd(user));   // Admin gỡ chặn -> báo cáo cũ không tính lại
             return db().collection('call_reports').where('reported', '==', user).get().then(function (q) {
                 var L = []; q.forEach(function (x) { var r = x.data(); r.id = x.id; if ((r.at || 0) >= since && r.status !== 'dismissed' && r.reporter && r.reporter !== user) L.push(r); });
                 L.sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
@@ -26438,10 +26450,10 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             }).catch(function () { return ''; });
         }
         // 2. Gọi dồn dập (xét trên máy người nhận)
-        function missList(from) { var m = LSget('qd_call_miss', {}), t = Date.now(), w = GD.missMin * 6e4; return (m[from] || []).filter(function (x) { return t - x < w; }); }
+        function missList(from) { var m = LSget('qd_call_miss', {}), t = Date.now(), w = GD.missMin * 6e4, p = pd(from); return (m[from] || []).filter(function (x) { return t - x < w && x > p; }); }
         function missClear(u) { var m = LSget('qd_call_miss', {}); if (m[u]) { delete m[u]; LSset('qd_call_miss', m); } }
         function spamCheck(id, c) {
-            if (!GD.on || !(GD.missMax > 0)) return false;
+            if (!GD.on || !(GD.missMax > 0) || ex(c.from)) return false;
             var L = missList(c.from), m = LSget('qd_call_miss', {});
             if (L.length >= GD.missMax) {
                 var until = L[0] + GD.missMin * 6e4, mins = Math.max(1, Math.ceil((until - Date.now()) / 6e4)), nm = (State.fullName || me());
@@ -26452,10 +26464,10 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             L.push(Date.now()); m[c.from] = L; LSset('qd_call_miss', m); return false;
         }
         function guardSpam(user) {   // bị bot chặn gọi dồn dập nhiều lần / ngày -> cảnh báo + khóa gọi vài giờ
-            if (!(GD.spamWarn > 0)) return;
+            if (!(GD.spamWarn > 0) || ex(user)) return;
             setTimeout(function () {
                 db().collection('call_bot_log').where('user', '==', user).get().then(function (q) {
-                    var n = 0, t = Date.now(); q.forEach(function (x) { var o = x.data(); if (o.kind === 'spam' && t - (o.at || 0) < 864e5) n++; }); n = Math.max(n, 1);   // lần vừa chặn chắc chắn tính
+                    var n = 0, t = Date.now(); q.forEach(function (x) { var o = x.data(); if (o.kind === 'spam' && t - (o.at || 0) < 864e5 && (o.at || 0) > pd(user)) n++; }); n = Math.max(n, 1);   // lần vừa chặn chắc chắn tính
                     if (n < GD.spamWarn) return;
                     var w = { user: user, name: user, reason: 'spam', label: '📵 Gọi làm phiền liên tục', count: n, rule: 'spam', note: '🤖 Bot tự động: ' + n + ' lần gọi dồn dập khi người nhận không trả lời trong 24 giờ.' };
                     if (GD.spamBanH > 0) w.banUntil = t + GD.spamBanH * 3600e3;
@@ -26464,11 +26476,11 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             }, 300);
         }
         function coolSet(u, until) { var m = LSget('qd_call_cool', {}); m[u] = +until || Date.now() + GD.missMin * 6e4; LSset('qd_call_cool', m); }
-        function coolLeft(u) { var m = LSget('qd_call_cool', {}), t = +m[u] || 0; return t > Date.now() ? Math.ceil((t - Date.now()) / 6e4) : 0; }
+        function coolLeft(u) { var m = LSget('qd_call_cool', {}), t = +m[u] || 0; if (ex(me()) || pd(me()) > t - GD.missMin * 6e4) return 0; return t > Date.now() ? Math.ceil((t - Date.now()) / 6e4) : 0; }   // Admin gỡ chặn / miễn bot -> hết bị chặn gọi lại
         // 3. Gọi quá nhiều trong thời gian ngắn
         function rateCheck() {
-            if (!GD.on || !(GD.rateMax > 0)) return 0;
-            var t = Date.now(), w = GD.rateMin * 6e4, a = LSget('qd_call_rate', []).filter(function (x) { return t - x < w; });
+            if (!GD.on || !(GD.rateMax > 0) || ex(me())) return 0;
+            var t = Date.now(), w = GD.rateMin * 6e4, p0 = pd(me()), a = LSget('qd_call_rate', []).filter(function (x) { return t - x < w && x > p0; });
             if (a.length >= GD.rateMax) {
                 if (t - (+LSget('qd_call_rate_log', 0)) > w) { LSset('qd_call_rate_log', t); botLog({ kind: 'rate', user: me(), action: 'Tạm dừng gọi', detail: a.length + ' cuộc / ' + GD.rateMin + ' phút' }); }
                 return Math.max(1, Math.ceil((a[0] + w - t) / 6e4));
@@ -26479,7 +26491,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         // 4. Âm lượng: la hét to kéo dài -> nhắc nhở nhẹ (chỉ đo độ to trên máy, không nghe nội dung, không ghi âm)
         function botNote(msg) { var b = $('qc-botn'); b.textContent = msg; b.hidden = false; clearTimeout(botNote.t); botNote.t = setTimeout(function () { b.hidden = true; }, 6000); try { navigator.vibrate && navigator.vibrate(120); } catch (e) {} }
         function loudStart() {
-            if (!GD.on || !GD.loud || !S || S.loud || !S.local) return; var tr = S.local.getAudioTracks()[0]; if (!tr) return;
+            if (!GD.on || !GD.loud || !S || S.loud || !S.local || ex(me())) return; var tr = S.local.getAudioTracks()[0]; if (!tr) return;
             try {
                 var AC = window.AudioContext || window.webkitAudioContext, ac = new AC(), an = ac.createAnalyser(); an.fftSize = 1024;
                 ac.createMediaStreamSource(new MediaStream([tr])).connect(an); try { ac.resume(); } catch (e) {}
