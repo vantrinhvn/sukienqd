@@ -9410,6 +9410,34 @@ html.qd-lite .qd-fx { display: none !important; }
     .rps-mini span, .rps2-hands span, .rps2-slot .rps2-hand, .rps2-picks.ready .rps2-pick, .rps2-fx i, .rps2-res-ico { animation: none !important; }
 }
     </style>
+    <script id="qd-quota-js">
+    /* ===== Firebase hết hạn mức miễn phí trong ngày (resource-exhausted / "Quota exceeded") -> hiện băng thông báo rõ ràng
+       thay vì để trang quay "Đang tải" mãi. Hạn mức đặt lại 0:00 giờ Mỹ (America/Los_Angeles) = 15:00 / 14:00 giờ VN. ===== */
+    (function () {
+        if (window.__qdQuota) return; window.__qdQuota = 1;
+        var shown = false, RX = /resource-exhausted|Quota exceeded|quota.*exceed/i;
+        function resetAt() {   // 0:00 kế tiếp theo giờ Los Angeles
+            try {
+                var now = new Date(), la = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })), off = now - la;
+                var next = new Date(la); next.setHours(24, 0, 0, 0); return new Date(next.getTime() + off);
+            } catch (e) { var d = new Date(); d.setHours(15, 0, 0, 0); if (d < new Date()) d.setDate(d.getDate() + 1); return d; }
+        }
+        function show() {
+            if (shown || !document.body) return; shown = true;
+            var t = resetAt(), hm = ('0' + t.getHours()).slice(-2) + ':' + ('0' + t.getMinutes()).slice(-2);
+            var b = document.createElement('div'); b.id = 'qd-quota';
+            b.setAttribute('role', 'alert');
+            b.style.cssText = 'position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:2147483600;display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff;font:600 14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.4);border:1.5px solid #facc15;max-width:560px;margin:0 auto';
+            b.innerHTML = '<span style="font-size:22px;line-height:1">⏳</span><div style="flex:1"><b style="color:#fde68a">Hệ thống tạm quá tải hôm nay</b><br>Máy chủ đã dùng hết lượt truy cập miễn phí trong ngày nên tin nhắn, điểm, đổi quà… tạm ngưng. Tự hoạt động lại lúc <b style="color:#fde68a">' + hm + '</b>. Bạn không mất điểm hay dữ liệu.</div><button type="button" aria-label="Đóng" style="border:0;background:rgba(0,0,0,.25);color:#fff;width:28px;height:28px;border-radius:50%;font-size:15px;cursor:pointer">✕</button>';
+            b.querySelector('button').onclick = function () { b.remove(); setTimeout(function () { shown = false; }, 10 * 60000); };   // đóng: 10 phút sau còn lỗi mới hiện lại
+            document.body.appendChild(b);
+        }
+        function check(x) { try { var s = x && (x.code || x.message || x.reason || x) ; if (s && typeof s === 'object') s = (s.code || '') + ' ' + (s.message || ''); if (RX.test(String(s))) show(); } catch (e) {} }
+        ['error', 'warn', 'log'].forEach(function (k) { var o = console[k]; console[k] = function () { for (var i = 0; i < arguments.length; i++) check(arguments[i]); return o.apply(console, arguments); }; });
+        window.addEventListener('unhandledrejection', function (e) { check(e.reason); });
+        window.qdQuotaShow = show;
+    })();
+    </script>
 </head>
 <body>
     <!-- Màn đăng nhập đặt đầu trang: nền hiện ngay khi mở (lớp phủ cố định, vị trí trong file không ảnh hưởng bố cục) -->
@@ -12964,7 +12992,7 @@ html.qd-lite .qd-fx { display: none !important; }
             const c = String((e && (e.code || e.name)) || (typeof e === 'string' ? e : '') || 'unknown').replace(/^firestore\//, ''), m = String((e && e.message) || e || '').slice(0, 300);
             try { db.collection('app_errors').add({ where, user: (window.State && State.currentUser) || '', docId: (window.State && State.currentDocId) || '', code: c, msg: m, online: navigator.onLine, ua: navigator.userAgent.slice(0, 160), at: Date.now() }).catch(() => {}); } catch (x) {}
             if (!navigator.onLine || c === 'unavailable') return 'Mất kết nối mạng — kiểm tra mạng rồi thử lại.';
-            if (c === 'resource-exhausted') return 'Máy chủ đã dùng hết hạn mức miễn phí hôm nay — tự mở lại lúc 15:00. Báo Ban Quản Trị nhé!';
+            if (c === 'resource-exhausted') { try { window.qdQuotaShow && window.qdQuotaShow(); } catch (x) {} return 'Máy chủ đã dùng hết hạn mức miễn phí hôm nay — tự mở lại lúc 15:00. Báo Ban Quản Trị nhé!'; }
             if (c === 'permission-denied') return 'Hệ thống đang chặn quyền ghi dữ liệu — báo Ban Quản Trị kiểm tra (mã permission-denied).';
             if (c === 'aborted' || c === 'failed-precondition') return 'Đông người thao tác cùng lúc — đợi vài giây rồi thử lại.';
             return 'Lỗi kết nối máy chủ, vui lòng thử lại. (Mã: ' + c + ')';
