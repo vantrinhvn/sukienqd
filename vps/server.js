@@ -200,13 +200,14 @@ function checkStaffWrites(conn, writes) {
   }
 }
 function uniqueUsers(writes) {   // mỗi tên đăng nhập chỉ 1 tài khoản (trước đây tạo tay ở Admin không kiểm tra -> 2 tài khoản cùng tên 'admin')
-  const now = Date.now(), m = COLS.get('accounts') || new Map(), mine = new Map();
+  const now = Date.now(), m = COLS.get('accounts') || new Map(), mine = new Map(), gone = new Set();
+  for (const w of writes) { const p = splitPath(w.path); if (p.col === 'accounts' && w.op === 'delete') gone.add(p.id); }   // xóa + đổi tên trong cùng 1 lần ghi
   for (const w of writes) {
     const { col: c, id } = splitPath(w.path); if (c !== 'accounts' || w.op === 'delete') continue;
     const a = simAccount(w, m.get(id), now); if (!a || typeof a.user !== 'string' || !a.user) continue;
     const u = a.user.toLowerCase(), b = m.get(id);
     if (b && b.d && String(b.d.user || '').toLowerCase() === u) continue;   // không đổi tên
-    for (const [oid, x] of m) if (oid !== id && x.d && String(x.d.user || '').toLowerCase() === u) throw err('already-exists', 'Tên đăng nhập "' + a.user + '" đã có tài khoản khác dùng');
+    for (const [oid, x] of m) if (oid !== id && !gone.has(oid) && x.d && String(x.d.user || '').toLowerCase() === u) throw err('already-exists', 'Tên đăng nhập "' + a.user + '" đã có tài khoản khác dùng');
     if (mine.has(u) && mine.get(u) !== id) throw err('already-exists', 'Trùng tên đăng nhập trong cùng 1 lần ghi'); mine.set(u, id);
   }
 }
