@@ -696,7 +696,7 @@ html.qd-lite .qd-fx { display: none !important; }
         var cs = d.currentScript, KIND = (cs && cs.getAttribute('data-kind')) || 'mem';   // user | mem | public | adm
         var ADM = KIND === 'adm', KEY = ADM ? 'qd_sess_adm' : 'qd_sess';
         var TAB = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        var ONLINE_MS = 120000, PING_MS = 45000, IDLE_MS = 300000, WARN_MS = 60000;
+        var ONLINE_MS = 330000, PING_MS = 240000, IDLE_MS = 300000, WARN_MS = 60000;   // báo online 4 phút / lần (trước 45 giây: mỗi lần ghi tốn 1 lượt ĐỌC cho MỌI người đang mở app -> hết hạn mức Firebase)
         var STAFF = { admin: 1, manager: 1 };
         var MSG = {
             expired: 'Phiên đăng nhập đã hết hạn do bạn không thao tác trong thời gian dài.',
@@ -851,7 +851,7 @@ html.qd-lite .qd-fx { display: none !important; }
         var waitN = 0, wait = setInterval(function () { if (db() || ++waitN > 80) { clearInterval(wait); if (DB) { listen(); ping(true); setTimeout(function () { ping(true); }, 5000); } } }, 400);
 
         /* ---------- Trạng thái hoạt động (online / "hoạt động x phút trước") ---------- */
-        var idleSent = false, lastPing = 0;
+        var idleSent = false, lastPing = 0, offT = 0, offSent = false;
         var noOnline = false;   // Firestore Rules chưa cho ghi trường online -> chỉ ghi lastActive
         function write(s, data) {
             var D = db(); if (!D || !s || !s.id) return;
@@ -882,8 +882,8 @@ html.qd-lite .qd-fx { display: none !important; }
             write(s, { online: false, lastActive: idleSent ? since(s) : now() });
         }
         d.addEventListener('visibilitychange', function () {
-            if (d.visibilityState === 'visible') { check(); if (active()) { touch(true); ping(true); } tick(); }
-            else if (active()) offline(had, false);
+            if (d.visibilityState === 'visible') { check(); clearTimeout(offT); if (active()) { touch(true); if (offSent || now() - lastPing > PING_MS - 2000) ping(true); offSent = false; } tick(); }
+            else if (active()) { clearTimeout(offT); offT = setTimeout(function () { if (d.visibilityState !== 'visible') { offSent = true; offline(had, false); } }, 45000); }   // chuyển app qua lại nhanh: không ghi gì (tiết kiệm lượt đọc / ghi)
         });
         W.addEventListener('pagehide', function (e) {   // đóng tab / rời trang: gửi kèm bản "keepalive" để chắc chắn tới máy chủ
             if (e.persisted || !active() || otherTabVisible() || !had || !had.id) return;

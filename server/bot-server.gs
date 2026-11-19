@@ -2,6 +2,8 @@
    QD ELITE - MÁY CHỦ TỰ GỬI BOT BÁO CÁO + THÔNG BÁO APP ANDROID (Google Apps Script, miễn phí)  · bản srv-12
    -------------------------------------------------------------------------------------
    BẢN srv-12: ĐẾM LƯỢT ĐỌC / GHI / XÓA FIRESTORE HÔM NAY -> Admin > Tổng quan / Cuộc gọi thấy còn bao nhiêu
+   - TIẾT KIỆM LƯỢT ĐỌC: nhớ danh sách tài khoản 10 phút (trước đọc lại toàn bộ tài khoản mỗi lần có tin nhắn cần báo),
+     tin nhắn chỉ đọc chồng 1 phút (trước 3 phút).
    - Cứ 10 phút máy chủ hỏi Google Cloud Monitoring (số liệu thật của Firebase, trễ vài phút) rồi ghi vào settings/firestore_usage.
    - Gói miễn phí Spark: 50.000 lượt đọc · 20.000 lượt ghi · 20.000 lượt xóa / ngày, đặt lại lúc 0:00 giờ Mỹ (15:00 giờ VN).
    - Báo lỗi "Cloud Monitoring API chưa bật" -> mở console.cloud.google.com/apis/library/monitoring.googleapis.com?project=web-dangky-123 -> BẬT.
@@ -542,7 +544,16 @@ function fcmHint(r) {
   return '';
 }
 var _accCache = null;
-function pushAccounts() { return _accCache || (_accCache = fsList('accounts', ['user', 'fullName', 'name', 'pushTokens', 'isBlocked'])); }
+function pushAccounts() {   // srv-12: nhớ danh sách tài khoản 10 phút (trước: đọc lại TOÀN BỘ tài khoản mỗi lần có tin cần báo -> tốn rất nhiều lượt đọc Firestore)
+  if (_accCache) return _accCache;
+  var C = CacheService.getScriptCache(), n = +C.get('acc_n') || 0;
+  if (n) { var parts = C.getAll(Array.apply(null, Array(n)).map(function (_, i) { return 'acc_' + i; })), txt = '', ok = true;
+    for (var i = 0; i < n; i++) { if (parts['acc_' + i] == null) { ok = false; break; } txt += parts['acc_' + i]; }
+    if (ok) try { return (_accCache = JSON.parse(txt)); } catch (e) {} }
+  _accCache = fsList('accounts', ['user', 'fullName', 'name', 'pushTokens', 'isBlocked']);
+  try { var js = JSON.stringify(_accCache), put = {}, k = 0; for (var j = 0; j < js.length; j += 90000) put['acc_' + (k++)] = js.slice(j, j + 90000); put.acc_n = String(k); C.putAll(put, 600); } catch (e) {}
+  return _accCache;
+}
 // users = ['an','binh'] hoặc null (tất cả); trả về [{ token, id }]
 function pushTargets(users, except) {
   var want = null; if (users) { want = {}; users.forEach(function (u) { want[u] = 1; }); }
@@ -678,7 +689,7 @@ function pushRun() {
     var C = CacheService.getScriptCache(), since = +P.getProperty('chatSince') || 0;
     if (!since || now - since > 15 * 60000) since = now - 90 * 1000;      // lần đầu / máy chủ nghỉ lâu: không báo dồn tin cũ
     var docs = fsQueryDocs({ select: { fields: ['conversationId', 'from', 'to', 'text', 'time', 'bot', 'botName', 'mentions', 'revoked'].map(function (f) { return { fieldPath: f }; }) },
-      from: [{ collectionId: 'private_chat' }], where: { fieldFilter: { field: { fieldPath: 'time' }, op: 'GREATER_THAN', value: { integerValue: String(since - 180000) } } },
+      from: [{ collectionId: 'private_chat' }], where: { fieldFilter: { field: { fieldPath: 'time' }, op: 'GREATER_THAN', value: { integerValue: String(since - 60000) } } },   // srv-12: đọc chồng 1 phút (trước 3 phút: mỗi tin bị đọc lại 4–5 lần)
       orderBy: [{ field: { fieldPath: 'time' }, direction: 'ASCENDING' }], limit: 300 });
     var keys = docs.map(function (x) { return 'pm_' + x.path.split('/').pop(); }), done = keys.length ? C.getAll(keys) : {}, mark = {};
     docs.forEach(function (x, i) {
