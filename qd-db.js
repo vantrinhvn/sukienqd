@@ -1,0 +1,221 @@
+/* =====================================================================================
+   QD-DB — bộ chuyển thay thư viện Firebase Firestore (bản "compat" 10.x) bằng máy chủ riêng trên VPS.
+   Trang web vẫn gọi y như cũ: firebase.initializeApp(...), firebase.firestore().collection('x').where(...).onSnapshot(...),
+   FieldValue.increment / arrayUnion / arrayRemove / delete / serverTimestamp, batch(), runTransaction()...
+   Máy chủ: vps/server.js (WebSocket /ws). Đổi máy chủ để thử: localStorage.qd_server = 'ws://127.0.0.1:8787/ws'
+   ===================================================================================== */
+(function () {
+    'use strict';
+    if (window.firebase && window.firebase.__qd) return;
+    var DEFAULT = 'wss://103-77-243-172.sslip.io/ws';
+    var URL_ = (function () { try { return window.QD_SERVER || localStorage.getItem('qd_server') || DEFAULT; } catch (e) { return window.QD_SERVER || DEFAULT; } })();
+
+    /* ---------------------------------- KẾT NỐI ---------------------------------- */
+    var ws = null, open = false, seq = 0, pend = {}, queue = [], subs = {}, sidN = 0, retry = 0, retryT = 0, closedByUser = false, everOpen = false;
+    function err(code, message) { var e = new Error(message || code); e.code = code; e.name = 'FirebaseError'; return e; }
+    function connect() {
+        if (closedByUser || (ws && (ws.readyState === 0 || ws.readyState === 1))) return;
+        try { ws = new WebSocket(URL_); } catch (e) { return later(); }
+        ws.onopen = function () {
+            open = true; retry = 0; everOpen = true;
+            Object.keys(subs).forEach(function (k) { var s = subs[k]; s.resent = true; raw({ op: 'sub', sid: s.sid, path: s.path, q: s.q }); });   // nghe lại sau khi mất mạng
+            var q = queue; queue = []; q.forEach(function (m) { raw(m); });
+        };
+        ws.onmessage = function (e) { var m; try { m = JSON.parse(e.data); } catch (x) { return; } onMsg(m); };
+        ws.onclose = function () {
+            open = false; ws = null;
+            Object.keys(pend).forEach(function (k) { var p = pend[k]; if (p.m.op !== 'commit' || p.m.cid) queue.push(p.m); });   // gửi lại khi có mạng (ghi có mã cid -> máy chủ không ghi trùng)
+            later();
+        };
+        ws.onerror = function () {};
+    }
+    function later() { if (closedByUser) return; clearTimeout(retryT); retryT = setTimeout(connect, Math.min(15000, 400 * Math.pow(1.7, retry++))); }
+    function raw(m) { if (open && ws && ws.readyState === 1) { try { ws.send(JSON.stringify(m)); return; } catch (e) {} } queue.push(m); connect(); }
+    function req(m) { return new Promise(function (ok, no) { m.r = ++seq; pend[m.r] = { ok: ok, no: no, m: m }; raw(m); }); }
+    function onMsg(m) {
+        if (m.re) { var p = pend[m.re]; if (!p) return; delete pend[m.re]; if (m.ok) p.ok(m); else p.no(err(m.code || 'unknown', m.message)); return; }
+        var s = subs[m.sid]; if (!s) return;
+        if (m.ev === 'doc') s.onDoc(m);
+        else if (m.ev === 'q') s.onQuery(m);
+        else if (m.ev === 'err') { delete subs[m.sid]; s.onErr(err(m.code, m.message)); }
+    }
+    ['online', 'focus'].forEach(function (ev) { window.addEventListener(ev, function () { retry = 0; connect(); }); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { retry = 0; connect(); } });
+
+    /* ---------------------------------- GIÁ TRỊ ---------------------------------- */
+    function FV(o) { this.__fv = o; }
+    function enc(v) {   // dữ liệu ghi -> JSON gửi máy chủ
+        if (v instanceof FV) return v.__fv;
+        if (v === undefined) return undefined;
+        if (v instanceof Date) return v.getTime();
+        if (v instanceof Timestamp) return v.toMillis();
+        if (v instanceof DocRef) return v.path;
+        if (Array.isArray(v)) return v.map(function (x) { var e = enc(x); return e === undefined ? null : e; });
+        if (v && typeof v === 'object') { var o = {}; Object.keys(v).forEach(function (k) { var e = enc(v[k]); if (e !== undefined) o[k] = e; }); return o; }
+        if (typeof v === 'number' && !isFinite(v)) return null;
+        return v;
+    }
+    function clone(d) { return d == null ? d : JSON.parse(JSON.stringify(d)); }
+    function Timestamp(sec, ns) { this.seconds = sec; this.nanoseconds = ns || 0; }
+    Timestamp.prototype.toMillis = function () { return this.seconds * 1000 + Math.floor(this.nanoseconds / 1e6); };
+    Timestamp.prototype.toDate = function () { return new Date(this.toMillis()); };
+    Timestamp.now = function () { return Timestamp.fromMillis(Date.now()); };
+    Timestamp.fromMillis = function (ms) { return new Timestamp(Math.floor(ms / 1000), (ms % 1000) * 1e6); };
+    Timestamp.fromDate = function (d) { return Timestamp.fromMillis(d.getTime()); };
+    var FieldValue = {
+        increment: function (n) { return new FV({ $fv: 'inc', n: +n || 0 }); },
+        arrayUnion: function () { return new FV({ $fv: 'au', a: enc(Array.prototype.slice.call(arguments)) }); },
+        arrayRemove: function () { return new FV({ $fv: 'ar', a: enc(Array.prototype.slice.call(arguments)) }); },
+        delete: function () { return new FV({ $fv: 'del' }); },
+        serverTimestamp: function () { return new FV({ $fv: 'ts' }); }
+    };
+    function autoId() { var c = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', s = '', a = new Uint8Array(20); try { crypto.getRandomValues(a); } catch (e) { for (var i = 0; i < 20; i++) a[i] = Math.random() * 256; } for (var j = 0; j < 20; j++) s += c.charAt(a[j] % 62); return s; }
+    var META = { fromCache: false, hasPendingWrites: false, isEqual: function (o) { return !!o && o.fromCache === false && o.hasPendingWrites === false; } };
+    function cid() { return autoId() + Date.now().toString(36); }
+
+    /* ---------------------------------- SNAPSHOT ---------------------------------- */
+    function DocSnap(ref, exists, d, ut) { this.ref = ref; this.id = ref.id; this.exists = !!exists; this._d = exists ? d : undefined; this.metadata = META; this._ut = ut || 0; }
+    DocSnap.prototype.data = function () { return this.exists ? clone(this._d) : undefined; };
+    DocSnap.prototype.get = function (f) { if (!this.exists) return undefined; var x = this._d; String(f).split('.').forEach(function (k) { x = x == null ? undefined : x[k]; }); return clone(x); };
+    DocSnap.prototype.isEqual = function (o) { return o && o.ref && o.ref.path === this.ref.path && JSON.stringify(o._d) === JSON.stringify(this._d); };
+    function QuerySnap(query, docs, changes) {
+        this.query = query; this.docs = docs; this.size = docs.length; this.empty = !docs.length; this.metadata = META; this._ch = changes;
+    }
+    QuerySnap.prototype.forEach = function (cb, thisArg) { this.docs.forEach(function (d) { cb.call(thisArg, d); }); };
+    QuerySnap.prototype.docChanges = function () { return this._ch; };
+    function diff(prevIds, prevV, docs) {   // so với lần trước -> added / modified / removed
+        var ch = [], now = {}, idx = {};
+        docs.forEach(function (d, i) { now[d.id] = i; });
+        (prevIds || []).forEach(function (id, i) { idx[id] = i; });
+        (prevIds || []).forEach(function (id, i) { if (!(id in now)) ch.push({ type: 'removed', doc: prevV[id].snap, oldIndex: i, newIndex: -1 }); });
+        docs.forEach(function (d, i) {
+            if (!(d.id in idx)) ch.push({ type: 'added', doc: d, oldIndex: -1, newIndex: i });
+            else if (prevV[d.id].v !== d._v) ch.push({ type: 'modified', doc: d, oldIndex: idx[d.id], newIndex: i });
+        });
+        return ch;
+    }
+    function listenArgs(a) {   // onSnapshot(next) | (next, error) | (opts, next, error) | ({ next, error })
+        a = Array.prototype.slice.call(a);
+        if (a[0] && typeof a[0] === 'object' && typeof a[0].next !== 'function' && typeof a[0] !== 'function') a.shift();
+        if (a[0] && typeof a[0] === 'object' && typeof a[0].next === 'function') return { next: a[0].next.bind(a[0]), error: a[0].error ? a[0].error.bind(a[0]) : null };
+        return { next: a[0], error: a[1] };
+    }
+
+    /* ---------------------------------- THAM CHIẾU ---------------------------------- */
+    function DB() {}
+    function DocRef(path) { this.path = path; var p = path.split('/'); this.id = p[p.length - 1]; this.firestore = db; }
+    Object.defineProperty(DocRef.prototype, 'parent', { get: function () { return new ColRef(this.path.split('/').slice(0, -1).join('/')); } });
+    DocRef.prototype.collection = function (c) { return new ColRef(this.path + '/' + c); };
+    DocRef.prototype.isEqual = function (o) { return o instanceof DocRef && o.path === this.path; };
+    DocRef.prototype.get = function () { var me = this; return req({ op: 'get', path: this.path }).then(function (m) { return new DocSnap(me, m.exists, m.d, m.ut); }); };
+    DocRef.prototype.set = function (data, opt) { return commit([{ op: 'set', path: this.path, data: enc(data || {}), merge: !!(opt && (opt.merge || opt.mergeFields)) }]); };
+    DocRef.prototype.update = function (a, b) {
+        var data = a; if (typeof a === 'string') { data = {}; var args = arguments; for (var i = 0; i < args.length; i += 2) data[args[i]] = args[i + 1]; }
+        return commit([{ op: 'update', path: this.path, data: enc(data || {}) }]);
+    };
+    DocRef.prototype.delete = function () { return commit([{ op: 'delete', path: this.path }]); };
+    DocRef.prototype.onSnapshot = function () {
+        var L = listenArgs(arguments), me = this, sid = 's' + (++sidN), lastV = -2;
+        subs[sid] = { sid: sid, path: this.path,
+            onDoc: function (m) { if (m.v === lastV) return; lastV = m.v; try { L.next(new DocSnap(me, m.exists, m.d, m.ut)); } catch (e) { setTimeout(function () { throw e; }); } },
+            onErr: function (e) { if (L.error) L.error(e); else console.error('[qd-db]', e); } };
+        raw({ op: 'sub', sid: sid, path: this.path });
+        return function () { if (subs[sid]) { delete subs[sid]; raw({ op: 'unsub', sid: sid }); } };
+    };
+    function Query(col, spec) { this._col = col; this._s = spec || { where: [], orderBy: [] }; this.firestore = db; }
+    function ext(q, k, v) { var s = { where: q._s.where.slice(), orderBy: q._s.orderBy.slice(), limit: q._s.limit, limitToLast: q._s.limitToLast }; if (k === 'where') s.where.push(v); else if (k === 'orderBy') s.orderBy.push(v); else s[k] = v; return new Query(q._col, s); }
+    Query.prototype.where = function (f, op, v) { if (f && f._qdDocId) f = '__name__'; return ext(this, 'where', [String(f), op, enc(v)]); };
+    Query.prototype.orderBy = function (f, dir) { if (f && f._qdDocId) f = '__name__'; return ext(this, 'orderBy', [String(f), dir === 'desc' ? 'desc' : 'asc']); };
+    Query.prototype.limit = function (n) { var q = ext(this, 'limit', +n); q._s.limitToLast = 0; return q; };
+    Query.prototype.limitToLast = function (n) { var q = ext(this, 'limitToLast', +n); q._s.limit = 0; return q; };
+    Query.prototype._q = function () { return { col: this._col, where: this._s.where, orderBy: this._s.orderBy, limit: this._s.limit || 0, limitToLast: this._s.limitToLast || 0 }; };
+    Query.prototype._snap = function (list) { var col = this._col; return list.map(function (x) { var s = new DocSnap(new DocRef(col + '/' + x.id), true, x.d, x.ut); s._v = x.v; return s; }); };
+    Query.prototype.get = function () { var me = this; return req({ op: 'query', q: this._q() }).then(function (m) { var d = me._snap(m.docs); return new QuerySnap(me, d, d.map(function (x, i) { return { type: 'added', doc: x, oldIndex: -1, newIndex: i }; })); }); };
+    Query.prototype.onSnapshot = function () {
+        var L = listenArgs(arguments), me = this, sid = 's' + (++sidN), cache = {}, prevIds = null, prevV = {};
+        subs[sid] = { sid: sid, q: this._q(),
+            onQuery: function (m) {
+                (m.docs || []).forEach(function (x) { cache[x.id] = x; });
+                var list = m.ids.map(function (id) { return cache[id]; }).filter(Boolean), keep = {};
+                m.ids.forEach(function (id) { keep[id] = 1; }); Object.keys(cache).forEach(function (id) { if (!keep[id]) delete cache[id]; });
+                var docs = me._snap(list), ch = diff(prevIds, prevV, docs);
+                if (prevIds && !ch.length && prevIds.length === docs.length) return;   // không đổi gì (vd. nghe lại sau mất mạng)
+                prevIds = m.ids.slice(); prevV = {}; docs.forEach(function (d) { prevV[d.id] = { v: d._v, snap: d }; });
+                try { L.next(new QuerySnap(me, docs, ch)); } catch (e) { setTimeout(function () { throw e; }); }
+            },
+            onErr: function (e) { if (L.error) L.error(e); else console.error('[qd-db]', e); } };
+        raw({ op: 'sub', sid: sid, q: this._q() });
+        return function () { if (subs[sid]) { delete subs[sid]; raw({ op: 'unsub', sid: sid }); } };
+    };
+    Query.prototype.isEqual = function (o) { return o instanceof Query && JSON.stringify(o._q()) === JSON.stringify(this._q()); };
+    function ColRef(path) { Query.call(this, path); this.path = path; this.id = path.split('/').pop(); }
+    ColRef.prototype = Object.create(Query.prototype); ColRef.prototype.constructor = ColRef;
+    ColRef.prototype.doc = function (id) { return new DocRef(this.path + '/' + (id == null || id === '' ? autoId() : String(id))); };
+    ColRef.prototype.add = function (data) { var r = this.doc(); return r.set(data).then(function () { return r; }); };
+    Object.defineProperty(ColRef.prototype, 'parent', { get: function () { var p = this.path.split('/'); return p.length > 1 ? new DocRef(p.slice(0, -1).join('/')) : null; } });
+
+    /* ---------------------------------- GHI: lẻ / batch / giao dịch ---------------------------------- */
+    function commit(writes, pre) { return req({ op: 'commit', writes: writes, pre: pre || null, cid: cid() }).then(function () {}); }
+    function Batch() { this._w = []; }
+    Batch.prototype.set = function (ref, data, opt) { this._w.push({ op: 'set', path: ref.path, data: enc(data || {}), merge: !!(opt && (opt.merge || opt.mergeFields)) }); return this; };
+    Batch.prototype.update = function (ref, data) { this._w.push({ op: 'update', path: ref.path, data: enc(data || {}) }); return this; };
+    Batch.prototype.delete = function (ref) { this._w.push({ op: 'delete', path: ref.path }); return this; };
+    Batch.prototype.commit = function () { return this._w.length ? commit(this._w) : Promise.resolve(); };
+    function Tx() { Batch.call(this); this._pre = {}; }
+    Tx.prototype = Object.create(Batch.prototype);
+    Tx.prototype.get = function (ref) {
+        var me = this;
+        if (!(ref instanceof DocRef)) return Promise.reject(err('invalid-argument', 'Giao dịch chỉ đọc được tài liệu'));
+        return req({ op: 'get', path: ref.path }).then(function (m) { if (!(ref.path in me._pre)) me._pre[ref.path] = m.v || 0; return new DocSnap(ref, m.exists, m.d, m.ut); });
+    };
+    function runTransaction(fn, opt) {
+        var max = (opt && opt.maxAttempts) || 5, n = 0;
+        function attempt() {
+            n++; var t = new Tx();
+            return Promise.resolve().then(function () { return fn(t); }).then(function (res) {
+                if (!t._w.length) return res;
+                return commit(t._w, t._pre).then(function () { return res; });
+            }).catch(function (e) {
+                if (e && e.code === 'aborted' && n < max) return new Promise(function (r) { setTimeout(r, 30 + Math.random() * 120 * n); }).then(attempt);
+                throw e;
+            });
+        }
+        return attempt();
+    }
+
+    /* ---------------------------------- firebase.* (bản compat) ---------------------------------- */
+    var db = new DB();
+    DB.prototype.collection = function (p) { return new ColRef(String(p).replace(/^\/+|\/+$/g, '')); };
+    DB.prototype.doc = function (p) { return new DocRef(String(p).replace(/^\/+|\/+$/g, '')); };
+    DB.prototype.batch = function () { return new Batch(); };
+    DB.prototype.runTransaction = runTransaction;
+    DB.prototype.settings = function () {};
+    DB.prototype.enablePersistence = function () { return Promise.resolve(); };
+    DB.prototype.enableNetwork = function () { connect(); return Promise.resolve(); };
+    DB.prototype.disableNetwork = function () { return Promise.resolve(); };
+    DB.prototype.terminate = function () { return Promise.resolve(); };
+    DB.prototype.clearPersistence = function () { return Promise.resolve(); };
+    DB.prototype.waitForPendingWrites = function () { var ids = Object.keys(pend); return Promise.all(ids.map(function (k) { return new Promise(function (r) { var t = setInterval(function () { if (!pend[k]) { clearInterval(t); r(); } }, 50); }); })); };
+    function firestore() { connect(); return db; }
+    firestore.FieldValue = FieldValue;
+    firestore.Timestamp = Timestamp;
+    firestore.FieldPath = { documentId: function () { return { _qdDocId: 1, toString: function () { return '__name__'; } }; } };
+    firestore.setLogLevel = function () {};
+    var apps = [];
+    function App(opt) { this.options = Object.assign({}, opt || {}, { projectId: '', apiKey: '' }); this.name = '[DEFAULT]'; }
+    App.prototype.firestore = function () { return firestore(); };
+    App.prototype.delete = function () { return Promise.resolve(); };
+    window.firebase = {
+        __qd: true, SDK_VERSION: 'qd-db-1', apps: apps,
+        initializeApp: function (opt) { if (!apps.length) apps.push(new App(opt)); return apps[0]; },
+        app: function () { if (!apps.length) throw err('app/no-app', 'No Firebase App'); return apps[0]; },
+        firestore: firestore
+    };
+    // Tiện ích riêng: ghi khi đóng trang (sendBeacon, không cần WebSocket còn sống) + địa chỉ máy chủ
+    window.QDdb = {
+        url: URL_,
+        http: URL_.replace(/^ws/, 'http').replace(/\/ws$/, ''),
+        beacon: function (writes) { try { var b = new Blob([JSON.stringify({ writes: enc(writes) })], { type: 'text/plain' }); return navigator.sendBeacon(window.QDdb.http + '/api/commit', b); } catch (e) { return false; } },
+        status: function () { return { open: open, ever: everOpen, pending: Object.keys(pend).length, subs: Object.keys(subs).length }; }
+    };
+})();
