@@ -817,6 +817,26 @@ html.qd-lite .qd-fx { display: none !important; }
         .qgd-box input[type=number] { width: 64px; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--bg-main, transparent); color: var(--text-main); font: inherit; text-align: center; }
         .qgd-k { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(56,189,248,.15); color: #38bdf8; white-space: nowrap; }
         .qsrv-warn { display: flex; gap: 14px; padding: 18px 22px; border: 1px solid #f59e0b; background: rgba(245,158,11,.08); } .qsrv-warn[hidden] { display: none; }
+        .fsu-card { padding: 18px 22px; margin: 0 0 24px; }
+        .fsu-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .fsu-hd h3 { margin: 0; font-size: 17px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .fsu-hd small { font-size: 12.5px; font-weight: 500; color: var(--text-muted); }
+        .fsu-ic { font-size: 20px; }
+        .fsu-btn { font: inherit; font-size: 12.5px; font-weight: 700; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); cursor: pointer; }
+        .fsu-btn:disabled { opacity: .5; cursor: default; }
+        .fsu-alert { margin-top: 12px; padding: 10px 14px; border-radius: 12px; font-size: 13.5px; font-weight: 600; line-height: 1.5; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.45); color: #fca5a5; }
+        .fsu-alert.warn { background: rgba(245,158,11,.1); border-color: rgba(245,158,11,.45); color: #fcd34d; } .fsu-alert.info { background: rgba(56,189,248,.08); border-color: rgba(56,189,248,.4); color: #7dd3fc; }
+        .fsu-alert a { color: inherit; font-weight: 800; }
+        .fsu-bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 14px; }
+        .fsu-bar { padding: 12px 14px; border-radius: 14px; background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+        .fsu-bar .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; color: var(--text-muted); font-weight: 700; }
+        .fsu-bar .top b { font-size: 20px; color: var(--text-main); font-variant-numeric: tabular-nums; } .fsu-bar .top b small { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .fsu-bar .tr { height: 10px; border-radius: 6px; background: rgba(148,163,184,.18); margin-top: 8px; overflow: hidden; } .fsu-bar .tr i { display: block; height: 100%; border-radius: 6px; }
+        .fsu-bar .ft { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+        .fsu-chart { display: flex; align-items: flex-end; gap: 3px; height: 70px; margin-top: 16px; padding-top: 6px; }
+        .fsu-chart:empty { display: none; }
+        .fsu-chart span { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #fb923c, #f97316); position: relative; }
+        .fsu-chart span:hover::after { content: attr(data-t); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; background: #000; color: #fff; padding: 3px 6px; border-radius: 6px; margin-bottom: 4px; z-index: 2; }
+        .fsu-note { margin: 10px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
         .qcl-ok { color: #22c55e; } .qcl-miss { color: #f59e0b; } .qcl-bad { color: #ef4444; }
         .qcall-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
         @media (max-width: 900px) { .qcall-grid { grid-template-columns: 1fr; } }
@@ -1572,6 +1592,16 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="stat-top"><span class="stat-lbl">Chờ phê duyệt</span><span class="stat-ico"><i class="fa-solid fa-user-clock"></i></span></div>
                             <h2 class="stat-num" id="stat-pending">0</h2>
                         </div>
+                    </div>
+                    <div class="card fsu-card" id="fsu-card">
+                        <div class="fsu-hd">
+                            <h3><span class="fsu-ic">🔥</span> Firebase hôm nay <small id="fsu-sub">Đang tải…</small></h3>
+                            <button type="button" class="fsu-btn" id="fsu-ref" title="Hỏi lại số liệu ngay (tối đa 1 lần / phút)"><i class="fa-solid fa-rotate"></i> Làm mới</button>
+                        </div>
+                        <div class="fsu-alert" id="fsu-alert" hidden></div>
+                        <div class="fsu-bars" id="fsu-bars"></div>
+                        <div class="fsu-chart" id="fsu-chart" aria-label="Lượt ghi theo giờ"></div>
+                        <p class="fsu-note" id="fsu-note"></p>
                     </div>
 
                     <div class="mod-group">
@@ -16403,7 +16433,63 @@ window.QDXlsx = (function () {
         }, function () {});
     })(0);
     </script>
-    <style id="qk-css">
+        <script id="fsu-js">
+    /* ===== Admin > Tổng quan: "🔥 Firebase hôm nay" — lượt đọc / ghi / xóa Firestore (máy chủ srv-12 lấy từ Google Cloud Monitoring, 10 phút / lần)
+       settings/firestore_usage = { r, w, d, freeR, freeW, freeD, since, resetAt, hours:[{t,r,w,d}], at, ok, err, ver } ===== */
+    (function () {
+        var $ = function (id) { return document.getElementById(id); }, U = null, HOOK = '', SV = 0, started = false;
+        function n(x) { return (+x || 0).toLocaleString('vi-VN'); }
+        function hm(t) { var d = new Date(t); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+        function left(ms) { var t = Math.round(Math.max(0, ms) / 60000), h = Math.floor(t / 60), m = t % 60; return (h ? h + ' giờ ' : '') + m + ' phút'; }
+        function tone(p) { return p >= .85 ? '#ef4444' : p >= .6 ? '#f59e0b' : '#22c55e'; }
+        function rate(k) {   // tốc độ / giờ: trung bình 2 giờ trọn vẹn gần nhất
+            var H = (U && U.hours) || []; if (H.length < 2) return 0; var L = H.slice(-3, -1); if (!L.length) return 0;
+            return L.reduce(function (a, h) { return a + (+h[k] || 0); }, 0) / L.length;
+        }
+        function bar(lbl, k, free) {
+            var v = +U[k] || 0, p = free ? v / free : 0, r = rate(k), rem = free - v, eta = r > 0 && rem > 0 ? rem / r * 3600e3 : 0, reset = (U.resetAt || 0) - Date.now();
+            var ft = v >= free ? '<b style="color:#ef4444">ĐÃ HẾT</b> — chờ đặt lại' : 'Còn <b>' + n(rem) + '</b>' + (r ? ' · ~' + n(Math.round(r)) + '/giờ' : '') + (eta && eta < reset ? ' · <b style="color:#ef4444">hết sau ~' + left(eta) + '</b>' : '');
+            return '<div class="fsu-bar"><div class="top"><span>' + lbl + '</span><b>' + n(v) + ' <small>/ ' + n(free) + '</small></b></div><div class="tr"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%;background:' + tone(p) + '"></i></div><div class="ft">' + ft + '</div></div>';
+        }
+        function render() {
+            window.__fsUsage = U;
+            var al = $('fsu-alert'), ref = $('fsu-ref');
+            if (ref) ref.disabled = !HOOK;
+            if (!U || !U.at) {
+                $('fsu-sub').textContent = 'chưa có số liệu'; $('fsu-bars').innerHTML = ''; $('fsu-chart').innerHTML = '';
+                al.hidden = false; al.className = 'fsu-alert info';
+                al.innerHTML = 'Máy chủ cần bản <b>srv-12</b> mới đếm được lượt đọc / ghi của Firebase' + (SV ? ' (đang chạy srv-' + SV + ')' : '') + '. Cập nhật: mở <a href="https://vantrinhvn.github.io/sukienqd/server/" target="_blank" rel="noopener">trang lấy mã máy chủ ↗</a> → Sao chép → dán đè vào Apps Script → 💾 Lưu → chọn hàm <b>XEM_LUOT_GHI</b> → ▶ Chạy (cho phép quyền nếu Google hỏi).';
+                $('fsu-note').textContent = ''; return;
+            }
+            var fw = +U.freeW || 20000, fr = +U.freeR || 50000, fd = +U.freeD || 20000, old = Date.now() - U.at > 30 * 60000;
+            $('fsu-sub').textContent = '· cập nhật ' + hm(U.at) + (old ? ' (đã lâu — máy chủ có đang chạy không?)' : '');
+            if (!U.ok) { al.hidden = false; al.className = 'fsu-alert'; al.textContent = '❌ Máy chủ không lấy được số liệu: ' + (U.err || 'lỗi lạ'); }
+            else {
+                var pw = (+U.w || 0) / fw, pr = (+U.r || 0) / fr;
+                if (pw >= 1 || pr >= 1) { al.hidden = false; al.className = 'fsu-alert'; al.innerHTML = '⛔ <b>Đã hết hạn mức ' + (pw >= 1 ? 'GHI' : 'ĐỌC') + ' miễn phí hôm nay.</b> Gửi tin nhắn, đổi quà, rút lì xì, điểm danh… sẽ lỗi tới <b>' + hm(U.resetAt) + '</b> (còn ' + left(U.resetAt - Date.now()) + '). Muốn không bị chặn: nâng Firebase lên gói Blaze (trả theo mức dùng, vượt hạn mức miễn phí mới tính tiền).'; }
+                else if (pw >= .8 || pr >= .8) { al.hidden = false; al.className = 'fsu-alert warn'; al.innerHTML = '⚠️ Sắp hết hạn mức ' + (pw >= .8 ? 'ghi' : 'đọc') + ' miễn phí hôm nay (' + Math.round(Math.max(pw, pr) * 100) + '%). Đặt lại lúc <b>' + hm(U.resetAt) + '</b>.'; }
+                else al.hidden = true;
+            }
+            $('fsu-bars').innerHTML = U.ok ? bar('✍️ Lượt ghi', 'w', fw) + bar('👁️ Lượt đọc', 'r', fr) + bar('🗑️ Lượt xóa', 'd', fd) : '';
+            var H = (U.hours || []).filter(function (h) { return h && h.t; }), mx = Math.max.apply(null, H.map(function (h) { return +h.w || 0; }).concat([1]));
+            $('fsu-chart').innerHTML = U.ok ? H.map(function (h) { return '<span style="height:' + Math.max(3, (+h.w || 0) / mx * 100) + '%" data-t="' + hm(h.t - 3600e3) + '–' + hm(h.t) + ': ' + n(h.w) + ' ghi · ' + n(h.r) + ' đọc"></span>'; }).join('') : '';
+            $('fsu-note').innerHTML = 'Gói miễn phí Spark đặt lại lúc <b>' + hm(U.resetAt) + '</b> mỗi ngày (0:00 giờ Mỹ) — còn ' + left(U.resetAt - Date.now()) + '. Số liệu thật của Google, trễ khoảng 3–5 phút; máy chủ cập nhật 10 phút / lần. Biểu đồ: lượt ghi theo từng giờ (rê chuột / chạm để xem).';
+        }
+        function start() {
+            if (started) return; started = true;
+            var D = firebase.firestore();
+            D.collection('settings').doc('firestore_usage').onSnapshot(function (d) { U = d.exists ? d.data() : null; render(); }, function (e) { $('fsu-sub').textContent = 'không đọc được (' + (e && e.code) + ')'; });
+            D.collection('settings').doc('push_server').onSnapshot(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); HOOK = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u) ? u : ''; SV = +String(x.ver || '').replace(/\D/g, '') || 0; render(); }, function () {});
+            setInterval(render, 60000);
+            $('fsu-ref').addEventListener('click', function () {
+                if (!HOOK) return; var b = this; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang hỏi…';
+                fetch(HOOK + '?usage=1', { mode: 'no-cors', cache: 'no-store' }).catch(function () {}).then(function () { setTimeout(function () { b.innerHTML = '<i class="fa-solid fa-rotate"></i> Làm mới'; b.disabled = false; }, 8000); });
+            });
+        }
+        (function hook(i) { if (window.firebase && firebase.apps && firebase.apps.length) start(); else if (i < 240) setTimeout(function () { hook(i + 1); }, 500); })(0);
+    })();
+    </script>
+<style id="qk-css">
         /* ===== Hộp thoại xác nhận (thay hộp confirm mặc định của trình duyệt) ===== */
         .qa-ov { position: fixed; inset: 0; z-index: 2147482000; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(2, 6, 12, .62); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: qaFade .16s ease-out; }
         .qa-box { width: min(440px, 100%); border-radius: 20px; padding: 24px 22px 18px; background: var(--bg-surface, #15161b); border: 1px solid var(--border-strong, #2a2c35); box-shadow: 0 30px 80px rgba(0, 0, 0, .55); color: var(--text-main, #e7e9ee); text-align: center; animation: qaPop .2s cubic-bezier(.2, .9, .3, 1.2); }
@@ -16590,9 +16676,12 @@ window.QDXlsx = (function () {
                 { k: 'reports', v: 'calls', e: '🚩', t: 'Báo cáo khi gọi', s: N.reports ? N.reports + ' chờ xử lý' : 'Không có báo cáo mới', n: N.reports, tone: '#ef4444', act: function () { go('calls', 'qrp-card'); } },
                 { k: 'pend', v: 'approvals', e: '🧾', t: 'Phê duyệt tài khoản', s: pend ? pend + ' chờ duyệt' : 'Không có đơn chờ', n: pend, tone: '#6366f1', act: function () { go('approvals'); } },
                 { k: 'idlecfg', v: 'accounts', e: '⏱️', t: 'Tự khóa khi không hoạt động', s: (CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) ? 'Sau ' + hrs(CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) + ' không vào' : 'Đang tắt', tone: '#38bdf8', act: function () { go('accounts', 'cfg-acc-inactivity'); } },
+                { k: 'fsu', v: 'dashboard', e: '🔥', t: 'Firebase hôm nay', s: fsuText(), n: fsuPct() == null ? null : fsuPct() + '%', tone: fsuPct() >= 85 ? '#ef4444' : fsuPct() >= 60 ? '#f59e0b' : '#22c55e', act: function () { go('dashboard', 'fsu-card'); } },
                 { k: 'bot', v: 'calls', e: '🤖', t: 'Bot kiểm soát cuộc gọi', s: 'Ngưỡng & nhật ký bot', tone: '#38bdf8', act: function () { go('calls', 'qgd-card'); } }
             ].filter(function (x) { return allowed(x.v); });
         }
+        function fsuPct() { var u = window.__fsUsage; return u && u.ok ? Math.round(Math.max((+u.w || 0) / (+u.freeW || 20000), (+u.r || 0) / (+u.freeR || 50000)) * 100) : null; }
+        function fsuText() { var u = window.__fsUsage; if (!u || !u.at) return 'Cần máy chủ srv-12'; if (!u.ok) return 'Lỗi lấy số liệu'; return (+u.w || 0).toLocaleString('vi-VN') + ' / ' + (+u.freeW || 20000).toLocaleString('vi-VN') + ' lượt ghi'; }
         function hrs(m) { m = +m || 0; return m >= 1440 && m % 1440 === 0 ? (m / 1440) + ' ngày' : m >= 60 ? Math.round(m / 6) / 10 + ' giờ' : m + ' phút'; }
         var TT = [];
         function paint() {

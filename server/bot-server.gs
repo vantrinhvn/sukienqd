@@ -1,5 +1,12 @@
 /* =====================================================================================
-   QD ELITE - MÁY CHỦ TỰ GỬI BOT BÁO CÁO + THÔNG BÁO APP ANDROID (Google Apps Script, miễn phí)  · bản srv-11
+   QD ELITE - MÁY CHỦ TỰ GỬI BOT BÁO CÁO + THÔNG BÁO APP ANDROID (Google Apps Script, miễn phí)  · bản srv-12
+   -------------------------------------------------------------------------------------
+   BẢN srv-12: ĐẾM LƯỢT ĐỌC / GHI / XÓA FIRESTORE HÔM NAY -> Admin > Tổng quan / Cuộc gọi thấy còn bao nhiêu
+   - Cứ 10 phút máy chủ hỏi Google Cloud Monitoring (số liệu thật của Firebase, trễ vài phút) rồi ghi vào settings/firestore_usage.
+   - Gói miễn phí Spark: 50.000 lượt đọc · 20.000 lượt ghi · 20.000 lượt xóa / ngày, đặt lại lúc 0:00 giờ Mỹ (15:00 giờ VN).
+   - Báo lỗi "Cloud Monitoring API chưa bật" -> mở console.cloud.google.com/apis/library/monitoring.googleapis.com?project=web-dangky-123 -> BẬT.
+   - Thử ngay: chọn hàm XEM_LUOT_GHI -> ▶ Chạy.
+   Cập nhật: dán đè + 💾 Lưu, rồi Triển khai -> Quản lý các lần triển khai -> ✏️ -> Phiên bản mới -> Triển khai.
    -------------------------------------------------------------------------------------
    BẢN srv-11: ĐẾM HẠN MỨC GOOGLE ĐỂ ADMIN BIẾT CÒN GỬI ĐƯỢC BAO NHIÊU THÔNG BÁO
    - Đếm số lượt gọi mạng (UrlFetch) và thời gian chạy hẹn giờ mỗi ngày -> Admin > Thông báo app hiện "Hạn mức hôm nay".
@@ -104,7 +111,7 @@ var PROJECT_ID = 'web-dangky-123';
 var API_KEY = 'AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ';
 // Chỉ điền khi KIEM_TRA báo "API key bị giới hạn theo trang web": ghi địa chỉ web của bạn, vd 'https://ten-web.github.io/'
 var REFERER = '';
-var VER = 'srv-11';
+var VER = 'srv-12';
 // Hạn mức Google Apps Script mỗi ngày: Gmail thường 20.000 lượt gọi mạng + 90 phút hẹn giờ; Google Workspace 100.000 + 360 phút
 var QUOTA = { fetch: 20000, triggerMin: 90 };
 var USE = { f: 0, n: 0, t0: Date.now() };   // lượt chạy này: f = lượt gọi mạng, n = thông báo đã gửi
@@ -214,6 +221,7 @@ function chayMoiPhut() {
   if (!lock.tryLock(2000)) return;            // lượt trước đang chờ tới giờ / đang gửi
   var st = { note: '', err: '', sent: false, cfg: null }, hbErr = '';
   try { pushNow(1500); } catch (e) { Logger.log('Thông báo app: ' + msgOf(e)); }
+  try { fsUsageTick(false); } catch (e) { Logger.log('Đếm lượt Firestore: ' + msgOf(e)); }
   try {
     runDue(st);
     // Mốc giờ sắp tới trong <= 75 giây: chờ tới đúng giây rồi gửi (lượt chạy sau có thể tới trễ)
@@ -618,6 +626,7 @@ function pushNow(waitMs) {
 // Không nhận nội dung từ bên ngoài: chỉ đọc push_broadcast / tin nhắn trong Firestore như lịch mỗi phút.
 function doGet(e) {
   var r;
+  if (e && e.parameter && e.parameter.usage === '1') { try { fsUsageTick(false, 60000); } catch (er) {} }   // Admin bấm "Làm mới" (tối đa 1 lần / phút)
   try { r = pushNow(20000); } catch (er) { r = { ok: false, err: msgOf(er) }; }
   useFlush(false);
   r.ver = VER;
@@ -705,6 +714,56 @@ function pushRun() {
 /* =====================================================================================
    Firestore REST (dùng cùng API key với trang web)
    ===================================================================================== */
+/* ---------- srv-12: LƯỢT ĐỌC / GHI / XÓA FIRESTORE HÔM NAY (Google Cloud Monitoring) -> settings/firestore_usage ----------
+   Hạn mức miễn phí tính theo ngày giờ Mỹ (America/Los_Angeles): đặt lại 0:00 bên đó = 15:00 giờ VN (14:00 khi Mỹ theo giờ hè). */
+var FS_FREE = { r: 50000, w: 20000, d: 20000 };
+function fsUsageTick(force, minGap) {
+  var P = PropertiesService.getScriptProperties(), last = +P.getProperty('fsUsageAt') || 0, gap = force ? 0 : (minGap || 10 * 60000);
+  if (Date.now() - last < gap) return null;
+  P.setProperty('fsUsageAt', String(Date.now()));
+  var now = new Date(), startIso = Utilities.formatDate(now, 'America/Los_Angeles', "yyyy-MM-dd'T'00:00:00XXX"), since = Date.parse(startIso);
+  var out = { at: Date.now(), ver: VER, since: since, resetAt: since + 864e5, freeR: FS_FREE.r, freeW: FS_FREE.w, freeD: FS_FREE.d, ok: true, err: '' };
+  var M = { r: 'read_count', w: 'write_count', d: 'delete_count' }, hours = {};
+  try {
+    Object.keys(M).forEach(function (k) {
+      var s = monSum('firestore.googleapis.com/document/' + M[k], startIso, now.toISOString());
+      out[k] = s.total;
+      s.pts.forEach(function (p) { var h = hours[p[0]] || (hours[p[0]] = { t: p[0], r: 0, w: 0, d: 0 }); h[k] += p[1]; });
+    });
+    out.hours = Object.keys(hours).map(function (t) { return hours[t]; }).sort(function (a, b) { return a.t - b.t; }).slice(-24);
+  } catch (e) { out.ok = false; out.err = msgOf(e).slice(0, 300); }
+  fsPatch('settings/firestore_usage', out);
+  return out;
+}
+function monSum(metric, startIso, endIso) {
+  var q = 'filter=' + encodeURIComponent('metric.type="' + metric + '"') + '&interval.startTime=' + encodeURIComponent(startIso) + '&interval.endTime=' + encodeURIComponent(endIso)
+    + '&aggregation.alignmentPeriod=3600s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM';
+  USE.f++;
+  var r = UrlFetchApp.fetch('https://monitoring.googleapis.com/v3/projects/' + PROJECT_ID + '/timeSeries?' + q,
+    { muteHttpExceptions: true, headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken(), 'X-Goog-User-Project': PROJECT_ID } });
+  var code = r.getResponseCode(), txt = r.getContentText();
+  if (code !== 200) {
+    var m = txt; try { var j = JSON.parse(txt); m = (j.error && (j.error.status + ': ' + j.error.message)) || txt; } catch (e) {}
+    if (/SERVICE_DISABLED|has not been used|is disabled/i.test(m)) m = 'Cloud Monitoring API chưa bật -> mở console.cloud.google.com/apis/library/monitoring.googleapis.com?project=' + PROJECT_ID + ' -> BẬT. (' + String(m).slice(0, 120) + ')';
+    else if (code === 401 || code === 403) m = 'Tài khoản Google chạy máy chủ chưa có quyền xem số liệu dự án ' + PROJECT_ID + ' (cần là Chủ sở hữu / Monitoring Viewer). ' + String(m).slice(0, 140);
+    throw new Error('Monitoring ' + code + ': ' + m);
+  }
+  var j2 = JSON.parse(txt || '{}'), total = 0, pts = [];
+  (j2.timeSeries || []).forEach(function (ts) {
+    (ts.points || []).forEach(function (p) { var v = Number((p.value && (p.value.int64Value || p.value.doubleValue)) || 0); total += v; pts.push([Date.parse(p.interval.endTime), v]); });
+  });
+  return { total: Math.round(total), pts: pts };
+}
+function XEM_LUOT_GHI() {
+  var o = fsUsageTick(true);
+  if (!o) return;
+  if (!o.ok) { Logger.log('❌ ' + o.err); return; }
+  Logger.log('Firestore hôm nay (từ ' + Utilities.formatDate(new Date(o.since), 'Asia/Ho_Chi_Minh', 'HH:mm dd/MM') + ' giờ VN):');
+  Logger.log('  Ghi : ' + o.w + ' / ' + FS_FREE.w + '  (' + Math.round(o.w / FS_FREE.w * 100) + '%)');
+  Logger.log('  Đọc : ' + o.r + ' / ' + FS_FREE.r + '  (' + Math.round(o.r / FS_FREE.r * 100) + '%)');
+  Logger.log('  Xóa : ' + o.d + ' / ' + FS_FREE.d);
+  Logger.log('Đặt lại lúc ' + Utilities.formatDate(new Date(o.resetAt), 'Asia/Ho_Chi_Minh', 'HH:mm dd/MM') + ' giờ VN. Admin sẽ thấy số này.');
+}
 function base() { return 'https://firestore.googleapis.com/v1/projects/' + PROJECT_ID + '/databases/(default)/documents'; }
 function docName(path) { return 'projects/' + PROJECT_ID + '/databases/(default)/documents/' + path; }
 function encPath(path) { return path.split('/').map(encodeURIComponent).join('/'); }
