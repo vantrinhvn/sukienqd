@@ -25987,11 +25987,13 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         function beep(freqs, dur, vol) { var a = ac(); if (!a) return; var t = a.currentTime; freqs.forEach(function (f) { var o = a.createOscillator(), g = a.createGain(); o.frequency.value = f; o.type = 'sine'; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.setValueAtTime(vol, t + dur - .05); g.gain.linearRampToValueAtTime(0, t + dur); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + .02); }); }
         function tone(kind) {
             stopTone();
+            if (kind === 'in' && window.QDNative && typeof QDNative.ringStart === 'function') { try { QDNative.ringStart(); nativeRing = true; return; } catch (e) {} }   // app Android: nhạc chuông của máy
             if (kind === 'in') { var f = function () { beep([660, 880], .35, .16); setTimeout(function () { beep([880, 1100], .35, .16); }, 420); }; f(); toneT = setInterval(f, 2200); try { navigator.vibrate && (vibT = setInterval(function () { navigator.vibrate([600, 300, 600]); }, 2200), navigator.vibrate([600, 300, 600])); } catch (e) {} }
             else if (kind === 'out') { var g = function () { beep([425], 1.0, .09); }; g(); toneT = setInterval(g, 3500); }
             else if (kind === 'end') { beep([480], .25, .12); setTimeout(function () { beep([380], .35, .12); }, 300); }
         }
-        function stopTone() { clearInterval(toneT); clearInterval(vibT); toneT = vibT = 0; try { navigator.vibrate && navigator.vibrate(0); } catch (e) {} }
+        var nativeRing = false;
+        function stopTone() { if (nativeRing) { nativeRing = false; try { QDNative.ringStop(); } catch (e) {} } clearInterval(toneT); clearInterval(vibT); toneT = vibT = 0; try { navigator.vibrate && navigator.vibrate(0); } catch (e) {} }
         /* ---------- Giao diện ---------- */
         var idleT = 0;
         function ui(mode) {   // mode: out | in | connecting | live
