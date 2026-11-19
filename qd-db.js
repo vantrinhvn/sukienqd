@@ -40,9 +40,20 @@
             bar = document.createElement('div'); bar.id = 'qd-net-bar';
             bar.style.cssText = 'position:fixed;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);z-index:2147483646;background:#7f1d1d;color:#fff;font:600 13px/1.35 system-ui,sans-serif;padding:8px 14px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:92vw;text-align:center;cursor:pointer';
             bar.textContent = (navigator.onLine === false ? '📵 Máy đang mất mạng' : '⚠️ Chưa kết nối được máy chủ QĐ') + ' — đang thử lại… (bấm để thử ngay)';
+            if (navigator.onLine !== false) diag();
             bar.onclick = function () { retry = 0; connect(); };
             document.body.appendChild(bar);
         } catch (e) {}
+    }
+    function diag() {   // phân biệt: không tới được địa chỉ máy chủ (mạng / DNS / chứng chỉ) hay máy chủ chạy mà WebSocket bị chặn
+        var http = URL_.replace(/^ws/, 'http').replace(/\/ws$/, ''), t0 = Date.now();
+        fetch(http + '/health', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+            if (bar && !open) bar.textContent = '⚠️ Máy chủ QĐ đang chạy (' + (j.ver || '?') + ', ' + (Date.now() - t0) + ' ms) nhưng kênh kết nối trực tiếp (WebSocket) bị chặn — đang thử lại… (bấm để thử ngay)';
+            try { console.warn('[qd-db] /health OK nhưng WebSocket không mở được', j); } catch (e) {}
+        }).catch(function (e) {
+            if (bar && !open) bar.textContent = '⚠️ Không mở được địa chỉ máy chủ QĐ (' + http.replace(/^https?:\/\//, '') + ') — mạng / DNS chặn hoặc máy chủ tắt. Đang thử lại…';
+            try { console.warn('[qd-db] không tới được ' + http + '/health', e); } catch (x) {}
+        });
     }
     function watchBar() { if (barT || bar) return; barT = setTimeout(function () { barT = 0; if (!open) showBar(true); }, 6000); }
     watchBar();
