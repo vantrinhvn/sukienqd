@@ -3704,7 +3704,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 </section>
 
 
-                <!-- VIEW THÔNG BÁO APP (push_broadcast -> máy chủ Apps Script gửi Firebase Cloud Messaging) -->
+                <!-- VIEW THÔNG BÁO APP (push_broadcast -> máy chủ VPS -> app Android qua kết nối nền QDLink) -->
                 <section id="view-videos" class="view-section">
                     <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
                         <div>
@@ -3944,8 +3944,6 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="card pushn-stat pushn-stat-srv"><span class="pushn-k">🖥️ Máy chủ gửi</span><div id="pushn-srv" class="text-sm" style="line-height: 1.45;">Đang kiểm tra…</div></div>
                     </div>
 
-                                        </div>
-
                     <div class="card mb-8" style="padding: 20px 24px;">
                         <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-comments" style="color: #3b82f6;"></i> Tự báo tin nhắn lên điện thoại</h3>
                         <p class="text-muted text-sm mt-2 mb-3">Máy chủ tự gửi thông báo khi có tin nhắn mới, kể cả khi người nhận đã tắt app. Đang mở app thì app tự báo như cũ.</p>
@@ -3953,14 +3951,14 @@ html.qd-lite .qd-fx { display: none !important; }
                             <label class="pushn-swi"><span><b>💬 Tin nhắn riêng</b><small>Báo người nhận tin nhắn 1–1.</small></span><span class="switch"><input type="checkbox" id="pushn-c-private" onchange="QDPushAdmin.setCfg('private', this)"><span class="slider"></span></span></label>
                             <label class="pushn-swi"><span><b>📣 @Nhắc tên</b><small>Báo người được @nhắc trong Kênh Chung.</small></span><span class="switch"><input type="checkbox" id="pushn-c-mention" onchange="QDPushAdmin.setCfg('mention', this)"><span class="slider"></span></span></label>
                             <label class="pushn-swi"><span><b>🗨️ Mọi tin Kênh Chung</b><small>Ai nhắn trong Kênh Chung cũng báo cho tất cả, mỗi tin một thông báo (người dùng bấm × để xóa).</small></span><span class="switch"><input type="checkbox" id="pushn-c-general" onchange="QDPushAdmin.setCfg('general', this)"><span class="slider"></span></span></label>
-                            <label class="pushn-swi"><span><b>📊 Bot báo cáo</b><small>Khi Bot gửi báo cáo vào Kênh Chung: người bị nhắc tên nhận "📣 nhắc đến bạn", mọi người khác nhận tóm tắt báo cáo. Cần máy chủ bản srv-9.</small></span><span class="switch"><input type="checkbox" id="pushn-c-bot" onchange="QDPushAdmin.setCfg('bot', this)"><span class="slider"></span></span></label>
+                            <label class="pushn-swi"><span><b>📊 Bot báo cáo</b><small>Khi Bot gửi báo cáo vào Kênh Chung: người bị nhắc tên nhận "📣 nhắc đến bạn", mọi người khác nhận tóm tắt báo cáo.</small></span><span class="switch"><input type="checkbox" id="pushn-c-bot" onchange="QDPushAdmin.setCfg('bot', this)"><span class="slider"></span></span></label>
                         </div>
                     </div>
 
                     <div class="pushn-grid">
                         <div class="card" id="pushn-card" style="padding: 24px;">
                             <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-pen-to-square" style="color: #3b82f6;"></i> Soạn thông báo</h3>
-                            <p class="text-muted text-sm mt-2 mb-4"><span id="pushn-eta">Đến điện thoại sau khoảng <b>1–2 phút</b>.</span> <span id="pushn-devices">Đang đếm số máy...</span></p>
+                            <p class="text-muted text-sm mt-2 mb-4"><span id="pushn-eta">Đến điện thoại sau <b>vài giây</b>.</span> <span id="pushn-devices">Đang đếm số máy...</span></p>
                             <div class="form-group mb-4">
                                 <label class="form-label">Gửi đến</label>
                                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -13810,7 +13808,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
     <!-- ===== QD REPORT BOT: bộ máy Bot Báo Cáo (khối dùng chung bot.html · admin.html · user.html) =====
          Cấu hình: settings/report_bot (Admin > Bot báo cáo hoặc trang bot.html). Lịch sử gửi: bot_reports/{YYYY-MM-DD_HHMM}.
          Tới giờ hẹn (giờ Việt Nam), máy nào đang mở web sẽ giành quyền gửi bằng giao dịch máy chủ -> mỗi mốc giờ chỉ gửi ĐÚNG 1 LẦN
-         vào Kênh Chung, dù nhiều máy cùng mở. Máy chủ tự gửi (bot-server.gs, Google Apps Script) gửi kể cả khi không ai mở web;
+         vào Kênh Chung, dù nhiều máy cùng mở. Máy chủ VPS tự gửi kể cả khi không ai mở web;
          trang Bot / Admin đang mở gửi dự phòng. Máy thành viên KHÔNG BAO GIỜ gửi.
          Báo cáo: đã điểm danh · đăng nhập hôm nay · đã vào nhưng chưa điểm danh · chưa đăng nhập · tài khoản bị khóa, gắn @tên tài khoản. -->
     <script id="qd-report-bot">
@@ -14410,11 +14408,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 if (age > 3 * 60000) { st = 'error'; txt = 'Ngưng'; info = 'Máy chủ VPS không báo từ ' + when(t) + '. Vào Admin > Máy chủ VPS kiểm tra (hoặc gõ qd status trên VPS).'; }
                 else if (SRV.ok === false) { st = 'error'; txt = 'Có lỗi'; info = 'Lần chạy lúc ' + R.hm(t) + ' bị lỗi: ' + (SRV.err || 'không rõ'); }
                 else { st = 'sent'; txt = 'Đang chạy'; info = 'Máy chủ VPS tự gửi đúng giờ, không cần ai mở web · kiểm tra lần gần nhất ' + R.hm(t) + (SRV.nextAt ? ' · mốc tới: ' + when(SRV.nextAt) : '') + (SRV.note && SRV.noteAt ? ' · ' + SRV.note + ' (' + when(SRV.noteAt) + ')' : ''); }
-            } else if (!SRV || !t) { st = 'skipped'; txt = 'Chưa cài'; info = 'Chưa có máy chủ nào chạy → chỉ gửi được khi trang Admin đang mở. Cài 1 lần bằng file bot-server.gs (hướng dẫn ở đầu file) để tự gửi kể cả khi không ai online.'; }
-            else if (SRV.stopped) { st = 'skipped'; txt = 'Đã tắt'; info = 'Máy chủ đã được tắt lúc ' + when(t) + '. Chạy hàm CAI_DAT trong Apps Script để bật lại.'; }
-            else if (age > 8 * 60000) { st = 'error'; txt = 'Ngưng'; info = 'Máy chủ không phản hồi từ ' + when(t) + '. Mở Apps Script kiểm tra mục Trình kích hoạt / Lượt thực thi, hoặc chạy lại CAI_DAT.'; }
-            else if (SRV.ok === false) { st = 'error'; txt = 'Có lỗi'; info = 'Lần chạy lúc ' + R.hm(t) + ' bị lỗi: ' + (SRV.err || 'không rõ'); }
-            else { st = 'sent'; txt = 'Đang chạy'; info = 'Kiểm tra mỗi phút, lần gần nhất ' + R.hm(t) + '. Tới giờ tự gửi vào Kênh Chung, không cần ai mở web.' + (SRV.note && SRV.noteAt ? ' · ' + SRV.note + ' (' + when(SRV.noteAt) + ')' : ''); }
+            } else { st = 'error'; txt = 'Chưa chạy'; info = 'Chưa nhận được tín hiệu từ máy chủ VPS. Vào Admin > Máy chủ VPS kiểm tra (hoặc gõ qd status trên VPS).'; }
             pill.className = 'rb-pill ' + st; pill.textContent = txt; sub.textContent = info;
             // Tắt hẳn "máy thành viên gửi thay" trên dữ liệu (bản web cũ còn mở ở máy thành viên cũng thôi gửi)
             var raw = R.raw();
@@ -15629,7 +15623,7 @@ window.QDXlsx = (function () {
     })();
     </script>
 
-    <!-- ===== THÔNG BÁO APP (mục riêng trong Admin): push_broadcast -> máy chủ Apps Script (bot-server srv-5) gửi Firebase Cloud Messaging ===== -->
+    <!-- ===== THÔNG BÁO APP (mục riêng trong Admin): push_broadcast -> máy chủ VPS -> app Android (kết nối nền QDLink) ===== -->
     <style id="pushn-css">
         .pushn-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
         .pushn-stat { padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
@@ -16089,7 +16083,7 @@ window.QDXlsx = (function () {
             }).catch(function (e) { status('✗ Không lưu được' + (e && e.code ? ' (' + e.code + ')' : typeof e === 'string' ? ': ' + e : ''), 'err'); })
               .then(function () { btn.disabled = false; });
         }
-        // Thông báo "Video mới" qua hàng đợi push_broadcast (máy chủ Apps Script gửi) + gõ cửa gửi nhanh
+        // Thông báo "Video mới" qua hàng đợi push_broadcast (máy chủ VPS gửi tới app)
         function notify(it) {
             var f = fs(); if (!f) return;
             var by = ''; try { by = State.currentUser || ''; } catch (e) {}
