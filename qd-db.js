@@ -18,6 +18,7 @@
         try { ws = new WebSocket(URL_); } catch (e) { return later(); }
         ws.onopen = function () {
             open = true; retry = 0; everOpen = true;
+            var tk = tok(); if (tk) sendAuth(tk);   // xác thực TRƯỚC mọi lệnh khác (máy chủ xử lý theo thứ tự)
             Object.keys(subs).forEach(function (k) { var s = subs[k]; s.resent = true; raw({ op: 'sub', sid: s.sid, path: s.path, q: s.q }); });   // nghe lại sau khi mất mạng
             var q = queue; queue = []; q.forEach(function (m) { raw(m); });
         };
@@ -30,7 +31,20 @@
         ws.onerror = function () {};
     }
     function later() { if (closedByUser) return; clearTimeout(retryT); retryT = setTimeout(connect, Math.min(15000, 400 * Math.pow(1.7, retry++))); }
-    function raw(m) { if (open && ws && ws.readyState === 1) { try { ws.send(JSON.stringify(m)); return; } catch (e) {} } queue.push(m); connect(); }
+    function raw(m) {
+        if (open && ws && ws.readyState === 1) { try { ws.send(JSON.stringify(m)); return; } catch (e) {} }
+        if (m.op !== 'sub') queue.push(m);   // lệnh nghe sẽ tự gửi lại khi kết nối xong
+        connect();
+    }
+    /* ---------- Xác thực: đăng nhập đúng -> máy chủ cấp mã (60 ngày), lưu trên máy, tự gửi lại mỗi lần kết nối ---------- */
+    var AUTH = { u: '', role: '' };
+    function tok(v) { try { if (v === null) localStorage.removeItem('qd_tok'); else if (v) localStorage.setItem('qd_tok', v); return localStorage.getItem('qd_tok') || ''; } catch (e) { return ''; } }
+    function sendAuth(t) {
+        var m = { op: 'auth', token: t, r: ++seq };
+        pend[m.r] = { ok: function (x) { AUTH.u = x.u; AUTH.role = x.role; }, no: function (e) { if (e && e.code === 'unauthenticated') { tok(null); AUTH.u = AUTH.role = ''; } }, m: m };
+        try { ws.send(JSON.stringify(m)); } catch (e) {}
+    }
+    function login(u, p) { return req({ op: 'login', u: u, p: p }).then(function (x) { tok(x.token); AUTH.u = x.u; AUTH.role = x.role; return x; }); }
     function req(m) { return new Promise(function (ok, no) { m.r = ++seq; pend[m.r] = { ok: ok, no: no, m: m }; raw(m); }); }
     function onMsg(m) {
         if (m.re) { var p = pend[m.re]; if (!p) return; delete pend[m.re]; if (m.ok) p.ok(m); else p.no(err(m.code || 'unknown', m.message)); return; }
@@ -130,7 +144,15 @@
     Query.prototype.limitToLast = function (n) { var q = ext(this, 'limitToLast', +n); q._s.limit = 0; return q; };
     Query.prototype._q = function () { return { col: this._col, where: this._s.where, orderBy: this._s.orderBy, limit: this._s.limit || 0, limitToLast: this._s.limitToLast || 0 }; };
     Query.prototype._snap = function (list) { var col = this._col; return list.map(function (x) { var s = new DocSnap(new DocRef(col + '/' + x.id), true, x.d, x.ut); s._v = x.v; return s; }); };
-    Query.prototype.get = function () { var me = this; return req({ op: 'query', q: this._q() }).then(function (m) { var d = me._snap(m.docs); return new QuerySnap(me, d, d.map(function (x, i) { return { type: 'added', doc: x, oldIndex: -1, newIndex: i }; })); }); };
+    Query.prototype.get = function () {
+        var me = this, q = this._q(), cu = null, cp = null;
+        if (q.col === 'accounts') q.where.forEach(function (w) { if (w[1] === '==' && w[0] === 'user') cu = w[2]; if (w[1] === '==' && w[0] === 'pass') cp = w[2]; });
+        return req({ op: 'query', q: q }).then(function (m) {
+            var d = me._snap(m.docs), snap = new QuerySnap(me, d, d.map(function (x, i) { return { type: 'added', doc: x, oldIndex: -1, newIndex: i }; }));
+            if (cu != null && cp != null && d.length && !(AUTH.u === cu && tok())) return login(String(cu), String(cp)).then(function () { return snap; }, function () { return snap; });
+            return snap;
+        });
+    };
     Query.prototype.onSnapshot = function () {
         var L = listenArgs(arguments), me = this, sid = 's' + (++sidN), cache = {}, prevIds = null, prevV = {};
         subs[sid] = { sid: sid, q: this._q(),
@@ -216,6 +238,12 @@
         url: URL_,
         http: URL_.replace(/^ws/, 'http').replace(/\/ws$/, ''),
         beacon: function (writes) { try { var b = new Blob([JSON.stringify({ writes: enc(writes) })], { type: 'text/plain' }); return navigator.sendBeacon(window.QDdb.http + '/api/commit', b); } catch (e) { return false; } },
-        status: function () { return { open: open, ever: everOpen, pending: Object.keys(pend).length, subs: Object.keys(subs).length }; }
+        status: function () { return { open: open, ever: everOpen, pending: Object.keys(pend).length, subs: Object.keys(subs).length, u: AUTH.u, role: AUTH.role }; },
+        login: login,
+        logout: function () { tok(null); AUTH.u = AUTH.role = ''; return req({ op: 'logout' }).catch(function () {}); },
+        token: function () { return tok(); },
+        who: function () { return { u: AUTH.u, role: AUTH.role }; },
+        admin: function (fn, args) { return req(Object.assign({ op: 'admin', fn: fn }, args || {})).then(function (m) { return m.data; }); },
+        ping: function () { var t = performance.now(); return req({ op: 'hello' }).then(function () { return Math.round(performance.now() - t); }); }
     };
 })();

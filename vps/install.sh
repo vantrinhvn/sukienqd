@@ -49,7 +49,7 @@ mkdir -p "$APP" "$DATA/backup"
 curl -fsSL "$REPO_RAW/server.js?t=$(date +%s)" -o "$APP/server.next.js"
 node --check "$APP/server.next.js" || die "Tải server.js lỗi"
 mv "$APP/server.next.js" "$APP/server.js"
-chown -R qd:qd "$DATA"
+chown -R qd:qd "$DATA" "$APP"   # máy chủ tự cập nhật được từ trang Admin
 cat > /etc/systemd/system/qd.service <<EOF
 [Unit]
 Description=QD Elite server
@@ -67,7 +67,7 @@ RestartSec=2
 LimitNOFILE=65535
 NoNewPrivileges=true
 ProtectSystem=full
-ReadWritePaths=$DATA
+ReadWritePaths=$DATA $APP
 
 [Install]
 WantedBy=multi-user.target
@@ -99,7 +99,7 @@ DATA=/var/lib/qd; PORT=8787
 case "${1:-status}" in
   status) systemctl is-active qd caddy; curl -fs http://127.0.0.1:$PORT/health; echo; grep -m1 -v '^\s*$' /etc/caddy/Caddyfile | sed 's/ {//;s/^/https:\/\//';;
   logs) journalctl -u qd -n ${2:-100} --no-pager;;
-  backup) f="$DATA/backup/qd-$(date +%Y%m%d-%H%M).db"; sqlite3 "$DATA/qd.db" ".backup '$f'" && gzip -f "$f" && echo "Đã sao lưu: $f.gz"; find "$DATA/backup" -name 'qd-*.db.gz' -mtime +14 -delete;;
+  backup) f="$DATA/backup/qd-$(date +%Y%m%d-%H%M%S)-tay.db"; sqlite3 "$DATA/qd.db" ".backup '$f'" && gzip -f "$f" && chown qd:qd "$f.gz" && echo "Đã sao lưu: $f.gz";;
   update) curl -fsSL https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/install.sh | bash;;
   admin) [ -n "${2:-}" ] && [ -n "${3:-}" ] || { echo "Cách dùng: qd admin <tên đăng nhập> <mật khẩu>"; exit 1; }
     node -e '
@@ -113,7 +113,7 @@ case "${1:-status}" in
 esac
 EOF
 chmod +x /usr/local/bin/qd
-echo "30 3 * * * root /usr/local/bin/qd backup >/dev/null 2>&1" > /etc/cron.d/qd-backup
+rm -f /etc/cron.d/qd-backup   # máy chủ tự sao lưu lúc 3:30 mỗi đêm (giữ 14 ngày)
 
 say "6/6 Tài khoản Admin"
 HAS=$(curl -fs -X POST "http://127.0.0.1:$PORT/api/query" -d '{"q":{"col":"accounts","where":[["role","==","admin"]],"limit":1}}' | grep -c '"id"' || true)

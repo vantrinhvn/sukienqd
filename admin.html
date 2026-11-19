@@ -837,6 +837,63 @@ html.qd-lite .qd-fx { display: none !important; }
         .fsu-chart span { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #fb923c, #f97316); position: relative; }
         .fsu-chart span:hover::after { content: attr(data-t); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; background: #000; color: #fff; padding: 3px 6px; border-radius: 6px; margin-bottom: 4px; z-index: 2; }
         .fsu-note { margin: 10px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+        /* ===== Admin > Máy chủ VPS ===== */
+        body:not(.qvps-on) .qvps-only { display: none !important; }
+        .qv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+        .qv-acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .qv-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; font-size: 12.5px; background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+        .qv-pill i { width: 9px; height: 9px; border-radius: 50%; background: #94a3b8; } .qv-pill.ok i { background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.18); } .qv-pill.bad i { background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,.18); }
+        .qv-btn { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: 13px; font-weight: 700; padding: 8px 13px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); cursor: pointer; white-space: nowrap; }
+        .qv-btn:hover { filter: brightness(1.15); } .qv-btn:disabled { opacity: .45; cursor: default; filter: none; }
+        .qv-btn.sm { padding: 6px 10px; font-size: 12.5px; } .qv-btn.primary { background: #0891b2; border-color: transparent; color: #fff; } .qv-btn.warn { color: #f59e0b; border-color: rgba(245,158,11,.5); } .qv-btn.danger { color: #ef4444; border-color: rgba(239,68,68,.5); }
+        .qv-alert { margin-bottom: 16px; padding: 12px 16px; border-radius: 14px; font-size: 13.5px; line-height: 1.55; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.45); color: #fca5a5; }
+        .qv-alert.info { background: rgba(6,182,212,.08); border-color: rgba(6,182,212,.4); color: #a5f3fc; } .qv-alert a { color: inherit; font-weight: 800; }
+        .qv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+        .qv-card { position: relative; overflow: hidden; padding: 14px 16px 12px; border-radius: 16px; background: var(--bg-surface); border: 1px solid var(--border-strong); min-height: 128px; }
+        .qv-card .lb { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 7px; }
+        .qv-card .val { font-size: 26px; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; line-height: 1.1; } .qv-card .val small { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        .qv-card .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.45; }
+        .qv-card .meter { height: 7px; border-radius: 5px; background: rgba(148,163,184,.18); margin-top: 9px; overflow: hidden; } .qv-card .meter i { display: block; height: 100%; border-radius: 5px; transition: width .4s; }
+        .qv-card svg { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 44px; opacity: .55; pointer-events: none; }
+        .qv-card .tool { margin-top: 8px; }
+        .qv-info { font-size: 12px; color: var(--text-muted); margin: 10px 2px 22px; line-height: 1.6; }
+        .qv-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .qv-tabs button { font: inherit; font-size: 13.5px; font-weight: 700; padding: 9px 14px; border-radius: 12px; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-muted); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+        .qv-tabs button.on { background: #0891b2; border-color: transparent; color: #fff; }
+        .qv-pane { padding: 16px; } .qv-pane[hidden] { display: none; }
+        .qv-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; } .qv-bar.wrap { flex-wrap: wrap; }
+        .qv-bar input[type=search], .qv-sel { flex: 1; min-width: 0; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); font: inherit; font-size: 13px; }
+        .qv-sel { flex: 0 1 auto; }
+        .qv-data { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 14px; }
+        @media (max-width: 900px) { .qv-data { grid-template-columns: 1fr; } }
+        .qv-collist { max-height: 560px; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+        .qv-col { text-align: left; font: inherit; padding: 9px 11px; border-radius: 10px; border: 1px solid transparent; background: none; color: var(--text-main); cursor: pointer; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+        .qv-col:hover { background: var(--bg-elevated); } .qv-col.on { background: rgba(6,182,212,.12); border-color: rgba(6,182,212,.45); }
+        .qv-col b { font-size: 13px; font-weight: 700; word-break: break-all; } .qv-col small { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; text-align: right; }
+        .qv-colname { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30%; }
+        .qv-doclist { max-height: 560px; overflow: auto; border: 1px solid var(--border-strong); border-radius: 12px; }
+        .qv-doc { display: grid; grid-template-columns: minmax(110px, 200px) 1fr auto; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--border-strong); align-items: start; cursor: pointer; }
+        .qv-doc:hover { background: var(--bg-elevated); } .qv-doc:last-child { border-bottom: 0; }
+        .qv-doc .id { font: 600 12.5px/1.4 ui-monospace, Menlo, Consolas, monospace; word-break: break-all; color: #67e8f9; }
+        .qv-doc .pv { font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; color: var(--text-muted); word-break: break-all; max-height: 3.1em; overflow: hidden; }
+        .qv-doc .mt { font-size: 11.5px; color: var(--text-muted); text-align: right; white-space: nowrap; }
+        @media (max-width: 640px) { .qv-doc { grid-template-columns: 1fr; } .qv-doc .mt { text-align: left; } .qv-colname { max-width: 100%; } .qv-docs .qv-bar { flex-wrap: wrap; } }
+        .qv-empty { padding: 34px 16px; text-align: center; color: var(--text-muted); font-size: 13.5px; }
+        .qv-pager { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 12.5px; color: var(--text-muted); }
+        .qv-up { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; font-size: 13px; } .qv-up[hidden] { display: none; }
+        .qv-upbar { flex: 1; height: 10px; border-radius: 6px; background: rgba(148,163,184,.18); overflow: hidden; } .qv-upbar i { display: block; height: 100%; width: 0; background: #0891b2; transition: width .2s; }
+        .qv-logs { margin: 0; max-height: 520px; overflow: auto; padding: 12px; border-radius: 12px; background: #05080d; color: #cbd5e1; font: 12px/1.55 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+        .qv-tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 800; background: rgba(148,163,184,.15); color: var(--text-muted); white-space: nowrap; }
+        .qv-tag.auto { background: rgba(34,197,94,.13); color: #4ade80; } .qv-tag.tay { background: rgba(6,182,212,.13); color: #67e8f9; } .qv-tag.safe { background: rgba(245,158,11,.13); color: #fbbf24; }
+        .qv-modal { position: fixed; inset: 0; z-index: 9200; background: rgba(2,6,12,.6); display: flex; align-items: center; justify-content: center; padding: 14px; } .qv-modal[hidden] { display: none; }
+        .qv-mbox { width: min(880px, 100%); max-height: 92vh; display: flex; flex-direction: column; border-radius: 18px; background: var(--bg-surface); border: 1px solid var(--border-strong); box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+        .qv-mhd { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border-strong); font-size: 15px; }
+        .qv-x { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); cursor: pointer; }
+        .qv-mpath { padding: 10px 18px 0; font: 600 13px ui-monospace, Menlo, Consolas, monospace; color: #67e8f9; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .qv-mpath input { flex: 1; min-width: 160px; padding: 6px 9px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); font: inherit; }
+        #qv-mjson { margin: 10px 18px 0; min-height: 340px; flex: 1; resize: vertical; padding: 12px; border-radius: 12px; border: 1px solid var(--border-strong); background: #05080d; color: #e2e8f0; font: 12.5px/1.55 ui-monospace, Menlo, Consolas, monospace; tab-size: 2; }
+        .qv-merr { padding: 6px 18px 0; font-size: 12.5px; color: #f87171; min-height: 18px; }
+        .qv-mft { display: flex; gap: 8px; padding: 12px 18px 16px; align-items: center; }
         .qcl-ok { color: #22c55e; } .qcl-miss { color: #f59e0b; } .qcl-bad { color: #ef4444; }
         .qcall-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
         @media (max-width: 900px) { .qcall-grid { grid-template-columns: 1fr; } }
@@ -1460,6 +1517,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('apppush')" style="--tone: #3b82f6;"><div class="m-menu-icon"><i class="fa-solid fa-bell"></i></div><span>Thông báo app</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('videos')" style="--tone: #ef4444;"><div class="m-menu-icon"><i class="fa-solid fa-film"></i></div><span>Chia sẻ video</span></div>
                     <div class="m-menu-item" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('calls')" style="--tone: #22c55e;"><div class="m-menu-icon"><i class="fa-solid fa-phone"></i></div><span>Cuộc gọi</span></div>
+                    <div class="m-menu-item qvps-only" onclick="UI.closeModal('modal-mobile-menu'); UI.navigate('vps')" style="--tone: #06b6d4;"><div class="m-menu-icon"><i class="fa-solid fa-server"></i></div><span>Máy chủ VPS</span></div>
                 </div>
             </div>
 
@@ -1553,6 +1611,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <button type="button" title="Thông báo app" class="nav-item" onclick="UI.navigate('apppush', this)" style="--tone: #3b82f6;"><i class="fa-solid fa-bell"></i><span>Thông báo app</span></button>
                     <button type="button" title="Chia sẻ video" class="nav-item" onclick="UI.navigate('videos', this)" style="--tone: #ef4444;"><i class="fa-solid fa-film"></i><span>Chia sẻ video</span></button>
                     <button type="button" title="Cuộc gọi" class="nav-item" onclick="UI.navigate('calls', this)" style="--tone: #22c55e;"><i class="fa-solid fa-phone"></i><span>Cuộc gọi</span></button>
+                    <button type="button" title="Máy chủ VPS" class="nav-item qvps-only" onclick="UI.navigate('vps', this)" style="--tone: #06b6d4;"><i class="fa-solid fa-server"></i><span>Máy chủ VPS</span></button>
                 </div>
             </nav>
             <div class="sb-foot">
@@ -1744,6 +1803,10 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="card mod-card" onclick="UI.navigate('calls')" style="--tone: #22c55e;">
                                 <span class="mod-ico"><i class="fa-solid fa-phone"></i></span>
                                 <div><h4>Cuộc gọi</h4><p>Lịch sử gọi thoại / video, thời lượng, dung lượng máy chủ trung chuyển.</p></div>
+                            </div>
+                            <div class="card mod-card qvps-only" onclick="UI.navigate('vps')" style="--tone: #06b6d4;">
+                                <span class="mod-ico"><i class="fa-solid fa-server"></i></span>
+                                <div><h4>Máy chủ VPS</h4><p>CPU, RAM, ổ đĩa, mạng · xem / sửa / xóa / xuất dữ liệu · sao lưu, tải về, khôi phục.</p></div>
                             </div>
                         </div>
                     </div>
@@ -3760,6 +3823,87 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="table-container"><table class="vsh-log"><thead><tr><th>Thời gian</th><th>Người</th><th>Hành động</th><th>Video</th><th>Hiện trạng</th></tr></thead><tbody id="vsh-log"><tr><td colspan="5" class="text-muted">Đang tải…</td></tr></tbody></table></div>
                     </div>
                 </section>
+
+                <section id="view-vps" class="view-section">
+                    <div class="qv-head">
+                        <div>
+                            <h2 class="text-2xl m-0 flex items-center gap-3"><i class="fa-solid fa-server" style="color:#06b6d4"></i> Máy chủ VPS</h2>
+                            <p class="text-muted text-sm" style="margin:6px 0 0" id="qv-sub">Đang kết nối…</p>
+                        </div>
+                        <div class="qv-acts">
+                            <span class="qv-pill" id="qv-pill"><i></i> <b>—</b></span>
+                            <button type="button" class="qv-btn" id="qv-update" title="Tải bản máy chủ mới nhất từ GitHub rồi tự khởi động lại"><i class="fa-solid fa-cloud-arrow-down"></i> Cập nhật máy chủ</button>
+                            <button type="button" class="qv-btn warn" id="qv-restart"><i class="fa-solid fa-power-off"></i> Khởi động lại</button>
+                        </div>
+                    </div>
+                    <div class="qv-alert" id="qv-alert" hidden></div>
+
+                    <div class="qv-grid" id="qv-grid"></div>
+                    <div class="qv-info" id="qv-info"></div>
+
+                    <div class="qv-tabs" id="qv-tabs">
+                        <button type="button" class="on" data-t="data"><i class="fa-solid fa-database"></i> Dữ liệu</button>
+                        <button type="button" data-t="backup"><i class="fa-solid fa-box-archive"></i> Sao lưu & khôi phục</button>
+                        <button type="button" data-t="conns"><i class="fa-solid fa-plug"></i> Đang kết nối</button>
+                        <button type="button" data-t="logs"><i class="fa-solid fa-scroll"></i> Nhật ký</button>
+                    </div>
+
+                    <div class="card qv-pane" data-p="data">
+                        <div class="qv-data">
+                            <div class="qv-cols">
+                                <div class="qv-bar"><input type="search" id="qv-colq" placeholder="Tìm bộ sưu tập…"><button type="button" class="qv-btn sm" id="qv-export-all" title="Tải toàn bộ dữ liệu về máy (JSON)"><i class="fa-solid fa-download"></i> Xuất tất cả</button></div>
+                                <div class="qv-collist" id="qv-collist"></div>
+                            </div>
+                            <div class="qv-docs">
+                                <div class="qv-bar">
+                                    <b id="qv-colname" class="qv-colname">Chọn một bộ sưu tập</b>
+                                    <input type="search" id="qv-q" placeholder="Tìm theo mã hoặc nội dung…" disabled>
+                                    <button type="button" class="qv-btn sm" id="qv-add" disabled><i class="fa-solid fa-plus"></i> Thêm</button>
+                                    <button type="button" class="qv-btn sm" id="qv-export" disabled><i class="fa-solid fa-download"></i> Xuất</button>
+                                    <button type="button" class="qv-btn sm danger" id="qv-drop" disabled><i class="fa-solid fa-trash"></i> Xóa cả bộ</button>
+                                </div>
+                                <div class="qv-doclist" id="qv-doclist"><div class="qv-empty">Bấm một bộ sưu tập bên trái để xem dữ liệu.</div></div>
+                                <div class="qv-pager" id="qv-pager"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card qv-pane" data-p="backup" hidden>
+                        <div class="qv-bar wrap">
+                            <button type="button" class="qv-btn primary" id="qv-bk-now"><i class="fa-solid fa-floppy-disk"></i> Sao lưu ngay</button>
+                            <label class="qv-btn" for="qv-bk-file"><i class="fa-solid fa-upload"></i> Tải bản sao lưu lên để khôi phục</label>
+                            <input type="file" id="qv-bk-file" accept=".db,.gz,.json" hidden>
+                            <select id="qv-bk-mode" class="qv-sel" title="Cách khôi phục"><option value="replace">Thay toàn bộ dữ liệu</option><option value="merge">Gộp thêm (giữ dữ liệu đang có)</option></select>
+                        </div>
+                        <p class="text-muted text-sm" style="margin:10px 0 14px">Máy chủ tự sao lưu lúc <b>3:30</b> mỗi đêm (giữ 14 ngày). Trước mỗi lần khôi phục / xóa cả bộ sưu tập, máy chủ tự tạo thêm 1 bản để quay lại được. Tải lên nhận tệp <b>.db.gz</b> (bản sao lưu) hoặc <b>.json</b> (bản xuất dữ liệu).</p>
+                        <div class="qv-up" id="qv-up" hidden><div class="qv-upbar"><i id="qv-upbar"></i></div><span id="qv-uptxt"></span></div>
+                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Bản sao lưu</th><th>Loại</th><th>Lúc</th><th>Dung lượng</th><th></th></tr></thead><tbody id="qv-bklist"><tr><td colspan="5" class="text-muted">Đang tải…</td></tr></tbody></table></div>
+                    </div>
+
+                    <div class="card qv-pane" data-p="conns" hidden>
+                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Tài khoản</th><th>Vai trò</th><th>Địa chỉ IP</th><th>Kết nối từ</th><th>Đang nghe</th><th>Thiết bị</th></tr></thead><tbody id="qv-connlist"></tbody></table></div>
+                    </div>
+
+                    <div class="card qv-pane" data-p="logs" hidden>
+                        <div class="qv-bar"><button type="button" class="qv-btn sm" id="qv-logref"><i class="fa-solid fa-rotate"></i> Tải lại</button><span class="text-muted text-sm">200 dòng gần nhất của máy chủ</span></div>
+                        <pre class="qv-logs" id="qv-logs"></pre>
+                    </div>
+                </section>
+
+                <div class="qv-modal" id="qv-modal" hidden>
+                    <div class="qv-mbox">
+                        <div class="qv-mhd"><b id="qv-mtitle">Tài liệu</b><button type="button" class="qv-x" id="qv-mclose">✕</button></div>
+                        <div class="qv-mpath"><span id="qv-mcol"></span> / <input id="qv-mid" placeholder="mã tài liệu (để trống = tự tạo)"></div>
+                        <textarea id="qv-mjson" spellcheck="false"></textarea>
+                        <div class="qv-merr" id="qv-merr"></div>
+                        <div class="qv-mft">
+                            <button type="button" class="qv-btn danger" id="qv-mdel"><i class="fa-solid fa-trash"></i> Xóa</button>
+                            <span style="flex:1"></span>
+                            <button type="button" class="qv-btn" id="qv-mfmt">Căn chỉnh JSON</button>
+                            <button type="button" class="qv-btn primary" id="qv-msave"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>
+                        </div>
+                    </div>
+                </div>
 
                 <section id="view-calls" class="view-section">
                     <div class="page-head flex justify-between items-center mb-8 flex-wrap gap-4">
@@ -6234,7 +6378,7 @@ const QVis = {
                                 return;
                             }
 
-                            const allViews = ['pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals', 'reportbot', 'apppush', 'videos', 'calls', 'gifts'];
+                            const allViews = ['vps', 'pointshop', 'attendance', 'registration', 'tournament', 'luckynumber', 'wheel', 'tranhthuong', 'lixi', 'rps', 'nemcon', 'invite', 'transfer', 'payout', 'security', 'accounts', 'news', 'approvals', 'reportbot', 'apppush', 'videos', 'calls', 'gifts'];
                             
                             // 2. NẾU LÀ MANAGER THÌ ẨN/HIỆN CHỨC NĂNG THEO QUYỀN
                             if (myRole === 'manager') {
@@ -16825,6 +16969,237 @@ window.QDXlsx = (function () {
         $('qk-list').addEventListener('click', function (e) { var b = e.target.closest('.go'); if (b) one(b.dataset.id); });
         $('qk-bulk').addEventListener('click', bulk);
         window.QDQuick = { open: function () { menu(true); }, locked: openDrawer, go: go };
+    })();
+    </script>
+    <script id="qvps-js">
+    /* ===== Admin > Máy chủ VPS: tài nguyên (CPU / RAM / ổ đĩa / mạng), dữ liệu (xem / sửa / xóa / xuất),
+       sao lưu (tạo / tải về / tải lên khôi phục), kết nối, nhật ký, khởi động lại, cập nhật máy chủ.
+       Chỉ hiện khi trang đang chạy máy chủ VPS (QD_BACKEND = 'vps') và chỉ Admin dùng được (máy chủ kiểm tra lại). ===== */
+    (function () {
+        var $ = function (id) { return document.getElementById(id); }, W = window;
+        var E = function (x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var on = W.QD_BACKEND === 'vps';
+        document.body.classList.toggle('qvps-on', on);
+        if (!on) return;
+        var A = function (fn, args) { return W.QDdb.admin(fn, args); };
+        var toast = function (m, t) { try { Utils.toast(m, t || 'info'); } catch (e) {} };
+        var ask = function (o) { return W.qdAsk ? W.qdAsk(o) : Promise.resolve(confirm(o.text || o.title)); };
+        function B(n) { n = +n || 0; var u = ['B', 'KB', 'MB', 'GB', 'TB'], i = 0; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return (i ? n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) : n) + ' ' + u[i]; }
+        function rate(n) { return B(n) + '/s'; }
+        function dur(s) { s = +s || 0; var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60); return (d ? d + ' ngày ' : '') + (d || h ? h + ' giờ ' : '') + m + ' phút'; }
+        function tm(t) { if (!t) return '—'; var d = new Date(t), p = function (x) { return ('0' + x).slice(-2); }; return p(d.getHours()) + ':' + p(d.getMinutes()) + ' ' + p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear(); }
+        function tone(p) { return p >= 85 ? '#ef4444' : p >= 65 ? '#f59e0b' : '#22c55e'; }
+        function spark(arr, max, color) {
+            var v = arr.filter(function (x) { return x != null; }); if (v.length < 2) return '';
+            var mx = max || Math.max.apply(null, v.concat([1])), n = arr.length, pts = arr.map(function (x, i) { return (i / (n - 1) * 100).toFixed(2) + ',' + (40 - (x || 0) / mx * 36).toFixed(2); }).join(' ');
+            return '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.6" vector-effect="non-scaling-stroke"/><polygon points="0,40 ' + pts + ' 100,40" fill="' + color + '" opacity=".12"/></svg>';
+        }
+
+        /* ---------------- Tài nguyên ---------------- */
+        var H = [], S = null, lastT = 0, pingMs = null, speed = null, timer = 0, active = false;
+        function card(icon, lb, val, sub, meterPct, sp, extra) {
+            return '<div class="qv-card"><div class="lb">' + icon + ' ' + lb + '</div><div class="val">' + val + '</div>' + (sub ? '<div class="sub">' + sub + '</div>' : '') +
+                (meterPct != null ? '<div class="meter"><i style="width:' + Math.min(100, meterPct).toFixed(1) + '%;background:' + tone(meterPct) + '"></i></div>' : '') + (extra || '') + (sp || '') + '</div>';
+        }
+        function paint() {
+            if (!S) return;
+            var last = H[H.length - 1] || {}, mem = S.mem || {}, used = (mem.total || 0) - (mem.avail || 0), memPct = mem.total ? used / mem.total * 100 : 0;
+            var disk = S.disk, diskUsed = disk ? disk.total - disk.free : 0, diskPct = disk && disk.total ? diskUsed / disk.total * 100 : null;
+            var cpu = last.cpu == null ? 0 : last.cpu, col = function (k) { return H.slice(-90).map(function (h) { return h[k]; }); };
+            $('qv-grid').innerHTML = [
+                card('<i class="fa-solid fa-microchip"></i>', 'CPU', cpu.toFixed(0) + '<small> %</small>', S.cores + ' nhân · tải ' + S.load.map(function (x) { return x.toFixed(2); }).join(' / '), cpu, spark(col('cpu'), 100, '#06b6d4')),
+                card('<i class="fa-solid fa-memory"></i>', 'RAM', B(used) + ' <small>/ ' + B(mem.total) + '</small>', 'Máy chủ QD dùng ' + B(S.proc.rss) + (mem.swapTotal ? ' · swap ' + B(mem.swapTotal - mem.swapFree) + ' / ' + B(mem.swapTotal) : ''), memPct, spark(col('mem'), 100, '#a855f7')),
+                card('<i class="fa-solid fa-hard-drive"></i>', 'Ổ đĩa', disk ? B(diskUsed) + ' <small>/ ' + B(disk.total) + '</small>' : '—', disk ? 'Còn trống ' + B(disk.free) : '', diskPct, ''),
+                card('<i class="fa-solid fa-network-wired"></i>', 'Mạng', '↓ ' + rate(last.rx) + '<br><small style="font-size:15px">↑ ' + rate(last.tx) + '</small>', S.net ? 'Từ lúc bật VPS: ↓ ' + B(S.net.rxTotal) + ' · ↑ ' + B(S.net.txTotal) : '', null, spark(col('rx'), 0, '#22c55e')),
+                card('<i class="fa-solid fa-gauge-high"></i>', 'Tốc độ tới VPS', pingMs == null ? '—' : pingMs + '<small> ms</small>', speed ? 'Tải xuống <b>' + speed.down + ' Mbps</b>' + (speed.up ? ' · tải lên <b>' + speed.up + ' Mbps</b>' : '') : 'Độ trễ từ máy bạn tới VPS', null, '', '<div class="tool"><button type="button" class="qv-btn sm" id="qv-speed"><i class="fa-solid fa-bolt"></i> Đo tốc độ</button></div>'),
+                card('<i class="fa-solid fa-database"></i>', 'Dữ liệu', S.db.docs.toLocaleString('vi-VN') + '<small> tài liệu</small>', S.db.cols + ' bộ sưu tập · tệp ' + B(S.db.file), null, ''),
+                card('<i class="fa-solid fa-users"></i>', 'Đang kết nối', S.conns + '<small> kết nối</small>', S.users + ' tài khoản · ' + S.subs + ' luồng nghe trực tiếp', null, spark(col('conns'), 0, '#f59e0b')),
+                card('<i class="fa-solid fa-arrow-right-arrow-left"></i>', 'Đọc / ghi', (last.r || 0) + '<small> đọc/s</small> · ' + (last.w || 0) + '<small> ghi/s</small>', 'Không giới hạn lượt như Firebase', null, spark(col('r'), 0, '#38bdf8')),
+                card('<i class="fa-solid fa-clock"></i>', 'Thời gian chạy', dur(S.uptime), 'VPS bật được ' + dur(S.sysUptime), null, '')
+            ].join('');
+            $('qv-info').innerHTML = 'Máy chủ <b>' + E(S.ver) + '</b> · ' + E(S.host) + ' · ' + E(S.os) + ' · Node ' + E(S.node) + ' · ' + E(S.cpuModel) + ' · <a href="' + E(W.QDdb.http) + '/health" target="_blank" rel="noopener" style="color:#67e8f9">' + E(W.QDdb.http.replace(/^https?:\/\//, '')) + '</a>';
+            var sb = $('qv-speed'); if (sb) sb.onclick = speedTest;
+        }
+        function pill(ok, txt) { var p = $('qv-pill'); p.className = 'qv-pill ' + (ok ? 'ok' : 'bad'); p.querySelector('b').textContent = txt; }
+        function tick() {
+            if (!active || document.hidden) return;
+            A('stats', { since: lastT }).then(function (s) {
+                S = s; (s.hist || []).forEach(function (h) { H.push(h); }); if (H.length > 900) H.splice(0, H.length - 900); if (H.length) lastT = H[H.length - 1].t;
+                $('qv-sub').textContent = 'Cập nhật ' + tm(s.now) + ' · tự làm mới 3 giây / lần'; pill(true, 'Đang chạy'); $('qv-alert').hidden = true; paint();
+            }).catch(function (e) {
+                pill(false, 'Lỗi'); var al = $('qv-alert'); al.hidden = false; al.className = 'qv-alert';
+                al.innerHTML = e && e.code === 'permission-denied' ? '🔒 Chỉ tài khoản <b>Admin</b> (vai trò admin) dùng được mục này. Hãy đăng xuất rồi đăng nhập lại bằng tài khoản Admin.' : '❌ Không lấy được thông tin máy chủ: ' + E((e && (e.message || e.code)) || 'mất kết nối') + '. Kiểm tra VPS còn chạy không (gõ <b>qd status</b> trên VPS).';
+            });
+            W.QDdb.ping().then(function (ms) { pingMs = ms; }).catch(function () {});
+        }
+        function speedTest() {
+            var b = $('qv-speed'); if (b) { b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đo…'; }
+            A('token').then(function (x) {
+                var t0 = performance.now(), url = W.QDdb.http + '/api/admin/speed?bytes=8000000&t=' + encodeURIComponent(x.token);
+                return fetch(url, { cache: 'no-store' }).then(function (r) { return r.arrayBuffer(); }).then(function (buf) {
+                    var down = Math.round(buf.byteLength * 8 / ((performance.now() - t0) / 1000) / 1e5) / 10, up = new Uint8Array(2000000), t1 = performance.now();
+                    return fetch(W.QDdb.http + '/api/admin/speed-up', { method: 'POST', headers: { Authorization: 'Bearer ' + x.token }, body: up }).then(function () { speed = { down: down, up: Math.round(up.length * 8 / ((performance.now() - t1) / 1000) / 1e5) / 10 }; });
+                });
+            }).catch(function (e) { toast('Không đo được: ' + (e && e.message || e), 'error'); }).then(function () { paint(); });
+        }
+
+        /* ---------------- Dữ liệu ---------------- */
+        var COLS = [], CUR = '', PAGE = 0, PER = 50, TOTAL = 0, qT = 0;
+        function loadCols() {
+            return A('cols').then(function (c) { COLS = c; renderCols(); }).catch(function (e) { $('qv-collist').innerHTML = '<div class="qv-empty">' + E(e.message || e.code) + '</div>'; });
+        }
+        function renderCols() {
+            var q = ($('qv-colq').value || '').toLowerCase().trim();
+            var L = COLS.filter(function (c) { return !q || c.col.toLowerCase().indexOf(q) >= 0; });
+            $('qv-collist').innerHTML = L.length ? L.map(function (c) { return '<button type="button" class="qv-col' + (c.col === CUR ? ' on' : '') + '" data-c="' + E(c.col) + '"><b>' + E(c.col) + '</b><small>' + c.n.toLocaleString('vi-VN') + ' · ' + B(c.bytes) + '</small></button>'; }).join('') : '<div class="qv-empty">Chưa có dữ liệu.</div>';
+        }
+        function pick(c) {
+            CUR = c; PAGE = 0; $('qv-q').value = ''; renderCols();
+            $('qv-colname').textContent = c; ['qv-q', 'qv-add', 'qv-export', 'qv-drop'].forEach(function (id) { $(id).disabled = false; });
+            loadDocs();
+        }
+        function loadDocs() {
+            if (!CUR) return;
+            $('qv-doclist').innerHTML = '<div class="qv-empty"><i class="fa-solid fa-spinner fa-spin"></i></div>';
+            A('list', { col: CUR, q: $('qv-q').value, offset: PAGE * PER, limit: PER }).then(function (r) {
+                TOTAL = r.total;
+                $('qv-doclist').innerHTML = r.items.length ? r.items.map(function (x) { return '<div class="qv-doc" data-id="' + E(x.id) + '"><div class="id">' + E(x.id) + '</div><div class="pv">' + E(x.preview) + '</div><div class="mt">' + tm(x.ut) + '<br>' + B(x.size) + '</div></div>'; }).join('') : '<div class="qv-empty">Không có tài liệu nào.</div>';
+                var pages = Math.max(1, Math.ceil(TOTAL / PER));
+                $('qv-pager').innerHTML = '<span>' + TOTAL.toLocaleString('vi-VN') + ' tài liệu · trang ' + (PAGE + 1) + ' / ' + pages + '</span><span style="display:flex;gap:6px"><button type="button" class="qv-btn sm" data-pg="-1"' + (PAGE ? '' : ' disabled') + '>‹ Trước</button><button type="button" class="qv-btn sm" data-pg="1"' + (PAGE + 1 < pages ? '' : ' disabled') + '>Sau ›</button></span>';
+            }).catch(function (e) { $('qv-doclist').innerHTML = '<div class="qv-empty">' + E(e.message || e.code) + '</div>'; });
+        }
+        var MOD = null;
+        function openDoc(id) {
+            MOD = { col: CUR, id: id || '' };
+            $('qv-mcol').textContent = CUR; $('qv-mid').value = id || ''; $('qv-mid').disabled = !!id; $('qv-merr').textContent = '';
+            $('qv-mtitle').textContent = id ? 'Sửa tài liệu' : 'Thêm tài liệu mới'; $('qv-mdel').hidden = !id;
+            $('qv-mjson').value = id ? 'Đang tải…' : '{\n  \n}'; $('qv-modal').hidden = false;
+            if (id) A('doc', { path: CUR + '/' + id }).then(function (r) { $('qv-mjson').value = r.exists ? JSON.stringify(r.d, null, 2) : '{}'; }).catch(function (e) { $('qv-merr').textContent = e.message || e.code; });
+        }
+        function saveDoc() {
+            var txt = $('qv-mjson').value, obj;
+            try { obj = JSON.parse(txt); } catch (e) { $('qv-merr').textContent = 'JSON sai: ' + e.message; return; }
+            if (!obj || typeof obj !== 'object' || Array.isArray(obj)) { $('qv-merr').textContent = 'Tài liệu phải là một đối tượng { … }'; return; }
+            var id = MOD.id || $('qv-mid').value.trim(), ref = id ? firebase.firestore().collection(MOD.col).doc(id) : firebase.firestore().collection(MOD.col).doc();
+            if (id && /\//.test(id)) { $('qv-merr').textContent = 'Mã tài liệu không được có dấu /'; return; }
+            $('qv-msave').disabled = true;
+            ref.set(obj).then(function () { toast('Đã lưu ' + MOD.col + '/' + ref.id, 'success'); $('qv-modal').hidden = true; loadDocs(); loadCols(); })
+                .catch(function (e) { $('qv-merr').textContent = 'Không lưu được: ' + (e.message || e.code); }).then(function () { $('qv-msave').disabled = false; });
+        }
+        function delDoc() {
+            ask({ title: 'Xóa tài liệu?', html: '<b>' + E(MOD.col + '/' + MOD.id) + '</b> sẽ bị xóa vĩnh viễn (có bản sao lưu đêm để khôi phục nếu cần).', ok: 'Xóa', icon: '🗑️' }).then(function (y) {
+                if (!y) return;
+                firebase.firestore().collection(MOD.col).doc(MOD.id).delete().then(function () { toast('Đã xóa', 'success'); $('qv-modal').hidden = true; loadDocs(); loadCols(); }).catch(function (e) { toast('Không xóa được: ' + (e.message || e.code), 'error'); });
+            });
+        }
+        function download(url, name) { var a = document.createElement('a'); a.href = url; if (name) a.download = name; a.rel = 'noopener'; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 1000); }
+        function withToken(fn) { return A('token').then(function (x) { return fn(encodeURIComponent(x.token), x.token); }).catch(function (e) { toast('Lỗi: ' + (e.message || e.code), 'error'); }); }
+        function exportCol(c) { withToken(function (t) { download(W.QDdb.http + '/api/admin/export?' + (c ? 'col=' + encodeURIComponent(c) + '&' : '') + 'pretty=1&t=' + t); toast('Đang tải ' + (c || 'toàn bộ dữ liệu') + ' về máy…', 'info'); }); }
+        function dropCol() {
+            var c = CUR; if (!c) return;
+            ask({ title: 'Xóa cả bộ sưu tập?', icon: '⚠️', ok: 'Xóa hết', html: 'Xóa <b>toàn bộ ' + (COLS.filter(function (x) { return x.col === c; })[0] || { n: '?' }).n + ' tài liệu</b> trong <b>' + E(c) + '</b>.\nMáy chủ sẽ tự sao lưu trước khi xóa.' }).then(function (y) {
+                if (!y) return; var typed = prompt('Gõ đúng tên bộ sưu tập để xác nhận: ' + c); if (typed !== c) { if (typed != null) toast('Tên không khớp, không xóa', 'warning'); return; }
+                A('dropCol', { col: c, confirm: typed }).then(function (r) { toast('Đã xóa ' + r.n + ' tài liệu. Bản sao lưu: ' + r.backup, 'success'); CUR = ''; $('qv-doclist').innerHTML = '<div class="qv-empty">Đã xóa.</div>'; $('qv-pager').innerHTML = ''; loadCols(); loadBackups(); })
+                    .catch(function (e) { toast('Không xóa được: ' + (e.message || e.code), 'error'); });
+            });
+        }
+
+        /* ---------------- Sao lưu ---------------- */
+        function kind(n) { return /-auto\./.test(n) ? ['auto', 'Tự động (đêm)'] : /-tay\./.test(n) ? ['tay', 'Thủ công'] : /truoc-/.test(n) ? ['safe', n.indexOf('truoc-khoi-phuc') >= 0 ? 'Trước khi khôi phục' : 'Trước khi xóa'] : ['', 'Khác']; }
+        function loadBackups() {
+            return A('backups').then(function (L) {
+                $('qv-bklist').innerHTML = L.length ? L.map(function (b) { var k = kind(b.name);
+                    return '<tr><td style="font:12.5px ui-monospace,monospace;word-break:break-all">' + E(b.name) + '</td><td><span class="qv-tag ' + k[0] + '">' + k[1] + '</span></td><td style="white-space:nowrap">' + tm(b.at) + '</td><td>' + B(b.size) + '</td>' +
+                        '<td><div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="qv-btn sm" data-dl="' + E(b.name) + '"><i class="fa-solid fa-download"></i> Tải về</button><button type="button" class="qv-btn sm warn" data-rs="' + E(b.name) + '"><i class="fa-solid fa-clock-rotate-left"></i> Khôi phục</button><button type="button" class="qv-btn sm danger" data-del="' + E(b.name) + '" title="Xóa bản sao lưu"><i class="fa-solid fa-trash"></i></button></div></td></tr>'; }).join('')
+                    : '<tr><td colspan="5" class="text-muted">Chưa có bản sao lưu. Bấm "Sao lưu ngay".</td></tr>';
+            }).catch(function (e) { $('qv-bklist').innerHTML = '<tr><td colspan="5" style="color:#f87171">' + E(e.message || e.code) + '</td></tr>'; });
+        }
+        function backupNow() {
+            var b = $('qv-bk-now'); b.disabled = true;
+            A('backup').then(function (r) { toast('Đã sao lưu: ' + r.name, 'success'); loadBackups(); }).catch(function (e) { toast('Lỗi sao lưu: ' + (e.message || e.code), 'error'); }).then(function () { b.disabled = false; });
+        }
+        function restore(name) {
+            var mode = $('qv-bk-mode').value;
+            ask({ title: 'Khôi phục bản sao lưu?', icon: '⏪', ok: 'Khôi phục', tone: 'warn', html: '<b>' + E(name) + '</b>\n' + (mode === 'merge' ? 'Gộp thêm vào dữ liệu đang có.' : '<b>Thay toàn bộ</b> dữ liệu hiện tại bằng bản này.') + '\nMáy chủ tự sao lưu dữ liệu hiện tại trước khi khôi phục.' }).then(function (y) {
+                if (!y) return; toast('Đang khôi phục…', 'info');
+                A('restore', { name: name, mode: mode }).then(function (r) { toast('Đã khôi phục ' + r.n + ' tài liệu. Bản dữ liệu cũ: ' + r.before, 'success'); loadBackups(); loadCols(); }).catch(function (e) { toast('Không khôi phục được: ' + (e.message || e.code), 'error'); });
+            });
+        }
+        function upload(file) {
+            if (!file) return; var mode = $('qv-bk-mode').value;
+            ask({ title: 'Khôi phục từ tệp tải lên?', icon: '⬆️', ok: 'Tải lên & khôi phục', tone: 'warn', html: '<b>' + E(file.name) + '</b> (' + B(file.size) + ')\n' + (mode === 'merge' ? 'Gộp thêm vào dữ liệu đang có.' : '<b>Thay toàn bộ</b> dữ liệu hiện tại.') + '\nMáy chủ tự sao lưu dữ liệu hiện tại trước.' }).then(function (y) {
+                if (!y) { $('qv-bk-file').value = ''; return; }
+                A('token').then(function (x) {
+                    var xhr = new XMLHttpRequest(); $('qv-up').hidden = false; $('qv-upbar').style.width = '0'; $('qv-uptxt').textContent = 'Đang tải lên…';
+                    xhr.open('POST', W.QDdb.http + '/api/admin/restore?mode=' + mode); xhr.setRequestHeader('Authorization', 'Bearer ' + x.token);
+                    xhr.upload.onprogress = function (e) { if (e.lengthComputable) { var p = e.loaded / e.total * 100; $('qv-upbar').style.width = p + '%'; $('qv-uptxt').textContent = p < 100 ? 'Đang tải lên ' + p.toFixed(0) + '%' : 'Máy chủ đang khôi phục…'; } };
+                    xhr.onload = function () { var r = {}; try { r = JSON.parse(xhr.responseText); } catch (e) {} $('qv-up').hidden = true; $('qv-bk-file').value = '';
+                        if (r.ok) { toast('Đã khôi phục ' + r.n + ' tài liệu từ ' + file.name, 'success'); loadBackups(); loadCols(); } else toast('Không khôi phục được: ' + (r.message || xhr.status), 'error'); };
+                    xhr.onerror = function () { $('qv-up').hidden = true; toast('Tải lên lỗi (mất mạng?)', 'error'); };
+                    xhr.send(file);
+                }).catch(function (e) { toast('Lỗi: ' + (e.message || e.code), 'error'); });
+            });
+        }
+
+        /* ---------------- Kết nối & nhật ký ---------------- */
+        function loadConns() {
+            A('conns').then(function (L) {
+                L.sort(function (a, b) { return (b.u ? 1 : 0) - (a.u ? 1 : 0) || a.at - b.at; });
+                $('qv-connlist').innerHTML = L.length ? L.map(function (c) { return '<tr><td><b>' + (c.u ? '@' + E(c.u) : '<span class="text-muted">chưa đăng nhập</span>') + '</b></td><td>' + E(c.role || '—') + '</td><td>' + E(c.ip) + '</td><td style="white-space:nowrap">' + tm(c.at) + '</td><td>' + c.subs + '</td><td class="text-sm text-muted" style="max-width:280px;word-break:break-word">' + E(c.ua) + '</td></tr>'; }).join('') : '<tr><td colspan="6" class="text-muted">Không có kết nối.</td></tr>';
+            }).catch(function () {});
+        }
+        function loadLogs() { A('logs', { n: 200 }).then(function (L) { var el = $('qv-logs'); el.textContent = L.join('\n') || '(trống)'; el.scrollTop = el.scrollHeight; }).catch(function (e) { $('qv-logs').textContent = e.message || e.code; }); }
+
+        /* ---------------- Gắn sự kiện ---------------- */
+        var TAB = 'data';
+        function showTab(t) {
+            TAB = t; Array.prototype.forEach.call($('qv-tabs').children, function (b) { b.classList.toggle('on', b.dataset.t === t); });
+            Array.prototype.forEach.call(document.querySelectorAll('#view-vps .qv-pane'), function (p) { p.hidden = p.dataset.p !== t; });
+            if (t === 'data') loadCols(); if (t === 'backup') loadBackups(); if (t === 'conns') loadConns(); if (t === 'logs') loadLogs();
+        }
+        $('qv-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) showTab(b.dataset.t); });
+        $('qv-colq').addEventListener('input', renderCols);
+        $('qv-collist').addEventListener('click', function (e) { var b = e.target.closest('.qv-col'); if (b) pick(b.dataset.c); });
+        $('qv-q').addEventListener('input', function () { clearTimeout(qT); qT = setTimeout(function () { PAGE = 0; loadDocs(); }, 300); });
+        $('qv-doclist').addEventListener('click', function (e) { var d = e.target.closest('.qv-doc'); if (d) openDoc(d.dataset.id); });
+        $('qv-pager').addEventListener('click', function (e) { var b = e.target.closest('[data-pg]'); if (b && !b.disabled) { PAGE += +b.dataset.pg; loadDocs(); } });
+        $('qv-add').onclick = function () { openDoc(''); };
+        $('qv-export').onclick = function () { exportCol(CUR); };
+        $('qv-export-all').onclick = function () { exportCol(''); };
+        $('qv-drop').onclick = dropCol;
+        $('qv-mclose').onclick = function () { $('qv-modal').hidden = true; };
+        $('qv-modal').addEventListener('click', function (e) { if (e.target.id === 'qv-modal') $('qv-modal').hidden = true; });
+        $('qv-msave').onclick = saveDoc; $('qv-mdel').onclick = delDoc;
+        $('qv-mfmt').onclick = function () { try { $('qv-mjson').value = JSON.stringify(JSON.parse($('qv-mjson').value), null, 2); $('qv-merr').textContent = ''; } catch (e) { $('qv-merr').textContent = 'JSON sai: ' + e.message; } };
+        $('qv-mjson').addEventListener('keydown', function (e) { if (e.key === 'Tab') { e.preventDefault(); var t = this, s0 = t.selectionStart; t.value = t.value.slice(0, s0) + '  ' + t.value.slice(t.selectionEnd); t.selectionStart = t.selectionEnd = s0 + 2; } if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDoc(); } });
+        $('qv-bk-now').onclick = backupNow;
+        $('qv-bk-file').addEventListener('change', function () { upload(this.files[0]); });
+        $('qv-bklist').addEventListener('click', function (e) {
+            var b = e.target.closest('button'); if (!b) return;
+            if (b.dataset.dl) withToken(function (t) { download(W.QDdb.http + '/api/admin/backup-file?name=' + encodeURIComponent(b.dataset.dl) + '&t=' + t, b.dataset.dl); });
+            if (b.dataset.rs) restore(b.dataset.rs);
+            if (b.dataset.del) ask({ title: 'Xóa bản sao lưu?', ok: 'Xóa', html: '<b>' + E(b.dataset.del) + '</b>' }).then(function (y) { if (y) A('delBackup', { name: b.dataset.del }).then(function () { toast('Đã xóa bản sao lưu', 'success'); loadBackups(); }).catch(function (e) { toast(e.message || e.code, 'error'); }); });
+        });
+        $('qv-logref').onclick = loadLogs;
+        $('qv-restart').onclick = function () {
+            ask({ title: 'Khởi động lại máy chủ?', icon: '🔄', ok: 'Khởi động lại', tone: 'warn', html: 'Mọi người mất kết nối khoảng 2–5 giây rồi tự nối lại. Dữ liệu không mất.' }).then(function (y) {
+                if (y) A('restart').then(function () { toast('Đang khởi động lại máy chủ…', 'info'); pill(false, 'Đang khởi động lại'); }).catch(function (e) { toast(e.message || e.code, 'error'); });
+            });
+        };
+        $('qv-update').onclick = function () {
+            ask({ title: 'Cập nhật máy chủ?', icon: '⬇️', ok: 'Cập nhật', tone: 'info', html: 'Tải bản máy chủ mới nhất từ GitHub, kiểm tra lỗi rồi tự khởi động lại (mất kết nối vài giây). Bản đang chạy: <b>' + E(S ? S.ver : '?') + '</b>.' }).then(function (y) {
+                if (!y) return; var b = $('qv-update'); b.disabled = true;
+                A('update').then(function (r) { toast('Đã tải bản ' + r.ver + ', máy chủ đang khởi động lại…', 'success'); H = []; lastT = 0; }).catch(function (e) { toast('Không cập nhật được: ' + (e.message || e.code), 'error'); }).then(function () { setTimeout(function () { b.disabled = false; }, 4000); });
+            });
+        };
+        function start() { if (active) return; active = true; H = []; lastT = 0; tick(); timer = setInterval(tick, 3000); showTab(TAB); }
+        function stop() { active = false; clearInterval(timer); }
+        (function hook(n) {
+            if (typeof UI === 'undefined' || !UI.navigate) { if (n < 240) setTimeout(function () { hook(n + 1); }, 500); return; }
+            var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'vps') start(); else stop(); return r; };
+        })(0);
+        document.addEventListener('visibilitychange', function () { if (!document.hidden && active) tick(); });
+        W.QDVps = { start: start, stop: stop, tick: tick };
     })();
     </script>
 <style id="qd-balance">
