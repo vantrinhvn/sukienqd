@@ -25885,9 +25885,8 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
        - Kết thúc / từ chối / nhỡ (45 giây) -> người gọi ghi 1 dòng vào tin nhắn riêng: "📞 Cuộc gọi video · 02:31" / "📵 Cuộc gọi nhỡ". */
     window.QDCall = (function () {
         var d = document, $ = function (id) { return d.getElementById(id); }, Q = window.QDNative || null;
-        var RING_MS = 45000, S = null, listening = false, cfgIce = null, booted = false;
-        var ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }, { urls: 'stun:stun.cloudflare.com:3478' },
-            { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }];
+        var RING_MS = 45000, S = null, listening = false, booted = false;
+        var ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }, { urls: 'stun:stun.cloudflare.com:3478' }];   // chỉ nối thẳng 2 máy (không dùng máy chủ trung chuyển)
         function db() { return firebase.firestore(); }
         function me() { return (window.State && State.currentUser) || ''; }
         function nameOf(u) { var N = (window.State && State.nicknames) || {}; if (N[u]) return N[u]; if (u === me() && State.fullName) return State.fullName; var c = (State.usersFull || State.fullNames || {})[u]; return c || u; }
@@ -25896,7 +25895,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         function supported() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
         function pingHook() {}   // máy chủ VPS tự báo tới app (không còn máy chủ trung chuyển Apps Script)
         function fmt(ms) { var s = Math.max(0, Math.round(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; s = s % 60; return (h ? h + ':' : '') + (h && m < 10 ? '0' : '') + (m < 10 && !h ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
-        function iceCfg() { return { iceServers: (cfgIce && cfgIce.length ? [ICE[0], ICE[1]].concat(cfgIce) : ICE), iceCandidatePoolSize: 2 }; }   // có máy chủ riêng (Admin) -> STUN + máy chủ riêng
+        function iceCfg() { return { iceServers: ICE, iceCandidatePoolSize: 2 }; }
         /* ---------- Âm báo (tự tạo bằng WebAudio, không cần file) ---------- */
         var AC = null, toneT = 0, vibT = 0;
         function ac() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} return AC; }
@@ -26556,7 +26555,6 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             db().collection('call_blocks').where('by', '==', me()).onSnapshot(function (q) { var b = {}; q.forEach(function (x) { b[x.data().blocked] = 1; }); incoming.blocked = b; }, function () {});
             var refreshBan = function () { myBan().then(function (t) { banA = t; setBan(); }); }; refreshBan(); setInterval(refreshBan, 30 * 60000);   // khóa gọi do bot / Admin còn đến qua call_warnings (nghe trực tiếp)
             adminWarnings(); guardListen();
-            db().collection('settings').doc('call_config').onSnapshot(function (x) { var c = x.exists ? x.data() : {}; cfgIce = Array.isArray(c.iceServers) && c.iceServers.length ? c.iceServers : null; }, function () {});
             db().collection('calls').where('to', '==', me()).onSnapshot(function (q) {
                 (q.docChanges ? q.docChanges() : []).forEach(function (ch) {
                     if (ch.type === 'removed') return; var c = ch.doc.data(), id = ch.doc.id;
