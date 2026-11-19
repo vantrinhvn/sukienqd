@@ -290,8 +290,8 @@
     (function () {
         var QD_DEF = 'vps', k = 'qd_be', v = QD_DEF;   // ĐÃ CHUYỂN HẲN SANG VPS (19/11/2026). Khẩn cấp quay lại Firebase: thêm ?vps=0 vào link
         try {
-            var m = location.search.match(/[?&]vps=([01])\b/); if (m) localStorage.setItem('qd_be_force', m[1] === '0' ? 'fb' : '');
-            if (localStorage.getItem('qd_be_force') === 'fb') v = 'fb';
+            var m = location.search.match(/[?&]vps=([01])\b/); localStorage.removeItem('qd_be_force'); if (m) sessionStorage.setItem('qd_be_force', m[1] === '0' ? 'fb' : '');
+            if (sessionStorage.getItem('qd_be_force') === 'fb') v = 'fb';   // ?vps=0 chỉ có tác dụng trong tab đang mở (không dính lại lần sau)
             localStorage.removeItem('qd_backend');
             if (localStorage.getItem(k) !== v) { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem(k, v); }   // đổi máy chủ -> đăng nhập lại 1 lần
         } catch (e) {}
