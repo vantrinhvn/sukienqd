@@ -15782,7 +15782,17 @@ window.QDXlsx = (function () {
             box.innerHTML = list.length ? list.map(function (a) { return '<button type="button" data-u="' + esc(a.u) + '" title="Gửi riêng cho ' + esc(a.name || a.u) + '">@' + esc(a.u) + (a.n > 1 ? '<small>' + a.n + ' máy</small>' : '') + '</button>'; }).join('')
                 : '<div class="text-muted text-sm">' + (ACCS.length ? 'Không có ai khớp.' : 'Chưa có ai — người dùng cần cập nhật app bản mới rồi đăng nhập.') + '</div>';
         }
+        function vps() { return !!(SRV && SRV.by === 'vps'); }
+        function devVps() {   // máy chủ VPS: máy đang giữ kết nối nền của app (bản 1.1.0.85 trở lên)
+            var el = $('pushn-devices'), L = (SRV && SRV.linkUsers) || [], dev = 0;
+            ACCS = L.map(function (x) { dev += x.n; return { u: x.u, name: '', n: x.n }; });
+            if (el) el.textContent = dev ? ('Đang có ' + dev + ' máy · ' + ACCS.length + ' tài khoản đang kết nối nhận thông báo.') : 'Chưa có máy nào đang kết nối (cần app bản 1.1.0.85 trở lên + đăng nhập).';
+            $('pushn-n-dev').textContent = dev; $('pushn-n-acc').textContent = ACCS.length;
+            $('pushn-userlist').innerHTML = ACCS.map(function (a) { return '<option value="' + esc(a.u) + '"></option>'; }).join('');
+            accs();
+        }
         function devices() {
+            if (vps()) return devVps();
             var f = fs(), el = $('pushn-devices'); if (!f) return;
             f.collection('accounts').where('pushTokens', '!=', null).get().then(function (q) {
                 var dev = 0; ACCS = [];
@@ -15817,7 +15827,7 @@ window.QDXlsx = (function () {
         var HOOK_RE = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
         function hookUrl() { return String(SRV && (SRV.hook || SRV.hookAuto) || ''); }
         function fast() { return HOOK_RE.test(hookUrl()); }
-        function eta() { return fast() ? 'vài giây' : 'khoảng 1–2 phút'; }
+        function eta() { return vps() || fast() ? 'vài giây' : 'khoảng 1–2 phút'; }
         // Gõ cửa máy chủ: đọc được kết quả (CORS) thì báo rõ, không thì gõ "mù" (no-cors) — máy chủ vẫn chạy
         function ping() {
             var u = hookUrl(); if (!HOOK_RE.test(u)) return Promise.resolve(null);
@@ -15827,6 +15837,7 @@ window.QDXlsx = (function () {
         }
         function hookUi() {
             var inp = $('pushn-hook'), st = $('pushn-hook-st'); if (!inp) return;
+            var card = inp.closest('.card'); if (card) card.hidden = vps();   // VPS gửi ngay, không cần địa chỉ Apps Script
             if (d.activeElement !== inp) inp.value = (SRV && SRV.hook) || '';
             var u = hookUrl();
             if (HOOK_RE.test(u)) st.innerHTML = '<span style="color:#22c55e">⚡ Đang bật</span> — thông báo đến sau vài giây.' + (SRV && !SRV.hook && SRV.hookAuto ? ' <span class="text-muted">(máy chủ tự báo địa chỉ)</span>' : '');
@@ -15854,6 +15865,7 @@ window.QDXlsx = (function () {
             hookUi();
             var el = $('pushn-srv'); if (!el) return;
             var t = SRV && +SRV.lastRun || 0, age = Date.now() - t;
+            if (vps()) { el.innerHTML = (age < 7 * 60000 ? '<span style="color:#22c55e">● Đang chạy</span>' : '<span style="color:#ef4444">● Mất liên lạc</span>') + '<br><span class="text-muted text-xs">Máy chủ VPS · gửi ngay (vài giây) · ' + (+SRV.links || 0) + ' máy đang kết nối</span>'; devVps(); return; }
             if (!t) el.innerHTML = '<span style="color:#f59e0b">⚠ Chưa cài</span><br><span class="text-muted text-xs">Dán bot-server bản srv-9 vào Google Apps Script rồi chạy CAI_DAT.</span>';
             else if (age > 12 * 60000) el.innerHTML = '<span style="color:#ef4444">● Ngưng</span><br><span class="text-muted text-xs">Lần cuối ' + fmt(t) + '. Mở Apps Script chạy lại CAI_DAT.</span>';
             else if (SRV.ok === false) el.innerHTML = '<span style="color:#ef4444">● Có lỗi</span><br><span class="text-muted text-xs">' + esc(SRV.err || '') + '</span>';
@@ -15891,7 +15903,7 @@ window.QDXlsx = (function () {
             ask({ title: title, body: body, image: img(),
                 to: one ? 'Gửi riêng cho <b>@' + esc(user) + '</b>' : 'Gửi đến <b>TẤT CẢ</b> thành viên',
                 note: noDev ? '⚠ @' + esc(user) + ' chưa có máy nào nhận thông báo (chưa cập nhật app hoặc chưa đăng nhập) — thông báo sẽ không đến đâu cả.'
-                    : (dev ? '📱 Sẽ đến <b>' + dev + '</b> máy sau ' + eta() + '.' : 'Chưa có máy nào nhận thông báo.'),
+                    : (dev ? '📱 Sẽ đến <b>' + dev + '</b> máy sau ' + eta() + '.' : 'Chưa có máy nào nhận thông báo.') + (vps() ? '<br><span class="text-muted">Qua máy chủ VPS: máy đang có mạng nhận ngay; máy mất mạng / tắt dưới 10 phút sẽ nhận khi có mạng lại.</span>' : ''),
                 warn: noDev }).then(function (ok) { if (ok) queue(f, title, body, one, user); });
         }
         function queue(f, title, body, one, user) {
@@ -15901,6 +15913,7 @@ window.QDXlsx = (function () {
             f.collection('push_broadcast').add({ title: title, body: body, image: im, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: by || 'admin' }).then(function () {
                 $('pushn-title').value = ''; $('pushn-body').value = ''; $('pushn-img-sel').value = ''; $('pushn-img-url').value = ''; imgSel();
                 btn.disabled = false;
+                if (vps()) { status('✓ Đã gửi qua máy chủ VPS — xem số máy nhận ở "Đã gửi gần đây".', 'ok'); return; }
                 if (fast()) { status('⚡ Đang gửi ngay...'); ping().then(function (r) { status(r && r.ok ? '✓ Đã gửi đi — xem kết quả ở "Đã gửi gần đây".' : '✓ Đã xếp hàng, máy chủ sẽ gửi trong khoảng 1 phút.', 'ok'); }); }
                 else status('✓ Đã xếp hàng. Điện thoại sẽ nhận trong khoảng 1–2 phút — xem kết quả ở "Đã gửi gần đây".', 'ok');
             }).catch(function (e) { status('✗ Không gửi được' + (e && e.code ? ' (' + e.code + ')' : ''), 'err'); btn.disabled = false; });

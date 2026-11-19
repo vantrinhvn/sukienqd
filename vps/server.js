@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-7';
+const VER = 'qd-vps-8';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -810,6 +810,19 @@ function botTick() {
   if (n2 && n2.ts - Date.now() < 20000) setTimeout(botTick, Math.max(0, n2.ts - Date.now() + 500));
 }
 setInterval(botTick, 20000); setTimeout(botTick, 5000);
+
+/* Thông báo app qua VPS: trạng thái cho Admin > Thông báo app (settings/push_server) = máy nào đang giữ kết nối nền (app QDLink) */
+let LINK_SIG = '', LINK_AT = 0;
+function linkTick() {
+  const by = new Map();
+  for (const c of CONNS) if (/^QDLink\//.test(c.ua) && c.u) by.set(c.u, (by.get(c.u) || 0) + 1);
+  const users = [...by.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([u, n]) => ({ u, n })), sig = JSON.stringify(users), now = Date.now();
+  if (sig === LINK_SIG && now - LINK_AT < 5 * 60000) return;
+  LINK_SIG = sig; LINK_AT = now;
+  let links = 0; for (const x of users) links += x.n;
+  try { commit([{ op: 'set', path: 'settings/push_server', data: { by: 'vps', ver: VER, lastRun: now, ok: true, err: '', links, linkUsers: users.slice(0, 2000), hook: '', hookAuto: '' }, merge: true }], null, { local: true }); } catch (e) {}
+}
+setInterval(linkTick, 10000); setTimeout(linkTick, 3000);
 
 /* ---------------------------------- HTTP ---------------------------------- */
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Expose-Headers': 'Content-Disposition' };
