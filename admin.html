@@ -5327,20 +5327,6 @@ html.qd-lite .qd-fx { display: none !important; }
                             Utils.toast("Từ chối truy cập: Tài khoản không có quyền Quản trị.", "error");
                             btn.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right-to-bracket"></i>`; btn.disabled = false;
                         }
-                    } else if (u === 'admin' && p === '123') {
-                        // Fallback for default admin
-                        Auth.handleRememberSave('admin', '123');
-                        State.currentUser = 'admin';
-                        State.currentUserRole = 'admin';
-                        localStorage.setItem('qd_current_username', 'admin');
-                        if (window.QDSession) QDSession.start({ u: 'admin', id: null, role: 'admin' });
-                        setTimeout(() => {
-                            document.getElementById('auth-gate').style.opacity = '0';
-                            setTimeout(() => {
-                                document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex';
-                                Utils.toast("Xác thực quyền Quản trị thành công!", "success"); AdminCore.init();
-                            }, 500);
-                        }, 800);
                     } else {
                         Utils.toast("Từ chối truy cập: Sai tài khoản hoặc mật khẩu.", "error");
                         btn.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right-to-bracket"></i>`; btn.disabled = false;
@@ -5356,6 +5342,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 if (window.QDSession) QDSession.end('logout', true);   // thoát phiên Admin + các trang thành viên đang mở bằng tài khoản này
                 localStorage.removeItem('qd_current_username'); // Đăng xuất thì mất phiên bên user.html luôn
                 localStorage.setItem('qd_adm_autologin', 'false'); // Tắt tự động vào thẳng khi chủ động đăng xuất
+                try { if (window.QDdb && QDdb.logout) QDdb.logout(); } catch (e) {}
                 setTimeout(() => window.location.reload(), 500);
             }
         };
@@ -17029,7 +17016,7 @@ window.QDXlsx = (function () {
                 $('qv-sub').textContent = 'Cập nhật ' + tm(s.now) + ' · tự làm mới 3 giây / lần'; pill(true, 'Đang chạy'); $('qv-alert').hidden = true; paint();
             }).catch(function (e) {
                 pill(false, 'Lỗi'); var al = $('qv-alert'); al.hidden = false; al.className = 'qv-alert';
-                al.innerHTML = e && /Lệnh lạ/.test(e.message || '') ? '⚠️ Máy chủ VPS đang chạy <b>bản cũ (bản 1)</b>, chưa có phần quản trị, chưa có bảo vệ mật khẩu và nút "Cập nhật máy chủ" chưa dùng được.<br>Vào VPS (Termius) gõ đúng 1 lệnh: <code style="background:#0b1220;padding:2px 8px;border-radius:6px;color:#67e8f9">qd update</code> rồi tải lại trang này.' : e && e.code === 'permission-denied' ? '🔒 Chỉ tài khoản <b>Admin</b> (vai trò admin) dùng được mục này. Hãy đăng xuất rồi đăng nhập lại bằng tài khoản Admin.' : '❌ Không lấy được thông tin máy chủ: ' + E((e && (e.message || e.code)) || 'mất kết nối') + '. Kiểm tra VPS còn chạy không (gõ <b>qd status</b> trên VPS).';
+                al.innerHTML = e && /Lệnh lạ/.test(e.message || '') ? '⚠️ Máy chủ VPS đang chạy <b>bản cũ (bản 1)</b>, chưa có phần quản trị, chưa có bảo vệ mật khẩu và nút "Cập nhật máy chủ" chưa dùng được.<br>Vào VPS (Termius) gõ đúng 1 lệnh: <code style="background:#0b1220;padding:2px 8px;border-radius:6px;color:#67e8f9">qd update</code> rồi tải lại trang này.' : e && e.code === 'permission-denied' ? (function () { var w = W.QDdb.who(); return '🔒 Chỉ tài khoản <b>Admin</b> (vai trò admin) dùng được mục này. Máy chủ đang nhận bạn là: <b>' + (w.u ? '@' + E(w.u) + ' · vai trò ' + E(w.role || 'thành viên') : 'chưa đăng nhập (phiên cũ đã hết)') + '</b>.<br>Bấm <a href="#" onclick="try{QDdb.logout()}catch(e){};try{localStorage.removeItem(\'qd_admin_sess\')}catch(e){};setTimeout(function(){location.reload()},300);return false" style="color:#fca5a5;text-decoration:underline;font-weight:700">Đăng nhập lại</a> bằng tài khoản Admin (tạo / đổi mật khẩu trên VPS: <code>qd admin admin MatKhau</code>).'; })() : '❌ Không lấy được thông tin máy chủ: ' + E((e && (e.message || e.code)) || 'mất kết nối') + '. Kiểm tra VPS còn chạy không (gõ <b>qd status</b> trên VPS).';
             });
             W.QDdb.ping().then(function (ms) { pingMs = ms; }).catch(function () {});
         }

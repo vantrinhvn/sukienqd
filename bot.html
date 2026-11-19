@@ -828,7 +828,7 @@
             b.disabled = true; $('g-msg').textContent = '';
             try {
                 var q = await db.collection('accounts').where('user', '==', u).where('pass', '==', p).limit(1).get();
-                var ok = !q.empty || (u === 'admin' && p === '123');
+                var ok = !q.empty;
                 if (!ok) { $('g-msg').textContent = 'Sai tên đăng nhập hoặc mật khẩu.'; return; }
                 var v = await verify(u);
                 if (!v) { $('g-msg').textContent = 'Tài khoản không có quyền Ban Quản Trị.'; return; }
