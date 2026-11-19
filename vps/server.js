@@ -240,7 +240,16 @@ function commit(writes, pre, conn) {
   catch (e) { try { sql.exec('ROLLBACK'); } catch (x) {} for (const { c, id, x } of backup.values()) { if (x) col(c).set(id, x); else col(c).delete(id); } throw e; }
   STAT.w += writes.length;
   notify(changed);
+  for (const c of changed) if (c.col === 'push_broadcast' && !c.del) setTimeout(() => broadcastDone(c.id), 4000);
   return { v: SEQ };
+}
+/* Thông báo Admin soạn (push_broadcast): app Android đang kết nối (dịch vụ QDLink) tự nhận và hiện.
+   Máy chủ đánh dấu đã gửi + đếm số máy đang nhận (thay cho máy chủ Firebase cũ). */
+function broadcastDone(id) {
+  const x = getDoc('push_broadcast/' + id); if (!x || !x.d || x.d.status !== 'pending') return;
+  const t = String(x.d.target || 'all').trim() || 'all', users = new Set(); let dev = 0;
+  for (const c of CONNS) if (/^QDLink\//.test(c.ua) && c.u && (t === 'all' || c.u === t)) { dev++; users.add(c.u); }
+  try { commit([{ op: 'update', path: 'push_broadcast/' + id, data: { status: 'done', sent: dev, failed: 0, devices: dev, users: users.size, doneAt: Date.now(), by: 'vps' } }], null, { local: true }); } catch (e) {}
 }
 
 /* ---------------------------------- NGHE THỜI GIAN THỰC ---------------------------------- */

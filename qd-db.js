@@ -39,12 +39,15 @@
     /* ---------- Xác thực: đăng nhập đúng -> máy chủ cấp mã (60 ngày), lưu trên máy, tự gửi lại mỗi lần kết nối ---------- */
     var AUTH = { u: '', role: '' };
     function tok(v) { try { if (v === null) localStorage.removeItem('qd_tok'); else if (v) localStorage.setItem('qd_tok', v); return localStorage.getItem('qd_tok') || ''; } catch (e) { return ''; } }
+    function link(u) {   // app Android: đưa mã xác thực cho dịch vụ nền của app (nhận tin nhắn / cuộc gọi khi đã tắt app)
+        try { var Q = window.QDNative; if (Q && typeof Q.linkSet === 'function' && !(Q.isBubble && Q.isBubble())) Q.linkSet(u ? URL_ : '', u ? tok() : '', u || ''); } catch (e) {}
+    }
     function sendAuth(t) {
         var m = { op: 'auth', token: t, r: ++seq };
-        pend[m.r] = { ok: function (x) { AUTH.u = x.u; AUTH.role = x.role; }, no: function (e) { if (e && e.code === 'unauthenticated') { tok(null); AUTH.u = AUTH.role = ''; } }, m: m };
+        pend[m.r] = { ok: function (x) { AUTH.u = x.u; AUTH.role = x.role; link(x.u); }, no: function (e) { if (e && e.code === 'unauthenticated') { tok(null); AUTH.u = AUTH.role = ''; link(''); } }, m: m };
         try { ws.send(JSON.stringify(m)); } catch (e) {}
     }
-    function login(u, p) { return req({ op: 'login', u: u, p: p }).then(function (x) { tok(x.token); AUTH.u = x.u; AUTH.role = x.role; return x; }); }
+    function login(u, p) { return req({ op: 'login', u: u, p: p }).then(function (x) { tok(x.token); AUTH.u = x.u; AUTH.role = x.role; link(x.u); return x; }); }
     function req(m) { return new Promise(function (ok, no) { m.r = ++seq; pend[m.r] = { ok: ok, no: no, m: m }; raw(m); }); }
     function onMsg(m) {
         if (m.re) { var p = pend[m.re]; if (!p) return; delete pend[m.re]; if (m.ok) p.ok(m); else p.no(err(m.code || 'unknown', m.message)); return; }
@@ -272,7 +275,7 @@
         beacon: function (writes) { try { var b = new Blob([JSON.stringify({ writes: enc(writes) })], { type: 'text/plain' }); return navigator.sendBeacon(window.QDdb.http + '/api/commit', b); } catch (e) { return false; } },
         status: function () { return { open: open, ever: everOpen, pending: Object.keys(pend).length, subs: Object.keys(subs).length, u: AUTH.u, role: AUTH.role }; },
         login: login,
-        logout: function () { tok(null); AUTH.u = AUTH.role = ''; return req({ op: 'logout' }).catch(function () {}); },
+        logout: function () { tok(null); AUTH.u = AUTH.role = ''; link(''); return req({ op: 'logout' }).catch(function () {}); },
         token: function () { return tok(); },
         who: function () { return { u: AUTH.u, role: AUTH.role }; },
         admin: function (fn, args) { return req(Object.assign({ op: 'admin', fn: fn }, args || {})).then(function (m) { return m.data; }); },

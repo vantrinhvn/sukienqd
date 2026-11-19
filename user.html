@@ -10734,7 +10734,7 @@ html.qd-lite .qd-fx { display: none !important; }
             if (localStorage.getItem(k) !== v) { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem(k, v); }   // đổi máy chủ -> đăng nhập lại 1 lần
         } catch (e) {}
         v = window.QD_BACKEND = v;
-        document.write(v === 'vps' ? '<script src="qd-db.js?v=3"><\/script>'
+        document.write(v === 'vps' ? '<script src="qd-db.js?v=4"><\/script>'
             : '<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"><\/script><script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"><\/script>');
     })();
     </script>
@@ -12064,9 +12064,10 @@ html.qd-lite .qd-fx { display: none !important; }
                     const offUpd = { lastActive: Date.now(), online: false };
                     // App Android: đăng xuất -> máy này thôi nhận thông báo đẩy của tài khoản này
                     if (window.QDPush && window.QDPush.token) { offUpd.pushTokens = firebase.firestore.FieldValue.arrayRemove(window.QDPush.token); try { localStorage.removeItem('qd_push_saved'); } catch (e) {} }
-                    db.collection("accounts").doc(docId).update(offUpd).catch(() => {}).finally(()=>window.location.reload()); 
+                    db.collection("accounts").doc(docId).update(offUpd).catch(() => {}).finally(()=>{ var lo = window.QDdb && QDdb.logout ? QDdb.logout() : null; Promise.resolve(lo).catch(function(){}).then(function(){ window.location.reload(); }); }); 
                 } else {
-                    window.location.reload(); 
+                    try { if (window.QDdb && QDdb.logout) QDdb.logout(); } catch (e) {}
+                    setTimeout(function () { window.location.reload(); }, 150);
                 }
             },
             // Báo "đang hoạt động": khối QD Session tự gửi (45 giây / lần khi đang mở trang và có thao tác); bản dự phòng nếu thiếu khối
