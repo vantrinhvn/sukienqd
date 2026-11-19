@@ -46,9 +46,9 @@ fi
 say "4/6 Tải máy chủ QD"
 id qd >/dev/null 2>&1 || useradd --system --home "$DATA" --shell /usr/sbin/nologin qd
 mkdir -p "$APP" "$DATA/backup"
-curl -fsSL "$REPO_RAW/server.js?t=$(date +%s)" -o "$APP/server.js.new"
-node --check "$APP/server.js.new" || die "Tải server.js lỗi"
-mv "$APP/server.js.new" "$APP/server.js"
+curl -fsSL "$REPO_RAW/server.js?t=$(date +%s)" -o "$APP/server.next.js"
+node --check "$APP/server.next.js" || die "Tải server.js lỗi"
+mv "$APP/server.next.js" "$APP/server.js"
 chown -R qd:qd "$DATA"
 cat > /etc/systemd/system/qd.service <<EOF
 [Unit]
