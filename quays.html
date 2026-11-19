@@ -19,8 +19,7 @@
     window.qdGate = function (code) { return qdSha256('qd-gate|' + String(code || '').trim()) === '22cc0bc97aeead86540c187c39a01014dcec61b5a955312cf0cf69d5bc56440a'; };</script>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="media/qd-logo.png">
-    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="preconnect" href="https://103-77-243-172.sslip.io" crossorigin>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#7a0000">
@@ -526,19 +525,14 @@ html.qd-lite .qd-fx { display: none !important; }
     </div>
 
     <script id="qd-backend">
-    /* Chọn máy chủ dữ liệu: 'vps' = máy chủ riêng trên VPS (qd-db.js) · 'fb' = Firebase cũ.
-       Mặc định: VPS. ?vps=0 = quay lại Firebase (khẩn cấp), ?vps=1 = về lại VPS. */
-    (function () {
-        var QD_DEF = 'vps', k = 'qd_be', v = QD_DEF;   // ĐÃ CHUYỂN HẲN SANG VPS (19/11/2026). Khẩn cấp quay lại Firebase: thêm ?vps=0 vào link
+    /* Máy chủ dữ liệu: VPS (qd-db.js) */
+    (function () {   // dữ liệu chạy trên máy chủ VPS (qd-db.js). Đã bỏ hẳn Firebase.
+        window.QD_BACKEND = 'vps';
         try {
-            var m = location.search.match(/[?&]vps=([01])\b/); localStorage.removeItem('qd_be_force'); if (m) sessionStorage.setItem('qd_be_force', m[1] === '0' ? 'fb' : '');
-            if (sessionStorage.getItem('qd_be_force') === 'fb') v = 'fb';   // ?vps=0 chỉ có tác dụng trong tab đang mở (không dính lại lần sau)
-            localStorage.removeItem('qd_backend');
-            if (localStorage.getItem(k) !== v) { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem(k, v); }   // đổi máy chủ -> đăng nhập lại 1 lần
+            ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
+            if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        v = window.QD_BACKEND = v;
-        document.write(v === 'vps' ? '<script src="qd-db.js?v=6"><\/script>'
-            : '<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"><\/script><script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"><\/script>');
+        document.write('<script src="qd-db.js?v=7"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -1116,13 +1110,6 @@ html.qd-lite .qd-fx { display: none !important; }
             if (e.persisted || !active() || otherTabVisible() || !had || !had.id) return;
             try {
                 if (W.QDdb && W.QDdb.beacon) { W.QDdb.beacon([{ op: 'update', path: 'accounts/' + had.id, data: { online: false, lastActive: idleSent ? since(had) : now() } }]); return; }   // máy chủ VPS
-                var o = firebase.app().options || {};
-                if (!o.projectId || !W.fetch) return;
-                fetch('https://firestore.googleapis.com/v1/projects/' + o.projectId + '/databases/(default)/documents/accounts/' + encodeURIComponent(had.id)
-                    + '?updateMask.fieldPaths=online&updateMask.fieldPaths=lastActive&currentDocument.exists=true' + (o.apiKey ? '&key=' + encodeURIComponent(o.apiKey) : ''), {
-                    method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fields: { online: { booleanValue: false }, lastActive: { integerValue: String(idleSent ? since(had) : now()) } } })
-                }).catch(function () {});
             } catch (er) {}
         });
         W.addEventListener('pageshow', function (e) { if (e.persisted) { check(); ping(true); } });
@@ -1958,7 +1945,7 @@ html.qd-lite .qd-fx { display: none !important; }
         'use strict';
         if (window.__qdNetGuard) return; window.__qdNetGuard = true;
         var box = document.getElementById('qd-net'), title = document.getElementById('qd-net-title'), sub = document.getElementById('qd-net-sub'), btn = document.getElementById('qd-net-retry');
-        var PROBES = ['https://www.gstatic.com/generate_204', 'https://firestore.googleapis.com/', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
+        var PROBES = ['https://www.gstatic.com/generate_204', 'https://103-77-243-172.sslip.io/health', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
         var offline = false, fails = 0, okTimer = null, checking = false;
 
         function probe(url) {

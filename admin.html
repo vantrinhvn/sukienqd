@@ -20,8 +20,7 @@
     <script id="qd-gfx-boot">try{var g=localStorage.getItem("qd_gfx_eff");if(/^(high|mid|low)$/.test(g||""))document.documentElement.setAttribute("data-gfx",g);}catch(e){}</script>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="media/qd-logo.png">
-    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="preconnect" href="https://103-77-243-172.sslip.io" crossorigin>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#121217">
@@ -816,34 +815,14 @@ html.qd-lite .qd-fx { display: none !important; }
         .qgd-box small { color: var(--text-muted); font-size: 12px; margin-bottom: 4px; } .qgd-box label { font-size: 13px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .qgd-box input[type=number] { width: 64px; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--bg-main, transparent); color: var(--text-main); font: inherit; text-align: center; }
         .qgd-k { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(56,189,248,.15); color: #38bdf8; white-space: nowrap; }
-        .qsrv-warn { display: flex; gap: 14px; padding: 18px 22px; border: 1px solid #f59e0b; background: rgba(245,158,11,.08); } .qsrv-warn[hidden] { display: none; }
-        .fsu-card { padding: 18px 22px; margin: 0 0 24px; }
         .qdv-card { padding: 16px 20px; margin: 0 0 24px; } .qdv-card[hidden] { display: none !important; }
         .qdv-hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; } .qdv-hd h3 { margin: 0; font-size: 16px; } .qdv-hd small { font-weight: 500; color: var(--text-muted); font-size: 12.5px; margin-left: 6px; }
         .qdv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
         .qdv-i { padding: 10px 12px; border-radius: 12px; background: var(--bg-elevated); border: 1px solid var(--border-strong); min-width: 0; }
         .qdv-i span { display: block; font-size: 12px; color: var(--text-muted); } .qdv-i b { font-size: 17px; } .qdv-i i { display: block; height: 5px; border-radius: 5px; background: rgba(127,127,127,.2); margin-top: 7px; overflow: hidden; } .qdv-i i em { display: block; height: 100%; border-radius: 5px; }
-        .fsu-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-        .fsu-hd h3 { margin: 0; font-size: 17px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .fsu-hd small { font-size: 12.5px; font-weight: 500; color: var(--text-muted); }
-        .fsu-ic { font-size: 20px; }
         .fsu-btn { font: inherit; font-size: 12.5px; font-weight: 700; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); cursor: pointer; }
         .fsu-btn:disabled { opacity: .5; cursor: default; }
-        .fsu-alert { margin-top: 12px; padding: 10px 14px; border-radius: 12px; font-size: 13.5px; font-weight: 600; line-height: 1.5; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.45); color: #fca5a5; }
-        .fsu-alert.warn { background: rgba(245,158,11,.1); border-color: rgba(245,158,11,.45); color: #fcd34d; } .fsu-alert.info { background: rgba(56,189,248,.08); border-color: rgba(56,189,248,.4); color: #7dd3fc; }
-        .fsu-alert a { color: inherit; font-weight: 800; }
-        .fsu-bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 14px; }
-        .fsu-bar { padding: 12px 14px; border-radius: 14px; background: var(--bg-elevated); border: 1px solid var(--border-strong); }
-        .fsu-bar .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; color: var(--text-muted); font-weight: 700; }
-        .fsu-bar .top b { font-size: 20px; color: var(--text-main); font-variant-numeric: tabular-nums; } .fsu-bar .top b small { font-size: 12px; color: var(--text-muted); font-weight: 600; }
-        .fsu-bar .tr { height: 10px; border-radius: 6px; background: rgba(148,163,184,.18); margin-top: 8px; overflow: hidden; } .fsu-bar .tr i { display: block; height: 100%; border-radius: 6px; }
-        .fsu-bar .ft { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
-        .fsu-chart { display: flex; align-items: flex-end; gap: 3px; height: 70px; margin-top: 16px; padding-top: 6px; }
-        .fsu-chart:empty { display: none; }
-        .fsu-chart span { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #fb923c, #f97316); position: relative; }
-        .fsu-chart span:hover::after { content: attr(data-t); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; background: #000; color: #fff; padding: 3px 6px; border-radius: 6px; margin-bottom: 4px; z-index: 2; }
-        .fsu-note { margin: 10px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
         /* ===== Admin > Máy chủ VPS ===== */
-        body.qvps-on [data-fb-only] { display: none !important; }
         body:not(.qvps-on) .qvps-only { display: none !important; }
         .qv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
         .qv-acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -958,34 +937,6 @@ html.qd-lite .qd-fx { display: none !important; }
         .vsh-play { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 18px; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
         @media (max-width: 600px) { .vsh-row { flex-wrap: wrap; } .vsh-acts { width: 100%; justify-content: flex-start; } }
     </style>
-    <script id="qd-quota-js">
-    /* ===== Firebase hết hạn mức miễn phí trong ngày (resource-exhausted / "Quota exceeded") -> hiện băng thông báo rõ ràng
-       thay vì để trang quay "Đang tải" mãi. Hạn mức đặt lại 0:00 giờ Mỹ (America/Los_Angeles) = 15:00 / 14:00 giờ VN. ===== */
-    (function () {
-        if (window.__qdQuota || window.QD_BACKEND === 'vps') return; window.__qdQuota = 1;   // máy chủ VPS: không có hạn mức Firebase
-        var shown = false, RX = /resource-exhausted|Quota exceeded|quota.*exceed/i;
-        function resetAt() {   // 0:00 kế tiếp theo giờ Los Angeles
-            try {
-                var now = new Date(), la = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })), off = now - la;
-                var next = new Date(la); next.setHours(24, 0, 0, 0); return new Date(next.getTime() + off);
-            } catch (e) { var d = new Date(); d.setHours(15, 0, 0, 0); if (d < new Date()) d.setDate(d.getDate() + 1); return d; }
-        }
-        function show() {
-            if (shown || !document.body) return; shown = true;
-            var t = resetAt(), hm = ('0' + t.getHours()).slice(-2) + ':' + ('0' + t.getMinutes()).slice(-2);
-            var b = document.createElement('div'); b.id = 'qd-quota';
-            b.setAttribute('role', 'alert');
-            b.style.cssText = 'position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:2147483600;display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff;font:600 14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.4);border:1.5px solid #facc15;max-width:560px;margin:0 auto';
-            b.innerHTML = '<span style="font-size:22px;line-height:1">⏳</span><div style="flex:1"><b style="color:#fde68a">Hệ thống tạm quá tải hôm nay</b><br>Máy chủ đã dùng hết lượt truy cập miễn phí trong ngày nên tin nhắn, điểm, đổi quà… tạm ngưng. Tự hoạt động lại lúc <b style="color:#fde68a">' + hm + '</b>. Bạn không mất điểm hay dữ liệu.</div><button type="button" aria-label="Đóng" style="border:0;background:rgba(0,0,0,.25);color:#fff;width:28px;height:28px;border-radius:50%;font-size:15px;cursor:pointer">✕</button>';
-            b.querySelector('button').onclick = function () { b.remove(); setTimeout(function () { shown = false; }, 10 * 60000); };   // đóng: 10 phút sau còn lỗi mới hiện lại
-            document.body.appendChild(b);
-        }
-        function check(x) { try { var s = x && (x.code || x.message || x.reason || x) ; if (s && typeof s === 'object') s = (s.code || '') + ' ' + (s.message || ''); if (RX.test(String(s))) show(); } catch (e) {} }
-        ['error', 'warn', 'log'].forEach(function (k) { var o = console[k]; console[k] = function () { for (var i = 0; i < arguments.length; i++) check(arguments[i]); return o.apply(console, arguments); }; });
-        window.addEventListener('unhandledrejection', function (e) { check(e.reason); });
-        window.qdQuotaShow = show;
-    })();
-    </script>
 </head>
 <body>
 
@@ -1673,16 +1624,6 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="card qdv-card qvps-only" id="qdv-card" hidden>
                         <div class="qdv-hd"><h3>🖥️ Máy chủ VPS <small id="qdv-sub">Đang đọc…</small></h3><button type="button" class="fsu-btn" onclick="UI.navigate('vps')">Mở quản lý <i class="fa-solid fa-arrow-right"></i></button></div>
                         <div class="qdv-grid" id="qdv-grid"></div>
-                    </div>
-                    <div class="card fsu-card" id="fsu-card" data-fb-only>
-                        <div class="fsu-hd">
-                            <h3><span class="fsu-ic">🔥</span> Firebase hôm nay <small id="fsu-sub">Đang tải…</small></h3>
-                            <button type="button" class="fsu-btn" id="fsu-ref" title="Hỏi lại số liệu ngay (tối đa 1 lần / phút)"><i class="fa-solid fa-rotate"></i> Làm mới</button>
-                        </div>
-                        <div class="fsu-alert" id="fsu-alert" hidden></div>
-                        <div class="fsu-bars" id="fsu-bars"></div>
-                        <div class="fsu-chart" id="fsu-chart" aria-label="Lượt ghi theo giờ"></div>
-                        <p class="fsu-note" id="fsu-note"></p>
                     </div>
 
                     <div class="mod-group">
@@ -3907,13 +3848,6 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                         <select id="qcl-month" class="form-control" style="width: auto; min-width: 160px;"></select>
                     </div>
-                    <div class="card mb-6 qsrv-warn" id="qsrv-warn" hidden>
-                        <div style="font-size:28px">📵</div>
-                        <div><b style="font-size:16px">Máy chủ đang chạy bản <span id="qsrv-ver">cũ</span> — chưa đổ chuông được khi người nhận tắt app</b>
-                            <p class="text-sm" style="margin:6px 0 10px">Người gọi sẽ thấy "Người nhận đang tắt app". Cập nhật máy chủ lên <b>srv-11</b> (khoảng 1 phút):</p>
-                            <ol class="text-sm" style="margin:0 0 10px 18px;line-height:1.7"><li>Mở <a href="https://vantrinhvn.github.io/sukienqd/server/" target="_blank" rel="noopener" style="color:var(--brand-primary);font-weight:700">trang lấy mã máy chủ ↗</a> → bấm <b>📋 Sao chép toàn bộ mã</b>.</li><li>Mở <a href="https://script.google.com/home" target="_blank" rel="noopener" style="color:var(--brand-primary);font-weight:700">Google Apps Script ↗</a> → dự án máy chủ bot → tệp mã: xóa hết, dán mã mới, bấm 💾 <b>Lưu</b>.</li><li>Chọn hàm <b>CAI_DAT</b> → bấm <b>▶ Chạy</b> (cho phép quyền nếu Google hỏi).</li><li><b>Triển khai</b> → Quản lý các lần triển khai → ✏️ → <b>Phiên bản mới</b> → Triển khai (để gửi nhanh vài giây).</li></ol>
-                            <span class="text-xs text-muted">Khung này tự ẩn khi máy chủ báo đã lên srv-11 (trong vòng 1 phút).</span></div>
-                    </div>
                     <div class="qcl-stats mb-6" id="qcl-stats"></div>
                     <div class="card mb-6" style="padding: 18px 22px;" id="qcl-turn">
                         <div class="flex justify-between items-center flex-wrap gap-2"><h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-server" style="color: #8b5cf6;"></i> Máy chủ trung chuyển tháng này</h3><a class="text-sm" href="https://www.expressturn.com/" target="_blank" rel="noopener" style="color: var(--brand-primary)">Số chính xác: trang ExpressTURN ↗</a></div>
@@ -4003,10 +3937,6 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                     </div>
 
-                    <div class="card mb-8 qq-card" id="qq-card" data-fb-only style="padding: 18px 22px;">
-                        <div class="flex justify-between items-center flex-wrap gap-2 mb-3"><h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-gauge-high" style="color: #22c55e;"></i> Hạn mức gửi thông báo hôm nay</h3><span class="text-muted text-xs" id="qq-at"></span></div>
-                        <div id="qq-body" class="text-sm text-muted">Đang đọc…</div>
-                    </div>
                     <div class="pushn-stats mb-8">
                         <div class="card pushn-stat"><span class="pushn-k">📱 Máy đang nhận</span><b id="pushn-n-dev">–</b></div>
                         <div class="card pushn-stat"><span class="pushn-k">👥 Tài khoản</span><b id="pushn-n-acc">–</b></div>
@@ -4014,19 +3944,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="card pushn-stat pushn-stat-srv"><span class="pushn-k">🖥️ Máy chủ gửi</span><div id="pushn-srv" class="text-sm" style="line-height: 1.45;">Đang kiểm tra…</div></div>
                     </div>
 
-                    <div class="card mb-8" style="padding: 20px 24px;">
-                        <div class="flex justify-between items-center flex-wrap gap-3">
-                            <div style="flex: 1 1 320px; min-width: 0;">
-                                <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Gửi nhanh (vài giây)</h3>
-                                <p class="text-muted text-sm mt-2 mb-0" id="pushn-hook-st">Dán "URL ứng dụng web" của Apps Script (kết thúc bằng <b>/exec</b>) để thông báo đến gần như tức thì. Không có thì máy chủ gửi theo lịch, chậm tới 1 phút.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-2 mt-4 flex-wrap">
-                            <input id="pushn-hook" class="form-control" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false" style="flex: 1 1 320px; min-width: 0;">
-                            <button type="button" class="btn btn-primary" onclick="QDPushAdmin.saveHook()"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu</button>
-                            <button type="button" class="btn btn-outline" onclick="QDPushAdmin.testHook(this)"><i class="fa-solid fa-bolt mr-2"></i> Thử</button>
-                        </div>
-                    </div>
+                                        </div>
 
                     <div class="card mb-8" style="padding: 20px 24px;">
                         <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-comments" style="color: #3b82f6;"></i> Tự báo tin nhắn lên điện thoại</h3>
@@ -4457,19 +4375,14 @@ html.qd-lite .qd-fx { display: none !important; }
     </div>
 
     <script id="qd-backend">
-    /* Chọn máy chủ dữ liệu: 'vps' = máy chủ riêng trên VPS (qd-db.js) · 'fb' = Firebase cũ.
-       Mặc định: VPS. ?vps=0 = quay lại Firebase (khẩn cấp), ?vps=1 = về lại VPS. */
-    (function () {
-        var QD_DEF = 'vps', k = 'qd_be', v = QD_DEF;   // ĐÃ CHUYỂN HẲN SANG VPS (19/11/2026). Khẩn cấp quay lại Firebase: thêm ?vps=0 vào link
+    /* Máy chủ dữ liệu: VPS (qd-db.js) */
+    (function () {   // dữ liệu chạy trên máy chủ VPS (qd-db.js). Đã bỏ hẳn Firebase.
+        window.QD_BACKEND = 'vps';
         try {
-            var m = location.search.match(/[?&]vps=([01])\b/); localStorage.removeItem('qd_be_force'); if (m) sessionStorage.setItem('qd_be_force', m[1] === '0' ? 'fb' : '');
-            if (sessionStorage.getItem('qd_be_force') === 'fb') v = 'fb';   // ?vps=0 chỉ có tác dụng trong tab đang mở (không dính lại lần sau)
-            localStorage.removeItem('qd_backend');
-            if (localStorage.getItem(k) !== v) { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem(k, v); }   // đổi máy chủ -> đăng nhập lại 1 lần
+            ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
+            if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        v = window.QD_BACKEND = v;
-        document.write(v === 'vps' ? '<script src="qd-db.js?v=6"><\/script>'
-            : '<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"><\/script><script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"><\/script>');
+        document.write('<script src="qd-db.js?v=7"><\/script>');
     })();
     </script>
     <!-- ===== QD SESSION: phiên đăng nhập dùng chung TOÀN HỆ THỐNG + trạng thái hoạt động thời gian thực =====
@@ -4683,13 +4596,6 @@ html.qd-lite .qd-fx { display: none !important; }
             if (e.persisted || !active() || otherTabVisible() || !had || !had.id) return;
             try {
                 if (W.QDdb && W.QDdb.beacon) { W.QDdb.beacon([{ op: 'update', path: 'accounts/' + had.id, data: { online: false, lastActive: idleSent ? since(had) : now() } }]); return; }   // máy chủ VPS
-                var o = firebase.app().options || {};
-                if (!o.projectId || !W.fetch) return;
-                fetch('https://firestore.googleapis.com/v1/projects/' + o.projectId + '/databases/(default)/documents/accounts/' + encodeURIComponent(had.id)
-                    + '?updateMask.fieldPaths=online&updateMask.fieldPaths=lastActive&currentDocument.exists=true' + (o.apiKey ? '&key=' + encodeURIComponent(o.apiKey) : ''), {
-                    method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fields: { online: { booleanValue: false }, lastActive: { integerValue: String(idleSent ? since(had) : now()) } } })
-                }).catch(function () {});
             } catch (er) {}
         });
         W.addEventListener('pageshow', function (e) { if (e.persisted) { check(); ping(true); } });
@@ -8505,7 +8411,7 @@ exportAttendanceExcel: () => {
         'use strict';
         if (window.__qdNetGuard) return; window.__qdNetGuard = true;
         var box = document.getElementById('qd-net'), title = document.getElementById('qd-net-title'), sub = document.getElementById('qd-net-sub'), btn = document.getElementById('qd-net-retry');
-        var PROBES = ['https://www.gstatic.com/generate_204', 'https://firestore.googleapis.com/', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
+        var PROBES = ['https://www.gstatic.com/generate_204', 'https://103-77-243-172.sslip.io/health', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
         var offline = false, fails = 0, okTimer = null, checking = false;
 
         function probe(url) {
@@ -14147,7 +14053,6 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 b.set(ref, { status: 'sent', msgId: mref.id, sentAt: t, counts: comp.counts, text: comp.text.slice(0, 6000) }, { merge: true });
                 await b.commit();
                 emit({ type: 'sent', runId: slot.runId });
-                try { D.collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {}); } catch (e) {}   // gõ cửa máy chủ -> báo cáo hiện lên điện thoại ngay
                 return { ok: true, msgId: mref.id, comp: comp };
             } catch (e) {
                 ref.set({ status: 'error', err: String((e && (e.message || e.code)) || e).slice(0, 200), errAt: Date.now() }, { merge: true }).catch(function () {});
@@ -15801,7 +15706,7 @@ window.QDXlsx = (function () {
             box.innerHTML = list.length ? list.map(function (a) { return '<button type="button" data-u="' + esc(a.u) + '" title="Gửi riêng cho ' + esc(a.name || a.u) + '">@' + esc(a.u) + (a.n > 1 ? '<small>' + a.n + ' máy</small>' : '') + '</button>'; }).join('')
                 : '<div class="text-muted text-sm">' + (ACCS.length ? 'Không có ai khớp.' : 'Chưa có ai — người dùng cần cập nhật app bản mới rồi đăng nhập.') + '</div>';
         }
-        function vps() { return !!(SRV && SRV.by === 'vps'); }
+        function vps() { return true; }   // chỉ còn máy chủ VPS
         function devVps() {   // máy chủ VPS: máy đang giữ kết nối nền của app (bản 1.1.0.85 trở lên)
             var el = $('pushn-devices'), L = (SRV && SRV.linkUsers) || [], dev = 0;
             ACCS = L.map(function (x) { dev += x.n; return { u: x.u, name: '', n: x.n }; });
@@ -15811,17 +15716,7 @@ window.QDXlsx = (function () {
             accs();
         }
         function devices() {
-            if (vps()) return devVps();
-            var f = fs(), el = $('pushn-devices'); if (!f) return;
-            f.collection('accounts').where('pushTokens', '!=', null).get().then(function (q) {
-                var dev = 0; ACCS = [];
-                q.forEach(function (x) { var a = x.data(), t = a.pushTokens; if (Array.isArray(t) && t.length && a.user) { ACCS.push({ u: a.user, name: a.fullName || a.name || '', n: t.length }); dev += t.length; } });
-                ACCS.sort(function (a, b) { return a.u.localeCompare(b.u, 'vi'); });
-                if (el) el.textContent = dev ? ('Đang có ' + dev + ' máy · ' + ACCS.length + ' tài khoản nhận thông báo.') : 'Chưa có máy nào nhận (cần app bản mới + đăng nhập).';
-                $('pushn-n-dev').textContent = dev; $('pushn-n-acc').textContent = ACCS.length;
-                $('pushn-userlist').innerHTML = ACCS.map(function (a) { return '<option value="' + esc(a.u) + '">' + esc(a.name) + '</option>'; }).join('');
-                accs();
-            }).catch(function () { if (el) el.textContent = 'Không đếm được số máy.'; });
+            devVps();
         }
         function result(b) {
             if (!b) return '';
@@ -15843,52 +15738,13 @@ window.QDXlsx = (function () {
                 $('pushn-n-today').textContent = today;
             }, function () {});
         }
-        var HOOK_RE = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
-        function hookUrl() { return String(SRV && (SRV.hook || SRV.hookAuto) || ''); }
-        function fast() { return HOOK_RE.test(hookUrl()); }
-        function eta() { return vps() || fast() ? 'vài giây' : 'khoảng 1–2 phút'; }
-        // Gõ cửa máy chủ: đọc được kết quả (CORS) thì báo rõ, không thì gõ "mù" (no-cors) — máy chủ vẫn chạy
-        function ping() {
-            var u = hookUrl(); if (!HOOK_RE.test(u)) return Promise.resolve(null);
-            return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); })
-                .catch(function () { return fetch(u, { mode: 'no-cors', cache: 'no-store' }).then(function () { return { ok: true, blind: true }; }); })
-                .catch(function () { return { ok: false }; });
-        }
-        function hookUi() {
-            var inp = $('pushn-hook'), st = $('pushn-hook-st'); if (!inp) return;
-            var card = inp.closest('.card'); if (card) card.hidden = vps();   // VPS gửi ngay, không cần địa chỉ Apps Script
-            if (d.activeElement !== inp) inp.value = (SRV && SRV.hook) || '';
-            var u = hookUrl();
-            if (HOOK_RE.test(u)) st.innerHTML = '<span style="color:#22c55e">⚡ Đang bật</span> — thông báo đến sau vài giây.' + (SRV && !SRV.hook && SRV.hookAuto ? ' <span class="text-muted">(máy chủ tự báo địa chỉ)</span>' : '');
-            $('pushn-eta').innerHTML = 'Đến điện thoại sau <b>' + eta() + '</b>.';
-        }
-        function saveHook() {
-            var u = ($('pushn-hook').value || '').trim();
-            if (u && !HOOK_RE.test(u)) return toast('Địa chỉ phải dạng https://script.google.com/macros/s/.../exec', 'error');
-            fs().collection('settings').doc('push_server').set({ hook: u }, { merge: true })
-                .then(function () { toast(u ? 'Đã lưu. Bấm "Thử" để kiểm tra.' : 'Đã bỏ địa chỉ gửi nhanh.', 'success'); })
-                .catch(function (e) { toast('Không lưu được' + (e && e.code ? ' (' + e.code + ')' : ''), 'error'); });
-        }
-        function testHook(btn) {
-            var u = ($('pushn-hook').value || '').trim() || hookUrl();
-            if (!HOOK_RE.test(u)) return toast('Dán địa chỉ /exec rồi bấm Lưu trước.', 'error');
-            btn.disabled = true; var t0 = Date.now();
-            fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (r) {
-                if (r && r.ok) toast('⚡ Máy chủ trả lời sau ' + ((Date.now() - t0) / 1000).toFixed(1) + ' giây (' + (r.ver || '?') + '). Gửi nhanh đã chạy!', 'success');
-                else if (r && r.busy) toast('Máy chủ đang bận gửi lượt khác — vẫn chạy bình thường.', 'success');
-                else toast('Máy chủ báo lỗi: ' + ((r && r.err) || 'không rõ'), 'error');
-            }).catch(function () { toast('Không gọi được địa chỉ này. Kiểm tra lúc Triển khai đã chọn "Bất kỳ ai" (Anyone) và chép đúng URL /exec.', 'error'); })
-                .then(function () { btn.disabled = false; });
-        }
-        function srv() {
-            hookUi();
+        function eta() { return 'vài giây'; }
+        function srv() {   // máy chủ VPS (settings/push_server do máy chủ ghi: by 'vps', links, linkUsers)
             var el = $('pushn-srv'); if (!el) return;
             var t = SRV && +SRV.lastRun || 0, age = Date.now() - t;
-            if (vps()) { el.innerHTML = (age < 7 * 60000 ? '<span style="color:#22c55e">● Đang chạy</span>' : '<span style="color:#ef4444">● Mất liên lạc</span>') + '<br><span class="text-muted text-xs">Máy chủ VPS · gửi ngay (vài giây) · ' + (+SRV.links || 0) + ' máy đang kết nối</span>'; devVps(); return; }
-            if (!t) el.innerHTML = '<span style="color:#f59e0b">⚠ Chưa cài</span><br><span class="text-muted text-xs">Dán bot-server bản srv-9 vào Google Apps Script rồi chạy CAI_DAT.</span>';
-            else if (age > 12 * 60000) el.innerHTML = '<span style="color:#ef4444">● Ngưng</span><br><span class="text-muted text-xs">Lần cuối ' + fmt(t) + '. Mở Apps Script chạy lại CAI_DAT.</span>';
-            else if (SRV.ok === false) el.innerHTML = '<span style="color:#ef4444">● Có lỗi</span><br><span class="text-muted text-xs">' + esc(SRV.err || '') + '</span>';
-            else el.innerHTML = '<span style="color:#22c55e">● Đang chạy</span><br><span class="text-muted text-xs">' + (fast() ? '⚡ Gửi nhanh' : 'Kiểm tra mỗi phút') + (SRV.lastSent ? ' · gửi gần nhất ' + fmt(SRV.lastSent) : '') + (SRV.ver && (+String(SRV.ver).replace(/\D/g, '') || 0) < 11 ? '<br><span style="color:#f59e0b">⚠ Máy chủ đang bản ' + esc(SRV.ver) + ' — cập nhật srv-11 (gọi điện, đếm hạn mức).</span>' : '') + '</span>';
+            el.innerHTML = (t && age < 7 * 60000 ? '<span style="color:#22c55e">● Đang chạy</span>' : '<span style="color:#ef4444">● Mất liên lạc</span>') + '<br><span class="text-muted text-xs">Máy chủ VPS · gửi ngay (vài giây) · ' + (+(SRV && SRV.links) || 0) + ' máy đang kết nối</span>';
+            $('pushn-eta').innerHTML = 'Đến điện thoại sau <b>vài giây</b>.';
+            devVps();
         }
         // Hộp xác nhận theo giao diện Admin (thay hộp hỏi mặc định của trình duyệt)
         var waiting = null;
@@ -15906,7 +15762,6 @@ window.QDXlsx = (function () {
         function setCfg(k, el) {
             var v = !!el.checked, p = {}; p[k] = v; p.updatedAt = Date.now();
             fs().collection('settings').doc('push_config').set(p, { merge: true }).then(function () {
-                if (k === 'general') fs().collection('settings').doc('push_server').set({ general: v }, { merge: true }).catch(function () {});   // trang thành viên biết để gõ cửa máy chủ
                 toast({ private: 'Tin nhắn riêng', mention: '@Nhắc tên', general: 'Mọi tin Kênh Chung', bot: 'Bot báo cáo' }[k] + ': ' + (v ? 'BẬT báo lên điện thoại' : 'TẮT'), 'success');
             }).catch(function (e) { el.checked = !v; toast('Không lưu được' + (e && e.code ? ' (' + e.code + ')' : ''), 'error'); });
         }
@@ -15932,9 +15787,7 @@ window.QDXlsx = (function () {
             f.collection('push_broadcast').add({ title: title, body: body, image: im, target: one ? user : 'all', status: 'pending', createdAt: Date.now(), by: by || 'admin' }).then(function () {
                 $('pushn-title').value = ''; $('pushn-body').value = ''; $('pushn-img-sel').value = ''; $('pushn-img-url').value = ''; imgSel();
                 btn.disabled = false;
-                if (vps()) { status('✓ Đã gửi qua máy chủ VPS — xem số máy nhận ở "Đã gửi gần đây".', 'ok'); return; }
-                if (fast()) { status('⚡ Đang gửi ngay...'); ping().then(function (r) { status(r && r.ok ? '✓ Đã gửi đi — xem kết quả ở "Đã gửi gần đây".' : '✓ Đã xếp hàng, máy chủ sẽ gửi trong khoảng 1 phút.', 'ok'); }); }
-                else status('✓ Đã xếp hàng. Điện thoại sẽ nhận trong khoảng 1–2 phút — xem kết quả ở "Đã gửi gần đây".', 'ok');
+                status('✓ Đã gửi qua máy chủ VPS — xem số máy nhận ở "Đã gửi gần đây".', 'ok');
             }).catch(function (e) { status('✗ Không gửi được' + (e && e.code ? ' (' + e.code + ')' : ''), 'err'); btn.disabled = false; });
         }
         function boot(n) {
@@ -15967,7 +15820,7 @@ window.QDXlsx = (function () {
             UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'apppush') { if (booted) devices(); else boot(0); } return r; };
             var sec = $('view-apppush'); if (sec && sec.classList.contains('active')) boot(0);
         })(0);
-        return { send: send, target: target, devices: devices, accs: accs, pick: pick, answer: answer, saveHook: saveHook, testHook: testHook, setCfg: setCfg, imgSel: imgSel };
+        return { send: send, target: target, devices: devices, accs: accs, pick: pick, answer: answer, setCfg: setCfg, imgSel: imgSel };
     })();
     </script>
     <!-- ===== Bấm ra ngoài (vùng tối quanh hộp thoại) để đóng mọi hộp thoại / tab, không cần bấm nút X ===== -->
@@ -16241,7 +16094,6 @@ window.QDXlsx = (function () {
             var f = fs(); if (!f) return;
             var by = ''; try { by = State.currentUser || ''; } catch (e) {}
             f.collection('push_broadcast').add({ title: '🎬 Video mới: ' + it.title.slice(0, 70), body: it.desc || 'Mở app, vào mục 🎬 Video để xem ngay!', image: QDVid.thumb(it) || '', target: 'all', status: 'pending', createdAt: Date.now(), by: by || 'admin' }).then(function () {
-                f.collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {});
                 toast('Đã xếp hàng gửi thông báo đến app', 'success');
             }).catch(function () { toast('Không gửi được thông báo', 'error'); });
         }
@@ -16462,41 +16314,6 @@ window.QDXlsx = (function () {
         return { reload: function () { if (booted) load(); } };
     })();
 
-    /* ===== Admin > Thông báo app: hạn mức Google hôm nay (máy chủ srv-11 ghi vào settings/push_server.use) ===== */
-    window.QDQuota = (function () {
-        var $ = function (id) { return document.getElementById(id); }, booted = false, SRV = {};
-        function vnDay(t) { return new Date((t || Date.now()) + 7 * 3600000).toISOString().slice(0, 10); }
-        function minsVN() { var d = new Date(Date.now() + 7 * 3600000); return d.getUTCHours() * 60 + d.getUTCMinutes(); }
-        function num(n) { return Math.round(n).toLocaleString('vi-VN'); }
-        function bar(p) { return '<div class="qq-bar' + (p > 90 ? ' bad' : p > 70 ? ' warn' : '') + '"><i style="width:' + Math.min(100, Math.max(p, 1)).toFixed(1) + '%"></i></div>'; }
-        function render() {
-            var u = SRV.use, b = $('qq-body');
-            if (!u) { b.innerHTML = 'Máy chủ chưa gửi số đếm. Cập nhật máy chủ lên <b>srv-11</b> (trang <a href="https://vantrinhvn.github.io/sukienqd/server/" target="_blank" rel="noopener" style="color:var(--brand-primary)">lấy mã máy chủ</a>) để xem còn gửi được bao nhiêu thông báo.<br><span class="text-muted">Firebase (FCM) miễn phí và không giới hạn số tin — giới hạn nằm ở máy chủ Google Apps Script.</span>'; $('qq-at').textContent = ''; return; }
-            var same = u.day === vnDay(), f = same ? +u.f || 0 : 0, n = same ? +u.n || 0 : 0, ms = same ? +u.ms || 0 : 0, limF = +u.limF || 20000, limMs = (+u.limMin || 90) * 60000;
-            var el = Math.max(1, minsVN()), left = Math.max(0, 1440 - el);
-            var bg = Math.max(0, f - n), projF = bg / el * left, canPush = Math.max(0, limF - f - projF);
-            var projMs = ms / el * left, endAt = ms + projMs;
-            var pf = f / limF * 100, pm = ms / limMs * 100;
-            b.innerHTML = '<div class="qq-grid">' +
-                '<div><small class="text-muted">📨 Còn gửi được khoảng</small><div class="qq-big">' + num(canPush) + ' thông báo</div><span class="text-muted">Hôm nay đã gửi ' + num(n) + '. Mỗi máy nhận 1 tin = 1 lượt.</span></div>' +
-                '<div><small class="text-muted">🌐 Lượt gọi mạng (UrlFetch)</small><div><b>' + num(f) + '</b> / ' + num(limF) + '</div>' + bar(pf) + '<span class="text-muted">Máy chủ tự dùng ~' + num(bg / el * 60) + ' lượt/giờ để kiểm tra tin mới.</span></div>' +
-                '<div><small class="text-muted">⏱️ Thời gian chạy hẹn giờ</small><div><b>' + (ms / 60000).toFixed(1) + '</b> / ' + (limMs / 60000) + ' phút</div>' + bar(pm) +
-                (endAt > limMs ? '<span class="qcl-bad">⚠ Dự kiến hết hạn mức trước nửa đêm — máy chủ sẽ tạm ngừng tới khi Google đặt lại.</span>' : '<span class="text-muted">Dự kiến dùng ~' + (endAt / 60000).toFixed(0) + ' phút cả ngày — đủ.</span>') + '</div>' +
-                '</div><p class="text-muted text-xs mt-3 mb-0">Firebase (FCM) miễn phí, không giới hạn số tin; giới hạn là của Google Apps Script (tài khoản Gmail thường). Số đếm làm mới mỗi 5 phút.</p>';
-            $('qq-at').textContent = same ? 'Cập nhật ' + new Date(u.at || 0).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa có số của hôm nay';
-        }
-        function boot() {
-            if (booted || !window.firebase || !firebase.apps || !firebase.apps.length) return; booted = true;
-            firebase.firestore().collection('settings').doc('push_server').onSnapshot(function (d) { SRV = d.exists ? d.data() : {}; render(); }, function () {});
-            setInterval(function () { if (document.getElementById('view-apppush').classList.contains('active')) render(); }, 60000);
-        }
-        (function hook(n) {
-            if (typeof UI === 'undefined' || !UI.navigate) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
-            var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'apppush') boot(); return r; };
-            var sec = document.getElementById('view-apppush'); if (sec && sec.classList.contains('active')) boot();
-        })(0);
-        return { render: render };
-    })();
     </script>
     <script id="qrp-admin-js">
     /* ===== Admin > Cuộc gọi > Báo cáo vi phạm (call_reports) + Lịch sử cảnh báo / khóa gọi (call_warnings) ===== */
@@ -16600,7 +16417,6 @@ window.QDXlsx = (function () {
                 fs().collection('push_broadcast').add({ title: '⚠️ Cảnh báo từ Ban Quản Trị', body: 'Bạn bị báo cáo vì ' + (r.reasonLabel || r.reason) + ' khi gọi' + (ban ? '. Tài khoản bị khóa gọi ' + days + ' ngày.' : '. Tái phạm sẽ bị khóa gọi.'), target: r.reported, status: 'pending', createdAt: Date.now(), by: me() })];
             if (ban) jobs.push(accRef(r.reported).then(function (ref) { if (ref) return ref.update({ callBanUntil: ban }); }));
             Promise.all(jobs).then(function () { toast(ban ? 'Đã khóa gọi @' + r.reported + ' ' + days + ' ngày' : 'Đã gửi cảnh báo cho @' + r.reported, 'success');
-                fs().collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store' }).catch(function () {}); }).catch(function () {});
             }).catch(function (e) { toast('Lỗi: ' + (e && e.code || e), 'error'); });
         }
         function unban(user, wid) {
@@ -16619,72 +16435,6 @@ window.QDXlsx = (function () {
             var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'calls') boot(); return r; };
         })(0);
         return { act: act, unban: unban, unblock: unblock, big: function (src) { var o = $('qrp-img'); o.querySelector('img').src = src; o.hidden = false; } };
-    })();
-    </script>
-    <script id="qsrv-js">
-    /* Admin > Cuộc gọi: máy chủ chưa lên srv-10+ -> hiện hướng dẫn cập nhật (không đổ chuông được khi người nhận tắt app) */
-    (function hook(n) {
-        if (!window.firebase || !firebase.apps || !firebase.apps.length) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
-        firebase.firestore().collection('settings').doc('push_server').onSnapshot(function (d) {
-            var x = d.exists ? d.data() : {}, v = +String(x.ver || '').replace(/\D/g, '') || 0, box = document.getElementById('qsrv-warn'); if (!box) return;
-            box.hidden = v >= 11 || x.by === 'vps' || window.QD_BACKEND === 'vps'; document.getElementById('qsrv-ver').textContent = x.ver ? x.ver : 'cũ (chưa rõ)';
-        }, function () {});
-    })(0);
-    </script>
-        <script id="fsu-js">
-    /* ===== Admin > Tổng quan: "🔥 Firebase hôm nay" — lượt đọc / ghi / xóa Firestore (máy chủ srv-12 lấy từ Google Cloud Monitoring, 10 phút / lần)
-       settings/firestore_usage = { r, w, d, freeR, freeW, freeD, since, resetAt, hours:[{t,r,w,d}], at, ok, err, ver } ===== */
-    (function () {
-        var $ = function (id) { return document.getElementById(id); }, U = null, HOOK = '', SV = 0, started = false;
-        function n(x) { return (+x || 0).toLocaleString('vi-VN'); }
-        function hm(t) { var d = new Date(t); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
-        function left(ms) { var t = Math.round(Math.max(0, ms) / 60000), h = Math.floor(t / 60), m = t % 60; return (h ? h + ' giờ ' : '') + m + ' phút'; }
-        function tone(p) { return p >= .85 ? '#ef4444' : p >= .6 ? '#f59e0b' : '#22c55e'; }
-        function rate(k) {   // tốc độ / giờ: trung bình 2 giờ trọn vẹn gần nhất
-            var H = (U && U.hours) || []; if (H.length < 2) return 0; var L = H.slice(-3, -1); if (!L.length) return 0;
-            return L.reduce(function (a, h) { return a + (+h[k] || 0); }, 0) / L.length;
-        }
-        function bar(lbl, k, free) {
-            var v = +U[k] || 0, p = free ? v / free : 0, r = rate(k), rem = free - v, eta = r > 0 && rem > 0 ? rem / r * 3600e3 : 0, reset = (U.resetAt || 0) - Date.now();
-            var ft = v >= free ? '<b style="color:#ef4444">ĐÃ HẾT</b> — chờ đặt lại' : 'Còn <b>' + n(rem) + '</b>' + (r ? ' · ~' + n(Math.round(r)) + '/giờ' : '') + (eta && eta < reset ? ' · <b style="color:#ef4444">hết sau ~' + left(eta) + '</b>' : '');
-            return '<div class="fsu-bar"><div class="top"><span>' + lbl + '</span><b>' + n(v) + ' <small>/ ' + n(free) + '</small></b></div><div class="tr"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%;background:' + tone(p) + '"></i></div><div class="ft">' + ft + '</div></div>';
-        }
-        function render() {
-            window.__fsUsage = U;
-            var al = $('fsu-alert'), ref = $('fsu-ref');
-            if (ref) ref.disabled = !HOOK;
-            if (!U || !U.at) {
-                $('fsu-sub').textContent = 'chưa có số liệu'; $('fsu-bars').innerHTML = ''; $('fsu-chart').innerHTML = '';
-                al.hidden = false; al.className = 'fsu-alert info';
-                al.innerHTML = 'Máy chủ cần bản <b>srv-12</b> mới đếm được lượt đọc / ghi của Firebase' + (SV ? ' (đang chạy srv-' + SV + ')' : '') + '. Cập nhật: mở <a href="https://vantrinhvn.github.io/sukienqd/server/" target="_blank" rel="noopener">trang lấy mã máy chủ ↗</a> → Sao chép → dán đè vào Apps Script → 💾 Lưu → chọn hàm <b>XEM_LUOT_GHI</b> → ▶ Chạy (cho phép quyền nếu Google hỏi).';
-                $('fsu-note').textContent = ''; return;
-            }
-            var fw = +U.freeW || 20000, fr = +U.freeR || 50000, fd = +U.freeD || 20000, old = Date.now() - U.at > 30 * 60000;
-            $('fsu-sub').textContent = '· cập nhật ' + hm(U.at) + (old ? ' (đã lâu — máy chủ có đang chạy không?)' : '');
-            if (!U.ok) { al.hidden = false; al.className = 'fsu-alert'; al.textContent = '❌ Máy chủ không lấy được số liệu: ' + (U.err || 'lỗi lạ'); }
-            else {
-                var pw = (+U.w || 0) / fw, pr = (+U.r || 0) / fr;
-                if (pw >= 1 || pr >= 1) { al.hidden = false; al.className = 'fsu-alert'; al.innerHTML = '⛔ <b>Đã hết hạn mức ' + (pw >= 1 ? 'GHI' : 'ĐỌC') + ' miễn phí hôm nay.</b> Gửi tin nhắn, đổi quà, rút lì xì, điểm danh… sẽ lỗi tới <b>' + hm(U.resetAt) + '</b> (còn ' + left(U.resetAt - Date.now()) + '). Muốn không bị chặn: nâng Firebase lên gói Blaze (trả theo mức dùng, vượt hạn mức miễn phí mới tính tiền).'; }
-                else if (pw >= .8 || pr >= .8) { al.hidden = false; al.className = 'fsu-alert warn'; al.innerHTML = '⚠️ Sắp hết hạn mức ' + (pw >= .8 ? 'ghi' : 'đọc') + ' miễn phí hôm nay (' + Math.round(Math.max(pw, pr) * 100) + '%). Đặt lại lúc <b>' + hm(U.resetAt) + '</b>.'; }
-                else al.hidden = true;
-            }
-            $('fsu-bars').innerHTML = U.ok ? bar('✍️ Lượt ghi', 'w', fw) + bar('👁️ Lượt đọc', 'r', fr) + bar('🗑️ Lượt xóa', 'd', fd) : '';
-            var H = (U.hours || []).filter(function (h) { return h && h.t; }), mx = Math.max.apply(null, H.map(function (h) { return +h.w || 0; }).concat([1]));
-            $('fsu-chart').innerHTML = U.ok ? H.map(function (h) { return '<span style="height:' + Math.max(3, (+h.w || 0) / mx * 100) + '%" data-t="' + hm(h.t - 3600e3) + '–' + hm(h.t) + ': ' + n(h.w) + ' ghi · ' + n(h.r) + ' đọc"></span>'; }).join('') : '';
-            $('fsu-note').innerHTML = 'Gói miễn phí Spark đặt lại lúc <b>' + hm(U.resetAt) + '</b> mỗi ngày (0:00 giờ Mỹ) — còn ' + left(U.resetAt - Date.now()) + '. Số liệu thật của Google, trễ khoảng 3–5 phút; máy chủ cập nhật 10 phút / lần. Biểu đồ: lượt ghi theo từng giờ (rê chuột / chạm để xem).';
-        }
-        function start() {
-            if (started) return; started = true;
-            var D = firebase.firestore();
-            D.collection('settings').doc('firestore_usage').onSnapshot(function (d) { U = d.exists ? d.data() : null; render(); }, function (e) { $('fsu-sub').textContent = 'không đọc được (' + (e && e.code) + ')'; });
-            D.collection('settings').doc('push_server').onSnapshot(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); HOOK = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u) ? u : ''; SV = +String(x.ver || '').replace(/\D/g, '') || 0; render(); }, function () {});
-            setInterval(render, 60000);
-            $('fsu-ref').addEventListener('click', function () {
-                if (!HOOK) return; var b = this; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang hỏi…';
-                fetch(HOOK + '?usage=1', { mode: 'no-cors', cache: 'no-store' }).catch(function () {}).then(function () { setTimeout(function () { b.innerHTML = '<i class="fa-solid fa-rotate"></i> Làm mới'; b.disabled = false; }, 8000); });
-            });
-        }
-        (function hook(i) { if (window.firebase && firebase.apps && firebase.apps.length) start(); else if (i < 240) setTimeout(function () { hook(i + 1); }, 500); })(0);
     })();
     </script>
 <style id="qk-css">
@@ -16874,13 +16624,10 @@ window.QDXlsx = (function () {
                 { k: 'reports', v: 'calls', e: '🚩', t: 'Báo cáo khi gọi', s: N.reports ? N.reports + ' chờ xử lý' : 'Không có báo cáo mới', n: N.reports, tone: '#ef4444', act: function () { go('calls', 'qrp-card'); } },
                 { k: 'pend', v: 'approvals', e: '🧾', t: 'Phê duyệt tài khoản', s: pend ? pend + ' chờ duyệt' : 'Không có đơn chờ', n: pend, tone: '#6366f1', act: function () { go('approvals'); } },
                 { k: 'idlecfg', v: 'accounts', e: '⏱️', t: 'Tự khóa khi không hoạt động', s: (CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) ? 'Sau ' + hrs(CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) + ' không vào' : 'Đang tắt', tone: '#38bdf8', act: function () { go('accounts', 'cfg-acc-inactivity'); } },
-                window.QD_BACKEND === 'vps' ? null : { k: 'fsu', v: 'dashboard', e: '🔥', t: 'Firebase hôm nay', s: fsuText(), n: fsuPct() == null ? null : fsuPct() + '%', tone: fsuPct() >= 85 ? '#ef4444' : fsuPct() >= 60 ? '#f59e0b' : '#22c55e', act: function () { go('dashboard', 'fsu-card'); } },
                 window.QD_BACKEND === 'vps' ? { k: 'vps', v: 'vps', e: '🖥️', t: 'Máy chủ VPS', s: window.__vpsBrief || 'CPU · RAM · ổ đĩa · sao lưu', tone: '#06b6d4', act: function () { go('vps'); } } : null,
                 { k: 'bot', v: 'calls', e: '🤖', t: 'Bot kiểm soát cuộc gọi', s: 'Ngưỡng & nhật ký bot', tone: '#38bdf8', act: function () { go('calls', 'qgd-card'); } }
             ].filter(function (x) { return x && allowed(x.v); });
         }
-        function fsuPct() { var u = window.__fsUsage; return u && u.ok ? Math.round(Math.max((+u.w || 0) / (+u.freeW || 20000), (+u.r || 0) / (+u.freeR || 50000)) * 100) : null; }
-        function fsuText() { var u = window.__fsUsage; if (!u || !u.at) return 'Cần máy chủ srv-12'; if (!u.ok) return 'Lỗi lấy số liệu'; return (+u.w || 0).toLocaleString('vi-VN') + ' / ' + (+u.freeW || 20000).toLocaleString('vi-VN') + ' lượt ghi'; }
         function hrs(m) { m = +m || 0; return m >= 1440 && m % 1440 === 0 ? (m / 1440) + ' ngày' : m >= 60 ? Math.round(m / 6) / 10 + ' giờ' : m + ' phút'; }
         var TT = [];
         function paint() {

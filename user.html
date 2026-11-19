@@ -20,11 +20,26 @@
     <script id="qd-gfx-boot">try{var g=localStorage.getItem("qd_gfx_eff");if(/^(high|mid|low)$/.test(g||""))document.documentElement.setAttribute("data-gfx",g);}catch(e){}</script>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="media/qd-logo.png">
-    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="preconnect" href="https://103-77-243-172.sslip.io" crossorigin>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#fdebc0">
+    <script id="qd-old-app">
+    /* App Android bản cũ (trước 1.1.0.85, còn nhận thông báo qua Firebase đã bỏ): không còn báo tin nhắn / đổ chuông khi thoát app -> nhắc cập nhật */
+    (function () {
+        var Q = window.QDNative; if (!Q || typeof Q.linkSet === 'function') return;
+        function show() {
+            if (!document.body) return setTimeout(show, 300);
+            try { if (sessionStorage.getItem('qd_old_app_x')) return; } catch (e) {}
+            var b = document.createElement('div');
+            b.style.cssText = 'position:fixed;left:10px;right:10px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:2147483000;background:#b91c1c;color:#fff;border-radius:14px;padding:12px 14px;font:600 13.5px/1.45 system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;gap:10px;align-items:flex-start';
+            b.innerHTML = '<div style="flex:1">⚠️ <b>App của bạn đã cũ.</b> Bản này không còn báo tin nhắn và đổ chuông cuộc gọi khi đã thoát app. Hãy <b>cập nhật app</b>: thoát hẳn app rồi mở lại và bấm <b>Cập nhật</b>, hoặc tải bản mới ở <a href="index.html#tai-app" style="color:#fde68a;text-decoration:underline">trang chủ</a>.</div><button type="button" style="background:none;border:0;color:#fff;font-size:18px;line-height:1;cursor:pointer">✕</button>';
+            b.querySelector('button').onclick = function () { b.remove(); try { sessionStorage.setItem('qd_old_app_x', '1'); } catch (e) {} };
+            document.body.appendChild(b);
+        }
+        setTimeout(show, 4000);
+    })();
+    </script>
     <script id="qd-native-notif">
     /* App Android (WebView không có thông báo của trình duyệt): thay window.Notification + showNotification bằng thông báo Android thật của app
        (window.QDNative.notify, cần bản app có thông báo). Mọi mã thông báo sẵn có (tin nhắn, nhắc tên, quay số trực tiếp...) chạy qua đây. */
@@ -9410,34 +9425,6 @@ html.qd-lite .qd-fx { display: none !important; }
     .rps-mini span, .rps2-hands span, .rps2-slot .rps2-hand, .rps2-picks.ready .rps2-pick, .rps2-fx i, .rps2-res-ico { animation: none !important; }
 }
     </style>
-    <script id="qd-quota-js">
-    /* ===== Firebase hết hạn mức miễn phí trong ngày (resource-exhausted / "Quota exceeded") -> hiện băng thông báo rõ ràng
-       thay vì để trang quay "Đang tải" mãi. Hạn mức đặt lại 0:00 giờ Mỹ (America/Los_Angeles) = 15:00 / 14:00 giờ VN. ===== */
-    (function () {
-        if (window.__qdQuota || window.QD_BACKEND === 'vps') return; window.__qdQuota = 1;   // máy chủ VPS: không có hạn mức Firebase
-        var shown = false, RX = /resource-exhausted|Quota exceeded|quota.*exceed/i;
-        function resetAt() {   // 0:00 kế tiếp theo giờ Los Angeles
-            try {
-                var now = new Date(), la = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })), off = now - la;
-                var next = new Date(la); next.setHours(24, 0, 0, 0); return new Date(next.getTime() + off);
-            } catch (e) { var d = new Date(); d.setHours(15, 0, 0, 0); if (d < new Date()) d.setDate(d.getDate() + 1); return d; }
-        }
-        function show() {
-            if (shown || !document.body) return; shown = true;
-            var t = resetAt(), hm = ('0' + t.getHours()).slice(-2) + ':' + ('0' + t.getMinutes()).slice(-2);
-            var b = document.createElement('div'); b.id = 'qd-quota';
-            b.setAttribute('role', 'alert');
-            b.style.cssText = 'position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:2147483600;display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff;font:600 14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.4);border:1.5px solid #facc15;max-width:560px;margin:0 auto';
-            b.innerHTML = '<span style="font-size:22px;line-height:1">⏳</span><div style="flex:1"><b style="color:#fde68a">Hệ thống tạm quá tải hôm nay</b><br>Máy chủ đã dùng hết lượt truy cập miễn phí trong ngày nên tin nhắn, điểm, đổi quà… tạm ngưng. Tự hoạt động lại lúc <b style="color:#fde68a">' + hm + '</b>. Bạn không mất điểm hay dữ liệu.</div><button type="button" aria-label="Đóng" style="border:0;background:rgba(0,0,0,.25);color:#fff;width:28px;height:28px;border-radius:50%;font-size:15px;cursor:pointer">✕</button>';
-            b.querySelector('button').onclick = function () { b.remove(); setTimeout(function () { shown = false; }, 10 * 60000); };   // đóng: 10 phút sau còn lỗi mới hiện lại
-            document.body.appendChild(b);
-        }
-        function check(x) { try { var s = x && (x.code || x.message || x.reason || x) ; if (s && typeof s === 'object') s = (s.code || '') + ' ' + (s.message || ''); if (RX.test(String(s))) show(); } catch (e) {} }
-        ['error', 'warn', 'log'].forEach(function (k) { var o = console[k]; console[k] = function () { for (var i = 0; i < arguments.length; i++) check(arguments[i]); return o.apply(console, arguments); }; });
-        window.addEventListener('unhandledrejection', function (e) { check(e.reason); });
-        window.qdQuotaShow = show;
-    })();
-    </script>
 </head>
 <body>
     <!-- Màn đăng nhập đặt đầu trang: nền hiện ngay khi mở (lớp phủ cố định, vị trí trong file không ảnh hưởng bố cục) -->
@@ -10723,19 +10710,14 @@ html.qd-lite .qd-fx { display: none !important; }
     <audio id="bg-music" preload="auto"></audio>
 
     <script id="qd-backend">
-    /* Chọn máy chủ dữ liệu: 'vps' = máy chủ riêng trên VPS (qd-db.js) · 'fb' = Firebase cũ.
-       Mặc định: VPS. ?vps=0 = quay lại Firebase (khẩn cấp), ?vps=1 = về lại VPS. */
-    (function () {
-        var QD_DEF = 'vps', k = 'qd_be', v = QD_DEF;   // ĐÃ CHUYỂN HẲN SANG VPS (19/11/2026). Khẩn cấp quay lại Firebase: thêm ?vps=0 vào link
+    /* Máy chủ dữ liệu: VPS (qd-db.js) */
+    (function () {   // dữ liệu chạy trên máy chủ VPS (qd-db.js). Đã bỏ hẳn Firebase.
+        window.QD_BACKEND = 'vps';
         try {
-            var m = location.search.match(/[?&]vps=([01])\b/); localStorage.removeItem('qd_be_force'); if (m) sessionStorage.setItem('qd_be_force', m[1] === '0' ? 'fb' : '');
-            if (sessionStorage.getItem('qd_be_force') === 'fb') v = 'fb';   // ?vps=0 chỉ có tác dụng trong tab đang mở (không dính lại lần sau)
-            localStorage.removeItem('qd_backend');
-            if (localStorage.getItem(k) !== v) { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem(k, v); }   // đổi máy chủ -> đăng nhập lại 1 lần
+            ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
+            if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        v = window.QD_BACKEND = v;
-        document.write(v === 'vps' ? '<script src="qd-db.js?v=6"><\/script>'
-            : '<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"><\/script><script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"><\/script>');
+        document.write('<script src="qd-db.js?v=7"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -11313,13 +11295,6 @@ html.qd-lite .qd-fx { display: none !important; }
             if (e.persisted || !active() || otherTabVisible() || !had || !had.id) return;
             try {
                 if (W.QDdb && W.QDdb.beacon) { W.QDdb.beacon([{ op: 'update', path: 'accounts/' + had.id, data: { online: false, lastActive: idleSent ? since(had) : now() } }]); return; }   // máy chủ VPS
-                var o = firebase.app().options || {};
-                if (!o.projectId || !W.fetch) return;
-                fetch('https://firestore.googleapis.com/v1/projects/' + o.projectId + '/databases/(default)/documents/accounts/' + encodeURIComponent(had.id)
-                    + '?updateMask.fieldPaths=online&updateMask.fieldPaths=lastActive&currentDocument.exists=true' + (o.apiKey ? '&key=' + encodeURIComponent(o.apiKey) : ''), {
-                    method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fields: { online: { booleanValue: false }, lastActive: { integerValue: String(idleSent ? since(had) : now()) } } })
-                }).catch(function () {});
             } catch (er) {}
         });
         W.addEventListener('pageshow', function (e) { if (e.persisted) { check(); ping(true); } });
@@ -12062,8 +12037,6 @@ html.qd-lite .qd-fx { display: none !important; }
                 try { localStorage.removeItem('qd_app_auth'); } catch (e) {}
                 if(docId) { 
                     const offUpd = { lastActive: Date.now(), online: false };
-                    // App Android: đăng xuất -> máy này thôi nhận thông báo đẩy của tài khoản này
-                    if (window.QDPush && window.QDPush.token) { offUpd.pushTokens = firebase.firestore.FieldValue.arrayRemove(window.QDPush.token); try { localStorage.removeItem('qd_push_saved'); } catch (e) {} }
                     db.collection("accounts").doc(docId).update(offUpd).catch(() => {}).finally(()=>{ var lo = window.QDdb && QDdb.logout ? QDdb.logout() : null; Promise.resolve(lo).catch(function(){}).then(function(){ window.location.reload(); }); }); 
                 } else {
                     try { if (window.QDdb && QDdb.logout) QDdb.logout(); } catch (e) {}
@@ -12648,7 +12621,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 const qdMsg = { conversationId: roomId, from: State.currentUser, to: targetUser, text: t, imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [] };
                 if (State.chatTarget === 'general' && window.QDMention) { window.QDMention.close(); const men = window.QDMention.extract(t); if (men.length) qdMsg.mentions = men; }
                 const ping = targetUser !== 'all' || (qdMsg.mentions && qdMsg.mentions.length);
-                db.collection("private_chat").add(qdMsg).then(() => { if (window.QDPushPing) window.QDPushPing(!ping); }).catch(() => {}); 
+                db.collection("private_chat").add(qdMsg).catch(() => {}); 
             },
 
             revokeMsg: (msgId) => {
@@ -12795,7 +12768,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         const targetUser = State.chatTarget === 'general' ? 'all' : State.chatTarget;
                         
                         db.collection("private_chat").add({ conversationId: roomId, from: State.currentUser, to: targetUser, text: "", imageUrl: base64Data, time: Date.now(), read: false, heart: false, readBy: [] })
-                            .then(() => { if (targetUser !== 'all' && window.QDPushPing) window.QDPushPing(); }).catch(() => {});
+                            .catch(() => {});
                         inputElement.value = ""; 
                     };
                     img.src = e.target.result;
@@ -18598,63 +18571,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        /* App Android + Firebase Cloud Messaging: lưu mã nhận thông báo đẩy của máy vào tài khoản đang đăng nhập
-           (accounts/{id}.pushTokens) để máy chủ báo tin nhắn mới cả khi đã tắt app. Máy đổi tài khoản -> gỡ khỏi tài khoản cũ. */
-        /* Gõ cửa máy chủ thông báo (Apps Script "Ứng dụng web") -> báo app Android NGAY, không chờ lịch mỗi phút.
-           Chỉ "nhắc" máy chủ kiểm tra, không gửi nội dung. Địa chỉ ở settings/push_server (hook do Admin dán / hookAuto máy chủ tự ghi). */
-        window.QDPushPing = (function () {
-            var url = null, at = 0, last = 0, timer = null, general = false;
-            function hook() {
-                if (url !== null && Date.now() - at < 10 * 60000) return Promise.resolve(url);
-                if (!window.firebase || !firebase.apps || !firebase.apps.length) return Promise.resolve('');
-                return firebase.firestore().collection('settings').doc('push_server').get().then(function (d) {
-                    var x = d.exists ? d.data() : {}; url = String(x.hook || x.hookAuto || ''); general = x.general === true; at = Date.now(); return url;
-                }).catch(function () { return ''; });
-            }
-            function fire() {
-                last = Date.now();
-                hook().then(function (u) { if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); });
-            }
-            return function (plainGeneral) {   // nhiều tin liên tiếp -> gộp, tối đa 1 lần / 3 giây
-                if (plainGeneral) return hook().then(function () { if (general) go(); });   // tin Kênh Chung thường: chỉ khi Admin bật "Mọi tin Kênh Chung"
-                go();
-            };
-            function go() {
-                var wait = 3000 - (Date.now() - last);
-                if (wait <= 0) return fire();
-                if (!timer) timer = setTimeout(function () { timer = null; fire(); }, wait);
-            };
-        })();
-
-        window.QDPush = (function () {
-            var Q = window.QDNative; if (!Q || typeof Q.pushToken !== 'function') return null;
-            var P = { token: '' }, busy = false;
-            try { P.token = String(Q.pushToken() || ''); } catch (e) {}
-            function save() {
-                var S = window.State, t = P.token;
-                if (busy || !t || !S || !S.currentUser || !S.currentDocId || !window.firebase || !firebase.apps || !firebase.apps.length) return;
-                var key = S.currentUser + '|' + t, me = S.currentDocId;
-                try { if (localStorage.getItem('qd_push_saved') === key) return; } catch (e) {}
-                var fs = firebase.firestore(), FV = firebase.firestore.FieldValue; busy = true;
-                fs.collection('accounts').doc(me).update({ pushTokens: FV.arrayUnion(t), pushAt: Date.now() }).then(function () {
-                    try { localStorage.setItem('qd_push_saved', key); } catch (e) {}
-                    return fs.collection('accounts').where('pushTokens', 'array-contains', t).get().then(function (q) {
-                        q.forEach(function (d) { if (d.id !== me) d.ref.update({ pushTokens: FV.arrayRemove(t) }).catch(function () {}); });
-                    });
-                }).catch(function () {}).then(function () { busy = false; });
-            }
-            window.__qdPushToken = function (t) {
-                t = String(t || ''); if (!t) return;
-                if (t !== P.token) {
-                    var old = P.token, S = window.State; P.token = t; try { localStorage.removeItem('qd_push_saved'); } catch (e) {}
-                    if (old && S && S.currentDocId && window.firebase) firebase.firestore().collection('accounts').doc(S.currentDocId).update({ pushTokens: firebase.firestore.FieldValue.arrayRemove(old) }).catch(function () {}).then(save);   // mã cũ hết hạn -> gỡ
-                }
-                save();
-            };
-            setInterval(save, 4000);
-            Object.defineProperty(P, 'save', { value: save });
-            return P;
-        })();
+        /* Thông báo app: app Android tự giữ kết nối nền tới máy chủ VPS (QDLink) — không còn mã Firebase / máy chủ trung chuyển */
 
         document.addEventListener('DOMContentLoaded', function () {
             window.TetColor.init();
@@ -20430,7 +20347,7 @@ document.addEventListener("DOMContentLoaded", () => {
         'use strict';
         if (window.__qdNetGuard) return; window.__qdNetGuard = true;
         var box = document.getElementById('qd-net'), title = document.getElementById('qd-net-title'), sub = document.getElementById('qd-net-sub'), btn = document.getElementById('qd-net-retry');
-        var PROBES = ['https://www.gstatic.com/generate_204', 'https://firestore.googleapis.com/', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
+        var PROBES = ['https://www.gstatic.com/generate_204', 'https://103-77-243-172.sslip.io/health', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2'];
         var offline = false, fails = 0, okTimer = null, checking = false;
 
         function probe(url) {
@@ -23508,7 +23425,6 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 b.set(ref, { status: 'sent', msgId: mref.id, sentAt: t, counts: comp.counts, text: comp.text.slice(0, 6000) }, { merge: true });
                 await b.commit();
                 emit({ type: 'sent', runId: slot.runId });
-                try { D.collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {}); } catch (e) {}   // gõ cửa máy chủ -> báo cáo hiện lên điện thoại ngay
                 return { ok: true, msgId: mref.id, comp: comp };
             } catch (e) {
                 ref.set({ status: 'error', err: String((e && (e.message || e.code)) || e).slice(0, 200), errAt: Date.now() }, { merge: true }).catch(function () {});
@@ -25978,7 +25894,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         function avatarHTML(u) { var n = nameOf(u); try { if (window.Avatar && Avatar.inner) return Avatar.inner((State.avatars || {})[u], n); } catch (e) {} return window.qdH(String(n || '?').charAt(0).toUpperCase()); }
         function toast(m, t) { try { Utils.toast(m, t || 'info'); } catch (e) {} }
         function supported() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
-        function pingHook() { try { db().collection('settings').doc('push_server').get().then(function (x) { var o = x.exists ? x.data() : {}, u = String(o.hook || o.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {}); } catch (e) {} }
+        function pingHook() {}   // máy chủ VPS tự báo tới app (không còn máy chủ trung chuyển Apps Script)
         function fmt(ms) { var s = Math.max(0, Math.round(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; s = s % 60; return (h ? h + ':' : '') + (h && m < 10 ? '0' : '') + (m < 10 && !h ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
         function iceCfg() { return { iceServers: (cfgIce && cfgIce.length ? [ICE[0], ICE[1]].concat(cfgIce) : ICE), iceCandidatePoolSize: 2 }; }   // có máy chủ riêng (Admin) -> STUN + máy chủ riêng
         /* ---------- Âm báo (tự tạo bằng WebAudio, không cần file) ---------- */
@@ -26195,16 +26111,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
                     return ref.set({ from: me(), to: S.peer, fromName: (State.fullName || me()), toName: nameOf(S.peer), type: S.type, status: 'ringing', created: Date.now(),
                         offer: { type: pc.localDescription.type, sdp: pc.localDescription.sdp }, micFrom: true, camFrom: S.type === 'video' && !S.camOff }).then(function () {
                         S.docReady = true; flushC(); S.unsub = watch(ref.id); pingHook();
-                        // Máy chủ cũ (chưa srv-10) không tự gọi tới điện thoại -> gửi NGAY 1 tin "📞 Mình đang gọi cho bạn…":
-                        // máy chủ nào cũng đẩy tin nhắn lên điện thoại, app (1.1.0.71+) nhận tin đó là đổ chuông cuộc gọi luôn (Nghe / Từ chối), không cần mở app.
                         var s1 = S;
-                        db().collection('settings').doc('push_server').get().then(function (x) { return new Promise(function (r) { setTimeout(function () { r(x); }, 1200); }); }).then(function (x) {   // chờ 1,2 giây: người nhận đang mở app thì đã đổ chuông rồi, khỏi gửi tin
-                            if (S !== s1 || S.answered) return; if (x.exists && x.data().by === 'vps') return;   // máy chủ VPS: app tự đổ chuông qua kết nối nền, không cần tin nhắn kèm
-                            var v = +String((x.exists && x.data().ver) || '').replace(/\D/g, '') || 0;
-                            if (v && v < 10 && !s1.pinged && !S.ringing) {
-                                s1.pinged = true; try { db().collection('private_chat').add({ conversationId: Utils.getRoomId(me(), s1.peer), from: me(), to: s1.peer, text: (s1.type === 'video' ? '📹 Mình đang gọi video cho bạn' : '📞 Mình đang gọi cho bạn') + ' — bấm Nghe để trả lời nhé!', imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [], callPing: true }).then(pingHook, function () {}); } catch (e) {}
-                            }
-                        }).catch(function () {});
                         S.waitT = setTimeout(function () {   // chưa đổ chuông được -> nói rõ đang chờ
                             if (S !== s1 || S.ringing || S.answered) return;
                             S.wmsg = 'Người nhận đang tắt app — đang gọi tới điện thoại…'; st();

@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#b91c1c">
     <meta name="robots" content="noindex, nofollow">
     <title>Bot Báo Cáo - QĐ TLH</title>
-    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://103-77-243-172.sslip.io" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -432,19 +432,14 @@
     <div id="toast" aria-live="polite"></div>
 
     <script id="qd-backend">
-    /* Chọn máy chủ dữ liệu: 'vps' = máy chủ riêng trên VPS (qd-db.js) · 'fb' = Firebase cũ.
-       Mặc định: VPS. ?vps=0 = quay lại Firebase (khẩn cấp), ?vps=1 = về lại VPS. */
-    (function () {
-        var QD_DEF = 'vps', k = 'qd_be', v = QD_DEF;   // ĐÃ CHUYỂN HẲN SANG VPS (19/11/2026). Khẩn cấp quay lại Firebase: thêm ?vps=0 vào link
+    /* Máy chủ dữ liệu: VPS (qd-db.js) */
+    (function () {   // dữ liệu chạy trên máy chủ VPS (qd-db.js). Đã bỏ hẳn Firebase.
+        window.QD_BACKEND = 'vps';
         try {
-            var m = location.search.match(/[?&]vps=([01])\b/); localStorage.removeItem('qd_be_force'); if (m) sessionStorage.setItem('qd_be_force', m[1] === '0' ? 'fb' : '');
-            if (sessionStorage.getItem('qd_be_force') === 'fb') v = 'fb';   // ?vps=0 chỉ có tác dụng trong tab đang mở (không dính lại lần sau)
-            localStorage.removeItem('qd_backend');
-            if (localStorage.getItem(k) !== v) { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem(k, v); }   // đổi máy chủ -> đăng nhập lại 1 lần
+            ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
+            if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        v = window.QD_BACKEND = v;
-        document.write(v === 'vps' ? '<script src="qd-db.js?v=6"><\/script>'
-            : '<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"><\/script><script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"><\/script>');
+        document.write('<script src="qd-db.js?v=7"><\/script>');
     })();
     </script>
     <script>
@@ -698,7 +693,6 @@
                 b.set(ref, { status: 'sent', msgId: mref.id, sentAt: t, counts: comp.counts, text: comp.text.slice(0, 6000) }, { merge: true });
                 await b.commit();
                 emit({ type: 'sent', runId: slot.runId });
-                try { D.collection('settings').doc('push_server').get().then(function (d) { var x = d.exists ? d.data() : {}, u = String(x.hook || x.hookAuto || ''); if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)) fetch(u, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function () {}); }).catch(function () {}); } catch (e) {}   // gõ cửa máy chủ -> báo cáo hiện lên điện thoại ngay
                 return { ok: true, msgId: mref.id, comp: comp };
             } catch (e) {
                 ref.set({ status: 'error', err: String((e && (e.message || e.code)) || e).slice(0, 200), errAt: Date.now() }, { merge: true }).catch(function () {});
