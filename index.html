@@ -725,7 +725,11 @@ html.qd-lite .qd-fx { display: none !important; }
                         </ul>
                         <div class="cta">
                             <a class="btn btn-red appdl-btn" id="appdl-btn" href="#" rel="noopener"><i class="fa-solid fa-download"></i> Tải app</a>
-                            <button type="button" class="btn btn-outline" id="appdl-how-btn"><i class="fa-solid fa-circle-question"></i> Cách cài</button>
+                            <button type="button" class="btn btn-outline" id="appdl-how-btn"><i class="fa-solid fa-circle-play"></i> Video cách cài</button>
+                        </div>
+                        <div class="appdl-vid" id="appdl-vid" hidden>
+                            <video id="appdl-video" controls playsinline preload="none" controlslist="nodownload" poster="https://vantrinhvn.github.io/sukienqd/media/huong-dan-cai-app-poster.jpg" src="https://vantrinhvn.github.io/sukienqd/media/huong-dan-cai-app.mp4"></video>
+                            <div class="appdl-chap"><button type="button" data-t="4.5">🤖 Android</button><button type="button" data-t="42.5">🛡️ Play Protect</button><button type="button" data-t="51.5">📱 Xiaomi · Oppo</button><button type="button" data-t="68.5">🍎 iPhone</button></div>
                         </div>
                         <p class="appdl-ios" id="appdl-ios" hidden><i class="fa-brands fa-apple"></i> App hiện chỉ có cho Android. iPhone dùng trực tiếp trên web (Safari → Chia sẻ → Thêm vào MH chính).</p>
                         <ol class="appdl-how" id="appdl-how" hidden>
@@ -2635,6 +2639,11 @@ html.qd-lite .qd-fx { display: none !important; }
         .appdl-feat i { color: var(--red); width: 20px; text-align: center; margin-right: 4px; }
         .appdl-how { margin: 14px 0 0; padding: 14px 14px 14px 34px; border-radius: 14px; background: rgba(255,255,255,.7); line-height: 1.6; font-size: 14.5px; }
         .appdl-ios { margin: 12px 0 0; font-size: 13.5px; color: #6b4a10; }
+        .appdl-vid { margin: 16px 0 4px; }
+        .appdl-vid video { display: block; width: 100%; max-width: 320px; aspect-ratio: 9 / 16; border-radius: 18px; background: #3a0508; box-shadow: 0 12px 30px rgba(122, 10, 16, .25); }
+        .appdl-chap { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; max-width: 340px; }
+        .appdl-chap button { border: 1px solid #f2d27a; background: #fff8e1; color: #7a0a10; font: inherit; font-size: 13px; font-weight: 700; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+        @media (max-width: 560px) { .appdl-vid video { margin: 0 auto; } .appdl-chap { justify-content: center; margin-left: auto; margin-right: auto; } }
         .appdl-btn.dl-busy { opacity: .7; pointer-events: none; }
         @media (max-width: 560px) { .appdl-card { flex-direction: column; align-items: center; text-align: center; padding: 20px 16px; } .appdl-feat, .appdl-how, .appdl-ios { text-align: left; } .appdl-main .cta { justify-content: center; } }
     </style>
@@ -2645,8 +2654,12 @@ html.qd-lite .qd-fx { display: none !important; }
         var sec = document.getElementById('tai-app'); if (!sec) return;
         sec.hidden = false; var j = document.querySelector('.appdl-jump'); if (j) j.hidden = false;
         var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        if (ios) document.getElementById('appdl-ios').hidden = false;
-        document.getElementById('appdl-how-btn').onclick = function () { var h = document.getElementById('appdl-how'); h.hidden = !h.hidden; };
+        var VB = document.getElementById('appdl-vid'), VV = document.getElementById('appdl-video');
+        function seek(t) { function go() { try { VV.currentTime = t; } catch (e) {} var p = VV.play(); if (p && p.catch) p.catch(function () {}); } if (VV.readyState >= 1) go(); else { VV.preload = 'metadata'; VV.addEventListener('loadedmetadata', go, { once: true }); VV.load(); } }
+        function showHow(play) { VB.hidden = false; document.getElementById('appdl-how').hidden = false; if (play) seek(ios ? 68.5 : 0); }
+        Array.prototype.forEach.call(VB.querySelectorAll('.appdl-chap button'), function (b) { b.onclick = function () { seek(+b.dataset.t); }; });
+        if (ios) { document.getElementById('appdl-ios').hidden = false; VB.hidden = false; }   // iPhone: hiện sẵn video (phần iPhone)
+        document.getElementById('appdl-how-btn').onclick = function () { var open = VB.hidden; VB.hidden = !open; document.getElementById('appdl-how').hidden = !open; if (open) seek(ios ? 68.5 : 0); else VV.pause(); };
         function mb(n) { return (n / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
         function day(t) { var d = new Date(t), p = function (x) { return (x < 10 ? '0' : '') + x; }; return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear(); }
         function get(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw r.status; return r.json(); }); }
@@ -2660,7 +2673,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 btn.innerHTML = '<i class="fa-solid fa-download"></i> Tải app v' + (v.versionName || '') + (v.size ? ' (' + mb(v.size) + ')' : '');
                 document.getElementById('appdl-meta').innerHTML = 'Bản mới nhất: <b>v' + (v.versionName || '?') + '</b>' + (v.time ? ' · cập nhật ' + day(v.time) : '') + (v.size ? ' · ' + mb(v.size) : '');
                 btn.onclick = function () {   // bấm rồi thì nhắc cách cài
-                    var h = document.getElementById('appdl-how'); h.hidden = false;
+                    showHow(false);
                     btn.classList.add('dl-busy'); setTimeout(function () { btn.classList.remove('dl-busy'); }, 4000);
                 };
             })

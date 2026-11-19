@@ -8,7 +8,7 @@ import json, os, subprocess, sys, time
 
 EXTS = ('.html', '.htm', '.js', '.css', '.json', '.txt', '.svg', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.ico',
         '.mp3', '.ogg', '.wav', '.m4a', '.mp4', '.webm', '.woff', '.woff2', '.ttf')
-SKIP = {'app-update.json'}
+SKIP = {'app-update.json', 'media/huong-dan-cai-app.mp4', 'media/huong-dan-cai-app-poster.jpg'}   # video hướng dẫn cài app: chỉ xem trên web, app không cần tải
 
 commit = sys.argv[1] if len(sys.argv) > 1 else subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()
 number = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 0   # số lần chạy (tự tăng mỗi lần đẩy)
