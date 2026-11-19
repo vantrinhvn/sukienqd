@@ -284,8 +284,21 @@
     <div class="toast" id="toast" role="status"></div>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script id="qd-backend">
+    /* Chọn máy chủ dữ liệu: 'vps' = máy chủ riêng trên VPS (qd-db.js) · 'fb' = Firebase cũ.
+       Thử hệ thống mới: thêm ?vps=1 vào link (quay lại Firebase: ?vps=0). Mặc định đổi ở QD_DEF. */
+    (function () {
+        var QD_DEF = 'fb', k = 'qd_backend', v = null;
+        try {
+            var m = location.search.match(/[?&]vps=([01])\b/);
+            if (m) { var nv = m[1] === '1' ? 'vps' : 'fb'; if (localStorage.getItem(k) !== nv) { ['qd_sess', 'qd_current_username', 'qd_admin_sess'].forEach(function (x) { localStorage.removeItem(x); }); } localStorage.setItem(k, nv); }
+            v = localStorage.getItem(k);
+        } catch (e) {}
+        v = window.QD_BACKEND = (v === 'vps' || v === 'fb') ? v : QD_DEF;
+        document.write(v === 'vps' ? '<script src="qd-db.js?v=1"><\/script>'
+            : '<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"><\/script><script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"><\/script>');
+    })();
+    </script>
     <script id="qd-ai-js">
     /* ===== QUÂN SƯ AI =====
        - Bộ hiểu câu hỏi tiếng Việt (có dấu / không dấu / gõ sai 1 chữ / viết tắt: ko, dc, kbb, lx, bqt...)

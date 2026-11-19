@@ -423,8 +423,21 @@ html.qd-lite .qd-fx { display: none !important; }
     <div id="toast" role="status" aria-live="polite"></div>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script id="qd-backend">
+    /* Chọn máy chủ dữ liệu: 'vps' = máy chủ riêng trên VPS (qd-db.js) · 'fb' = Firebase cũ.
+       Thử hệ thống mới: thêm ?vps=1 vào link (quay lại Firebase: ?vps=0). Mặc định đổi ở QD_DEF. */
+    (function () {
+        var QD_DEF = 'fb', k = 'qd_backend', v = null;
+        try {
+            var m = location.search.match(/[?&]vps=([01])\b/);
+            if (m) { var nv = m[1] === '1' ? 'vps' : 'fb'; if (localStorage.getItem(k) !== nv) { ['qd_sess', 'qd_current_username', 'qd_admin_sess'].forEach(function (x) { localStorage.removeItem(x); }); } localStorage.setItem(k, nv); }
+            v = localStorage.getItem(k);
+        } catch (e) {}
+        v = window.QD_BACKEND = (v === 'vps' || v === 'fb') ? v : QD_DEF;
+        document.write(v === 'vps' ? '<script src="qd-db.js?v=1"><\/script>'
+            : '<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"><\/script><script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"><\/script>');
+    })();
+    </script>
     <script id="qd-fast-js">
     /* ===== QD FAST: thao tác dữ liệu nhanh (dùng chung mọi trang) =====
        1. Đọc tức thì: trang đang nghe trực tiếp (onSnapshot) cả 1 bộ sưu tập hoặc 1 tài liệu và đã đồng bộ với máy chủ
@@ -999,6 +1012,7 @@ html.qd-lite .qd-fx { display: none !important; }
         W.addEventListener('pagehide', function (e) {   // đóng tab / rời trang: gửi kèm bản "keepalive" để chắc chắn tới máy chủ
             if (e.persisted || !active() || otherTabVisible() || !had || !had.id) return;
             try {
+                if (W.QDdb && W.QDdb.beacon) { W.QDdb.beacon([{ op: 'update', path: 'accounts/' + had.id, data: { online: false, lastActive: idleSent ? since(had) : now() } }]); return; }   // máy chủ VPS
                 var o = firebase.app().options || {};
                 if (!o.projectId || !W.fetch) return;
                 fetch('https://firestore.googleapis.com/v1/projects/' + o.projectId + '/databases/(default)/documents/accounts/' + encodeURIComponent(had.id)
