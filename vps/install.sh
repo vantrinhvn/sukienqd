@@ -106,8 +106,8 @@ case "${1:-status}" in
       const [u, p] = process.argv.slice(1), now = Date.now();
       fetch("http://127.0.0.1:'$PORT'/api/query", { method: "POST", body: JSON.stringify({ q: { col: "accounts", where: [["user", "==", u]] } }) }).then(r => r.json()).then(r => {
         const id = (r.docs && r.docs[0] && r.docs[0].id) || "admin_" + u.replace(/[^a-zA-Z0-9_]/g, "");
-        const data = r.docs && r.docs[0] ? { pass: p, role: "admin", isBlocked: false } : { user: u, pass: p, role: "admin", fullName: "Ban Quản Trị", points: 0, created_at: now, createdAt: now, lastActive: 0, isBlocked: false };
-        return fetch("http://127.0.0.1:'$PORT'/api/commit", { method: "POST", body: JSON.stringify({ writes: [{ op: "set", path: "accounts/" + id, data, merge: true }] }) }).then(r => r.json()).then(x => console.log(x.ok ? "Đã tạo / cập nhật Admin: " + u : "Lỗi: " + JSON.stringify(x)));
+        const data = r.docs && r.docs[0] ? { pass: p, role: "admin", isBlocked: false, owner: true } : { user: u, pass: p, role: "admin", fullName: "Ban Quản Trị", points: 0, created_at: now, createdAt: now, lastActive: 0, isBlocked: false, owner: true };
+        return fetch("http://127.0.0.1:'$PORT'/api/commit", { method: "POST", body: JSON.stringify({ writes: [{ op: "set", path: "accounts/" + id, data, merge: true }] }) }).then(r => r.json()).then(x => console.log(x.ok ? "Đã tạo / cập nhật Chủ hệ thống (toàn quyền): " + u : "Lỗi: " + JSON.stringify(x)));
       });' "$2" "$3";;
   *) echo "Lệnh: qd status | qd logs | qd backup | qd update | qd admin <tên> <mật khẩu>";;
 esac

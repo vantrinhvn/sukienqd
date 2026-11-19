@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-5';
+const VER = 'qd-vps-6';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -137,7 +137,8 @@ function runQuery(q) {
 /* ---------------------------------- NGƯỜI DÙNG & QUYỀN ---------------------------------- */
 // conn.u = tên đăng nhập (đã xác thực), conn.role = 'admin' | 'manager' | 'user' | ''  · conn.local = gọi từ chính VPS (lệnh qd)
 function findAccount(u) { const m = COLS.get('accounts'); if (!m || !u) return null; for (const [id, x] of m) if (x.d && x.d.user === u) return { id, d: x.d }; return null; }
-function roleOf(u) { const a = findAccount(u); if (!a || a.d.isBlocked === true) return ''; return a.d.role || (u === 'admin' ? 'admin' : 'user'); }
+function roleOf(u) { const a = findAccount(u); if (!a || a.d.isBlocked === true) return ''; return ROLES.has(a.d.role) ? a.d.role : 'user'; }   // vai trò phải ghi rõ (không còn ngoại lệ cho tên 'admin')
+const ROLES = new Set(['user', 'manager', 'admin']);
 const isStaff = c => !!c && (c.local || c.role === 'admin' || c.role === 'manager');
 const isAdmin = c => !!c && (c.local || c.role === 'admin');
 function sign(u) { const body = Buffer.from(JSON.stringify({ u, exp: Date.now() + 60 * 864e5 })).toString('base64url'); return body + '.' + crypto.createHmac('sha256', SECRET).update(body).digest('base64url'); }
@@ -151,15 +152,55 @@ function authConn(conn, u) { conn.u = u; conn.role = roleOf(u); return conn.role
 // Dữ liệu gửi ra: thành viên không thấy mật khẩu
 const HIDE = { accounts: ['pass'], pending_users: ['pass', 'password'] };
 function view(conn, c, d) {
-  const h = HIDE[c]; if (!h || !d || isStaff(conn)) return d;
+  const h = HIDE[c]; if (!h || !d) return d;
+  if (isAdmin(conn)) return d;
+  if (isStaff(conn)) {   // Quản lý: thấy mật khẩu thành viên (để hỗ trợ), KHÔNG thấy mật khẩu Ban Quản Trị khác
+    if (c !== 'accounts' || !(d.role === 'admin' || d.role === 'manager' || d.owner) || d.user === conn.u || d.pass === undefined) return d;
+    const o = Object.assign({}, d); delete o.pass; return o;
+  }
   let o = null; for (const k of h) if (d[k] !== undefined) { if (!o) o = Object.assign({}, d); delete o[k]; }
   return o || d;
 }
 // Luật ghi cho thành viên (Ban Quản Trị không bị giới hạn)
 const SETTINGS_OPEN = new Set(['ai_config']);   // cài đặt thành viên được ghi
 function topKeys(w) { return Object.keys(w.data || {}).map(k => k.split('.')[0]); }
+/* Ban Quản Trị: 3 bậc
+   - Chủ hệ thống (owner: true, đặt bằng lệnh "qd admin" trên VPS hoặc tự nhận khi hệ thống chưa có chủ): không ai trên web hạ quyền / khóa / xóa / đổi mật khẩu được.
+   - Quản trị viên (admin): toàn quyền, cấp / tước quyền người khác (trừ Chủ hệ thống), quản lý máy chủ VPS.
+   - Quản lý (manager): chỉ các chức năng được Admin cấp; không đổi vai trò / quyền của ai, không đụng tài khoản Ban Quản Trị khác,
+     chỉ tạo được tài khoản thành viên, không xem được mật khẩu Ban Quản Trị. */
+const roleNorm = d => (d && ROLES.has(d.role) ? d.role : 'user');
+function simAccount(w, cur, now) {   // tài khoản sau khi ghi (null = bị xóa)
+  if (w.op === 'delete') return null;
+  if (w.op === 'set') return w.merge ? mergeInto(cur ? cur.d : {}, w.data || {}, now) : clean(w.data || {}, now);
+  if (!cur) return null;
+  const d = JSON.parse(JSON.stringify(cur.d)); for (const k of Object.keys(w.data || {})) setPath(d, k, w.data[k], now); return d;
+}
+function checkStaffWrites(conn, writes) {
+  if (conn.local) return;
+  const now = Date.now();
+  for (const w of writes) {
+    const { col: c, id } = splitPath(w.path);
+    if (c !== 'accounts') continue;
+    const cur = (COLS.get(c) || new Map()).get(id), b = cur ? cur.d : null, a = simAccount(w, cur, now);
+    const self = !!(b && b.user === conn.u);
+    if (b && b.owner === true) {   // Chủ hệ thống
+      if (!a) throw err('permission-denied', 'Không xóa được tài khoản Chủ hệ thống');
+      if (a.owner !== true || roleNorm(a) !== 'admin' || a.isBlocked === true || a.user !== b.user) throw err('permission-denied', 'Không hạ quyền / khóa / đổi tên được Chủ hệ thống (chỉ đổi được bằng lệnh qd admin trên VPS)');
+      if (!self && a.pass !== b.pass) throw err('permission-denied', 'Chỉ Chủ hệ thống tự đổi được mật khẩu của mình');
+    } else if (a && a.owner === true) throw err('permission-denied', 'Chủ hệ thống chỉ đặt được bằng lệnh qd admin trên VPS');
+    if (conn.role === 'admin') continue;
+    // Quản lý
+    const rb = roleNorm(b), ra = a ? roleNorm(a) : rb;
+    if (b && (rb === 'admin' || rb === 'manager') && !self) throw err('permission-denied', 'Quản lý không được sửa / khóa / xóa tài khoản Ban Quản Trị khác');
+    if (a && (ra !== rb || JSON.stringify(a.permissions || null) !== JSON.stringify(b ? b.permissions || null : null)) && !(!b && ra === 'user' && !a.permissions))
+      throw err('permission-denied', 'Chỉ Quản trị viên được cấp / đổi vai trò và quyền');
+    if (!b && a && ra !== 'user') throw err('permission-denied', 'Quản lý chỉ tạo được tài khoản thành viên');
+    if (!a && self) throw err('permission-denied', 'Không tự xóa tài khoản của mình');
+  }
+}
 function checkWrites(conn, writes) {
-  if (isStaff(conn)) return;
+  if (isStaff(conn)) return checkStaffWrites(conn, writes);
   for (const w of writes) {
     const { col: c, id } = splitPath(w.path), cur = (COLS.get(c) || new Map()).get(id);
     if (c === 'settings' && !SETTINGS_OPEN.has(id)) throw err('permission-denied', 'Chỉ Ban Quản Trị được sửa cài đặt hệ thống');
@@ -471,7 +512,17 @@ async function admin(conn, m) {
     case 'conns': return [...CONNS].map(c => ({ u: c.u, role: c.role, ip: c.ip, at: c.at, ua: c.ua, subs: [...SUBS].filter(s => s.conn === c).length }));
     case 'restart': setTimeout(() => process.exit(0), 300); return { ok: true };
     case 'update': return { ver: await selfUpdate() };
-    case 'token': return { token: sign(conn.u || 'admin') };   // mã cho đường tải tệp (sao lưu / xuất dữ liệu)
+    case 'token': return { token: sign(conn.u || 'admin') };
+    case 'owner': {   // ai là Chủ hệ thống; claim = true: Admin đang đăng nhập tự nhận khi hệ thống CHƯA có chủ
+      const accs = COLS.get('accounts') || new Map(); let own = null;
+      for (const [id, x] of accs) if (x.d && x.d.owner === true) { own = { id, u: x.d.user }; break; }
+      if (!m.claim) return { owner: own };
+      if (own) throw err('failed-precondition', 'Hệ thống đã có Chủ: @' + own.u);
+      const me = conn.u && findAccount(conn.u); if (!me || roleOf(conn.u) !== 'admin') throw err('permission-denied', 'Chỉ Quản trị viên tự nhận được');
+      commit([{ op: 'update', path: 'accounts/' + me.id, data: { owner: true, ownerAt: Date.now() } }], null, { local: true });
+      console.log('[qd] @' + conn.u + ' nhận làm Chủ hệ thống');
+      return { owner: { id: me.id, u: conn.u } };
+    }   // mã cho đường tải tệp (sao lưu / xuất dữ liệu)
     default: throw err('invalid-argument', 'Lệnh quản trị lạ: ' + m.fn);
   }
 }

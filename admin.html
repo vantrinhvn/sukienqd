@@ -884,6 +884,19 @@ html.qd-lite .qd-fx { display: none !important; }
         .qv-upbar { flex: 1; height: 10px; border-radius: 6px; background: rgba(148,163,184,.18); overflow: hidden; } .qv-upbar i { display: block; height: 100%; width: 0; background: #0891b2; transition: width .2s; }
         .qv-logs { margin: 0; max-height: 520px; overflow: auto; padding: 12px; border-radius: 12px; background: #05080d; color: #cbd5e1; font: 12px/1.55 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
         .qv-tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 800; background: rgba(148,163,184,.15); color: var(--text-muted); white-space: nowrap; }
+        .qr-hd { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; } .qr-ic { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 22px; background: var(--brand-primary-soft); color: var(--brand-primary); flex: none; }
+        .qr-roles { display: grid; gap: 8px; margin-bottom: 14px; }
+        .qr-role { text-align: left; font: inherit; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); cursor: pointer; display: grid; gap: 4px; }
+        .qr-role b { font-size: 14.5px; } .qr-role span { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; }
+        .qr-role.on { border-color: var(--brand-primary); background: var(--brand-primary-soft); } .qr-role[data-r=admin].on { border-color: #ef4444; background: rgba(239,68,68,.08); }
+        .qr-perms { padding: 12px; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-elevated); margin-bottom: 12px; } .qr-perms[hidden] { display: none; }
+        .qr-ph { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; } .qr-ph span { display: flex; gap: 6px; }
+        .qr-mini { font: inherit; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 9px; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-main); cursor: pointer; }
+        .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; max-height: 260px; overflow-y: auto; }
+        .qr-grid label { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 7px 9px; border-radius: 10px; background: var(--bg-surface); border: 1px solid var(--border-strong); cursor: pointer; }
+        .qr-grid label.dis { opacity: .6; cursor: default; }
+        .qr-note { font-size: 12.5px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.5; }
+        .qr-owner { margin-top: 10px; padding: 12px; border-radius: 12px; border: 1px dashed #f59e0b; font-size: 13px; text-align: left; line-height: 1.5; } .qr-owner[hidden] { display: none; }
         .qv-tag.auto { background: rgba(34,197,94,.13); color: #4ade80; } .qv-tag.tay { background: rgba(6,182,212,.13); color: #67e8f9; } .qv-tag.safe { background: rgba(245,158,11,.13); color: #fbbf24; }
         .qv-modal { position: fixed; inset: 0; z-index: 9200; background: rgba(2,6,12,.6); display: flex; align-items: center; justify-content: center; padding: 14px; } .qv-modal[hidden] { display: none; }
         .qv-mbox { width: min(880px, 100%); max-height: 92vh; display: flex; flex-direction: column; border-radius: 18px; background: var(--bg-surface); border: 1px solid var(--border-strong); box-shadow: 0 30px 80px rgba(0,0,0,.5); }
@@ -1339,55 +1352,25 @@ html.qd-lite .qd-fx { display: none !important; }
 
     
     <div class="modal-overlay" id="modal-edit-role">
-        <div class="modal-content text-center" style="max-width: 400px;">
+        <div class="modal-content" style="max-width: 560px; text-align:left">
             <button class="modal-close-btn" onclick="UI.closeModal('modal-edit-role')"><i class="fa-solid fa-xmark"></i></button>
-            <div class="flex-center mx-auto mb-4 bg-primary text-primary" style="width: 70px; height: 70px; border-radius: 50%; font-size: 32px; display: flex; align-items: center; justify-content: center; background: var(--brand-primary-soft);">
-                <i class="fa-solid fa-user-shield"></i>
-            </div>
-            <h2 class="text-2xl mb-2 font-bold">Phân Quyền Hệ Thống</h2>
-            <p class="text-muted text-sm mb-6">Tài khoản: <b class="text-main" id="role-target-name">Unknown</b></p>
+            <div class="qr-hd"><div class="qr-ic"><i class="fa-solid fa-user-shield"></i></div><div><h2 class="text-xl font-bold">Phân quyền tài khoản</h2><p class="text-muted text-sm">Tài khoản: <b class="text-main" id="role-target-name">—</b></p></div></div>
             <input type="hidden" id="role-target-id">
-            
-            <div class="form-group text-left mb-4">
-                <label class="form-label text-sm text-center block">Chọn Nhóm Quyền (Role)</label>
-                <select id="role-select" class="form-control font-bold" style="cursor: pointer; appearance: auto; padding: 16px;" onchange="AdminActions.togglePermissionBox()">
-                    <option value="user">Thành viên (Cơ bản)</option>
-                    <option value="manager">Quản lý (Truy cập Admin)</option>
-                    <option value="admin">Quản trị viên (Toàn quyền)</option>
-                </select>
+            <select id="role-select" hidden><option value="user"></option><option value="manager"></option><option value="admin"></option></select>
+            <div class="qr-roles" id="qr-roles">
+                <button type="button" class="qr-role" data-r="user"><b>👤 Thành viên</b><span>Dùng trang sự kiện: điểm danh, trò chơi, chat, đổi quà. Không vào được Admin.</span></button>
+                <button type="button" class="qr-role" data-r="manager"><b>🧑‍💼 Quản lý</b><span>Vào Admin nhưng <u>chỉ các mục bạn chọn bên dưới</u>. Không cấp quyền cho ai, không đụng tài khoản Ban Quản Trị, không xem mật khẩu Ban Quản Trị, không vào Máy chủ VPS.</span></button>
+                <button type="button" class="qr-role" data-r="admin"><b>🛡️ Quản trị viên</b><span><u>Toàn quyền</u>: mọi mục trong Admin, cấp / tước quyền người khác, Máy chủ VPS (sao lưu, khôi phục, sửa dữ liệu). Chỉ cấp cho người thật sự tin tưởng.</span></button>
             </div>
-            <div id="permission-box" class="text-left mb-6 hidden" style="background: var(--bg-elevated); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border-strong);">
-                <label class="form-label text-sm mb-3 text-primary"><i class="fa-solid fa-list-check mr-1"></i> Phân quyền chức năng</label>
-                <div style="max-height: 200px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <label class="flex items-center gap-2 cursor-pointer text-sm text-muted"><input type="checkbox" class="perm-cb" value="dashboard" checked disabled> Tổng quan</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="attendance"> Điểm Danh</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="registration"> Đăng Ký ID</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="pointshop"> Cửa Hàng</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="tournament"> Giải Đấu</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="luckynumber"> Quay Số</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="wheel"> Vòng Quay</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="tranhthuong"> Rút Lì Xì</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="lixi"> Lì Xì</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="rps"> Kéo Búa</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="nemcon"> Ném Còn</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="invite"> Mã Mời</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="transfer"> Tặng Lượt</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="payout"> Trả Thưởng</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="security"> Chống Gian Lận</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="news"> Bản Tin</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="reportbot"> Bot Báo Cáo</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="apppush"> Thông Báo App</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="videos"> Chia Sẻ Video</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="calls"> Cuộc Gọi</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="gifts"> Quà Toàn Hệ Thống</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-sm"><input type="checkbox" class="perm-cb" value="approvals"> Phê Duyệt TK</label>
-                </div>
+            <div id="permission-box" class="qr-perms" hidden>
+                <div class="qr-ph"><b><i class="fa-solid fa-list-check"></i> Mục Quản lý được dùng</b><span><button type="button" class="qr-mini" id="qr-all">Chọn hết</button><button type="button" class="qr-mini" id="qr-none">Bỏ hết</button></span></div>
+                <div class="qr-grid" id="qr-grid"></div>
             </div>
-            <button class="btn btn-primary w-full" id="btn-save-role" onclick="AdminActions.saveRole()" style="padding: 16px;"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu Cập Nhật</button>
+            <p class="qr-note">👑 <b>Chủ hệ thống</b> (tài khoản tạo bằng lệnh <code>qd admin</code> trên VPS) luôn toàn quyền, không ai trên web hạ quyền / khóa / xóa được.</p>
+            <button class="btn btn-primary w-full" id="btn-save-role" onclick="AdminActions.saveRole()" style="padding: 14px;"><i class="fa-solid fa-floppy-disk mr-2"></i> Lưu phân quyền</button>
         </div>
     </div>
 
-    
     <div class="modal-overlay" id="modal-admin-profile">
         <div class="modal-content text-center" style="max-width: 400px;">
             <button class="modal-close-btn" onclick="UI.closeModal('modal-admin-profile')"><i class="fa-solid fa-xmark"></i></button>
@@ -1408,6 +1391,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <span class="text-danger font-bold" id="admin-profile-role-text">Toàn quyền hệ thống</span>
                 </div>
             </div>
+            <div class="qr-owner" id="qr-owner" hidden></div>
             <div data-qd-ver="full"></div>
             <button class="btn btn-danger w-full" onclick="UI.closeModal('modal-admin-profile'); UI.openModal('modal-logout')"><i class="fa-solid fa-power-off mr-2"></i> Đăng Xuất An Toàn</button>
         </div>
@@ -5307,7 +5291,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 db.collection("accounts").where("user", "==", u).where("pass", "==", p).get().then(snap => {
                     if(!snap.empty) {
                         const userData = snap.docs[0].data();
-                        const userRole = userData.role || (u === 'admin' ? 'admin' : 'user');
+                        const userRole = (userData.role === 'admin' || userData.role === 'manager') ? userData.role : 'user';
+                        State.isOwner = userData.owner === true;
                         if (userRole === 'admin' || userRole === 'manager') {
                             Auth.handleRememberSave(u, p);
                             State.currentUser = u;
@@ -6349,11 +6334,12 @@ const QVis = {
                 };
 
                 // Lắng nghe thay đổi quyền hạn liên tục từ Database
-                if (State.currentUser !== 'admin') {
+                if (State.currentUser) {
                     db.collection("accounts").where("user", "==", State.currentUser).onSnapshot(snap => {
                         if (!snap.empty) {
                             const myData = snap.docs[0].data();
-                            const myRole = myData.role || 'user';
+                            const myRole = (myData.role === 'admin' || myData.role === 'manager') ? myData.role : 'user';
+                            State.isOwner = myData.owner === true;
                             const myPerms = myData.permissions || ['dashboard', 'attendance', 'registration'];
                             
                             State.currentUserRole = myRole;
@@ -6924,13 +6910,19 @@ const QVis = {
                         const lockBtnBg = isBlocked ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)';
                         const lockBtnTitle = isBlocked ? 'Mở Khóa Tài Khoản' : 'Tạm Khóa Tài Khoản';
                         
-                        const uRole = d.role || (d.user === 'admin' ? 'admin' : 'user');
+                        const uRole = (d.role === 'admin' || d.role === 'manager') ? d.role : 'user';
+                        const isOwnerRow = d.owner === true, isMe = d.user === State.currentUser, meAdmin = State.currentUserRole === 'admin';
+                        const canEdit = isMe ? false : (meAdmin ? !isOwnerRow : uRole === 'user');   // Quản lý chỉ thao tác trên tài khoản thành viên; không ai đụng Chủ hệ thống
                         const uPerms = d.permissions ? d.permissions.join(',') : '';
                         let roleHtml = '<span class="text-xs text-muted">Thành viên</span>';
                         let roleIcon = 'fa-user';
                         let roleColor = 'text-muted';
                         
-                        if(uRole === 'admin') {
+                        if (isOwnerRow) {
+                            roleHtml = '<span class="text-xs font-bold" style="color:#f59e0b">👑 Chủ hệ thống</span>';
+                            roleIcon = 'fa-crown';
+                            roleColor = 'text-warning';
+                        } else if(uRole === 'admin') {
                             roleHtml = '<span class="text-xs font-bold text-danger">Quản trị viên</span>';
                             roleIcon = 'fa-user-shield';
                             roleColor = 'text-danger';
@@ -6953,18 +6945,18 @@ const QVis = {
                                     </div>
                                 </div>
                             </td>
-                            <td style="font-family: var(--font-family-mono); letter-spacing: 1px;"><span class="pw-mask" tabindex="0" role="button" title="Bấm để xem / ẩn mật khẩu" data-pw="${qdH(d.pass)}" onclick="var s=this;s.textContent=s.textContent.indexOf('•')===0?s.dataset.pw:'••••••'">••••••</span></td>
+                            <td style="font-family: var(--font-family-mono); letter-spacing: 1px;">${d.pass === undefined ? '<span class="text-muted text-xs" title="Quản lý không xem được mật khẩu Ban Quản Trị">🔒 ẩn</span>' : `<span class="pw-mask" tabindex="0" role="button" title="Bấm để xem / ẩn mật khẩu" data-pw="${qdH(d.pass)}" onclick="var s=this;s.textContent=s.textContent.indexOf('•')===0?s.dataset.pw:'••••••'">••••••</span>`}</td>
                             <td class="text-center"><button type="button" class="wl-cell" onclick="AccWallet.open('${doc.id}')" title="Xem ví giải trí: điểm và các loại lượt">
                                 <span class="wl-c pts" title="Điểm lì xì">💰 ${pointCount}</span><span class="wl-c spn" title="Lượt vòng quay">🎡 ${spinCount}</span><span class="wl-c tkt" title="Lượt rút lì xì">🧧 ${ticketCount}</span><span class="wl-c con" title="Lượt ném còn">🎯 ${conCount}</span>
                             </button></td>
                             <td>${statusHtml}</td>
                             <td class="text-right flex justify-end flex-wrap gap-1">
                                 <button class="btn-icon" style="color: var(--color-info); border-color: rgba(14, 165, 233, 0.3);" onclick="AdminActions.viewUserHistory('${qdJ(d.user)}')" title="Xem Lịch sử Biến động Dữ liệu"><i class="fa-solid fa-clock-rotate-left"></i></button>
-                                <button class="btn-icon" style="color: var(--brand-primary); border-color: var(--brand-primary-soft);" onclick="AdminActions.openRoleModal('${doc.id}', '${qdJ(d.user)}', '${uRole}', '${uPerms}')" title="Cấp Nhóm Quyền"><i class="fa-solid fa-id-card-clip"></i></button>
+                                ${meAdmin && canEdit ? `<button class="btn-icon" style="color: var(--brand-primary); border-color: var(--brand-primary-soft);" onclick="AdminActions.openRoleModal('${doc.id}', '${qdJ(d.user)}', '${uRole}', '${uPerms}')" title="Phân quyền: Thành viên / Quản lý / Quản trị viên"><i class="fa-solid fa-id-card-clip"></i></button>` : ''}
                                 <button class="btn-icon" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.3);" onclick="AdminActions.openSpinModal('${doc.id}', '${qdJ(d.user)}')" title="Cấp Lượt Giải Trí / Điểm"><i class="fa-solid fa-gift"></i></button>
-                                <button class="btn-icon acc-kick-btn" style="color: var(--color-danger); border-color: rgba(190, 18, 60, 0.3);" onclick="AdminActions.kickUser('${doc.id}', '${qdJ(d.user)}', this)" title="Đá ra khỏi hệ thống (đăng xuất mọi trang / thiết bị đang mở)"><i class="fa-solid fa-right-from-bracket"></i></button>
+                                ${canEdit ? '' : '<!--'}<button class="btn-icon acc-kick-btn" style="color: var(--color-danger); border-color: rgba(190, 18, 60, 0.3);" onclick="AdminActions.kickUser('${doc.id}', '${qdJ(d.user)}', this)" title="Đá ra khỏi hệ thống (đăng xuất mọi trang / thiết bị đang mở)"><i class="fa-solid fa-right-from-bracket"></i></button>
                                 <button class="btn-icon" style="color: ${lockBtnColor}; border-color: ${lockBtnColor}; background: ${lockBtnBg};" onclick="AdminActions.toggleLock('${doc.id}', ${isBlocked}, '${qdJ(d.user)}')" title="${lockBtnTitle}"><i class="fa-solid ${lockBtnIcon}"></i></button>
-                                <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('accounts', '${doc.id}', 'Hành động này sẽ XÓA VĨNH VIỄN tài khoản <b>${qdJ(qdH(d.user))}</b>.')" title="Xóa Tài Khoản"><i class="fa-solid fa-trash"></i></button>
+                                <button class="btn-icon" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);" onclick="AdminActions.requestDelete('accounts', '${doc.id}', 'Hành động này sẽ XÓA VĨNH VIỄN tài khoản <b>${qdJ(qdH(d.user))}</b>.')" title="Xóa Tài Khoản"><i class="fa-solid fa-trash"></i></button>${canEdit ? '' : '-->'}
                             </td>
                         </tr>`);
                     });
@@ -16957,6 +16949,81 @@ window.QDXlsx = (function () {
         $('qk-list').addEventListener('click', function (e) { var b = e.target.closest('.go'); if (b) one(b.dataset.id); });
         $('qk-bulk').addEventListener('click', bulk);
         window.QDQuick = { open: function () { menu(true); }, locked: openDrawer, go: go };
+    })();
+    </script>
+    <script id="qd-roles-js">
+    /* ===== Phân quyền 3 bậc: Thành viên · Quản lý (chỉ mục được chọn) · Quản trị viên (toàn quyền) + Chủ hệ thống (qd admin trên VPS).
+       Máy chủ VPS kiểm tra lại mọi lệnh ghi (vps/server.js: checkStaffWrites) — giao diện chỉ để dễ dùng. ===== */
+    (function () {
+        var $ = function (id) { return document.getElementById(id); }, W = window;
+        var E = function (x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        function toast(m, t) { try { Utils.toast(m, t || 'info'); } catch (e) {} }
+        function views() {   // các mục Admin lấy từ menu (tự có mục mới), bỏ Tổng quan (luôn có) và Máy chủ VPS (chỉ Quản trị viên)
+            var out = [], seen = {};
+            document.querySelectorAll('.nav-item[onclick*="UI.navigate("]').forEach(function (n) {
+                var m = /UI\.navigate\('([a-z0-9_]+)'/.exec(n.getAttribute('onclick') || ''); if (!m || seen[m[1]] || m[1] === 'dashboard' || m[1] === 'vps') return;
+                seen[m[1]] = 1; var c = n.cloneNode(true); c.querySelectorAll('[class*=badge],[class*=cnt],[class*=count],[id]').forEach(function (x) { if (x.children.length === 0 && /^\s*\d*\s*$/.test(x.textContent)) x.remove(); }); out.push({ v: m[1], t: (c.textContent || m[1]).replace(/\s+/g, ' ').trim().replace(/\s*\d+$/, '') });
+            });
+            return out;
+        }
+        var CUR = { role: 'user' };
+        function pick(r) {
+            CUR.role = r; $('role-select').value = r;
+            document.querySelectorAll('#qr-roles .qr-role').forEach(function (b) { b.classList.toggle('on', b.dataset.r === r); });
+            $('permission-box').hidden = r !== 'manager';
+        }
+        function waitAA(fn, n) { if (typeof AdminActions !== 'undefined') return fn(); if ((n || 0) < 200) setTimeout(function () { waitAA(fn, (n || 0) + 1); }, 100); }
+        waitAA(function () {
+            var AA = AdminActions;
+            AA.togglePermissionBox = function () { pick($('role-select').value); };
+            AA.openRoleModal = function (docId, username, currentRole, currentPerms) {
+                if (State.currentUserRole !== 'admin') return toast('Chỉ Quản trị viên được phân quyền.', 'error');
+                if (username === State.currentUser) return toast('Không tự đổi quyền của chính mình — nhờ Quản trị viên khác.', 'warning');
+                $('role-target-id').value = docId; $('role-target-name').textContent = username;
+                var perms = String(currentPerms || '').split(',').filter(Boolean);
+                $('qr-grid').innerHTML = views().map(function (x) { return '<label><input type="checkbox" class="perm-cb" value="' + E(x.v) + '"' + (perms.indexOf(x.v) >= 0 ? ' checked' : '') + '> ' + E(x.t) + '</label>'; }).join('');
+                pick(currentRole === 'admin' || currentRole === 'manager' ? currentRole : 'user');
+                UI.openModal('modal-edit-role');
+            };
+            AA.saveRole = function () {
+                var id = $('role-target-id').value, r = CUR.role, u = $('role-target-name').textContent, btn = $('btn-save-role');
+                if (!id) return toast('ID tài khoản không hợp lệ.', 'error');
+                var perms = r === 'admin' ? ['all'] : r === 'manager' ? ['dashboard'].concat([].map.call(document.querySelectorAll('#qr-grid .perm-cb:checked'), function (c) { return c.value; })) : [];
+                if (r === 'manager' && perms.length < 2) return toast('Chọn ít nhất 1 mục cho Quản lý.', 'warning');
+                var go = function () {
+                    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang lưu…';
+                    db.collection('accounts').doc(id).update({ role: r, permissions: perms, roleBy: State.currentUser, roleAt: Date.now() })
+                        .then(function () { toast('Đã đặt @' + u + ' là ' + (r === 'admin' ? 'Quản trị viên (toàn quyền)' : r === 'manager' ? 'Quản lý (' + (perms.length - 1) + ' mục)' : 'Thành viên'), 'success'); UI.closeModal('modal-edit-role'); })
+                        .catch(function (e) { toast('Không lưu được: ' + (e && e.message || e), 'error'); })
+                        .then(function () { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i> Lưu phân quyền'; });
+                };
+                if (r === 'admin' && W.qdAsk) W.qdAsk({ title: 'Cấp TOÀN QUYỀN?', icon: '🛡️', tone: 'warn', ok: 'Cấp toàn quyền', html: '<b>@' + E(u) + '</b> sẽ làm được mọi thứ như bạn: cấp / tước quyền, xóa dữ liệu, sao lưu / khôi phục máy chủ.' }).then(function (y) { if (y) go(); });
+                else go();
+            };
+            AA.openAdminProfile = function () {
+                var u = State.currentUser || '', r = State.currentUserRole, perms = State.currentUserPerms || [];
+                $('admin-greeting').textContent = 'Xin chào, ' + u + '!'; $('admin-profile-name').textContent = u;
+                var badge = $('admin-role-badge'), rt = $('admin-profile-role-text'), ow = $('qr-owner');
+                if (State.isOwner) { badge.innerHTML = '👑 Chủ hệ thống'; badge.className = 'badge badge-danger mb-6 px-4 py-2 text-sm'; rt.textContent = 'Toàn quyền · không ai hạ quyền được'; rt.className = 'text-danger font-bold'; }
+                else if (r === 'admin') { badge.innerHTML = '<i class="fa-solid fa-shield-check mr-1"></i> Quản trị viên'; badge.className = 'badge badge-danger mb-6 px-4 py-2 text-sm'; rt.textContent = 'Toàn quyền hệ thống'; rt.className = 'text-danger font-bold'; }
+                else { badge.innerHTML = '<i class="fa-solid fa-user-tie mr-1"></i> Quản lý'; badge.className = 'badge badge-online mb-6 px-4 py-2 text-sm'; rt.textContent = 'Quản lý · ' + Math.max(0, perms.filter(function (p) { return p !== 'dashboard'; }).length) + ' mục được cấp'; rt.className = 'text-primary font-bold'; }
+                ow.hidden = true;
+                if (r === 'admin' && !State.isOwner && W.QDdb && W.QDdb.admin) W.QDdb.admin('owner').then(function (x) {
+                    if (x && x.owner) { ow.hidden = false; ow.innerHTML = '👑 Chủ hệ thống: <b>@' + E(x.owner.u) + '</b>'; return; }
+                    ow.hidden = false; ow.innerHTML = '👑 Hệ thống <b>chưa có Chủ</b>. Chủ hệ thống luôn toàn quyền, không ai trên web hạ quyền / khóa / xóa được.<br><button type="button" class="qr-mini" id="qr-claim" style="margin-top:8px">👑 Nhận tôi làm Chủ hệ thống</button>';
+                    $('qr-claim').onclick = function () {
+                        W.QDdb.admin('owner', { claim: true }).then(function () { State.isOwner = true; toast('Bạn là Chủ hệ thống', 'success'); AA.openAdminProfile(); }).catch(function (e) { toast(e.message || e.code, 'error'); });
+                    };
+                }).catch(function () {});
+                UI.openModal('modal-admin-profile');
+            };
+        });
+        document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('#qr-roles .qr-role'); if (b) pick(b.dataset.r); });
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest) return;
+            if (e.target.closest('#qr-all')) document.querySelectorAll('#qr-grid .perm-cb').forEach(function (c) { c.checked = true; });
+            if (e.target.closest('#qr-none')) document.querySelectorAll('#qr-grid .perm-cb').forEach(function (c) { c.checked = false; });
+        });
     })();
     </script>
     <script id="qvps-js">
