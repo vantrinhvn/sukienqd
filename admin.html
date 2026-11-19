@@ -884,12 +884,6 @@ html.qd-lite .qd-fx { display: none !important; }
         .qv-upbar { flex: 1; height: 10px; border-radius: 6px; background: rgba(148,163,184,.18); overflow: hidden; } .qv-upbar i { display: block; height: 100%; width: 0; background: #0891b2; transition: width .2s; }
         .qv-logs { margin: 0; max-height: 520px; overflow: auto; padding: 12px; border-radius: 12px; background: #05080d; color: #cbd5e1; font: 12px/1.55 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
         .qv-tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 800; background: rgba(148,163,184,.15); color: var(--text-muted); white-space: nowrap; }
-        .qfb-cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; margin: 10px 0 12px; }
-        .qfb-c { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); font-size: 12.5px; cursor: pointer; min-width: 0; }
-        .qfb-c input { flex: none; } .qfb-c span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace; }
-        .qfb-c em { font-style: normal; font-size: 11.5px; color: var(--text-muted); white-space: nowrap; } .qfb-c.ok em { color: #4ade80; } .qfb-c.bad em { color: #f87171; } .qfb-c.run em { color: #67e8f9; }
-        .qfb-sum { padding: 12px 14px; border-radius: 12px; background: rgba(6,182,212,.08); border: 1px solid rgba(6,182,212,.3); font-size: 13.5px; line-height: 1.6; margin-bottom: 12px; } .qfb-sum[hidden] { display: none; }
-        .qfb-sum.bad { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.35); }
         .qv-tag.auto { background: rgba(34,197,94,.13); color: #4ade80; } .qv-tag.tay { background: rgba(6,182,212,.13); color: #67e8f9; } .qv-tag.safe { background: rgba(245,158,11,.13); color: #fbbf24; }
         .qv-modal { position: fixed; inset: 0; z-index: 9200; background: rgba(2,6,12,.6); display: flex; align-items: center; justify-content: center; padding: 14px; } .qv-modal[hidden] { display: none; }
         .qv-mbox { width: min(880px, 100%); max-height: 92vh; display: flex; flex-direction: column; border-radius: 18px; background: var(--bg-surface); border: 1px solid var(--border-strong); box-shadow: 0 30px 80px rgba(0,0,0,.5); }
@@ -3850,7 +3844,6 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="qv-tabs" id="qv-tabs">
                         <button type="button" class="on" data-t="data"><i class="fa-solid fa-database"></i> Dữ liệu</button>
                         <button type="button" data-t="backup"><i class="fa-solid fa-box-archive"></i> Sao lưu & khôi phục</button>
-                        <button type="button" data-t="fb"><i class="fa-solid fa-fire"></i> Lấy dữ liệu Firebase</button>
                         <button type="button" data-t="conns"><i class="fa-solid fa-plug"></i> Đang kết nối</button>
                         <button type="button" data-t="logs"><i class="fa-solid fa-scroll"></i> Nhật ký</button>
                     </div>
@@ -3885,24 +3878,6 @@ html.qd-lite .qd-fx { display: none !important; }
                         <p class="text-muted text-sm" style="margin:10px 0 14px">Máy chủ tự sao lưu lúc <b>3:30</b> mỗi đêm (giữ 14 ngày). Trước mỗi lần khôi phục / xóa cả bộ sưu tập, máy chủ tự tạo thêm 1 bản để quay lại được. Tải lên nhận tệp <b>.db.gz</b> (bản sao lưu) hoặc <b>.json</b> (bản xuất dữ liệu).</p>
                         <div class="qv-up" id="qv-up" hidden><div class="qv-upbar"><i id="qv-upbar"></i></div><span id="qv-uptxt"></span></div>
                         <div class="table-container"><table class="vsh-log"><thead><tr><th>Bản sao lưu</th><th>Loại</th><th>Lúc</th><th>Dung lượng</th><th></th></tr></thead><tbody id="qv-bklist"><tr><td colspan="5" class="text-muted">Đang tải…</td></tr></tbody></table></div>
-                    </div>
-
-                    <div class="card qv-pane" data-p="fb" hidden>
-                        <p class="text-sm" style="margin:0 0 6px;line-height:1.6">Chép <b>toàn bộ dữ liệu đang chạy trên Firebase</b> (tài khoản + mật khẩu, điểm, lượt, lịch sử, tin nhắn, cài đặt…) sang VPS. <b>Firebase không bị sửa gì</b>, thành viên vẫn dùng bình thường cho tới lúc chuyển hẳn.</p>
-                        <p class="text-muted text-sm" style="margin:0 0 6px;line-height:1.6">Làm lại bao nhiêu lần cũng được: mỗi lần, các bộ được chọn trên VPS sẽ được <b>thay bằng bản mới nhất từ Firebase</b> (máy chủ tự sao lưu trước). Tài khoản chỉ có trên VPS (ví dụ Admin tạo lúc cài) được giữ lại; tài khoản trùng tên thì lấy theo Firebase, kể cả mật khẩu.</p>
-                        <p class="text-muted text-sm" style="margin:0 0 4px;line-height:1.6">Mỗi tài liệu tốn 1 lượt đọc Firebase. Nếu báo <b>hết hạn mức</b> thì đợi sau <b>15:00</b> (giờ Firebase làm mới hạn mức) rồi bấm lại.</p>
-                        <div class="qfb-cols" id="qfb-cols"></div>
-                        <div class="qv-bar wrap">
-                            <input type="search" id="qfb-more" placeholder="Thêm bộ sưu tập khác (cách nhau bằng dấu phẩy)…" style="flex:1;min-width:200px">
-                            <button type="button" class="qv-btn sm" id="qfb-all">Chọn hết</button>
-                            <button type="button" class="qv-btn primary" id="qfb-go"><i class="fa-solid fa-cloud-arrow-down"></i> Lấy dữ liệu từ Firebase</button>
-                        </div>
-                        <div class="qv-up" id="qfb-up" hidden style="margin-top:12px"><div class="qv-upbar"><i id="qfb-bar"></i></div><span id="qfb-txt"></span></div>
-                        <div class="qfb-sum" id="qfb-sum" hidden style="margin-top:12px"></div>
-                        <div class="qv-bar wrap" id="qfb-act" hidden>
-                            <button type="button" class="qv-btn primary" id="qfb-write"><i class="fa-solid fa-server"></i> Ghi vào VPS</button>
-                            <button type="button" class="qv-btn" id="qfb-dl"><i class="fa-solid fa-download"></i> Tải bản Firebase về máy (.json)</button>
-                        </div>
                     </div>
 
                     <div class="card qv-pane" data-p="conns" hidden>
@@ -17176,147 +17151,12 @@ window.QDXlsx = (function () {
         }
         function loadLogs() { A('logs', { n: 200 }).then(function (L) { var el = $('qv-logs'); el.textContent = L.join('\n') || '(trống)'; el.scrollTop = el.scrollHeight; }).catch(function (e) { $('qv-logs').textContent = e.message || e.code; }); }
 
-        /* ---------------- Lấy dữ liệu từ Firebase (đọc qua REST, không cần thư viện Firebase) ---------------- */
-        var FB = { key: 'AIzaSyCtn0peiXBsrRRgUZSSVQFrBe-RGgxS6eQ', pid: 'web-dangky-123' };
-        FB.base = 'https://firestore.googleapis.com/v1/projects/' + FB.pid + '/databases/(default)/documents';
-        var FB_COLS = ['accounts', 'settings', 'users', 'pending_users', 'point_history', 'attendance', 'private_chat', 'news', 'calls', 'call_reports', 'call_warnings', 'call_blocks', 'call_guard', 'call_log',
-            'bank_info', 'gifts', 'gift_claims', 'payouts', 'point_cashout', 'point_cashout_daily', 'point_shop_stock', 'point_shop_daily', 'shop_orders', 'transfer_history', 'invite_history',
-            'lixi_history', 'lixi_daily', 'lucky_numbers', 'lucky_number_history', 'lucky_rewards', 'spin_history', 'wheel_questions', 'wheel_question_keys', 'wheel_stock',
-            'tranhthuong_history', 'tranhthuong_stock', 'tournament', 'tournament_rewards', 'tournament_prize', 'rps_rooms', 'rps_history', 'con_stats', 'con_history',
-            'security_flags', 'security_devices', 'push_broadcast', 'bot_reports',
-            'admin_logs', 'error_logs', 'app_errors', 'call_bot_log', 'video_share_log', 'ai_unanswered'];
-        var FB_SKIP = { admin_logs: 1, error_logs: 1, app_errors: 1, call_bot_log: 1, video_share_log: 1, ai_unanswered: 1 };   // nhật ký: mặc định không lấy cho đỡ tốn lượt đọc
-        var FBS = { sel: {}, n: {}, st: {}, data: null, busy: false, found: false };
-        FB_COLS.forEach(function (c) { FBS.sel[c] = !FB_SKIP[c]; });
-        function fbVal(v) {   // giá trị REST của Firestore -> JSON như máy chủ VPS lưu (thời gian = mili giây)
-            if (!v || typeof v !== 'object') return null;
-            if ('nullValue' in v) return null;
-            if ('booleanValue' in v) return !!v.booleanValue;
-            if ('integerValue' in v) return Number(v.integerValue);
-            if ('doubleValue' in v) { var d = Number(v.doubleValue); return isFinite(d) ? d : null; }
-            if ('timestampValue' in v) return Date.parse(v.timestampValue);
-            if ('stringValue' in v) return v.stringValue;
-            if ('bytesValue' in v) return v.bytesValue;
-            if ('referenceValue' in v) return String(v.referenceValue).replace(/^projects\/[^/]+\/databases\/[^/]+\/documents\//, '');
-            if ('geoPointValue' in v) return { latitude: v.geoPointValue.latitude || 0, longitude: v.geoPointValue.longitude || 0 };
-            if ('arrayValue' in v) return ((v.arrayValue && v.arrayValue.values) || []).map(fbVal);
-            if ('mapValue' in v) return fbFields((v.mapValue && v.mapValue.fields) || {});
-            return null;
-        }
-        function fbFields(f) { var o = {}; Object.keys(f || {}).forEach(function (k) { o[k] = fbVal(f[k]); }); return o; }
-        function fbErr(r, j) {
-            var st = (j && j.error && j.error.status) || '', msg = (j && j.error && j.error.message) || ('HTTP ' + r.status);
-            var e = new Error(r.status === 429 || st === 'RESOURCE_EXHAUSTED' ? 'Firebase đã hết hạn mức đọc hôm nay — đợi sau 15:00 rồi bấm lại' : r.status === 403 || st === 'PERMISSION_DENIED' ? 'Firebase không cho đọc bộ này (luật bảo mật)' : msg);
-            e.quota = r.status === 429 || st === 'RESOURCE_EXHAUSTED'; return e;
-        }
-        function fbList(col, onPage) {   // đọc hết 1 bộ sưu tập, 300 tài liệu / lần
-            var out = {}, n = 0;
-            function page(tok, tries) {
-                var url = FB.base + '/' + encodeURIComponent(col) + '?pageSize=300&key=' + FB.key + (tok ? '&pageToken=' + encodeURIComponent(tok) : '');
-                return fetch(url).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw fbErr(r, j); return j; }); })
-                    .catch(function (e) { if (!e.quota && !/luật/.test(e.message) && tries < 3) return new Promise(function (ok) { setTimeout(ok, 1500 * (tries + 1)); }).then(function () { return page(tok, tries + 1); }); throw e; })
-                    .then(function (j) {
-                        (j.documents || []).forEach(function (d) { var id = d.name.split('/').pop(); try { id = decodeURIComponent(id); } catch (x) {} out[id] = fbFields(d.fields); n++; });
-                        onPage(n); return j.nextPageToken ? page(j.nextPageToken, 0) : out;
-                    });
-            }
-            return page('', 0);
-        }
-        function fbDiscover() {   // thử hỏi Firebase danh sách bộ sưu tập (thường bị từ chối nếu không có quyền quản trị — khi đó dùng danh sách có sẵn)
-            if (FBS.found) return Promise.resolve();
-            return fetch(FB.base + ':listCollectionIds?key=' + FB.key, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pageSize: 300 }) })
-                .then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) {
-                    FBS.found = true; (j.collectionIds || []).forEach(function (c) { if (FB_COLS.indexOf(c) < 0) { FB_COLS.push(c); FBS.sel[c] = !FB_SKIP[c]; } });
-                }).catch(function () { FBS.found = true; });
-        }
-        function renderFbCols() {
-            $('qfb-cols').innerHTML = FB_COLS.map(function (c) {
-                var st = FBS.st[c] || '', em = st === 'run' ? 'đang đọc ' + (FBS.n[c] || 0) : st === 'ok' ? (FBS.n[c] || 0) + ' tài liệu' : st === 'bad' ? 'lỗi' : FB_SKIP[c] ? 'nhật ký' : '';
-                return '<label class="qfb-c ' + st + '" title="' + E(c) + '"><input type="checkbox" data-c="' + E(c) + '"' + (FBS.sel[c] ? ' checked' : '') + (FBS.busy ? ' disabled' : '') + '><span>' + E(c) + '</span><em>' + E(em) + '</em></label>';
-            }).join('');
-        }
-        function fbBar(p, t) { $('qfb-up').hidden = false; $('qfb-bar').style.width = Math.max(2, Math.min(100, p)) + '%'; $('qfb-txt').textContent = t; }
-        function fbSum(html, bad) { var el = $('qfb-sum'); el.hidden = !html; el.className = 'qfb-sum' + (bad ? ' bad' : ''); el.innerHTML = html || ''; }
-        function fbFetch() {
-            if (FBS.busy) return;
-            ($('qfb-more').value || '').split(/[\s,;]+/).forEach(function (c) { c = c.trim(); if (c && /^[\w\-]{1,100}$/.test(c) && FB_COLS.indexOf(c) < 0) { FB_COLS.push(c); FBS.sel[c] = true; } });
-            $('qfb-more').value = '';
-            FBS.busy = true; FBS.data = null; FBS.n = {}; FBS.st = {}; $('qfb-act').hidden = true; fbSum(''); $('qfb-go').disabled = true;
-            fbBar(2, 'Đang kết nối Firebase…');
-            fbDiscover().then(function () {
-                var list = FB_COLS.filter(function (c) { return FBS.sel[c]; }), cols = {}, errs = [], total = 0, i = 0, stop = null;
-                renderFbCols();
-                function next() {
-                    if (stop || i >= list.length) return Promise.resolve();
-                    var c = list[i++]; FBS.st[c] = 'run'; renderFbCols();
-                    return fbList(c, function (n) { FBS.n[c] = n; fbBar(i / list.length * 100, 'Đang đọc ' + c + ' (' + n + ') — bộ ' + i + '/' + list.length + ' · tổng ' + (total + n) + ' tài liệu'); var el = document.querySelector('#qfb-cols input[data-c="' + c + '"]'); if (el) el.parentNode.querySelector('em').textContent = 'đang đọc ' + n; })
-                        .then(function (o) { cols[c] = o; FBS.st[c] = 'ok'; FBS.n[c] = Object.keys(o).length; total += FBS.n[c]; })
-                        .catch(function (e) { FBS.st[c] = 'bad'; errs.push(c + ': ' + e.message); if (e.quota) stop = e; })
-                        .then(function () { renderFbCols(); return next(); });
-                }
-                return next().then(function () {
-                    FBS.busy = false; $('qfb-go').disabled = false; $('qfb-up').hidden = true; renderFbCols();
-                    var got = Object.keys(cols), nonEmpty = got.filter(function (c) { return FBS.n[c]; });
-                    if (stop) { fbSum('⛔ <b>' + E(stop.message) + '</b>.<br>Đã đọc được ' + total + ' tài liệu trước khi hết hạn mức. Chưa ghi gì vào VPS.', true); return; }
-                    if (!got.length) { fbSum('⛔ Không đọc được bộ nào.<br>' + errs.map(E).join('<br>'), true); return; }
-                    FBS.data = { cols: cols, total: total, at: Date.now(), errs: errs };
-                    var acc = cols.accounts ? Object.keys(cols.accounts).length : 0;
-                    fbSum('✅ Đã đọc <b>' + total + ' tài liệu</b> từ <b>' + nonEmpty.length + ' bộ sưu tập</b> có dữ liệu' + (acc ? ' (trong đó <b>' + acc + ' tài khoản</b>)' : '') + '.' +
-                        (errs.length ? '<br><span style="color:#f87171">⚠ Không đọc được: ' + errs.map(E).join('; ') + ' — các bộ này trên VPS giữ nguyên.</span>' : '') +
-                        '<br>Bấm <b>Ghi vào VPS</b> để chép sang. Có thể tải bản này về máy giữ làm bản sao lưu Firebase.', !!errs.length && !nonEmpty.length);
-                    $('qfb-act').hidden = false;
-                });
-            }).catch(function (e) { FBS.busy = false; $('qfb-go').disabled = false; $('qfb-up').hidden = true; renderFbCols(); fbSum('⛔ ' + E(e.message || e), true); });
-        }
-        function fbDownload() {
-            if (!FBS.data) return; var d = new Date(FBS.data.at), p = function (x) { return ('0' + x).slice(-2); };
-            var blob = new Blob([JSON.stringify({ format: 'qd-export-1', from: 'firebase:' + FB.pid, at: FBS.data.at, cols: FBS.data.cols })], { type: 'application/json' });
-            var url = URL.createObjectURL(blob); download(url, 'firebase-' + FB.pid + '-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + '.json'); setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
-            toast('Đang tải bản dữ liệu Firebase về máy — giữ kỹ vì có mật khẩu thành viên', 'info');
-        }
-        function fbWrite() {
-            var F = FBS.data; if (!F) return;
-            var names = Object.keys(F.cols);
-            ask({ title: 'Ghi dữ liệu Firebase vào VPS?', icon: '🔥', ok: 'Ghi vào VPS', tone: 'warn', html: '<b>' + F.total + ' tài liệu</b> / ' + names.length + ' bộ sưu tập.\nCác bộ này trên VPS sẽ được <b>thay bằng bản Firebase</b>; các bộ khác giữ nguyên.\nTài khoản chỉ có trên VPS được giữ lại. Máy chủ tự sao lưu trước khi ghi.' }).then(function (y) {
-                if (!y) return; var b = $('qfb-write'); b.disabled = true; fbBar(5, 'Đang lấy dữ liệu hiện có trên VPS…');
-                A('token').then(function (x) {
-                    return fetch(W.QDdb.http + '/api/admin/export', { headers: { Authorization: 'Bearer ' + x.token } }).then(function (r) { if (!r.ok) throw new Error('Không đọc được dữ liệu VPS (' + r.status + ')'); return r.json(); }).then(function (cur) {
-                        var out = {}, keepAcc = 0;
-                        Object.keys(cur.cols || {}).forEach(function (c) { if (!(c in F.cols)) out[c] = cur.cols[c]; });   // bộ không lấy từ Firebase: giữ nguyên
-                        names.forEach(function (c) { out[c] = F.cols[c]; });
-                        if (F.cols.accounts && cur.cols && cur.cols.accounts) {   // giữ tài khoản chỉ có trên VPS (không trùng tên đăng nhập)
-                            var users = {}; Object.keys(F.cols.accounts).forEach(function (id) { var u = F.cols.accounts[id] && F.cols.accounts[id].user; if (u) users[String(u).toLowerCase()] = 1; });
-                            out.accounts = Object.assign({}, F.cols.accounts);
-                            Object.keys(cur.cols.accounts).forEach(function (id) { var d = cur.cols.accounts[id] || {}; if (!(id in out.accounts) && !(d.user && users[String(d.user).toLowerCase()])) { out.accounts[id] = d; keepAcc++; } });
-                        }
-                        var body = new Blob([JSON.stringify({ format: 'qd-export-1', from: 'firebase:' + FB.pid, at: F.at, cols: out })], { type: 'application/json' });
-                        return new Promise(function (ok, no) {
-                            var xhr = new XMLHttpRequest(); xhr.open('POST', W.QDdb.http + '/api/admin/restore?mode=replace'); xhr.setRequestHeader('Authorization', 'Bearer ' + x.token);
-                            xhr.upload.onprogress = function (e) { if (e.lengthComputable) { var p = e.loaded / e.total * 100; fbBar(10 + p * .85, p < 100 ? 'Đang gửi lên VPS ' + p.toFixed(0) + '% (' + B(e.total) + ')' : 'Máy chủ đang ghi…'); } };
-                            xhr.onload = function () { var r = {}; try { r = JSON.parse(xhr.responseText); } catch (e) {} if (r.ok) ok({ r: r, keepAcc: keepAcc }); else no(new Error(r.message || ('HTTP ' + xhr.status))); };
-                            xhr.onerror = function () { no(new Error('Mất mạng khi gửi lên VPS')); };
-                            xhr.send(body);
-                        });
-                    });
-                }).then(function (o) {
-                    $('qfb-up').hidden = true;
-                    fbSum('✅ <b>Đã chép xong sang VPS</b>: ' + F.total + ' tài liệu từ Firebase' + (o.keepAcc ? ', giữ thêm ' + o.keepAcc + ' tài khoản chỉ có trên VPS' : '') + '. Trên VPS hiện có ' + o.r.n + ' tài liệu.<br>Bản dữ liệu VPS trước khi ghi: <code>' + E(o.r.before) + '</code> (xem ở tab Sao lưu).<br>Đăng nhập VPS bằng <b>tài khoản và mật khẩu như bên Firebase</b>. Trước lúc chuyển hẳn, bấm lấy lại một lần nữa để có dữ liệu mới nhất.');
-                    toast('Đã chép dữ liệu Firebase sang VPS', 'success'); loadCols();
-                }).catch(function (e) { $('qfb-up').hidden = true; toast('Không ghi được: ' + (e.message || e.code), 'error'); fbSum('⛔ Không ghi được vào VPS: ' + E(e.message || e.code) + '. Dữ liệu VPS chưa đổi.', true); })
-                  .then(function () { b.disabled = false; });
-            });
-        }
-        $('qfb-cols').addEventListener('change', function (e) { var c = e.target.dataset && e.target.dataset.c; if (c) FBS.sel[c] = e.target.checked; });
-        $('qfb-all').onclick = function () { if (FBS.busy) return; var all = FB_COLS.every(function (c) { return FBS.sel[c]; }); FB_COLS.forEach(function (c) { FBS.sel[c] = !all; }); this.textContent = all ? 'Chọn hết' : 'Bỏ chọn hết'; renderFbCols(); };
-        $('qfb-go').onclick = fbFetch; $('qfb-write').onclick = fbWrite; $('qfb-dl').onclick = fbDownload;
-        renderFbCols();
-
         /* ---------------- Gắn sự kiện ---------------- */
         var TAB = 'data';
         function showTab(t) {
             TAB = t; Array.prototype.forEach.call($('qv-tabs').children, function (b) { b.classList.toggle('on', b.dataset.t === t); });
             Array.prototype.forEach.call(document.querySelectorAll('#view-vps .qv-pane'), function (p) { p.hidden = p.dataset.p !== t; });
-            if (t === 'data') loadCols(); if (t === 'backup') loadBackups(); if (t === 'conns') loadConns(); if (t === 'logs') loadLogs(); if (t === 'fb') renderFbCols();
+            if (t === 'data') loadCols(); if (t === 'backup') loadBackups(); if (t === 'conns') loadConns(); if (t === 'logs') loadLogs();
         }
         $('qv-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) showTab(b.dataset.t); });
         $('qv-colq').addEventListener('input', renderCols);
