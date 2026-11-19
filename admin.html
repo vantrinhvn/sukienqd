@@ -818,6 +818,11 @@ html.qd-lite .qd-fx { display: none !important; }
         .qgd-k { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(56,189,248,.15); color: #38bdf8; white-space: nowrap; }
         .qsrv-warn { display: flex; gap: 14px; padding: 18px 22px; border: 1px solid #f59e0b; background: rgba(245,158,11,.08); } .qsrv-warn[hidden] { display: none; }
         .fsu-card { padding: 18px 22px; margin: 0 0 24px; }
+        .qdv-card { padding: 16px 20px; margin: 0 0 24px; } .qdv-card[hidden] { display: none !important; }
+        .qdv-hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; } .qdv-hd h3 { margin: 0; font-size: 16px; } .qdv-hd small { font-weight: 500; color: var(--text-muted); font-size: 12.5px; margin-left: 6px; }
+        .qdv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+        .qdv-i { padding: 10px 12px; border-radius: 12px; background: var(--bg-elevated); border: 1px solid var(--border-strong); min-width: 0; }
+        .qdv-i span { display: block; font-size: 12px; color: var(--text-muted); } .qdv-i b { font-size: 17px; } .qdv-i i { display: block; height: 5px; border-radius: 5px; background: rgba(127,127,127,.2); margin-top: 7px; overflow: hidden; } .qdv-i i em { display: block; height: 100%; border-radius: 5px; }
         .fsu-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
         .fsu-hd h3 { margin: 0; font-size: 17px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .fsu-hd small { font-size: 12.5px; font-weight: 500; color: var(--text-muted); }
         .fsu-ic { font-size: 20px; }
@@ -1664,6 +1669,10 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="stat-top"><span class="stat-lbl">Chờ phê duyệt</span><span class="stat-ico"><i class="fa-solid fa-user-clock"></i></span></div>
                             <h2 class="stat-num" id="stat-pending">0</h2>
                         </div>
+                    </div>
+                    <div class="card qdv-card qvps-only" id="qdv-card" hidden>
+                        <div class="qdv-hd"><h3>🖥️ Máy chủ VPS <small id="qdv-sub">Đang đọc…</small></h3><button type="button" class="fsu-btn" onclick="UI.navigate('vps')">Mở quản lý <i class="fa-solid fa-arrow-right"></i></button></div>
+                        <div class="qdv-grid" id="qdv-grid"></div>
                     </div>
                     <div class="card fsu-card" id="fsu-card" data-fb-only>
                         <div class="fsu-hd">
@@ -3994,7 +4003,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                     </div>
 
-                    <div class="card mb-8 qq-card" id="qq-card" style="padding: 18px 22px;">
+                    <div class="card mb-8 qq-card" id="qq-card" data-fb-only style="padding: 18px 22px;">
                         <div class="flex justify-between items-center flex-wrap gap-2 mb-3"><h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-gauge-high" style="color: #22c55e;"></i> Hạn mức gửi thông báo hôm nay</h3><span class="text-muted text-xs" id="qq-at"></span></div>
                         <div id="qq-body" class="text-sm text-muted">Đang đọc…</div>
                     </div>
@@ -5881,7 +5890,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     db.collection('settings').doc('lixi_config').onSnapshot(doc => { cfg = normCfg(doc.exists ? doc.data() : null); renderConfig(doc.exists ? doc.data() : null); renderAll(); }, e => { console.warn('lixi_config', e); Utils.toast('Không đọc được cấu hình Lì Xì.', 'error'); });
                     db.collection('lixi_history').orderBy('timestamp', 'desc').limit(3000).onSnapshot(snap => {
                         hist = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderAll();
-                    }, e => { console.warn('lixi_history', e); $('tb-lx-history').innerHTML = '<tr><td colspan="6" class="text-center text-danger py-8">Không đọc được lịch sử Lì Xì (kiểm tra quyền Firestore).</td></tr>'; });
+                    }, e => { console.warn('lixi_history', e); $('tb-lx-history').innerHTML = '<tr><td colspan="6" class="text-center text-danger py-8">Không đọc được lịch sử Lì Xì (không đủ quyền hoặc mất kết nối máy chủ).</td></tr>'; });
                     subDaily();
                     setInterval(() => { tickN++; if (keyOf() !== dailyKey) subDaily(); renderLive(); if (tickN % 5 === 0) renderToday(); }, 1000);
                 },
@@ -7446,7 +7455,7 @@ const QVis = {
                         Utils.toast(`Đã đá <b>${username}</b> ra khỏi hệ thống. Các trang đang mở sẽ thoát ngay.`, "success");
                         db.collection("admin_logs").add({ type: 'session', action: 'kick', user: username, by: State.currentUser || 'admin', timestamp: t }).catch(() => {});
                     })
-                    .catch(() => Utils.toast("Không đá được tài khoản (kiểm tra quyền Firestore).", "error"))
+                    .catch(() => Utils.toast("Không đá được tài khoản (không đủ quyền hoặc mất kết nối máy chủ).", "error"))
                     .finally(() => { if (btn) { btn.disabled = false; btn.style.background = ''; } });
             },
 
@@ -8363,7 +8372,8 @@ exportAttendanceExcel: () => {
             gifts: ['Giải trí & thưởng', 'Quà toàn hệ thống'],
             transfer: ['Giải trí & thưởng', 'Tặng lượt'],
             payout: ['Giải trí & thưởng', 'Trả thưởng tiền mặt'],
-            security: ['Thành viên', 'Chống gian lận']
+            security: ['Thành viên', 'Chống gian lận'],
+            vps: ['Hệ thống', 'Máy chủ VPS']
         };
         function $(s, r) { return (r || document).querySelector(s); }
         function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -9943,7 +9953,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 A.loaded[f] = true;
                 paint(); info(); advPanel();
                 if (QDB.isOpen() && A.full === f) { if (A.cfg && (A.cfg.entries || []).some(Boolean)) QDB.update(A.cfg); else QDB.close(); }
-            }, function (e) { console.error(e); A.got[f] = true; tabBadges(); if (f === A.fmt) $('qdb-a-info').textContent = 'Không đọc được dữ liệu sơ đồ ' + FN[f] + ' (kiểm tra quyền Firestore).'; });
+            }, function (e) { console.error(e); A.got[f] = true; tabBadges(); if (f === A.fmt) $('qdb-a-info').textContent = 'Không đọc được dữ liệu sơ đồ ' + FN[f] + ' (không đủ quyền hoặc mất kết nối máy chủ).'; });
         });
         db.collection('tournament').onSnapshot(function (snap) {
             A.parts = []; snap.forEach(function (d) { var x = d.data(); x._id = d.id; A.parts.push(x); });
@@ -10428,7 +10438,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
 
         W.open = function () {
             if (!isAdmin()) return toast('Chỉ Quản trị viên mới dùng được chức năng này.', 'error');
-            W.scan = null; W.busy = false; step1(); UI.openModal('modal-wipe');
+            W.scan = null; W.busy = false; W.srvBk = null; W.go = false; step1(); UI.openModal('modal-wipe');
         };
         W.close = function () { if (W.busy) return toast('Đang xóa dữ liệu, vui lòng chờ hoàn tất.', 'warning'); clearInterval(W._cd); UI.closeModal('modal-wipe'); };
         $('modal-wipe').addEventListener('click', function (e) { if (e.target === this) W.close(); });
@@ -10511,9 +10521,13 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
 
         /* ---------- XÓA ---------- */
         function run() {
-            if (W.busy || norm(($('wipe-type') || {}).value) !== PHRASE) { var b = $('wipe-type'); if (b) { b.classList.remove('wipe-shake'); void b.offsetWidth; b.classList.add('wipe-shake'); } return; }
+            if (W.busy || (!W.go && norm(($('wipe-type') || {}).value) !== PHRASE)) { var b = $('wipe-type'); if (b) { b.classList.remove('wipe-shake'); void b.offsetWidth; b.classList.add('wipe-shake'); } return; }
             if (!isAdmin()) return toast('Chỉ Quản trị viên mới dùng được chức năng này.', 'error');
             clearInterval(W._cd); W.busy = true; W.step = 4; dots(4); $('wipe-x').disabled = true;
+            if (window.QD_BACKEND === 'vps' && window.QDdb && !W.srvBk) {   // VPS: sao lưu toàn bộ trên máy chủ trước (khôi phục được ở Máy chủ VPS > Sao lưu)
+                $('wipe-body').innerHTML = '<div class="wipe-warn">💾 Máy chủ VPS đang sao lưu toàn bộ dữ liệu trước khi xóa…</div>';
+                return QDdb.admin('backup').then(function (r) { W.srvBk = r.name; toast('Đã sao lưu trên máy chủ: ' + r.name); }, function (e) { W.srvBk = 'lỗi'; toast('Không sao lưu được trên máy chủ: ' + (e.message || e.code) + ' — vẫn tiếp tục xóa', 'warning'); }).then(function () { W.busy = false; W.go = true; run(); });
+            }
             var gs = chosen(), cols = []; gs.forEach(function (g) { cols = cols.concat(g.cols); });
             $('wipe-body').innerHTML = '<div class="wipe-warn" id="wipe-warn4">🗑️ Đang xóa dữ liệu... <b>Không đóng trang</b> cho tới khi xong.</div><div class="wipe-bar"><i id="wipe-bar"></i></div><div class="text-sm mb-2" id="wipe-prog">Chuẩn bị...</div><div class="wipe-log" id="wipe-log"></div>';
             btns([{ t: '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xóa...', cls: 'btn-solid-danger', dis: true }]);
@@ -11674,7 +11688,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             if (btn) btn.disabled = true;
             db.collection('bank_info').doc(u).set(on ? { allowEdit: true, allowEditAt: Date.now(), allowEditBy: me() } : { allowEdit: false }, { merge: true })
                 .then(function () { toast(on ? 'Đã cho <b>' + esc(u) + '</b> sửa số tài khoản 1 lần (sửa xong tự khóa lại).' : 'Đã khóa lại số tài khoản của <b>' + esc(u) + '</b>.', on ? 'success' : 'info'); log(on ? 'allow_edit' : 'lock_bank', { user: u }); })
-                .catch(function () { toast('Không lưu được (kiểm tra quyền Firestore).', 'error'); if (btn) btn.disabled = false; });
+                .catch(function () { toast('Không lưu được (không đủ quyền hoặc mất kết nối máy chủ).', 'error'); if (btn) btn.disabled = false; });
         };
         PA.setTab = function (t) { PA.tab = t; document.querySelectorAll('#view-payout .po-tab').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === t); }); PA.render(); };
         PA.toggleOpen = function (u) { PA.open[u] = !PA.open[u]; PA.render(); };
@@ -11707,7 +11721,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             if (btn && !armed('pay:' + key, btn, 'Chắc chắn đã chuyển ' + vnd(x.total) + warn + '?')) return;
             if (btn) btn.disabled = true;
             write([x], method || (x.bank ? 'qr' : 'manual')).then(function (r) { toast('Đã ghi nhận chuyển ' + vnd(r.sum) + ' cho <b>' + esc(x.user) + '</b>' + (x.single ? ' (' + esc(x.wins[0].prize) + ')' : '') + '.'); delete PA.sel[key]; UI.closeModal('modal-payout-qr'); })
-                .catch(function (e) { console.warn(e); toast('Không ghi được (kiểm tra quyền Firestore).', 'error'); if (btn) btn.disabled = false; });
+                .catch(function (e) { console.warn(e); toast('Không ghi được (không đủ quyền hoặc mất kết nối máy chủ).', 'error'); if (btn) btn.disabled = false; });
         };
         PA.markSelected = function (btn) {
             var gs = units().filter(function (x) { return PA.sel[x.key]; });
@@ -11717,7 +11731,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             btn.disabled = true;
             var ex = PA.lastExport, viaFile = ex && Date.now() - ex.at < 6 * 36e5 && gs.every(function (x) { return ex.keys[x.key]; });
             write(gs, viaFile ? 'batch' : 'manual').then(function (r) { toast('Đã ghi nhận ' + lbl + ' · ' + vnd(r.sum) + '.'); PA.sel = {}; })
-                .catch(function () { toast('Không ghi được (kiểm tra quyền Firestore).', 'error'); }).finally(function () { btn.disabled = false; });
+                .catch(function () { toast('Không ghi được (không đủ quyền hoặc mất kết nối máy chủ).', 'error'); }).finally(function () { btn.disabled = false; });
         };
         PA.reject = function (id, btn) {
             var w = pending().filter(function (x) { return x.id === id; })[0]; if (!w) return;
@@ -11741,7 +11755,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                     return n;
                 });
             }).then(function (n) { if (n) toast((sign > 0 ? 'Đã hoàn ' : 'Đã trừ lại ') + n.toLocaleString('vi-VN') + ' điểm lì xì cho ' + esc(user) + '.', 'info'); })
-              .catch(function (e) { console.warn(e); toast('Không ' + (sign > 0 ? 'hoàn' : 'trừ lại') + ' được điểm (kiểm tra quyền Firestore).', 'error'); });
+              .catch(function (e) { console.warn(e); toast('Không ' + (sign > 0 ? 'hoàn' : 'trừ lại') + ' được điểm (không đủ quyền hoặc mất kết nối máy chủ).', 'error'); });
         }
         PA.undo = function (id, btn) {
             var p = PA.pays[id]; if (!p) return;
@@ -13829,7 +13843,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 SA.armed = ''; return SA.lock(b.dataset.lock, b.dataset.why);
             }
             if (b.dataset.fix) { db.collection('error_logs').doc(b.dataset.fix).set({ status: b.dataset.st, fixedAt: b.dataset.st === 'fixed' ? Date.now() : null, fixedBy: S().currentUser || 'admin' }, { merge: true }).then(function () { toast(b.dataset.st === 'fixed' ? 'Đã đánh dấu đã sửa.' : 'Đã mở lại lỗi.'); }, function () { toast('Lỗi cập nhật.', 'error'); }); return; }
-            if (b.dataset.del) { db.collection('error_logs').doc(b.dataset.del).delete().then(function () { toast('Đã xóa lỗi.'); }, function () { toast('Không xóa được (kiểm tra quyền Firestore).', 'error'); }); }
+            if (b.dataset.del) { db.collection('error_logs').doc(b.dataset.del).delete().then(function () { toast('Đã xóa lỗi.'); }, function () { toast('Không xóa được (không đủ quyền hoặc mất kết nối máy chủ).', 'error'); }); }
         }
         SA.resolve = function (key) {
             var f = findings().filter(function (x) { return x.key === key; })[0]; if (!f) return;
@@ -13852,7 +13866,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         SA.clearFixed = function () {
             var fx = SA.errors.filter(function (e) { return e.status === 'fixed'; }); if (!fx.length) return toast('Không có lỗi nào đã sửa.', 'info');
             var b = db.batch(); fx.slice(0, 400).forEach(function (e) { b.delete(db.collection('error_logs').doc(e.id)); });
-            b.commit().then(function () { toast('Đã xóa ' + Math.min(400, fx.length) + ' lỗi đã sửa.'); }, function () { toast('Không xóa được (kiểm tra quyền Firestore).', 'error'); });
+            b.commit().then(function () { toast('Đã xóa ' + Math.min(400, fx.length) + ' lỗi đã sửa.'); }, function () { toast('Không xóa được (không đủ quyền hoặc mất kết nối máy chủ).', 'error'); });
         };
 
         SA.start = function () {
@@ -14487,7 +14501,11 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         function srvShow() {
             var pill = $('rb-srv-pill'), sub = $('rb-srv-sub'); if (!pill) return;
             var t = SRV && +SRV.lastRun || 0, age = Date.now() - t, st, txt, info;
-            if (!SRV || !t) { st = 'skipped'; txt = 'Chưa cài'; info = 'Chưa có máy chủ nào chạy → chỉ gửi được khi trang Admin đang mở. Cài 1 lần bằng file bot-server.gs (hướng dẫn ở đầu file) để tự gửi kể cả khi không ai online.'; }
+            if (SRV && SRV.by === 'vps') {   // máy chủ VPS tự gửi (không cần Apps Script)
+                if (age > 3 * 60000) { st = 'error'; txt = 'Ngưng'; info = 'Máy chủ VPS không báo từ ' + when(t) + '. Vào Admin > Máy chủ VPS kiểm tra (hoặc gõ qd status trên VPS).'; }
+                else if (SRV.ok === false) { st = 'error'; txt = 'Có lỗi'; info = 'Lần chạy lúc ' + R.hm(t) + ' bị lỗi: ' + (SRV.err || 'không rõ'); }
+                else { st = 'sent'; txt = 'Đang chạy'; info = 'Máy chủ VPS tự gửi đúng giờ, không cần ai mở web · kiểm tra lần gần nhất ' + R.hm(t) + (SRV.nextAt ? ' · mốc tới: ' + when(SRV.nextAt) : '') + (SRV.note && SRV.noteAt ? ' · ' + SRV.note + ' (' + when(SRV.noteAt) + ')' : ''); }
+            } else if (!SRV || !t) { st = 'skipped'; txt = 'Chưa cài'; info = 'Chưa có máy chủ nào chạy → chỉ gửi được khi trang Admin đang mở. Cài 1 lần bằng file bot-server.gs (hướng dẫn ở đầu file) để tự gửi kể cả khi không ai online.'; }
             else if (SRV.stopped) { st = 'skipped'; txt = 'Đã tắt'; info = 'Máy chủ đã được tắt lúc ' + when(t) + '. Chạy hàm CAI_DAT trong Apps Script để bật lại.'; }
             else if (age > 8 * 60000) { st = 'error'; txt = 'Ngưng'; info = 'Máy chủ không phản hồi từ ' + when(t) + '. Mở Apps Script kiểm tra mục Trình kích hoạt / Lượt thực thi, hoặc chạy lại CAI_DAT.'; }
             else if (SRV.ok === false) { st = 'error'; txt = 'Có lỗi'; info = 'Lần chạy lúc ' + R.hm(t) + ' bị lỗi: ' + (SRV.err || 'không rõ'); }
@@ -14950,7 +14968,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                 db.collection('admin_logs').add({ type: 'payout', action: 'notify', user: ops.length === 1 ? ops[0][1].to : '(' + ops.length + ' người)', users: ops.map(function (o) { return o[1].to; }).slice(0, 200), from: from, by: meta.by, batch: meta.batch || '', timestamp: Date.now() }).catch(function () {});
                 db.collection('settings').doc('payout_notify').set({ lastAt: Date.now(), lastCount: ops.length, lastBy: meta.by }, { merge: true }).catch(function () {});
                 toast('🤖 Bot đã nhắn báo chuyển tiền cho ' + (ops.length === 1 ? '<b>' + esc(ops[0][1].to) + '</b>' : ops.length + ' người') + ' (từ tài khoản <b>' + esc(from) + '</b>).', 'info');
-            } catch (e) { console.warn('[Bot báo chuyển tiền]', e); toast('Đã ghi nhận chuyển tiền, nhưng bot chưa nhắn được tin báo (kiểm tra quyền Firestore).', 'warning'); }
+            } catch (e) { console.warn('[Bot báo chuyển tiền]', e); toast('Đã ghi nhận chuyển tiền, nhưng bot chưa nhắn được tin báo (không đủ quyền hoặc mất kết nối máy chủ).', 'warning'); }
         }
 
         /* ---------- Giao diện thiết lập ---------- */
@@ -16857,6 +16875,7 @@ window.QDXlsx = (function () {
                 { k: 'pend', v: 'approvals', e: '🧾', t: 'Phê duyệt tài khoản', s: pend ? pend + ' chờ duyệt' : 'Không có đơn chờ', n: pend, tone: '#6366f1', act: function () { go('approvals'); } },
                 { k: 'idlecfg', v: 'accounts', e: '⏱️', t: 'Tự khóa khi không hoạt động', s: (CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) ? 'Sau ' + hrs(CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) + ' không vào' : 'Đang tắt', tone: '#38bdf8', act: function () { go('accounts', 'cfg-acc-inactivity'); } },
                 window.QD_BACKEND === 'vps' ? null : { k: 'fsu', v: 'dashboard', e: '🔥', t: 'Firebase hôm nay', s: fsuText(), n: fsuPct() == null ? null : fsuPct() + '%', tone: fsuPct() >= 85 ? '#ef4444' : fsuPct() >= 60 ? '#f59e0b' : '#22c55e', act: function () { go('dashboard', 'fsu-card'); } },
+                window.QD_BACKEND === 'vps' ? { k: 'vps', v: 'vps', e: '🖥️', t: 'Máy chủ VPS', s: window.__vpsBrief || 'CPU · RAM · ổ đĩa · sao lưu', tone: '#06b6d4', act: function () { go('vps'); } } : null,
                 { k: 'bot', v: 'calls', e: '🤖', t: 'Bot kiểm soát cuộc gọi', s: 'Ngưỡng & nhật ký bot', tone: '#38bdf8', act: function () { go('calls', 'qgd-card'); } }
             ].filter(function (x) { return x && allowed(x.v); });
         }
@@ -16963,6 +16982,38 @@ window.QDXlsx = (function () {
         $('qk-list').addEventListener('click', function (e) { var b = e.target.closest('.go'); if (b) one(b.dataset.id); });
         $('qk-bulk').addEventListener('click', bulk);
         window.QDQuick = { open: function () { menu(true); }, locked: openDrawer, go: go };
+    })();
+    </script>
+    <script id="qdv-dash-js">
+    /* ===== Tổng quan: thẻ "Máy chủ VPS" (CPU / RAM / ổ đĩa / kết nối / sao lưu) — chỉ Quản trị viên, làm mới 15 giây khi đang xem Tổng quan ===== */
+    (function () {
+        if (window.QD_BACKEND !== 'vps') return;
+        var $ = function (id) { return document.getElementById(id); }, T = 0;
+        function B(n) { n = +n || 0; var u = ['B', 'KB', 'MB', 'GB', 'TB'], i = 0; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return (i ? n.toFixed(n < 10 ? 1 : 0) : n) + ' ' + u[i]; }
+        function tone(p) { return p >= 85 ? '#ef4444' : p >= 65 ? '#f59e0b' : '#22c55e'; }
+        function it(lb, val, pct) { return '<div class="qdv-i"><span>' + lb + '</span><b>' + val + '</b>' + (pct == null ? '' : '<i><em style="width:' + Math.max(2, Math.min(100, pct)) + '%;background:' + tone(pct) + '"></em></i>') + '</div>'; }
+        function dur(s) { var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600); return d ? d + ' ngày ' + h + ' giờ' : h + ' giờ ' + Math.floor(s % 3600 / 60) + ' phút'; }
+        function tick() {
+            var card = $('qdv-card'), dash = $('view-dashboard');
+            if (!card || !window.QDdb || !QDdb.admin || document.hidden) return;
+            if (typeof State === 'undefined' || State.currentUserRole !== 'admin') { card.hidden = true; return; }
+            if (dash && !dash.classList.contains('active') && !card.hidden) return;
+            QDdb.admin('stats', { since: Date.now() }).then(function (s) {
+                var h = (s.hist || []).slice(-1)[0] || {}, mp = s.mem && s.mem.total ? (1 - s.mem.avail / s.mem.total) * 100 : null, dp = s.disk && s.disk.total ? (1 - s.disk.free / s.disk.total) * 100 : null;
+                card.hidden = false;
+                $('qdv-sub').textContent = '● Đang chạy · ' + s.ver + ' · chạy được ' + dur(s.uptime);
+                $('qdv-grid').innerHTML = it('CPU (' + s.cores + ' nhân)', s.load ? (s.load[0] / s.cores * 100).toFixed(0) + '%' : '—', s.load ? s.load[0] / s.cores * 100 : null)
+                    + it('RAM', mp == null ? '—' : mp.toFixed(0) + '% <small style="font-size:12px;color:var(--text-muted)">/ ' + B(s.mem.total) + '</small>', mp)
+                    + it('Ổ đĩa', dp == null ? '—' : dp.toFixed(0) + '% <small style="font-size:12px;color:var(--text-muted)">còn ' + B(s.disk.free) + '</small>', dp)
+                    + it('Dữ liệu', s.db.docs.toLocaleString('vi-VN') + ' <small style="font-size:12px;color:var(--text-muted)">· ' + B(s.db.file) + '</small>')
+                    + it('Đang kết nối', s.users + ' người <small style="font-size:12px;color:var(--text-muted)">· ' + s.conns + ' kết nối</small>');
+                window.__vpsBrief = 'RAM ' + (mp == null ? '?' : mp.toFixed(0) + '%') + ' · ổ đĩa ' + (dp == null ? '?' : dp.toFixed(0) + '%') + ' · ' + s.users + ' người online';
+            }).catch(function (e) {
+                if (e && e.code === 'permission-denied') { card.hidden = true; return; }
+                card.hidden = false; $('qdv-sub').innerHTML = '<span style="color:#ef4444">● Không đọc được máy chủ: ' + String((e && (e.message || e.code)) || 'mất kết nối') + '</span>'; $('qdv-grid').innerHTML = '';
+            });
+        }
+        setTimeout(tick, 3500); T = setInterval(tick, 15000);
     })();
     </script>
     <script id="qd-roles-js">
