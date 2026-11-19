@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-6';
+const VER = 'qd-vps-7';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -199,6 +199,17 @@ function checkStaffWrites(conn, writes) {
     if (!a && self) throw err('permission-denied', 'Không tự xóa tài khoản của mình');
   }
 }
+function uniqueUsers(writes) {   // mỗi tên đăng nhập chỉ 1 tài khoản (trước đây tạo tay ở Admin không kiểm tra -> 2 tài khoản cùng tên 'admin')
+  const now = Date.now(), m = COLS.get('accounts') || new Map(), mine = new Map();
+  for (const w of writes) {
+    const { col: c, id } = splitPath(w.path); if (c !== 'accounts' || w.op === 'delete') continue;
+    const a = simAccount(w, m.get(id), now); if (!a || typeof a.user !== 'string' || !a.user) continue;
+    const u = a.user.toLowerCase(), b = m.get(id);
+    if (b && b.d && String(b.d.user || '').toLowerCase() === u) continue;   // không đổi tên
+    for (const [oid, x] of m) if (oid !== id && x.d && String(x.d.user || '').toLowerCase() === u) throw err('already-exists', 'Tên đăng nhập "' + a.user + '" đã có tài khoản khác dùng');
+    if (mine.has(u) && mine.get(u) !== id) throw err('already-exists', 'Trùng tên đăng nhập trong cùng 1 lần ghi'); mine.set(u, id);
+  }
+}
 function checkWrites(conn, writes) {
   if (isStaff(conn)) return checkStaffWrites(conn, writes);
   for (const w of writes) {
@@ -274,6 +285,7 @@ function commit(writes, pre, conn) {
   for (const p of Object.keys(pre || {})) { const x = getDoc(p); if ((x ? x.v : 0) !== (pre[p] || 0)) throw err('aborted', 'Dữ liệu vừa bị người khác đổi, thử lại'); }
   for (const w of writes) { splitPath(w.path); if (w.op === 'update' && !getDoc(w.path)) throw err('not-found', 'No document to update: ' + w.path); }
   checkWrites(conn, writes);
+  uniqueUsers(writes);
   const now = Date.now(), changed = [], backup = new Map();
   for (const w of writes) { const { col: c, id } = splitPath(w.path), k = c + '/' + id; if (!backup.has(k)) backup.set(k, { c, id, x: col(c).get(id) }); }
   sql.exec('BEGIN');
@@ -536,8 +548,8 @@ function onText(conn, txt) {
     switch (m.op) {
       case 'hello': return send(conn, { re: m.r, ok: true, ver: VER, now: Date.now() });
       case 'login': {   // đúng tên + mật khẩu -> cấp mã xác thực 60 ngày
-        const a = findAccount(String(m.u || ''));
-        if (!a || a.d.pass !== m.p) { conn.u = ''; conn.role = ''; return send(conn, { re: m.r, code: 'unauthenticated', message: 'Sai tên đăng nhập hoặc mật khẩu' }); }
+        let a = null; const um = COLS.get('accounts'); if (um) for (const [id, x] of um) if (x.d && x.d.user === String(m.u || '') && x.d.pass === m.p) { a = { id, d: x.d }; break; }   // trùng tên (dữ liệu cũ): lấy đúng tài khoản khớp mật khẩu
+        if (!a) { conn.u = ''; conn.role = ''; return send(conn, { re: m.r, code: 'unauthenticated', message: 'Sai tên đăng nhập hoặc mật khẩu' }); }
         authConn(conn, a.d.user); return send(conn, { re: m.r, ok: true, token: sign(a.d.user), role: conn.role, u: conn.u });
       }
       case 'auth': { const o = verify(m.token); if (!o) { conn.u = ''; conn.role = ''; return send(conn, { re: m.r, code: 'unauthenticated', message: 'Mã xác thực hết hạn' }); } authConn(conn, o.u); return send(conn, { re: m.r, ok: true, role: conn.role, u: conn.u }); }
