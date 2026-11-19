@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-4';
+const VER = 'qd-vps-5';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -514,6 +514,238 @@ function onText(conn, txt) {
     }
   } catch (e) { fail(e); }
 }
+
+
+/* ==================================================================================================
+   BOT BÁO CÁO (chuyển từ máy chủ Google Apps Script bot-server.gs sang VPS): đọc settings/report_bot,
+   tới mốc giờ -> giành quyền bot_reports/{ngày_giờ} -> thu số liệu -> gửi tin vào Kênh Chung. Trạng thái: settings/report_bot_server.
+   Phần cấu hình / lịch / thu số liệu / soạn tin giữ nguyên như bản Apps Script (srv-12) và bộ máy Bot trên web.
+   ================================================================================================== */
+const BOT_VER = 'vps-bot-1', BOT_LOCAL = { local: true, u: '', role: '' }, BOT_BUSY_MS = 120 * 1000, BOT_MAX_TRIES = 10;
+var VN = 7 * 3600e3, BOT = 'qd_bot', DAY = 864e5;
+var WD = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+var DEF = {
+  isEnabled: false, enabledAt: 0, schedAt: 0,
+  times: ['20:00'], days: [0, 1, 2, 3, 4, 5, 6], from: '', to: '',
+  grace: 60,
+  botName: 'Bot Báo Cáo',
+  title: '📋 BÁO CÁO HOẠT ĐỘNG — {thu}, {ngay}',
+  footer: 'Cảm ơn anh em đã có mặt hôm nay! Ai chưa điểm danh nhớ vào đúng giờ nhé 💪',
+  sec: { att: true, login: true, loginNoAtt: true, noLogin: false, locked: true, gameId: true, bank: true },
+  tag: true, showTime: true, excludeStaff: true, exclude: [], maxNames: 100, skipEmpty: false
+};
+var ACC_FIELDS = ['user', 'role', 'isBlocked', 'lockReason', 'lastActive', 'online', 'lastLoginDate', 'lastLoginAt'];
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function vnParts(t) {
+  var d = new Date((t == null ? Date.now() : t) + VN);
+  return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate(), wd: d.getUTCDay(), h: d.getUTCHours(), mi: d.getUTCMinutes() };
+}
+function dateKey(p) { return p.y + '-' + pad(p.m) + '-' + pad(p.d); }
+function dateVN(p) { return p.d + '/' + p.m + '/' + p.y; }
+function dateShow(p) { return pad(p.d) + '/' + pad(p.m) + '/' + p.y; }
+function dayStart(p) { return Date.UTC(p.y, p.m - 1, p.d) - VN; }
+function hm(t) { var p = vnParts(t); return pad(p.h) + ':' + pad(p.mi); }
+
+function norm(c) {
+  c = c || {};
+  var o = JSON.parse(JSON.stringify(DEF)), n = function (v, def, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? def : Math.max(lo, Math.min(hi, v)); };
+  o.isEnabled = c.isEnabled === true; o.enabledAt = +c.enabledAt || 0; o.schedAt = +c.schedAt || 0;
+  if (Array.isArray(c.times)) {
+    var seen = {};
+    o.times = c.times.map(function (t) { var m = /^(\d{1,2}):(\d{2})$/.exec(String(t).trim()); if (!m || +m[1] > 23 || +m[2] > 59) return null; return pad(+m[1]) + ':' + m[2]; })
+      .filter(function (t) { if (!t || seen[t]) return false; seen[t] = 1; return true; }).sort().slice(0, 12);
+  }
+  if (Array.isArray(c.days)) { var sd = {}; o.days = c.days.map(Number).filter(function (x) { if (!(x >= 0 && x <= 6) || sd[x]) return false; sd[x] = 1; return true; }).sort(); }
+  var dk = /^\d{4}-\d{2}-\d{2}$/;
+  o.from = dk.test(c.from || '') ? c.from : ''; o.to = dk.test(c.to || '') ? c.to : '';
+  o.grace = n(c.grace, DEF.grace, 5, 720);
+  ['botName', 'title', 'footer'].forEach(function (k) { if (typeof c[k] === 'string') o[k] = c[k].slice(0, k === 'botName' ? 40 : 300); });
+  if (!o.botName.trim()) o.botName = DEF.botName;
+  if (c.sec && typeof c.sec === 'object') Object.keys(o.sec).forEach(function (k) { if (typeof c.sec[k] === 'boolean') o.sec[k] = c.sec[k]; });
+  ['tag', 'showTime', 'excludeStaff', 'skipEmpty'].forEach(function (k) { if (typeof c[k] === 'boolean') o[k] = c[k]; });
+  if (Array.isArray(c.exclude)) o.exclude = c.exclude.map(function (u) { return String(u).replace(/^@/, '').trim(); }).filter(Boolean).slice(0, 300);
+  o.maxNames = n(c.maxNames, DEF.maxNames, 10, 500);
+  return o;
+}
+function dayOk(cfg, p) {
+  if (cfg.days.indexOf(p.wd) < 0) return false;
+  var k = dateKey(p);
+  return !(cfg.from && k < cfg.from) && !(cfg.to && k > cfg.to);
+}
+function slotsFor(cfg, p) {
+  if (!dayOk(cfg, p)) return [];
+  var k = dateKey(p), st = dayStart(p);
+  return cfg.times.map(function (t) { var a = t.split(':'); return { time: t, key: k, ts: st + (+a[0]) * 3600e3 + (+a[1]) * 60e3, runId: k + '_' + a[0] + a[1] }; });
+}
+function nextRun(cfg, now) {
+  if (!cfg.times.length || !cfg.days.length) return null;
+  for (var i = 0; i < 400; i++) {
+    var p = vnParts(now + i * DAY);
+    if (cfg.to && dateKey(p) > cfg.to) return null;
+    var s = slotsFor(cfg, p).filter(function (x) { return x.ts > now; })[0];
+    if (s) return s;
+  }
+  return null;
+}
+function collect(cfg, at) {
+  var p = vnParts(at), start = dayStart(p), key = dateKey(p), d1 = dateVN(p), d2 = dateShow(p);
+  var ex = {}; cfg.exclude.forEach(function (u) { ex[u.toLowerCase()] = 1; });
+  var accDocs = botList('accounts');
+  var attDocs = botList('attendance').filter(function (x) { return x.date === d1 || x.date === d2; });
+  var accs = [], by = {}, locked = [];
+  accDocs.forEach(function (a) {
+    var u = String(a.user || '').trim();
+    if (!u || u === BOT || ex[u.toLowerCase()]) return;
+    var role = a.role || (u === 'admin' ? 'admin' : 'user');
+    if (cfg.excludeStaff && (role === 'admin' || role === 'manager')) return;
+    if (a.isBlocked === true) { locked.push({ u: u, why: a.lockReason === 'security' ? 'nghi gian lận' : '' }); return; }
+    var o = { u: u, role: role, la: +a.lastActive || 0, online: a.online !== false, ll: a.lastLoginDate === key ? (+a.lastLoginAt || 0) : 0 };
+    accs.push(o); by[u] = o;
+  });
+  var att = {};
+  attDocs.forEach(function (x) {
+    var u = x.userName; if (!u || !by[u]) return;
+    var ts = +x.timestamp || 0; if (!att[u] || ts < att[u].ts) att[u] = { ts: ts, time: x.time || '' };
+  });
+  var cmpName = function (a, b) { return a.u.localeCompare(b.u, 'vi', { sensitivity: 'base' }); };
+  // Ai đã khai ID (users) / ngân hàng (bank_info): chỉ lấy tên + giờ khai. Không đọc được -> bỏ qua mục đó, báo cáo vẫn gửi.
+  var idTs = {}, bkTs = {}, idOk = true, bkOk = true;
+  try {
+    botList('users').forEach(function (x) {
+      var u = String(x.submitter || '').trim(), ts = +x.timestamp || 0;
+      if (u && by[u] && x.gameId && (!idTs[u] || ts > idTs[u].ts)) idTs[u] = { ts: ts };
+    });
+  } catch (e) { idOk = false; }
+  try {
+    botList('bank_info').forEach(function (x) {
+      var u = String(x.user || x._id || '').trim(), ts = +x.changedAt || +x.updatedAt || 0;
+      if (u && by[u] && x.accNo) bkTs[u] = { ts: ts };
+    });
+  } catch (e) { bkOk = false; }
+  var byTs = function (m) { return function (a, b) { return (m[a.u].ts || 0) - (m[b.u].ts || 0); }; };
+  var idDone = accs.filter(function (a) { return idTs[a.u]; }), bkDone = accs.filter(function (a) { return bkTs[a.u]; });
+  var attended = accs.filter(function (a) { return att[a.u]; }).sort(function (a, b) { return att[a.u].ts - att[b.u].ts; });
+  var logged = accs.filter(function (a) { return att[a.u] || a.ll || a.la >= start; }).sort(cmpName);
+  var inLog = {}; logged.forEach(function (a) { inLog[a.u] = 1; });
+  return {
+    at: at, p: p, total: accs.length, att: att, attended: attended, loggedIn: logged,
+    loginNoAtt: logged.filter(function (a) { return !att[a.u]; }),
+    noLogin: accs.filter(function (a) { return !inLog[a.u]; }).sort(cmpName),
+    locked: locked.sort(cmpName),
+    idOk: idOk, idTs: idTs, idDone: idDone, idNew: idDone.filter(function (a) { return idTs[a.u].ts >= start; }).sort(byTs(idTs)), idMissing: accs.filter(function (a) { return !idTs[a.u]; }).sort(cmpName),
+    bkOk: bkOk, bkTs: bkTs, bkDone: bkDone, bkNew: bkDone.filter(function (a) { return bkTs[a.u].ts >= start; }).sort(byTs(bkTs)), bkMissing: accs.filter(function (a) { return !bkTs[a.u]; }).sort(cmpName),
+    online: accs.filter(function (a) { return a.online && at - a.la < 120000; }).length
+  };
+}
+
+function fill(tpl, v) { return String(tpl || '').replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); }
+function compose(cfg, d) {
+  var men = {};
+  function list(arr, withTime, empty) {
+    if (!arr.length) return empty || '— Chưa có ai —';
+    var shown = arr.slice(0, cfg.maxNames);
+    var s = shown.map(function (a) {
+      if (cfg.tag) men[a.u] = 1;
+      var tm = withTime === true ? d.att : withTime;   // true = giờ điểm danh; hoặc bảng giờ khai báo
+      return (cfg.tag ? '@' : '') + a.u + (tm && cfg.showTime && tm[a.u] && tm[a.u].ts ? ' (' + hm(tm[a.u].ts) + ')' : '') + (a.why ? ' (' + a.why + ')' : '');
+    }).join(', ');
+    if (arr.length > shown.length) s += ' … và ' + (arr.length - shown.length) + ' người khác';
+    return s;
+  }
+  var pct = d.total ? Math.round(d.attended.length * 1000 / d.total) / 10 : 0;
+  var v = { ngay: dateShow(d.p), thu: WD[d.p.wd], gio: hm(d.at), diemdanh: d.attended.length, dangnhap: d.loggedIn.length,
+    chuadiemdanh: d.loginNoAtt.length, chuavao: d.noLogin.length, bikhoa: d.locked.length, tong: d.total, tile: String(pct).replace('.', ',') + '%', bot: cfg.botName,
+    khaiid: d.idDone.length, chuakhaiid: d.idMissing.length, khainh: d.bkDone.length, chuakhainh: d.bkMissing.length };
+  var out = [], t = fill(cfg.title, v).trim();
+  if (t) out.push(t);
+  out.push('⏰ Chốt số liệu lúc ' + v.gio + ' · ' + d.total + ' thành viên');
+  if (cfg.sec.att) out.push('', '✅ ĐÃ ĐIỂM DANH: ' + d.attended.length + '/' + d.total + ' (' + v.tile + ')', list(d.attended, true));
+  if (cfg.sec.login) out.push('', '🔐 ĐĂNG NHẬP HÔM NAY: ' + d.loggedIn.length + '/' + d.total, list(d.loggedIn));
+  if (cfg.sec.loginNoAtt) out.push('', '⚠️ ĐÃ VÀO NHƯNG CHƯA ĐIỂM DANH: ' + d.loginNoAtt.length, list(d.loginNoAtt));
+  if (cfg.sec.noLogin) out.push('', '😴 CHƯA ĐĂNG NHẬP: ' + d.noLogin.length, list(d.noLogin));
+  if (cfg.sec.locked) out.push('', '🔒 TÀI KHOẢN BỊ KHÓA: ' + d.locked.length, list(d.locked, false, '— Không có tài khoản nào bị khóa —'));
+  function decl(on, ok, icon, label, done, fresh, miss, tm) {
+    if (!on || !ok) return;
+    out.push('', icon + ' ' + label + ': ' + done.length + '/' + d.total + ' đã khai' + (fresh.length ? ' · hôm nay +' + fresh.length : ''));
+    if (fresh.length) out.push('🆕 Mới khai hôm nay: ' + list(fresh, tm));
+    out.push('⏳ Chưa khai: ' + (miss.length ? miss.length + ' — ' : '') + list(miss, false, 'Tất cả đã khai 🎉'));
+  }
+  decl(cfg.sec.gameId, d.idOk, '🆔', 'KHAI BÁO ID', d.idDone, d.idNew, d.idMissing, d.idTs);
+  decl(cfg.sec.bank, d.bkOk, '🏦', 'KHAI BÁO TÀI KHOẢN NGÂN HÀNG', d.bkDone, d.bkNew, d.bkMissing, d.bkTs);
+  var f = fill(cfg.footer, v).trim(); if (f) out.push('', f);
+  return {
+    text: out.join('\n').slice(0, 30000), mentions: Object.keys(men),
+    counts: { total: d.total, att: d.attended.length, login: d.loggedIn.length, loginNoAtt: d.loginNoAtt.length, noLogin: d.noLogin.length, locked: d.locked.length, online: d.online,
+      gameId: d.idDone.length, gameIdNew: d.idNew.length, bank: d.bkDone.length, bankNew: d.bkNew.length }
+  };
+}
+
+
+function botList(c) { const m = COLS.get(c), out = []; if (m) for (const [id, x] of m) out.push(Object.assign({ _id: id }, x.d)); return out; }
+function botAutoId() { return crypto.randomBytes(15).toString('base64').replace(/[^A-Za-z0-9]/g, '').slice(0, 20).padEnd(20, 'x'); }
+function botCfg() { const x = getDoc('settings/report_bot'); return norm(x ? x.d : null); }
+function botFloor(cfg) { return Math.max(cfg.enabledAt || 0, cfg.schedAt || 0) - 60000; }
+function botDue(cfg, now) {
+  const floor = botFloor(cfg);
+  return slotsFor(cfg, vnParts(now - DAY)).concat(slotsFor(cfg, vnParts(now))).filter(s => s.ts <= now && now - s.ts <= cfg.grace * 60000 && s.ts >= floor);
+}
+function botClaim(path, slot, manual) {
+  const cur = getDoc(path), x = cur ? cur.d : null, t = Date.now();
+  if (x) {
+    if (x.status === 'sent' || x.status === 'skipped') return 'done';
+    if (x.status === 'sending' && t - (+x.at || 0) < BOT_BUSY_MS) return 'busy';
+    if ((x.tries || 0) >= BOT_MAX_TRIES) return 'giveup';
+  }
+  const rec = { runId: slot.runId, slot: slot.time, dateKey: slot.key, due: slot.ts, status: 'sending', by: 'máy chủ VPS', byRole: 'server', at: t, tries: ((x && x.tries) || 0) + 1, manual: !!manual };
+  try { commit([{ op: 'set', path, data: rec, merge: true }], { [path]: cur ? cur.v : 0 }, BOT_LOCAL); } catch (e) { if (e.code === 'aborted') return 'busy'; throw e; }
+  return 'ok';
+}
+function botSend(slot, cfg, manual) {
+  const path = 'bot_reports/' + slot.runId, got = botClaim(path, slot, manual);
+  if (got !== 'ok') return { ok: false, reason: got };
+  try {
+    const data = collect(cfg, Date.now()), comp = compose(cfg, data);
+    if (cfg.skipEmpty && !manual && !data.loggedIn.length) {
+      commit([{ op: 'set', path, data: { status: 'skipped', note: 'Hôm nay chưa ai đăng nhập', doneAt: Date.now(), counts: comp.counts }, merge: true }], null, BOT_LOCAL);
+      return { ok: false, reason: 'done', skipped: true };
+    }
+    const id = botAutoId(), t = Date.now();
+    const msg = { conversationId: 'general_room', from: BOT, to: 'all', text: comp.text, imageUrl: null, time: t, read: false, heart: false, hearts: [], readBy: [], bot: true, botName: cfg.botName, mentions: comp.mentions, reportId: slot.runId };
+    const rep = { status: 'sent', msgId: id, sentAt: t, counts: comp.counts, text: comp.text.slice(0, 6000), err: '' };
+    commit([{ op: 'set', path: 'private_chat/' + id, data: msg }, { op: 'set', path, data: rep, merge: true }], null, BOT_LOCAL);
+    return { ok: true, msgId: id };
+  } catch (e) {
+    try { commit([{ op: 'set', path, data: { status: 'error', err: String(e.message || e).slice(0, 200), errAt: Date.now() }, merge: true }], null, BOT_LOCAL); } catch (er) {}
+    throw e;
+  }
+}
+let BOT_HB = { at: 0, err: '' };
+function botTick() {
+  const now = Date.now(), st = { note: '', err: '', sent: false };
+  let cfg = null;
+  try {
+    cfg = botCfg();
+    if (cfg.isEnabled) for (const s of botDue(cfg, now)) {
+      try {
+        const r = botSend(s, cfg, false);
+        if (r.ok) { st.sent = true; st.note = 'Đã gửi mốc ' + s.time; st.err = ''; console.log('[bot] đã gửi báo cáo mốc ' + s.time); }
+        else if (r.skipped) st.note = 'Bỏ qua mốc ' + s.time + ' (đang bật "Không gửi khi chưa ai đăng nhập")';
+        else if (r.reason === 'giveup') st.err = 'Mốc ' + s.time + ' thử ' + BOT_MAX_TRIES + ' lần vẫn lỗi, đã dừng (xem Lịch sử gửi)';
+      } catch (e) { st.err = 'Mốc ' + s.time + ': ' + String(e.message || e).slice(0, 200); }
+    }
+  } catch (e) { st.err = String(e.message || e).slice(0, 200); }
+  // Báo "còn sống" cho Admin (tối đa 1 lần / 4 phút, hoặc ngay khi có lỗi / vừa gửi)
+  if (st.sent || st.err || BOT_HB.err !== '' || now - BOT_HB.at >= 4 * 60000) {
+    const n = cfg && cfg.isEnabled ? nextRun(cfg, now) : null;
+    const data = { lastRun: now, ok: !st.err, err: st.err, ver: BOT_VER, every: 1, stopped: false, by: 'vps', nextAt: n ? n.ts : 0 };
+    if (st.note) { data.note = st.note; data.noteAt = now; }
+    try { commit([{ op: 'set', path: 'settings/report_bot_server', data, merge: true }], null, BOT_LOCAL); BOT_HB = { at: now, err: st.err }; } catch (e) {}
+  }
+  // Mốc giờ sắp tới trong 20 giây -> hẹn đúng giây đó (không phải chờ lượt sau)
+  const n2 = cfg && cfg.isEnabled ? nextRun(cfg, Date.now()) : null;
+  if (n2 && n2.ts - Date.now() < 20000) setTimeout(botTick, Math.max(0, n2.ts - Date.now() + 500));
+}
+setInterval(botTick, 20000); setTimeout(botTick, 5000);
 
 /* ---------------------------------- HTTP ---------------------------------- */
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Expose-Headers': 'Content-Disposition' };
