@@ -838,6 +838,7 @@ html.qd-lite .qd-fx { display: none !important; }
         .fsu-chart span:hover::after { content: attr(data-t); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; background: #000; color: #fff; padding: 3px 6px; border-radius: 6px; margin-bottom: 4px; z-index: 2; }
         .fsu-note { margin: 10px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
         /* ===== Admin > Máy chủ VPS ===== */
+        body.qvps-on [data-fb-only] { display: none !important; }
         body:not(.qvps-on) .qvps-only { display: none !important; }
         .qv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
         .qv-acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -956,7 +957,7 @@ html.qd-lite .qd-fx { display: none !important; }
     /* ===== Firebase hết hạn mức miễn phí trong ngày (resource-exhausted / "Quota exceeded") -> hiện băng thông báo rõ ràng
        thay vì để trang quay "Đang tải" mãi. Hạn mức đặt lại 0:00 giờ Mỹ (America/Los_Angeles) = 15:00 / 14:00 giờ VN. ===== */
     (function () {
-        if (window.__qdQuota) return; window.__qdQuota = 1;
+        if (window.__qdQuota || window.QD_BACKEND === 'vps') return; window.__qdQuota = 1;   // máy chủ VPS: không có hạn mức Firebase
         var shown = false, RX = /resource-exhausted|Quota exceeded|quota.*exceed/i;
         function resetAt() {   // 0:00 kế tiếp theo giờ Los Angeles
             try {
@@ -1664,7 +1665,7 @@ html.qd-lite .qd-fx { display: none !important; }
                             <h2 class="stat-num" id="stat-pending">0</h2>
                         </div>
                     </div>
-                    <div class="card fsu-card" id="fsu-card">
+                    <div class="card fsu-card" id="fsu-card" data-fb-only>
                         <div class="fsu-hd">
                             <h3><span class="fsu-ic">🔥</span> Firebase hôm nay <small id="fsu-sub">Đang tải…</small></h3>
                             <button type="button" class="fsu-btn" id="fsu-ref" title="Hỏi lại số liệu ngay (tối đa 1 lần / phút)"><i class="fa-solid fa-rotate"></i> Làm mới</button>
@@ -16608,7 +16609,7 @@ window.QDXlsx = (function () {
         if (!window.firebase || !firebase.apps || !firebase.apps.length) { if (n < 120) setTimeout(function () { hook(n + 1); }, 500); return; }
         firebase.firestore().collection('settings').doc('push_server').onSnapshot(function (d) {
             var x = d.exists ? d.data() : {}, v = +String(x.ver || '').replace(/\D/g, '') || 0, box = document.getElementById('qsrv-warn'); if (!box) return;
-            box.hidden = v >= 11; document.getElementById('qsrv-ver').textContent = x.ver ? x.ver : 'cũ (chưa rõ)';
+            box.hidden = v >= 11 || x.by === 'vps' || window.QD_BACKEND === 'vps'; document.getElementById('qsrv-ver').textContent = x.ver ? x.ver : 'cũ (chưa rõ)';
         }, function () {});
     })(0);
     </script>
@@ -16855,9 +16856,9 @@ window.QDXlsx = (function () {
                 { k: 'reports', v: 'calls', e: '🚩', t: 'Báo cáo khi gọi', s: N.reports ? N.reports + ' chờ xử lý' : 'Không có báo cáo mới', n: N.reports, tone: '#ef4444', act: function () { go('calls', 'qrp-card'); } },
                 { k: 'pend', v: 'approvals', e: '🧾', t: 'Phê duyệt tài khoản', s: pend ? pend + ' chờ duyệt' : 'Không có đơn chờ', n: pend, tone: '#6366f1', act: function () { go('approvals'); } },
                 { k: 'idlecfg', v: 'accounts', e: '⏱️', t: 'Tự khóa khi không hoạt động', s: (CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) ? 'Sau ' + hrs(CFG.inactivityMinutes !== undefined ? +CFG.inactivityMinutes : 1440) + ' không vào' : 'Đang tắt', tone: '#38bdf8', act: function () { go('accounts', 'cfg-acc-inactivity'); } },
-                { k: 'fsu', v: 'dashboard', e: '🔥', t: 'Firebase hôm nay', s: fsuText(), n: fsuPct() == null ? null : fsuPct() + '%', tone: fsuPct() >= 85 ? '#ef4444' : fsuPct() >= 60 ? '#f59e0b' : '#22c55e', act: function () { go('dashboard', 'fsu-card'); } },
+                window.QD_BACKEND === 'vps' ? null : { k: 'fsu', v: 'dashboard', e: '🔥', t: 'Firebase hôm nay', s: fsuText(), n: fsuPct() == null ? null : fsuPct() + '%', tone: fsuPct() >= 85 ? '#ef4444' : fsuPct() >= 60 ? '#f59e0b' : '#22c55e', act: function () { go('dashboard', 'fsu-card'); } },
                 { k: 'bot', v: 'calls', e: '🤖', t: 'Bot kiểm soát cuộc gọi', s: 'Ngưỡng & nhật ký bot', tone: '#38bdf8', act: function () { go('calls', 'qgd-card'); } }
-            ].filter(function (x) { return allowed(x.v); });
+            ].filter(function (x) { return x && allowed(x.v); });
         }
         function fsuPct() { var u = window.__fsUsage; return u && u.ok ? Math.round(Math.max((+u.w || 0) / (+u.freeW || 20000), (+u.r || 0) / (+u.freeR || 50000)) * 100) : null; }
         function fsuText() { var u = window.__fsUsage; if (!u || !u.at) return 'Cần máy chủ srv-12'; if (!u.ok) return 'Lỗi lấy số liệu'; return (+u.w || 0).toLocaleString('vi-VN') + ' / ' + (+u.freeW || 20000).toLocaleString('vi-VN') + ' lượt ghi'; }

@@ -9414,7 +9414,7 @@ html.qd-lite .qd-fx { display: none !important; }
     /* ===== Firebase hết hạn mức miễn phí trong ngày (resource-exhausted / "Quota exceeded") -> hiện băng thông báo rõ ràng
        thay vì để trang quay "Đang tải" mãi. Hạn mức đặt lại 0:00 giờ Mỹ (America/Los_Angeles) = 15:00 / 14:00 giờ VN. ===== */
     (function () {
-        if (window.__qdQuota) return; window.__qdQuota = 1;
+        if (window.__qdQuota || window.QD_BACKEND === 'vps') return; window.__qdQuota = 1;   // máy chủ VPS: không có hạn mức Firebase
         var shown = false, RX = /resource-exhausted|Quota exceeded|quota.*exceed/i;
         function resetAt() {   // 0:00 kế tiếp theo giờ Los Angeles
             try {
@@ -26197,7 +26197,8 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
                         // máy chủ nào cũng đẩy tin nhắn lên điện thoại, app (1.1.0.71+) nhận tin đó là đổ chuông cuộc gọi luôn (Nghe / Từ chối), không cần mở app.
                         var s1 = S;
                         db().collection('settings').doc('push_server').get().then(function (x) { return new Promise(function (r) { setTimeout(function () { r(x); }, 1200); }); }).then(function (x) {   // chờ 1,2 giây: người nhận đang mở app thì đã đổ chuông rồi, khỏi gửi tin
-                            if (S !== s1 || S.answered) return; var v = +String((x.exists && x.data().ver) || '').replace(/\D/g, '') || 0;
+                            if (S !== s1 || S.answered) return; if (x.exists && x.data().by === 'vps') return;   // máy chủ VPS: app tự đổ chuông qua kết nối nền, không cần tin nhắn kèm
+                            var v = +String((x.exists && x.data().ver) || '').replace(/\D/g, '') || 0;
                             if (v && v < 10 && !s1.pinged && !S.ringing) {
                                 s1.pinged = true; try { db().collection('private_chat').add({ conversationId: Utils.getRoomId(me(), s1.peer), from: me(), to: s1.peer, text: (s1.type === 'video' ? '📹 Mình đang gọi video cho bạn' : '📞 Mình đang gọi cho bạn') + ' — bấm Nghe để trả lời nhé!', imageUrl: null, time: Date.now(), read: false, heart: false, hearts: [], readBy: [], callPing: true }).then(pingHook, function () {}); } catch (e) {}
                             }
