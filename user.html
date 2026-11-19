@@ -12959,6 +12959,18 @@ html.qd-lite .qd-fx { display: none !important; }
             }
         };
 
+        /** Lỗi Firestore -> câu dễ hiểu cho thành viên + ghi app_errors để Admin xem (Admin > Lì Xì > Lỗi khi đổi / rút) */
+        window.qdErr = function (where, e) {
+            const c = String((e && (e.code || e.name)) || (typeof e === 'string' ? e : '') || 'unknown').replace(/^firestore\//, ''), m = String((e && e.message) || e || '').slice(0, 300);
+            try { db.collection('app_errors').add({ where, user: (window.State && State.currentUser) || '', docId: (window.State && State.currentDocId) || '', code: c, msg: m, online: navigator.onLine, ua: navigator.userAgent.slice(0, 160), at: Date.now() }).catch(() => {}); } catch (x) {}
+            if (!navigator.onLine || c === 'unavailable') return 'Mất kết nối mạng — kiểm tra mạng rồi thử lại.';
+            if (c === 'resource-exhausted') return 'Máy chủ đã dùng hết hạn mức miễn phí hôm nay — tự mở lại lúc 15:00. Báo Ban Quản Trị nhé!';
+            if (c === 'permission-denied') return 'Hệ thống đang chặn quyền ghi dữ liệu — báo Ban Quản Trị kiểm tra (mã permission-denied).';
+            if (c === 'aborted' || c === 'failed-precondition') return 'Đông người thao tác cùng lúc — đợi vài giây rồi thử lại.';
+            return 'Lỗi kết nối máy chủ, vui lòng thử lại. (Mã: ' + c + ')';
+        };
+        window.qdTemp = (e) => /aborted|failed-precondition|unavailable|deadline-exceeded|internal|cancelled/.test(String((e && e.code) || ''));
+
         /** MODULE CỬA HÀNG ĐIỂM (TÍCH HỢP FETCH GIÁ TỪ ADMIN) */
         window.PointShop = {
             userPoints: 0, spinCost: 100, ticketCost: 50,
@@ -13152,7 +13164,12 @@ html.qd-lite .qd-fx { display: none !important; }
                         got = { x, cost, what, qty, newPoints: pts - cost };
                     });
                 try {
-                    await tx(false).catch(e => { if (e === 'EXACT') return tx(true); throw e; });
+                    const go = (n, exact) => tx(exact).catch(e => {
+                        if (e === 'EXACT') return go(n, true);
+                        if (n < 3 && window.qdTemp(e)) return new Promise(r => setTimeout(r, 400 + Math.random() * 700 * (n + 1))).then(() => go(n + 1, true));   // đông người / mạng chập chờn -> thử lại
+                        throw e;
+                    });
+                    await go(0, false);
                     this.busy = false;
                     this.applyLocal(got);   // trừ điểm ngay trên màn hình
                     this.qty[id] = 1;
@@ -13164,8 +13181,8 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="ps2-pop-btns">${isGift ? `<button class="no" onclick="window.PointShop.closePop(); window.PointShop.setTab('orders')">Xem đơn quà</button>` : ''}<button class="yes" onclick="window.PointShop.closePop()">Tiếp tục đổi</button></div>`);
                     window.Utils.toast(`🎉 Đổi thành công ${got.what}! −${this.fmt(got.cost)} điểm`, "success");
                 } catch (error) {
-                    const msg = { CLOSED: 'Trạm Quy Đổi vừa đóng cửa.', GONE: 'Vật phẩm này không còn bán.', POINTS: 'Số dư điểm không đủ.', STOCK: 'Vật phẩm đã hết hàng.', DAILY: 'Bạn đã đạt giới hạn đổi vật phẩm này hôm nay.' }[error];
-                    if (!msg) console.error(error);
+                    let msg = { CLOSED: 'Trạm Quy Đổi vừa đóng cửa.', GONE: 'Vật phẩm này không còn bán.', POINTS: 'Số dư điểm không đủ.', STOCK: 'Vật phẩm đã hết hàng.', DAILY: 'Bạn đã đạt giới hạn đổi vật phẩm này hôm nay.' }[error];
+                    if (!msg) { console.error(error); msg = window.qdErr('shop', error); }
                     this.busy = false;
                     this.pop('err', `<div class="ps2-pop-ico">😢</div><h3>Đổi quà chưa thành công</h3><div class="ps2-pop-item">${msg || 'Lỗi kết nối máy chủ, vui lòng thử lại.'}</div>
                         <p style="font-size:12px;color:#fecaca;margin:0 0 14px;">Bạn chưa bị trừ điểm.</p><div class="ps2-pop-btns"><button class="yes" onclick="window.PointShop.closePop()">Đã hiểu</button></div>`);
@@ -18982,8 +18999,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     else {
                         console.error('LiXi error', err);
                         var ec = (err && (err.code || err.name)) || 'lỗi lạ', em = String((err && err.message) || err || '').slice(0, 300);
-                        toast(ec === 'permission-denied' ? 'Không rút được lì xì: hệ thống chặn quyền ghi (báo Admin kiểm tra). Mã: permission-denied' : !navigator.onLine ? 'Không rút được lì xì: mất mạng, kiểm tra kết nối rồi thử lại.' : 'Không rút được lì xì, vui lòng thử lại. (Mã: ' + ec + ')', 'error');
-                        try { db.collection('app_errors').add({ where: 'lixi', user: window.State.currentUser || '', docId: window.State.currentDocId || '', code: String(ec), msg: em, online: navigator.onLine, ua: navigator.userAgent.slice(0, 160), at: Date.now() }).catch(function () {}); } catch (e) {}
+                        toast('Không rút được lì xì: ' + window.qdErr('lixi', err), 'error');
                     }
                     self.render();
                 });
@@ -25183,7 +25199,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             }).catch(function (e) {
                 CO.busy = false;
                 var msg = { CLOSED: 'Đổi điểm ra tiền vừa tạm đóng.', TIER: 'Mốc đổi này không còn áp dụng.', BANK: 'Bạn cần khai tài khoản nhận tiền trước.', POINTS: 'Số dư điểm không đủ.', DAILY: 'Bạn đã đạt hạn mức đổi trong hôm nay.' }[e];
-                if (!msg) console.error(e);
+                if (!msg) { console.error(e); msg = window.qdErr ? window.qdErr('cashout', e) : ''; }
                 pop('', '<div class="co2-pop-ico">😢</div><h3>Đổi điểm chưa thành công</h3><div class="co2-pop-rows"><div><span>' + (msg || 'Lỗi kết nối máy chủ, vui lòng thử lại.') + '</span></div></div>'
                     + '<p style="font-size:12px;color:#fecaca;margin:-4px 0 12px;">Bạn chưa bị trừ điểm.</p><div class="co2-pop-btns"><button class="yes" onclick="window.Cashout.closePop()">Đã hiểu</button></div>');
                 render();
