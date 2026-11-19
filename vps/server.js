@@ -282,8 +282,8 @@ function flushNotify() {
   const q = NQ; NQ = null; if (!q) return;
   const cols = q.cols, paths = q.paths;
   for (const s of SUBS) {
-    if (s.kind === 'doc') { if (paths.has(s.path)) pushDoc(s); }
-    else if (cols.has(s.q.col)) pushQuery(s);
+    try { if (s.kind === 'doc') { if (paths.has(s.path)) pushDoc(s); } else if (cols.has(s.q.col)) pushQuery(s); }
+    catch (e) { console.error('[qd] đẩy dữ liệu lỗi', s.sid, e && e.message); }
   }
 }
 function resendAll() { for (const s of SUBS) { if (s.kind === 'doc') { s.last = -1; pushDoc(s); } else pushQuery(s, true); } }

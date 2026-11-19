@@ -17,7 +17,7 @@
         if (closedByUser || (ws && (ws.readyState === 0 || ws.readyState === 1))) return;
         try { ws = new WebSocket(URL_); } catch (e) { return later(); }
         ws.onopen = function () {
-            open = true; retry = 0; everOpen = true;
+            open = true; retry = 0; everOpen = true; clearTimeout(barT); barT = 0; showBar(false);
             var tk = tok(); if (tk) sendAuth(tk);   // xác thực TRƯỚC mọi lệnh khác (máy chủ xử lý theo thứ tự)
             Object.keys(subs).forEach(function (k) { var s = subs[k]; s.resent = true; raw({ op: 'sub', sid: s.sid, path: s.path, q: s.q }); });   // nghe lại sau khi mất mạng
             var q = queue; queue = []; q.forEach(function (m) { raw(m); });
@@ -25,11 +25,27 @@
         ws.onmessage = function (e) { var m; try { m = JSON.parse(e.data); } catch (x) { return; } onMsg(m); };
         ws.onclose = function () {
             open = false; ws = null;
+            watchBar();
             Object.keys(pend).forEach(function (k) { var p = pend[k]; if (p.m.op !== 'commit' || p.m.cid) queue.push(p.m); });   // gửi lại khi có mạng (ghi có mã cid -> máy chủ không ghi trùng)
             later();
         };
         ws.onerror = function () {};
     }
+    /* Thanh báo "chưa kết nối được máy chủ" (sau 6 giây vẫn chưa nối được) -> người dùng biết đang lỗi kết nối, bấm để thử lại ngay */
+    var barT = 0, bar = null, downAt = Date.now();
+    function showBar(on) {
+        try {
+            if (!on) { if (bar) { bar.remove(); bar = null; } return; }
+            if (bar || !document.body) return;
+            bar = document.createElement('div'); bar.id = 'qd-net-bar';
+            bar.style.cssText = 'position:fixed;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);z-index:2147483646;background:#7f1d1d;color:#fff;font:600 13px/1.35 system-ui,sans-serif;padding:8px 14px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:92vw;text-align:center;cursor:pointer';
+            bar.textContent = (navigator.onLine === false ? '📵 Máy đang mất mạng' : '⚠️ Chưa kết nối được máy chủ QĐ') + ' — đang thử lại… (bấm để thử ngay)';
+            bar.onclick = function () { retry = 0; connect(); };
+            document.body.appendChild(bar);
+        } catch (e) {}
+    }
+    function watchBar() { if (barT || bar) return; barT = setTimeout(function () { barT = 0; if (!open) showBar(true); }, 6000); }
+    watchBar();
     function later() { if (closedByUser) return; clearTimeout(retryT); retryT = setTimeout(connect, Math.min(15000, 400 * Math.pow(1.7, retry++))); }
     function raw(m) {
         if (open && ws && ws.readyState === 1) { try { ws.send(JSON.stringify(m)); return; } catch (e) {} }

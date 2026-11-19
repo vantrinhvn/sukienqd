@@ -4499,7 +4499,7 @@ html.qd-lite .qd-fx { display: none !important; }
             if (localStorage.getItem(k) !== v) { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem(k, v); }   // đổi máy chủ -> đăng nhập lại 1 lần
         } catch (e) {}
         v = window.QD_BACKEND = v;
-        document.write(v === 'vps' ? '<script src="qd-db.js?v=4"><\/script>'
+        document.write(v === 'vps' ? '<script src="qd-db.js?v=5"><\/script>'
             : '<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"><\/script><script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"><\/script>');
     })();
     </script>
@@ -17054,7 +17054,7 @@ window.QDXlsx = (function () {
                 $('qv-sub').textContent = 'Cập nhật ' + tm(s.now) + ' · tự làm mới 3 giây / lần'; pill(true, 'Đang chạy'); $('qv-alert').hidden = true; paint();
             }).catch(function (e) {
                 pill(false, 'Lỗi'); var al = $('qv-alert'); al.hidden = false; al.className = 'qv-alert';
-                al.innerHTML = e && e.code === 'permission-denied' ? '🔒 Chỉ tài khoản <b>Admin</b> (vai trò admin) dùng được mục này. Hãy đăng xuất rồi đăng nhập lại bằng tài khoản Admin.' : '❌ Không lấy được thông tin máy chủ: ' + E((e && (e.message || e.code)) || 'mất kết nối') + '. Kiểm tra VPS còn chạy không (gõ <b>qd status</b> trên VPS).';
+                al.innerHTML = e && /Lệnh lạ/.test(e.message || '') ? '⚠️ Máy chủ VPS đang chạy <b>bản cũ (bản 1)</b>, chưa có phần quản trị, chưa có bảo vệ mật khẩu và nút "Cập nhật máy chủ" chưa dùng được.<br>Vào VPS (Termius) gõ đúng 1 lệnh: <code style="background:#0b1220;padding:2px 8px;border-radius:6px;color:#67e8f9">qd update</code> rồi tải lại trang này.' : e && e.code === 'permission-denied' ? '🔒 Chỉ tài khoản <b>Admin</b> (vai trò admin) dùng được mục này. Hãy đăng xuất rồi đăng nhập lại bằng tài khoản Admin.' : '❌ Không lấy được thông tin máy chủ: ' + E((e && (e.message || e.code)) || 'mất kết nối') + '. Kiểm tra VPS còn chạy không (gõ <b>qd status</b> trên VPS).';
             });
             W.QDdb.ping().then(function (ms) { pingMs = ms; }).catch(function () {});
         }
