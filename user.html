@@ -25905,7 +25905,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             stopTone();
             if (kind === 'in' && window.QDNative && typeof QDNative.ringStart === 'function') { try { QDNative.ringStart(); nativeRing = true; return; } catch (e) {} }   // app Android: nhạc chuông của app
             if (kind === 'in') {   // trình duyệt: cùng nhạc chuông của app; không phát được (chưa chạm trang) -> bíp
-                try { if (!ringAu) { ringAu = new Audio('media/qd-ring.mp3'); ringAu.loop = true; ringAu.preload = 'auto'; } ringAu.currentTime = 0; var pr = ringAu.play(); webRing = true; if (pr && pr.catch) pr.catch(function () { if (webRing) { webRing = false; beepIn(); } }); try { navigator.vibrate && (vibT = setInterval(function () { navigator.vibrate([400, 300, 400]); }, 2200)); } catch (e) {} return; } catch (e) {}
+                try { if (!ringAu) { ringAu = new Audio('media/qd-ring.mp3?v=2'); ringAu.loop = true; ringAu.preload = 'auto'; } ringAu.currentTime = 0; var pr = ringAu.play(); webRing = true; if (pr && pr.catch) pr.catch(function () { if (webRing) { webRing = false; beepIn(); } }); try { navigator.vibrate && (vibT = setInterval(function () { navigator.vibrate([400, 300, 400]); }, 2200)); } catch (e) {} return; } catch (e) {}
             }
             if (kind === 'in') beepIn();
             if (kind === 'in') { /* chuông đến: đã xử lý ở trên */ }
