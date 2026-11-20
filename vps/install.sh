@@ -8,7 +8,8 @@
 #    3. Tạo dịch vụ qd (tự chạy lại khi lỗi / khởi động lại VPS)
 #    4. Tên miền: <IP-nối-bằng-gạch>.sslip.io (miễn phí, tự trỏ về IP), https qua Caddy
 #    5. Sao lưu dữ liệu mỗi đêm (giữ 14 ngày) ở /var/lib/qd/backup
-#    6. Tạo tài khoản Admin đầu tiên (hỏi tên + mật khẩu)
+#    6. Mạng VPN (WireGuard): chia sẻ mạng VPS cho thành viên ở xa (Admin tạo mã QR trong trang Admin)
+#    7. Tạo tài khoản Admin đầu tiên (hỏi tên + mật khẩu)
 #  Chạy lại lệnh này bất cứ lúc nào để cập nhật máy chủ (không mất dữ liệu).
 # =====================================================================================
 set -euo pipefail
@@ -24,11 +25,11 @@ die() { echo -e "${R}LỖI:${N} $*"; exit 1; }
 case "${ID:-}" in ubuntu|debian) ;; *) warn "Hệ điều hành ${PRETTY_NAME:-lạ} — lệnh cài viết cho Ubuntu/Debian, vẫn thử tiếp...";; esac
 export DEBIAN_FRONTEND=noninteractive
 
-say "1/6 Cập nhật hệ thống + gói cần thiết"
+say "1/7 Cập nhật hệ thống + gói cần thiết"
 apt-get update -qq
 apt-get install -y -qq curl ca-certificates gnupg sqlite3 debian-keyring debian-archive-keyring apt-transport-https >/dev/null
 
-say "2/6 Node.js 22"
+say "2/7 Node.js 22"
 if ! command -v node >/dev/null || [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 22 ]; then
   curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null
   apt-get install -y -qq nodejs >/dev/null
@@ -36,14 +37,14 @@ fi
 node -e "require('node:sqlite')" 2>/dev/null || die "Node $(node -v) chưa có node:sqlite (cần Node 22.5 trở lên)."
 echo "    Node $(node -v)"
 
-say "3/6 Caddy (https tự động)"
+say "3/7 Caddy (https tự động)"
 if ! command -v caddy >/dev/null; then
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --batch --yes --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list
   apt-get update -qq && apt-get install -y -qq caddy >/dev/null
 fi
 
-say "4/6 Tải máy chủ QD"
+say "4/7 Tải máy chủ QD"
 id qd >/dev/null 2>&1 || useradd --system --home "$DATA" --shell /usr/sbin/nologin qd
 mkdir -p "$APP" "$DATA/backup"
 curl -fsSL "$REPO_RAW/server.js?t=$(date +%s)" -o "$APP/server.next.js"
@@ -66,6 +67,9 @@ Restart=always
 RestartSec=2
 LimitNOFILE=65535
 NoNewPrivileges=true
+# Quản lý người dùng VPN (lệnh wg) từ trang Admin
+AmbientCapabilities=CAP_NET_ADMIN
+CapabilityBoundingSet=CAP_NET_ADMIN
 ProtectSystem=full
 ReadWritePaths=$DATA $APP
 
@@ -78,7 +82,7 @@ systemctl restart qd
 for i in $(seq 1 20); do curl -fs "http://127.0.0.1:$PORT/health" >/dev/null && break; sleep 0.5; done
 curl -fs "http://127.0.0.1:$PORT/health" >/dev/null || { journalctl -u qd -n 30 --no-pager; die "Máy chủ QD không chạy được"; }
 
-say "5/6 Tên miền + https"
+say "5/7 Tên miền + https"
 IP=$(curl -fs4 https://api.ipify.org || curl -fs4 https://ifconfig.me || hostname -I | awk '{print $1}')
 DOMAIN="${DOMAIN:-$(echo "$IP" | tr . -).sslip.io}"
 cat > /etc/caddy/Caddyfile <<EOF
@@ -90,6 +94,35 @@ $DOMAIN {
 EOF
 if command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then ufw allow 80/tcp >/dev/null; ufw allow 443/tcp >/dev/null; fi
 systemctl enable caddy >/dev/null 2>&1; systemctl restart caddy
+
+say "6/7 Mạng VPN (WireGuard) — chia sẻ mạng VPS cho thành viên"
+vpn_setup() {
+  apt-get install -y -qq wireguard-tools qrencode iptables >/dev/null || warn "Không cài được WireGuard"
+  mkdir -p /etc/wireguard; chmod 700 /etc/wireguard
+  [ -s /etc/wireguard/qd-server.key ] || (umask 077; wg genkey > /etc/wireguard/qd-server.key)
+  SPRIV=$(cat /etc/wireguard/qd-server.key); SPUB=$(echo "$SPRIV" | wg pubkey)
+  WAN=$(ip -4 route show default | awk '{print $5; exit}')
+  VNET=10.66.0.0/24
+  UP="iptables -t nat -A POSTROUTING -s $VNET -o $WAN -j MASQUERADE; iptables -I FORWARD -i wg0 -o wg0 -j DROP; iptables -I FORWARD -i wg0 -p tcp --dport 25 -j DROP; iptables -A FORWARD -i wg0 -o $WAN -j ACCEPT; iptables -A FORWARD -i $WAN -o wg0 -m state --state RELATED,ESTABLISHED -j ACCEPT; iptables -t mangle -A FORWARD -o wg0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu"
+  DOWN=$(echo "$UP" | sed 's/ -A / -D /g; s/ -I / -D /g')
+  {
+    echo "# Mạng VPN QD Elite (install.sh tạo — chạy lại qd update sẽ ghi đè). Người dùng do máy chủ QD nạp từ trang Admin."
+    echo "[Interface]"
+    echo "Address = 10.66.0.1/24"
+    echo "ListenPort = 51820"
+    echo "PrivateKey = $SPRIV"
+    echo "PostUp = $UP"
+    echo "PostDown = $DOWN"
+  } > /etc/wireguard/wg0.conf
+  chmod 600 /etc/wireguard/wg0.conf
+  echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-qd-vpn.conf; sysctl -q -p /etc/sysctl.d/99-qd-vpn.conf || true
+  if command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then ufw allow 51820/udp >/dev/null; ufw route allow in on wg0 out on "$WAN" >/dev/null 2>&1 || true; fi
+  systemctl enable wg-quick@wg0 >/dev/null 2>&1 || true; systemctl restart wg-quick@wg0 || true
+  printf '{"pub":"%s","endpoint":"%s","port":51820,"subnet":"%s","iface":"wg0"}\n' "$SPUB" "$IP" "$VNET" > "$DATA/vpn.json"; chown qd:qd "$DATA/vpn.json"
+  systemctl restart qd || true
+}
+vpn_setup || warn "Cài VPN gặp lỗi (máy chủ QD vẫn chạy bình thường)"
+if systemctl is-active --quiet wg-quick@wg0; then echo "    VPN đang chạy: $IP:51820 (UDP) — tạo mã QR cho thành viên ở Admin > Máy chủ VPS > Mạng VPN"; else journalctl -u wg-quick@wg0 -n 20 --no-pager; warn "VPN chưa chạy được (máy chủ QD vẫn chạy bình thường)."; fi
 
 # Sao lưu mỗi đêm 3:30 (giữ 14 ngày) + lệnh tiện ích "qd"
 cat > /usr/local/bin/qd <<'EOF'
@@ -115,7 +148,7 @@ EOF
 chmod +x /usr/local/bin/qd
 rm -f /etc/cron.d/qd-backup   # máy chủ tự sao lưu lúc 3:30 mỗi đêm (giữ 14 ngày)
 
-say "6/6 Tài khoản Admin"
+say "7/7 Tài khoản Admin"
 HAS=$(curl -fs -X POST "http://127.0.0.1:$PORT/api/query" -d '{"q":{"col":"accounts","where":[["role","==","admin"]],"limit":1}}' | grep -c '"id"' || true)
 if [ "$HAS" = "0" ]; then
   if [ -r /dev/tty ]; then
