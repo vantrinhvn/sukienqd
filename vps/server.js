@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-9';
+const VER = 'qd-vps-10';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -521,7 +521,6 @@ async function admin(conn, m) {
     case 'backup': return { name: await makeBackup('tay') };
     case 'delBackup': { if (!safeName(m.name)) throw err('invalid-argument', 'Tên tệp sai'); fs.unlinkSync(path.join(BK, m.name)); return { ok: true }; }
     case 'restore': { if (!safeName(m.name)) throw err('invalid-argument', 'Tên tệp sai'); return restoreFrom(path.join(BK, m.name), m.mode); }
-    case 'vpn': return vpnAdmin(String(m.f || 'status'), Object.assign({}, m, { _by: conn.u || '' }));
     case 'logs': return LOGS.slice(-(+m.n || 200));
     case 'conns': return [...CONNS].map(c => ({ u: c.u, role: c.role, ip: c.ip, at: c.at, ua: c.ua, subs: [...SUBS].filter(s => s.conn === c).length }));
     case 'restart': setTimeout(() => process.exit(0), 300); return { ok: true };
@@ -824,68 +823,6 @@ function linkTick() {
   try { commit([{ op: 'set', path: 'settings/push_server', data: { by: 'vps', ver: VER, lastRun: now, ok: true, err: '', links, linkUsers: users.slice(0, 2000), hook: '', hookAuto: '' }, merge: true }], null, { local: true }); } catch (e) {}
 }
 setInterval(linkTick, 10000); setTimeout(linkTick, 3000);
-
-/* ==================================================================================================
-   MẠNG VPN (WireGuard) — chia sẻ mạng của VPS cho thành viên ở xa (mạng nơi họ ở chặn hệ thống / mạng xã hội).
-   install.sh dựng giao diện wg0 (10.66.0.1/24, cổng UDP 51820, NAT ra mạng VPS) và ghi DATA/vpn.json.
-   Máy chủ này giữ danh sách người dùng VPN (DATA/vpn-peers.json, có khóa riêng để hiện lại mã QR) và nạp lên wg0
-   bằng lệnh "wg" (dịch vụ qd có quyền CAP_NET_ADMIN). Admin tạo / tắt / xóa / xem mã QR trong tab Máy chủ VPS > Mạng VPN.
-   ================================================================================================== */
-const VPN_CFG_F = path.join(DATA, 'vpn.json'), VPN_PEERS_F = path.join(DATA, 'vpn-peers.json'), WG = process.env.QD_WG || 'wg', WG_IF = 'wg0';
-function wgRun(args, input) { return execFileSync(WG, args, { input: input == null ? undefined : input, timeout: 8000, stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim(); }
-function vpnCfg() { try { const c = JSON.parse(fs.readFileSync(VPN_CFG_F, 'utf8')); return c && c.pub ? c : null; } catch (e) { return null; } }
-function vpnPeers() { try { const L = JSON.parse(fs.readFileSync(VPN_PEERS_F, 'utf8')); return Array.isArray(L) ? L : []; } catch (e) { return []; } }
-function vpnSave(L) { const t = VPN_PEERS_F + '.tmp'; fs.writeFileSync(t, JSON.stringify(L, null, 1), { mode: 0o600 }); fs.renameSync(t, VPN_PEERS_F); }
-function vpnUp() { try { wgRun(['show', WG_IF, 'public-key']); return true; } catch (e) { return false; } }
-function vpnSync(quiet) {   // wg0 khớp danh sách: người bật thì có, người tắt / đã xóa thì gỡ
-  if (!vpnCfg() || !vpnUp()) return false;
-  try {
-    const cur = new Set(wgRun(['show', WG_IF, 'peers']).split('\n').filter(Boolean)), L = vpnPeers(), want = new Map(L.filter(p => p.on).map(p => [p.pub, p]));
-    let add = 0, del = 0;
-    for (const k of cur) if (!want.has(k)) { wgRun(['set', WG_IF, 'peer', k, 'remove']); del++; }
-    for (const [k, p] of want) if (!cur.has(k)) { wgRun(['set', WG_IF, 'peer', k, 'allowed-ips', p.ip + '/32']); add++; }
-    if ((add || del) && !quiet) console.log('[vpn] đồng bộ wg0: +' + add + ' / -' + del + ' (đang có ' + want.size + ' người)');
-    return true;
-  } catch (e) { console.error('[vpn] chưa đồng bộ được wg0:', e.message); return false; }
-}
-function vpnDump() {   // khóa công khai -> { lần bắt tay gần nhất, đã nhận, đã gửi, địa chỉ máy người dùng }
-  const o = {};
-  try { wgRun(['show', WG_IF, 'dump']).split('\n').slice(1).forEach(l => { const a = l.split('\t'); if (a.length >= 7) o[a[0]] = { ep: a[2] === '(none)' ? '' : a[2], hs: (+a[4] || 0) * 1000, rx: +a[5] || 0, tx: +a[6] || 0 }; }); } catch (e) {}
-  return o;
-}
-function vpnConf(p, c) {
-  return '[Interface]\nPrivateKey = ' + p.priv + '\nAddress = ' + p.ip + '/32\nDNS = 1.1.1.1, 8.8.8.8\nMTU = 1280\n\n[Peer]\nPublicKey = ' + c.pub + '\nEndpoint = ' + c.endpoint + ':' + c.port + '\nAllowedIPs = 0.0.0.0/0\nPersistentKeepalive = 25\n';
-}
-function vpnQR(text) { try { return execFileSync('qrencode', ['-t', 'SVG', '-m', '2', '-l', 'M', '-o', '-'], { input: text, timeout: 5000 }).toString(); } catch (e) { return ''; } }
-function vpnPub(p, D) { const d = D[p.pub] || {}; return { id: p.id, name: p.name, user: p.user || '', ip: p.ip, on: !!p.on, at: p.at, by: p.by || '', hs: d.hs || 0, rx: d.rx || 0, tx: d.tx || 0, ep: d.ep || '' }; }
-function vpnAdmin(f, m) {
-  const c = vpnCfg();
-  if (f === 'status') {
-    const up = !!c && vpnUp(), D = up ? vpnDump() : {}, L = vpnPeers();
-    return { installed: !!c, up, endpoint: c ? c.endpoint : '', port: c ? c.port : 0, subnet: c ? c.subnet : '', peers: L.map(p => vpnPub(p, D)), qr: fs.existsSync('/usr/bin/qrencode') };
-  }
-  if (!c) throw err('failed-precondition', 'VPS chưa cài mạng VPN — vào VPS gõ: qd update');
-  const L = vpnPeers(), find = id => { const p = L.find(x => x.id === String(id || '')); if (!p) throw err('not-found', 'Không thấy người dùng VPN này'); return p; };
-  switch (f) {
-    case 'add': {
-      const name = String(m.name || '').trim().slice(0, 40); if (!name) throw err('invalid-argument', 'Nhập tên người dùng VPN');
-      const used = new Set(L.map(p => p.ip)), base = String(c.subnet || '10.66.0.0/24').split('/')[0].split('.').slice(0, 3).join('.');
-      let ip = ''; for (let i = 2; i < 255; i++) if (!used.has(base + '.' + i)) { ip = base + '.' + i; break; }
-      if (!ip) throw err('resource-exhausted', 'Đã hết chỗ (tối đa 253 người)');
-      const priv = wgRun(['genkey']), pub = wgRun(['pubkey'], priv + '\n');
-      const p = { id: crypto.randomBytes(6).toString('hex'), name, user: String(m.user || '').trim().slice(0, 60), ip, pub, priv, on: true, at: Date.now(), by: m._by || '' };
-      L.push(p); vpnSave(L); vpnSync(true);
-      console.log('[vpn] tạo người dùng VPN "' + name + '" (' + ip + ')' + (p.by ? ' bởi @' + p.by : ''));
-      const conf = vpnConf(p, c); return { peer: vpnPub(p, {}), conf, svg: vpnQR(conf) };
-    }
-    case 'qr': { const p = find(m.id), conf = vpnConf(p, c); return { peer: vpnPub(p, vpnDump()), conf, svg: vpnQR(conf) }; }
-    case 'toggle': { const p = find(m.id); p.on = !!m.on; vpnSave(L); vpnSync(true); console.log('[vpn] ' + (p.on ? 'bật' : 'tắt') + ' "' + p.name + '"'); return { ok: true }; }
-    case 'rename': { const p = find(m.id); p.name = String(m.name || p.name).trim().slice(0, 40) || p.name; p.user = String(m.user == null ? p.user : m.user).trim().slice(0, 60); vpnSave(L); return { ok: true }; }
-    case 'del': { const p = find(m.id); vpnSave(L.filter(x => x !== p)); vpnSync(true); console.log('[vpn] xóa "' + p.name + '"'); return { ok: true }; }
-    default: throw err('invalid-argument', 'Lệnh VPN lạ: ' + f);
-  }
-}
-setTimeout(() => vpnSync(), 4000); setInterval(() => vpnSync(true), 60000);   // wg0 khởi động lại (khởi động máy / cập nhật) -> nạp lại người dùng
 
 /* ---------------------------------- HTTP ---------------------------------- */
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Expose-Headers': 'Content-Disposition' };

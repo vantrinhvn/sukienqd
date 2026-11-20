@@ -851,14 +851,9 @@ html.qd-lite .qd-fx { display: none !important; }
         .qv-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
         .qv-tabs button { font: inherit; font-size: 13.5px; font-weight: 700; padding: 9px 14px; border-radius: 12px; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-muted); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
         .qv-tabs button.on { background: #0891b2; border-color: transparent; color: #fff; }
-        .qvn-st { padding: 12px 14px; border-radius: 12px; background: var(--bg-elevated); border: 1px solid var(--border-strong); font-size: 13.5px; line-height: 1.6; }
-        .qvn-qr { background: #fff; border-radius: 14px; padding: 10px; margin: 12px auto; width: min(300px, 100%); aspect-ratio: 1; display: grid; place-items: center; }
-        .qvn-qr svg { width: 100%; height: 100%; } .qvn-qr pre { white-space: pre-wrap; font-size: 11px; color: #111; margin: 0; }
-        .qvn-steps { font-size: 13px; line-height: 1.6; padding: 0 16px 0 36px; margin: 4px 0 12px; } .qvn-steps a { color: #22d3ee; }
-        .qvn-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
         .qv-pane { padding: 16px; } .qv-pane[hidden] { display: none; }
         .qv-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; } .qv-bar.wrap { flex-wrap: wrap; }
-        .qv-bar input[type=search], .qv-bar #qvn-name, .qv-bar #qvn-user, .qv-sel { flex: 1; min-width: 0; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); font: inherit; font-size: 13px; }
+        .qv-bar input[type=search], .qv-sel { flex: 1; min-width: 0; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); font: inherit; font-size: 13px; }
         .qv-sel { flex: 0 1 auto; }
         .qv-data { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 14px; }
         @media (max-width: 900px) { .qv-data { grid-template-columns: 1fr; } }
@@ -3790,7 +3785,6 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="qv-tabs" id="qv-tabs">
                         <button type="button" class="on" data-t="data"><i class="fa-solid fa-database"></i> Dữ liệu</button>
                         <button type="button" data-t="backup"><i class="fa-solid fa-box-archive"></i> Sao lưu & khôi phục</button>
-                        <button type="button" data-t="vpn"><i class="fa-solid fa-globe"></i> Mạng VPN</button>
                         <button type="button" data-t="conns"><i class="fa-solid fa-plug"></i> Đang kết nối</button>
                         <button type="button" data-t="logs"><i class="fa-solid fa-scroll"></i> Nhật ký</button>
                     </div>
@@ -3827,17 +3821,6 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="table-container"><table class="vsh-log"><thead><tr><th>Bản sao lưu</th><th>Loại</th><th>Lúc</th><th>Dung lượng</th><th></th></tr></thead><tbody id="qv-bklist"><tr><td colspan="5" class="text-muted">Đang tải…</td></tr></tbody></table></div>
                     </div>
 
-                    <div class="card qv-pane" data-p="vpn" hidden>
-                        <div class="qvn-st" id="qvn-st">Đang đọc…</div>
-                        <p class="text-muted text-sm" style="margin:8px 0 12px;line-height:1.6">Chia sẻ mạng của VPS cho thành viên ở xa: điện thoại cài app <b>WireGuard</b> (Android / iPhone), quét mã QR bên dưới rồi bật. Khi bật, mọi ứng dụng (hệ thống QĐ, Facebook, Zalo…) đi qua mạng VPS. <b>Điện thoại vẫn cần có 4G hoặc Wi-Fi</b> (dù bị chặn) để nối tới VPS. Mỗi người 1 mã riêng — tắt / xóa là người đó hết dùng ngay.</p>
-                        <div class="qv-bar wrap">
-                            <input id="qvn-name" placeholder="Tên (ví dụ: Điện thoại anh Nam)" maxlength="40" style="flex:1;min-width:180px">
-                            <input id="qvn-user" placeholder="Tài khoản thành viên (không bắt buộc)" list="qvn-users" style="flex:1;min-width:160px"><datalist id="qvn-users"></datalist>
-                            <button type="button" class="qv-btn primary" id="qvn-add"><i class="fa-solid fa-qrcode"></i> Tạo mã VPN</button>
-                        </div>
-                        <div class="table-container"><table class="vsh-log"><thead><tr><th>Tên</th><th>Địa chỉ</th><th>Trạng thái</th><th>Đã dùng</th><th></th></tr></thead><tbody id="qvn-list"><tr><td colspan="5" class="text-muted">Đang tải…</td></tr></tbody></table></div>
-                    </div>
-
                     <div class="card qv-pane" data-p="conns" hidden>
                         <div class="table-container"><table class="vsh-log"><thead><tr><th>Tài khoản</th><th>Vai trò</th><th>Địa chỉ IP</th><th>Kết nối từ</th><th>Đang nghe</th><th>Thiết bị</th></tr></thead><tbody id="qv-connlist"></tbody></table></div>
                     </div>
@@ -3847,23 +3830,6 @@ html.qd-lite .qd-fx { display: none !important; }
                         <pre class="qv-logs" id="qv-logs"></pre>
                     </div>
                 </section>
-
-                <div class="qv-modal" id="qvn-modal" hidden>
-                    <div class="qv-mbox" style="max-width:460px">
-                        <div class="qv-mhd"><b id="qvn-mtitle">Mã VPN</b><button type="button" class="qv-x" id="qvn-mclose">✕</button></div>
-                        <div class="qvn-qr" id="qvn-qr"></div>
-                        <ol class="qvn-steps">
-                            <li>Cài app <b>WireGuard</b>: <a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank" rel="noopener">Android</a> · <a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank" rel="noopener">iPhone</a></li>
-                            <li>Mở WireGuard → bấm <b>+</b> → <b>Quét mã QR</b> → quét mã trên (hoặc nhập tệp .conf).</li>
-                            <li>Đặt tên tùy ý → bật công tắc. Biểu tượng chìa khóa 🔑 hiện trên thanh trạng thái là đang dùng mạng VPS.</li>
-                        </ol>
-                        <div class="qv-mft">
-                            <button type="button" class="qv-btn" id="qvn-dl"><i class="fa-solid fa-download"></i> Tải tệp .conf</button>
-                            <span style="flex:1"></span>
-                            <button type="button" class="qv-btn primary" id="qvn-mok">Xong</button>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="qv-modal" id="qv-modal" hidden>
                     <div class="qv-mbox">
@@ -17092,57 +17058,12 @@ window.QDXlsx = (function () {
         }
         function loadLogs() { A('logs', { n: 200 }).then(function (L) { var el = $('qv-logs'); el.textContent = L.join('\n') || '(trống)'; el.scrollTop = el.scrollHeight; }).catch(function (e) { $('qv-logs').textContent = e.message || e.code; }); }
 
-        /* ---------------- Mạng VPN (WireGuard): chia sẻ mạng VPS cho thành viên ---------------- */
-        var VPN = null, VPNT = 0, VCONF = '', VNAME = '';
-        function vAgo(t) { if (!t) return 'chưa kết nối lần nào'; var m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : m < 1440 ? Math.round(m / 60) + ' giờ trước' : Math.round(m / 1440) + ' ngày trước'; }
-        function loadVpn() {
-            A('vpn', { f: 'status' }).then(function (v) {
-                VPN = v; var st = $('qvn-st');
-                if (!v.installed) { st.innerHTML = '⚠️ VPS <b>chưa cài mạng VPN</b>. Vào VPS (Termius) gõ: <code style="background:#0b1220;padding:2px 8px;border-radius:6px;color:#67e8f9">qd update</code> rồi mở lại mục này.'; $('qvn-list').innerHTML = '<tr><td colspan="5" class="text-muted">Chưa cài.</td></tr>'; $('qvn-add').disabled = true; return; }
-                $('qvn-add').disabled = false;
-                var now = Date.now(), live = v.peers.filter(function (p) { return p.on && p.hs && now - p.hs < 3 * 60000; }).length;
-                st.innerHTML = (v.up ? '<span style="color:#22c55e">● Mạng VPN đang chạy</span>' : '<span style="color:#ef4444">● Mạng VPN đang tắt</span> (gõ <code>systemctl restart wg-quick@wg0</code> trên VPS)') +
-                    ' · địa chỉ <b>' + E(v.endpoint) + ':' + v.port + '</b> (UDP) · ' + v.peers.length + ' mã · <b>' + live + '</b> máy đang dùng' + (v.qr ? '' : ' · <span style="color:#f59e0b">chưa có qrencode — dùng nút Tải tệp .conf</span>');
-                $('qvn-list').innerHTML = v.peers.length ? v.peers.slice().sort(function (a, b) { return (b.hs || 0) - (a.hs || 0) || (b.at || 0) - (a.at || 0); }).map(function (p) {
-                    var on = p.on && p.hs && now - p.hs < 3 * 60000;
-                    return '<tr><td><b>' + E(p.name) + '</b>' + (p.user ? '<br><small class="text-muted">@' + E(p.user) + '</small>' : '') + '</td><td><code>' + E(p.ip) + '</code></td><td>' +
-                        (!p.on ? '<span class="qvn-dot" style="background:#64748b"></span>Đã tắt' : on ? '<span class="qvn-dot" style="background:#22c55e"></span>Đang dùng' : '<span class="qvn-dot" style="background:#f59e0b"></span>Chưa kết nối') +
-                        '<br><small class="text-muted">' + (p.hs ? 'lần cuối ' + vAgo(p.hs) : 'chưa kết nối lần nào') + (p.ep ? ' · từ ' + E(p.ep.replace(/:\d+$/, '')) : '') + '</small></td><td>↓ ' + B(p.tx) + '<br>↑ ' + B(p.rx) + '</td><td><div class="qgd-acts">' +
-                        '<button type="button" class="qv-btn sm" data-vq="' + p.id + '"><i class="fa-solid fa-qrcode"></i> Mã QR</button>' +
-                        '<button type="button" class="qv-btn sm" data-vt="' + p.id + '" data-on="' + (p.on ? 0 : 1) + '">' + (p.on ? '⏸ Tắt' : '▶ Bật') + '</button>' +
-                        '<button type="button" class="qv-btn sm danger" data-vd="' + p.id + '" data-n="' + E(p.name) + '"><i class="fa-solid fa-trash"></i></button></div></td></tr>';
-                }).join('') : '<tr><td colspan="5" class="text-muted">Chưa có mã nào — nhập tên rồi bấm Tạo mã VPN.</td></tr>';
-            }).catch(function (e) { $('qvn-st').innerHTML = '<span style="color:#ef4444">Không đọc được mạng VPN: ' + E(e.message || e.code) + '</span>' + (/Lệnh lạ|vpn/.test(e.message || '') ? ' — máy chủ cần cập nhật: bấm <b>Cập nhật máy chủ</b> rồi gõ <code>qd update</code> trên VPS.' : ''); });
-        }
-        function showQR(r) {
-            VCONF = r.conf; VNAME = r.peer.name; $('qvn-mtitle').textContent = 'Mã VPN · ' + r.peer.name + ' (' + r.peer.ip + ')';
-            var svg = r.svg ? r.svg.replace(/<\?xml[^>]*\?>/, '').replace(/<!--[\s\S]*?-->/g, '') : '';
-            if (svg && !/viewBox=/i.test(svg)) { var mw = /<svg[^>]*\swidth="([\d.]+)"/i.exec(svg), mh = /<svg[^>]*\sheight="([\d.]+)"/i.exec(svg); if (mw && mh) svg = svg.replace(/<svg/i, '<svg viewBox="0 0 ' + mw[1] + ' ' + mh[1] + '"'); }
-            $('qvn-qr').innerHTML = svg || '<pre>' + E(r.conf) + '</pre>';
-            $('qvn-modal').hidden = false;
-        }
-        function vAct(e) {
-            var b = e.target.closest('button'); if (!b) return;
-            if (b.dataset.vq) A('vpn', { f: 'qr', id: b.dataset.vq }).then(showQR).catch(function (er) { toast(er.message || er.code, 'error'); });
-            if (b.dataset.vt) A('vpn', { f: 'toggle', id: b.dataset.vt, on: b.dataset.on === '1' }).then(function () { toast(b.dataset.on === '1' ? 'Đã bật lại mã VPN' : 'Đã tắt — người đó hết dùng mạng VPS ngay', 'success'); loadVpn(); }).catch(function (er) { toast(er.message || er.code, 'error'); });
-            if (b.dataset.vd) ask({ title: 'Xóa mã VPN "' + b.dataset.n + '"?', icon: '🗑️', tone: 'danger', ok: 'Xóa', html: 'Máy đang dùng mã này mất mạng VPS ngay. Muốn dùng lại phải tạo mã mới và quét lại.' }).then(function (y) { if (y) A('vpn', { f: 'del', id: b.dataset.vd }).then(function () { toast('Đã xóa mã VPN', 'success'); loadVpn(); }).catch(function (er) { toast(er.message || er.code, 'error'); }); });
-        }
-        $('qvn-list').addEventListener('click', vAct);
-        $('qvn-add').onclick = function () {
-            var n = $('qvn-name').value.trim(), u = $('qvn-user').value.trim().replace(/^@/, ''); if (!n) n = u ? 'Máy của @' + u : ''; if (!n) return toast('Nhập tên cho mã VPN', 'warning');
-            var bt = this; bt.disabled = true;
-            A('vpn', { f: 'add', name: n, user: u }).then(function (r) { $('qvn-name').value = ''; $('qvn-user').value = ''; showQR(r); loadVpn(); }).catch(function (er) { toast(er.message || er.code, 'error'); }).then(function () { bt.disabled = false; });
-        };
-        $('qvn-mclose').onclick = $('qvn-mok').onclick = function () { $('qvn-modal').hidden = true; };
-        $('qvn-dl').onclick = function () { if (!VCONF) return; var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([VCONF], { type: 'text/plain' })); a.download = 'qd-vpn-' + VNAME.replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) + '.conf'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000); };
-
         /* ---------------- Gắn sự kiện ---------------- */
         var TAB = 'data';
         function showTab(t) {
             TAB = t; Array.prototype.forEach.call($('qv-tabs').children, function (b) { b.classList.toggle('on', b.dataset.t === t); });
             Array.prototype.forEach.call(document.querySelectorAll('#view-vps .qv-pane'), function (p) { p.hidden = p.dataset.p !== t; });
             if (t === 'data') loadCols(); if (t === 'backup') loadBackups(); if (t === 'conns') loadConns(); if (t === 'logs') loadLogs();
-            clearInterval(VPNT); if (t === 'vpn') { loadVpn(); VPNT = setInterval(function () { if (TAB === 'vpn' && !document.hidden && $('view-vps').classList.contains('active')) loadVpn(); }, 8000); if (!$('qvn-users').children.length) db.collection('accounts').get().then(function (q) { var h = []; q.forEach(function (d) { var a = d.data(); if (a.user) h.push('<option value="' + E(a.user) + '">' + E(a.fullName || '') + '</option>'); }); $('qvn-users').innerHTML = h.join(''); }).catch(function () {}); }
         }
         $('qv-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) showTab(b.dataset.t); });
         $('qv-colq').addEventListener('input', renderCols);
