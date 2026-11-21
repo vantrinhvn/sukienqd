@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-17';
+const VER = 'qd-vps-18';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -240,6 +240,8 @@ function checkWrites(conn, writes) {
     if (!conn.u && !UNAUTH_OK.has(c)) { deny('unauthenticated', 'Phiên đăng nhập đã hết, vui lòng đăng nhập lại', w); continue; }
     if (c === 'settings' && !SETTINGS_OPEN.has(id)) throw err('permission-denied', 'Chỉ Ban Quản Trị được sửa cài đặt hệ thống');
     if (SERVER_ONLY.has(c)) throw err('permission-denied', 'Thao tác này do máy chủ xử lý — tải lại trang rồi thử lại');
+    if (c === 'gcalls') { gcallRule(conn, w, cur); continue; }
+    if (c === 'gcall_sig') { sigRule(conn, w, cur); continue; }
     if (c === 'accounts') {
       if (w.op === 'delete') throw err('permission-denied', 'Chỉ Ban Quản Trị được xóa tài khoản');
       if (!cur && w.op === 'set') throw err('permission-denied', 'Tài khoản mới do Ban Quản Trị duyệt tạo');
@@ -261,6 +263,46 @@ function checkWrites(conn, writes) {
     }
   }
 }
+/* Gọi nhóm: thành viên chỉ đổi được phần của mình trong danh sách người gọi; phần người khác chỉ được gỡ khi họ đã mất kết nối */
+function gcallRule(conn, w, cur) {
+  if (w.op === 'delete') return deny('permission-denied', 'Không xóa được cuộc gọi nhóm', w);
+  if (w.op === 'set' && !w.merge && cur) return deny('permission-denied', 'Cuộc gọi nhóm đã có, chỉ được vào / rời', w);
+  const d = w.data || {}, me = conn.u, now = Date.now(), cm = (cur && cur.d && cur.d.members) || {}, who = new Set();
+  for (const k of Object.keys(d)) {
+    if (k === 'members' && d.members && typeof d.members === 'object' && !isFV(d.members)) Object.keys(d.members).forEach(u => who.add(u));
+    else if (k === 'members') return deny('permission-denied', 'Không ghi đè được danh sách người gọi', w);
+    else if (k.indexOf('members.') === 0) who.add(k.split('.')[1]);
+    else if (cur && ['host', 'room', 'created'].includes(k) && JSON.stringify(d[k]) !== JSON.stringify(cur.d[k]) && cur.d.status !== 'ended') return deny('permission-denied', 'Không đổi được chủ phòng', w);
+  }
+  for (const u of who) {
+    if (u === me) continue;
+    const m = cm[u], v = d.members ? d.members[u] : d['members.' + u];
+    if (!(m && isFV(v) && v.$fv === 'del' && now - (+m.ping || +m.at || 0) > 60000)) return deny('permission-denied', 'Chỉ vào / rời cuộc gọi nhóm cho chính mình', w);
+  }
+}
+function sigRule(conn, w, cur) {
+  const me = conn.u, doc = cur ? cur.d : (w.data || {});
+  if (!cur && w.op !== 'delete' && doc.from !== me) return deny('permission-denied', 'Báo hiệu cuộc gọi không đúng người gửi', w);
+  if (cur && doc.from !== me && doc.to !== me) return deny('permission-denied', 'Không phải cuộc gọi của bạn', w);
+}
+/* Dọn cuộc gọi nhóm: gỡ người mất kết nối quá 90 giây; cuộc gọi không còn ai -> kết thúc; báo hiệu cũ quá 10 phút -> xóa */
+function gcallTick() {
+  try {
+    const now = Date.now(), W = [], gm = COLS.get('gcalls'), sm = COLS.get('gcall_sig');
+    if (gm) for (const [id, x] of gm) {
+      const c = x.d || {}; if (c.status === 'ended') { if (now - (+c.endedAt || +c.updatedAt || 0) > 7 * 864e5 && id !== 'general') W.push({ op: 'delete', path: 'gcalls/' + id }); continue; }
+      const ms = c.members || {}, gone = Object.keys(ms).filter(u => now - (+ms[u].ping || +ms[u].at || 0) > 90000);
+      if (!gone.length && Object.keys(ms).length) continue;
+      const left = Object.keys(ms).length - gone.length, up = { updatedAt: now, members: {} };
+      gone.forEach(u => { up.members[u] = { $fv: 'del' }; });
+      if (left <= 0 && id !== 'general') { up.status = 'ended'; up.endedAt = now; }
+      if (gone.length || up.status) W.push({ op: 'set', merge: true, path: 'gcalls/' + id, data: up });
+    }
+    if (sm) for (const [id, x] of sm) if (now - (+(x.d && x.d.created) || 0) > 600000) W.push({ op: 'delete', path: 'gcall_sig/' + id });
+    if (W.length) commit(W.slice(0, 400), null, ACT_LOCAL);
+  } catch (e) { console.error('[gọi nhóm]', e); }
+}
+
 function findInvite(code) { const m = COLS.get('accounts'); if (m) for (const [, x] of m) if (x.d && String(x.d.inviteCode || '').toUpperCase() === code) return true; return false; }
 
 /* ---------------------------------- GHI (set / update / delete + FieldValue) ---------------------------------- */
@@ -1658,6 +1700,7 @@ function tourTick() {
   } catch (e) { console.error('[giải đấu]', e); }
 }
 setInterval(tourTick, 30000); setTimeout(tourTick, 8000);
+setInterval(gcallTick, 30000); setTimeout(gcallTick, 12000);
 
 
 // ---- Tự mở khóa tài khoản: bấm yêu cầu -> chờ đủ số phút Admin đặt (settings/account_config.autoUnlockMinutes) -> máy chủ mở ----

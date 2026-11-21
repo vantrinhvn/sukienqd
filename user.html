@@ -12054,7 +12054,10 @@ html.qd-lite .qd-fx { display: none !important; }
                 if (window.Notif && !window.Notif.enabled()) return;
 
                 try {
-                    if (window.QDMention && window.QDMention.ding) window.QDMention.ding(false);
+                    // App Android có quyền thông báo: thông báo của app tự kêu tiếng tin nhắn -> trang không kêu thêm (trước đây kêu 2 lần chồng nhau)
+                    const appSound = !!(window.QDAppNotif && window.Notification && Notification.permission === 'granted');
+                    if (appSound) {}
+                    else if (window.QDMention && window.QDMention.ding) window.QDMention.ding(false);
                     else if (window.Sound.msgAudio) {
                         window.Sound.msgAudio.currentTime = 0;
                         window.Sound.msgAudio.play().catch(e => console.log('Autoplay blocked'));
@@ -23246,6 +23249,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             } catch (e) {}
         }
         function ding(bot) {
+            if (document.hidden && window.QDAppNotif) return;   // app đang chạy nền: thông báo của app tự kêu, trang không kêu thêm
             var now = Date.now(); if (now - lastDing < 700) return; lastDing = now;   // nhiều tin tới cùng lúc: kêu 1 lần
             var a = window.Sound && window.Sound.msgAudio;
             if (bot || !a || mp3Bad || (a.error && a.error.code)) return synth(bot);
@@ -25509,7 +25513,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             stopTone();
             if (kind === 'in' && window.QDNative && typeof QDNative.ringStart === 'function') { try { QDNative.ringStart(); nativeRing = true; return; } catch (e) {} }   // app Android: nhạc chuông của app
             if (kind === 'in') {   // trình duyệt: cùng nhạc chuông của app; không phát được (chưa chạm trang) -> bíp
-                try { if (!ringAu) { ringAu = new Audio('media/qd-ring.mp3?v=2'); ringAu.loop = true; ringAu.preload = 'auto'; } ringAu.currentTime = 0; var pr = ringAu.play(); webRing = true; if (pr && pr.catch) pr.catch(function () { if (webRing) { webRing = false; beepIn(); } }); try { navigator.vibrate && (vibT = setInterval(function () { navigator.vibrate([400, 300, 400]); }, 2200)); } catch (e) {} return; } catch (e) {}
+                try { if (!ringAu) { ringAu = new Audio('media/qd-ring.mp3?v=3'); ringAu.loop = true; ringAu.preload = 'auto'; } ringAu.currentTime = 0; var pr = ringAu.play(); webRing = true; if (pr && pr.catch) pr.catch(function () { if (webRing) { webRing = false; beepIn(); } }); try { navigator.vibrate && (vibT = setInterval(function () { navigator.vibrate([400, 300, 400]); }, 2200)); } catch (e) {} return; } catch (e) {}
             }
             if (kind === 'in') beepIn();
             if (kind === 'in') { /* chuông đến: đã xử lý ở trên */ }
@@ -25698,6 +25702,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             if (!to || to === 'general' || to === me()) return toast('Chọn 1 người trong danh bạ để gọi.', 'warning');
             if (!supported()) return toast('Trình duyệt này chưa hỗ trợ gọi. Hãy dùng Chrome / app QD Elite bản mới.', 'error');
             if (S) return toast('Bạn đang trong một cuộc gọi.', 'warning');
+            if (window.QDGroupCall && (QDGroupCall.active() || QDGroupCall.ringing())) return toast('Bạn đang trong cuộc gọi nhóm.', 'warning');
             if (!window.isSecureContext) return toast('Cần mở trang bằng https để gọi.', 'error');
             if (start.banUntil > Date.now()) return toast('🔒 Bạn đang bị khóa gọi đến ' + fmtTime(start.banUntil) + ' do vi phạm quy định.', 'error');
             var cool = coolLeft(to); if (cool) return toast('🤖 Bot: ' + nameOf(to) + ' chưa trả lời nhiều cuộc gọi của bạn. Thử lại sau ' + cool + ' phút hoặc nhắn tin trước nhé.', 'warning');
@@ -25733,6 +25738,8 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         }
         /* ---------- Gọi đến ---------- */
         function incoming(id, c) {
+            if (c && c.group && window.QDGroupCall) return QDGroupCall.invited(id, c);   // lời mời vào cuộc gọi nhóm
+            if (!S && window.QDGroupCall && QDGroupCall.active()) { db().collection('calls').doc(id).update({ status: 'busy', endedAt: Date.now() }).catch(function () {}); return; }
             if (S) { if (S.id !== id) db().collection('calls').doc(id).update({ status: 'busy', endedAt: Date.now() }).catch(function () {}); return; }
             if (!supported()) { db().collection('calls').doc(id).update({ status: 'declined', endedAt: Date.now(), reason: 'unsupported' }).catch(function () {}); return; }
             if (incoming.blocked && incoming.blocked[c.from]) { db().collection('calls').doc(id).update({ status: 'declined', endedAt: Date.now(), reason: 'blocked' }).catch(function () {}); return; }
@@ -26170,7 +26177,8 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
         }
         function fromNotif(r) {   // bấm thông báo cuộc gọi: "call:<mã>[:accept|:decline]"
             var p = String(r).split(':'), id = p[1], act = p[2] || '';
-            if (id === 'return') { if (S) { $('qd-call').classList.add('on'); wake(); } return; }
+            if (id === 'return') { if (S) { $('qd-call').classList.add('on'); wake(); } else if (window.QDGroupCall && QDGroupCall.active()) QDGroupCall.show(); return; }
+            if (id === 'hangup' && !S && window.QDGroupCall && QDGroupCall.active()) return QDGroupCall.leave();
             if (id === 'hangup') { if (S) finish(S.mode === 'out' ? (S.id ? 'missed' : null) : 'ended', '', S.mode === 'out' ? 'missed' : null); return; }
             if (!id) return;
             var go = function () {
@@ -26178,6 +26186,7 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
                 db().collection('calls').doc(id).get().then(function (x) {
                     var c = x.exists ? x.data() : null;
                     if (!c || c.status !== 'ringing' || Date.now() - (c.created || 0) > RING_MS) { try { window.UI && UI.navigate('chat'); if (c && c.from && window.Chat && Chat.openFromNotif) Chat.openFromNotif(Utils.getRoomId(me(), c.from)); } catch (e) {} return toast('Cuộc gọi đã kết thúc.', 'info'); }
+                    if (c.group && window.QDGroupCall) return QDGroupCall.invited(id, c, act);
                     incoming(id, c); if (act === 'accept') setTimeout(function () { accept(true); }, 300); else if (act === 'decline') decline();
                 });
             };
@@ -26260,9 +26269,10 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
             })(0);
         }
         bootReady();
-        return { start: start, accept: accept, decline: decline, end: function () { finish('ended', ''); }, fromNotif: fromNotif, _s: function () { return S; }, ready: renderReady, fx: function (k) { fxApply(k); } };
+        return { start: start, accept: accept, decline: decline, end: function () { finish('ended', ''); }, fromNotif: fromNotif, _s: function () { return S; }, active: function () { return !!S; }, ready: renderReady, fx: function (k) { fxApply(k); } };
     })();
     </script>
+    <script src="qd-gcall.js?v=1" defer></script>
 <style id="qd-balance">
     /* ===== Cân đối giao diện chung (nút Hỗ trợ gọn, không che nội dung) ===== */
     @media (max-width: 768px) {

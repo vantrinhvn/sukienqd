@@ -385,7 +385,7 @@
            1. DỮ LIỆU TRỰC TIẾP (chỉ đọc)
            ===================================================================== */
         var DOCS = ['lixi_config', 'wheel_config', 'tranhthuong_config', 'point_shop_config', 'rps_config', 'con_config', 'attendance',
-            'attendance_reward_items', 'task_config', 'invite_config', 'transfer_config', 'security_config', 'account_config', 'registration_config', 'lucky_live', 'maintenance', 'ai_config',
+            'attendance_reward_items', 'gcall_config', 'task_config', 'invite_config', 'transfer_config', 'security_config', 'account_config', 'registration_config', 'lucky_live', 'maintenance', 'ai_config',
             'point_cashout', 'lucky_reward_config', 'tournament_prize', 'call_guard', 'payout_config', 'video_share'];
         var L = { cfg: {}, got: {}, stock: {}, acc: null, accId: null, accLoaded: false, att: null, lucky: undefined, fb: false, online: false, role: 'user', gifts: null, gotGift: {}, staff: {} };
         var db = null;
@@ -471,6 +471,7 @@
            ===================================================================== */
         var C = {
             task: function () { var t = L.cfg.task_config || {}; return { login: num(t.loginReward, 10), att: num(t.attendanceReward, 20) }; },
+            gcall: function () { var c = L.cfg.gcall_config || {}, n = function (v, d, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? d : Math.max(lo, Math.min(hi, v)); }; return { on: c.isEnabled !== false, general: c.general !== false, max: n(c.max, 8, 2, 8), vmax: n(c.videoMax, 4, 0, 4) }; },
             devRule: function () { var sc = L.cfg.security_config || {}, r = sc.rules || {}, m = sc.isEnabled !== false, A = r.oneDevice || {}, B = r.oneAccount || {};
                 return { A: m && A.on === true, An: A.n == null ? 3 : +A.n, Ah: A.h || 24, B: m && B.on === true, Bn: B.n == null ? 2 : +B.n, Bd: B.days == null ? 30 : +B.days }; },
             att: function () { var a = L.cfg.attendance || {}; return { start: a.start || '09:00', end: a.end || '10:00', anti: a.antiProxyEnabled !== false && (L.cfg.security_config || {}).isEnabled !== false }; },
@@ -1038,13 +1039,28 @@
                   var g = C.callGuard();
                   return '<h4>📞 Cách gọi</h4>' + UL(['Mở phòng chat riêng với người đó → bấm nút <b>📞 gọi thoại</b> hoặc <b>🎥 gọi video</b>.', 'Đổ chuông tối đa <b>45 giây</b>; không nghe thì thành <b>📵 Cuộc gọi nhỡ</b> trong tin nhắn.',
                           'Trong cuộc gọi video: đổi camera, hiệu ứng Tết, chia sẻ màn hình, loa ngoài.', 'Muốn điện thoại đổ chuông khi đã thoát app: dùng <b>app QD Elite (Android)</b> và bật đủ quyền ở Cài đặt → 📞 Nhận cuộc gọi khi tắt app.',
-                          'Âm thanh / hình nối thẳng giữa 2 máy; mạng chặn kết nối thẳng (hay gặp ở 4G) thì đi qua máy chủ trung chuyển của Quân Đoàn.'])
+                          'Âm thanh / hình nối thẳng giữa 2 máy; mạng chặn kết nối thẳng (hay gặp ở 4G) thì đi qua máy chủ trung chuyển của Quân Đoàn.',
+                          '🔔 Tiếng báo khác nhau: <b>tin nhắn</b> kêu "tóc-tinh" ngắn; <b>cuộc gọi đến</b> kêu chuông điện thoại <b>"reng reng"</b> lặp lại (theo âm lượng chuông, máy để Rung thì rung).',
+                          C.gcall().on ? 'Muốn gọi nhiều người cùng lúc: xem <b>👥 Gọi nhóm</b>.' : ''].filter(Boolean))
                       + '<h4 style="margin-top:10px">🛡️ An toàn khi gọi</h4>' + UL(['Gặp quấy rối / xúc phạm / đe dọa: bấm <b>🚩</b> trong cuộc gọi để báo cáo (kèm ảnh bằng chứng) hoặc <b>chặn</b> người đó.',
                           g.on ? '🤖 <b>Bot kiểm soát</b> tự chạy: đủ <b>' + g.ban1 + ' người khác nhau</b> báo cáo trong ' + g.win + ' ngày → khóa gọi 1 ngày; ' + g.ban7 + ' người → 7 ngày (1 người không tự khóa được ai).' : 'Bot kiểm soát cuộc gọi đang tắt — Ban Quản Trị xử lý báo cáo thủ công.',
                           g.on ? 'Gọi dồn dập: người nhận không nghe ≥ <b>' + g.miss + ' cuộc liên tiếp</b> thì tự từ chối và tạm chặn gọi lại; gọi quá <b>' + g.rate + ' người</b> trong ' + g.rateMin + ' phút thì tạm dừng.' : '',
                           'Bị khóa gọi: hiện hộp cảnh báo kèm giờ hết khóa. Thấy bị khóa oan → nhắn <b>Ban Quản Trị</b>, BQT gỡ được ngay.']) + LIVE();
               },
-              acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }, { t: '🔔 Thông báo & app', ask: 'notif' }] },
+              acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }, { t: '👥 Gọi nhóm', ask: 'gcall' }, { t: '🔔 Thông báo & app', ask: 'notif' }] },
+
+            { id: 'gcall', icon: '👥', title: 'Gọi nhóm (nhiều người)',
+              keys: ['goi nhom', 'call nhom', 'goi nhieu nguoi', 'phong goi', 'hop nhom', 'goi tap the', 'goi chung', 'video nhom', 'voice nhom', 'phong voice', 'nhom goi'],
+              ans: function () {
+                  var g = C.gcall();
+                  if (!g.on) return P('Hiện Ban Quản Trị đang <b>tắt</b> gọi nhóm. Bạn vẫn gọi riêng 1-1 được trong phòng chat riêng.');
+                  return UL([(g.general ? 'Vào <b>Trò chuyện → Kênh Chung</b> → bấm nút <b>👥</b> trên đầu khung chat. ' : 'Vào <b>Trò chuyện → Kênh Chung</b> → bấm nút <b>👥</b>. ') + 'Tối đa <b>' + g.max + ' người</b> một cuộc gọi.',
+                          g.general ? '🔊 <b>Phòng gọi Kênh Chung</b>: ai muốn thì bấm <b>Vào phòng</b>, không đổ chuông ai. Có người trong phòng thì Kênh Chung hiện dải xanh "… người đang nói chuyện" — chạm <b>Vào</b> để tham gia.' : '',
+                          '📞 <b>Chọn người để gọi</b>: chọn vài người (thoại hoặc có hình), điện thoại họ <b>đổ chuông</b> như cuộc gọi thường — kể cả khi đã thoát app. Đang gọi vẫn bấm <b>Mời thêm</b> được.',
+                          g.vmax >= 2 ? '🎥 Bật hình được khi cuộc gọi có <b>≤ ' + g.vmax + ' người</b>; đông hơn thì hình tự tắt cho mượt (các máy nối thẳng với nhau, nhiều hình làm máy nóng và tốn mạng).' : '🎥 Gọi nhóm hiện chỉ có tiếng (BQT chưa cho bật hình).',
+                          'Trong cuộc gọi: tắt / bật micro, loa ngoài, thu nhỏ để vừa gọi vừa dùng app (chạm dải xanh trên cùng để mở lại), <b>Rời</b> để thoát. Ai đang nói thì khung người đó sáng viền vàng.'].filter(Boolean));
+              },
+              acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }, { t: '📞 Gọi 1-1', ask: 'calls' }] },
 
             { id: 'videos', icon: '🎬', title: 'Video chia sẻ',
               keys: ['video', 'chia se video', 'youtube', 'tiktok', 'dang video', 'xem video', 'muc video', 'gui video', 'go video'],

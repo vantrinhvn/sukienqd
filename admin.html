@@ -930,6 +930,12 @@ html.qd-lite .qd-fx { display: none !important; }
         .qv-mft { display: flex; gap: 8px; padding: 12px 18px 16px; align-items: center; }
         .qcl-ok { color: #22c55e; } .qcl-miss { color: #f59e0b; } .qcl-bad { color: #ef4444; }
         .qcall-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
+        .gca-grid { display: grid; grid-template-columns: 1.2fr 1fr 1.3fr; gap: 12px; align-items: end; }
+        @media (max-width: 900px) { .gca-grid { grid-template-columns: 1fr; } }
+        .gca-opt { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; padding: 12px 0; cursor: pointer; }
+        .gca-opt input { width: 18px; height: 18px; accent-color: var(--brand-primary); }
+        .gca-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 12px; margin-bottom: 8px; background: var(--bg-elevated); color: var(--text-main); }
+        .gca-row > div { flex: 1; min-width: 0; } .gca-row small { display: block; color: var(--text-muted); margin-top: 2px; }
         @media (max-width: 900px) { .qcall-grid { grid-template-columns: 1fr; } }
         #view-videos [hidden] { display: none !important; }
         .vsh-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; align-items: start; }
@@ -3918,6 +3924,19 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="card mb-6" style="padding: 18px 22px;" id="qcl-turn">
                         <div class="flex justify-between items-center flex-wrap gap-2"><h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-server" style="color: #8b5cf6;"></i> Máy chủ trung chuyển tháng này</h3><a class="text-sm" href="https://www.expressturn.com/" target="_blank" rel="noopener" style="color: var(--brand-primary)">Số chính xác: trang ExpressTURN ↗</a></div>
                         <div id="qcl-turn-body" class="mt-3 text-sm text-muted">Đang tính…</div>
+                    </div>
+                    <div class="card mb-6" id="gca-card" style="padding: 20px 24px;">
+                        <div class="flex justify-between items-center flex-wrap gap-3">
+                            <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-users" style="color: #22c55e;"></i> Gọi nhóm</h3>
+                            <label class="switch" title="Bật / tắt gọi nhóm"><input type="checkbox" id="gca-on" onchange="QDGCallAdmin.save()"><span class="slider"></span></label>
+                        </div>
+                        <p class="text-muted text-sm mt-2 mb-3">Thành viên gọi thoại / có hình cùng lúc nhiều người: <b>phòng gọi Kênh Chung</b> (ai muốn thì vào, không đổ chuông) và <b>chọn người để gọi</b> (máy người được mời đổ chuông). Các máy nối thẳng với nhau, không tốn tài nguyên máy chủ.</p>
+                        <div class="gca-grid">
+                            <label class="gca-opt"><input type="checkbox" id="gca-general" onchange="QDGCallAdmin.save()"> Phòng gọi Kênh Chung</label>
+                            <div class="form-group m-0"><label class="form-label">Tối đa (người)</label><input id="gca-max" class="form-control" type="number" min="2" max="8" step="1" value="8" onchange="QDGCallAdmin.save()"></div>
+                            <div class="form-group m-0"><label class="form-label">Bật hình khi ≤ (người, 0 = không cho)</label><input id="gca-vmax" class="form-control" type="number" min="0" max="4" step="1" value="4" onchange="QDGCallAdmin.save()"></div>
+                        </div>
+                        <div class="mt-4"><b class="text-sm">Đang diễn ra</b><div id="gca-live" class="mt-2 text-sm text-muted">Không có cuộc gọi nhóm nào.</div></div>
                     </div>
                     <div class="card" id="qcall-card" style="padding: 20px 24px;">
                         <h3 class="text-lg m-0 mb-2 flex items-center gap-2"><i class="fa-solid fa-phone" style="color: #22c55e;"></i> Máy chủ trung chuyển cuộc gọi (TURN)</h3>
@@ -16320,6 +16339,41 @@ window.QDXlsx = (function () {
     </script>
     <script id="qcall-admin-js">
     /* Máy chủ trung chuyển cuộc gọi (TURN) -> settings/call_config.iceServers (trang thành viên đọc trực tiếp) */
+    /* Gọi nhóm: settings/gcall_config { isEnabled, general, max, videoMax } + cuộc gọi nhóm đang diễn ra (gcalls) */
+    window.QDGCallAdmin = (function () {
+        var $ = function (id) { return document.getElementById(id); }, started = false, CFG = {};
+        function fs() { return firebase.firestore(); }
+        function toast(m, k) { try { Utils.toast(m, k); } catch (e) {} }
+        function esc(x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        function n(v, d, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? d : Math.max(lo, Math.min(hi, v)); }
+        function paint() { $('gca-on').checked = CFG.isEnabled !== false; $('gca-general').checked = CFG.general !== false; $('gca-max').value = n(CFG.max, 8, 2, 8); $('gca-vmax').value = n(CFG.videoMax, 4, 0, 4); }
+        function save() {
+            var c = { isEnabled: $('gca-on').checked, general: $('gca-general').checked, max: n($('gca-max').value, 8, 2, 8), videoMax: n($('gca-vmax').value, 4, 0, 4), updatedAt: Date.now() };
+            fs().collection('settings').doc('gcall_config').set(c, { merge: true }).then(function () { toast('Đã lưu cài đặt gọi nhóm', 'success'); }, function (e) { toast('Không lưu được: ' + (e.message || e), 'error'); });
+        }
+        function fmtAgo(t) { var m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 1 ? 'vừa bắt đầu' : m < 60 ? m + ' phút' : Math.floor(m / 60) + ' giờ ' + (m % 60) + ' phút'; }
+        function end(id) {
+            fs().collection('gcalls').doc(id).set({ status: id === 'general' ? 'live' : 'ended', endedAt: Date.now(), endedBy: 'admin', members: {} }, { merge: false }).then(function () { toast('Đã kết thúc cuộc gọi nhóm', 'success'); }, function () {});
+        }
+        function start() {
+            if (started || !window.firebase || !firebase.apps || !firebase.apps.length) return; started = true;
+            fs().collection('settings').doc('gcall_config').onSnapshot(function (d) { CFG = d.exists ? d.data() : {}; paint(); }, function () {});
+            fs().collection('gcalls').where('status', '==', 'live').onSnapshot(function (q) {
+                var now = Date.now(), rows = [];
+                q.forEach(function (x) {
+                    var c = x.data() || {}, ms = c.members || {}, ppl = Object.keys(ms).filter(function (u) { return now - (+ms[u].ping || +ms[u].at || 0) < 60000; });
+                    if (!ppl.length) return;
+                    var since = Math.min.apply(null, ppl.map(function (u) { return +ms[u].at || now; }));
+                    rows.push('<div class="gca-row"><div><b>' + (x.id === 'general' ? '🔊 Phòng gọi Kênh Chung' : '👥 Gọi nhóm của ' + esc(c.hostName || c.host || '?')) + (c.type === 'video' ? ' · có hình' : '') + '</b><small>' + ppl.length + ' người: ' + ppl.map(function (u) { return esc((ms[u] && ms[u].name) || u); }).join(', ') + ' · ' + fmtAgo(since) + '</small></div>'
+                        + '<button class="btn btn-danger" onclick="QDGCallAdmin.end(\'' + esc(x.id) + '\')"><i class="fa-solid fa-phone-slash"></i> Kết thúc</button></div>');
+                });
+                $('gca-live').innerHTML = rows.length ? rows.join('') : 'Không có cuộc gọi nhóm nào.';
+            }, function () {});
+        }
+        (function wait(k) { if (window.firebase && firebase.apps && firebase.apps.length && document.getElementById('gca-on')) start(); else if (k < 200) setTimeout(function () { wait(k + 1); }, 1500); })(0);
+        return { save: save, end: end };
+    })();
+
     window.QDCallAdmin = (function () {
         var $ = function (id) { return document.getElementById(id); }, booted = false;
         function ref() { return firebase.firestore().collection('settings').doc('call_config'); }
