@@ -10717,7 +10717,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=9"><\/script>');
+        document.write('<script src="qd-db.js?v=10"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -11961,11 +11961,10 @@ html.qd-lite .qd-fx { display: none !important; }
                     const userDoc = await userP;
                     const userData = userDoc.data();
 
+                    // Máy chủ ghi mốc bấm yêu cầu (thành viên không tự sửa được mốc này để mở khóa sớm)
                     let requestedAt = userData.unlockRequestedAt;
-                    if (!requestedAt) {
-                        requestedAt = Date.now();
-                        await userRef.update({ unlockRequestedAt: requestedAt });
-                    }
+                    try { const rq = await window.QDdb.act('acc.unlockReq', {}); if (rq && rq.requestedAt) requestedAt = rq.requestedAt; }
+                    catch (e) { console.warn('acc.unlockReq', e); if (!requestedAt) { timerDisplay.innerHTML = `<span class="text-danger" style="font-size:16px;">Không gửi được yêu cầu mở khóa, vui lòng thử lại.</span>`; return; } }
 
                     const targetTime = requestedAt + (autoUnlockMinutes * 60 * 1000);
 
@@ -11979,19 +11978,13 @@ html.qd-lite .qd-fx { display: none !important; }
                             clearInterval(window.Auth.unlockInterval);
                             timerDisplay.innerHTML = `<span class="text-success">ĐANG XỬ LÝ MỞ KHÓA...</span>`;
                             
-                            userRef.update({
-                                isBlocked: false,
-                                unlockedAt: Date.now(),
-                                lockedAt: null,
-                                unlockRequestedAt: null,
-                                lastActive: Date.now()
-                            }).then(() => {
+                            window.QDdb.act('acc.unlock', {}).then(() => {   // máy chủ kiểm tra đủ thời gian chờ rồi mới mở khóa
                                 window.Utils.toast("Tài khoản đã được mở khóa. Đang tự động đăng nhập...", "success");
                                 setTimeout(() => {
                                     window.UI.closeModal('modal-account-locked');
                                     window.Auth.login();
                                 }, 1500);
-                            });
+                            }).catch(e => { console.warn('acc.unlock', e); timerDisplay.innerHTML = `<span class="text-danger" style="font-size:16px;">Chưa mở khóa được, vui lòng bấm lại sau ít phút.</span>`; });
                         } else {
                             const h = Math.floor(diff / (1000 * 60 * 60));
                             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));

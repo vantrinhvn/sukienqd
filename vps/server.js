@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-13';
+const VER = 'qd-vps-14';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -172,7 +172,14 @@ const SETTINGS_OPEN = new Set(['ai_config']);   // cài đặt thành viên đư
 // Chỉ máy chủ (lệnh act) hoặc Ban Quản Trị được ghi: thành viên tự ghi = tự tạo đơn rút tiền / đơn quà / tặng lượt không trừ gì
 const SERVER_ONLY = new Set(['point_cashout', 'point_cashout_daily', 'shop_orders', 'point_shop_stock', 'point_shop_daily', 'transfer_history',
   'lixi_history', 'lixi_daily', 'spin_history', 'wheel_stock', 'wheel_questions', 'tranhthuong_history', 'tranhthuong_stock', 'lucky_numbers', 'lucky_number_history', 'lucky_rewards',
-  'attendance', 'invite_history', 'gifts', 'gift_claims', 'tournament_rewards', 'con_stats', 'con_history', 'rps_rooms', 'rps_history']);
+  'attendance', 'invite_history', 'gifts', 'gift_claims', 'tournament_rewards', 'con_stats', 'con_history', 'rps_rooms', 'rps_history', 'point_history']);
+/* Đợt 4: trường trong tài khoản chỉ máy chủ (lệnh act) / Ban Quản Trị được đổi -> thành viên không tự cộng điểm, lượt, mở khóa, đổi tên... */
+const ACC_LOCK = new Set(['points', 'spins', 'tickets', 'conThrows', 'conStreak', 'conFreeDate', 'lixiDate', 'lixiAmount', 'lixiCount', 'lixiTotal', 'lastLoginRewardDate',
+  'giftDay', 'giftCount', 'hasUsedInvite', 'invitedBy', 'invitedAt', 'inviteCount', 'inviteRewardCount', 'inviteCode', 'isBlocked', 'lockedAt', 'lockReason', 'unlockedAt', 'unlockRequestedAt',
+  'role', 'permissions', 'owner', 'user', 'created_at', 'callBanUntil', 'kickAt']);
+const UNAUTH_OK = new Set(['pending_users', 'error_logs', 'app_errors', 'security_flags']);   // chưa đăng nhập: chỉ gửi đơn đăng ký / báo lỗi
+const AUDIT = process.env.QD_AUDIT === '1';   // chạy thử: chỉ ghi nhận vi phạm, không chặn
+function deny(code, msg, w) { if (AUDIT) { console.error('[audit] ' + code + ' ' + w.op + ' ' + w.path + ' ' + JSON.stringify(w.data || {}).slice(0, 160)); return; } throw err(code, msg); }
 function topKeys(w) { return Object.keys(w.data || {}).map(k => k.split('.')[0]); }
 /* Ban Quản Trị: 3 bậc
    - Chủ hệ thống (owner: true, đặt bằng lệnh "qd admin" trên VPS hoặc tự nhận khi hệ thống chưa có chủ): không ai trên web hạ quyền / khóa / xóa / đổi mật khẩu được.
@@ -225,20 +232,31 @@ function checkWrites(conn, writes) {
   if (isStaff(conn)) return checkStaffWrites(conn, writes);
   for (const w of writes) {
     const { col: c, id } = splitPath(w.path), cur = (COLS.get(c) || new Map()).get(id);
+    if (!conn.u && !UNAUTH_OK.has(c)) { deny('unauthenticated', 'Phiên đăng nhập đã hết, vui lòng đăng nhập lại', w); continue; }
     if (c === 'settings' && !SETTINGS_OPEN.has(id)) throw err('permission-denied', 'Chỉ Ban Quản Trị được sửa cài đặt hệ thống');
     if (SERVER_ONLY.has(c)) throw err('permission-denied', 'Thao tác này do máy chủ xử lý — tải lại trang rồi thử lại');
     if (c === 'accounts') {
       if (w.op === 'delete') throw err('permission-denied', 'Chỉ Ban Quản Trị được xóa tài khoản');
       if (!cur && w.op === 'set') throw err('permission-denied', 'Tài khoản mới do Ban Quản Trị duyệt tạo');
-      const ks = topKeys(w);
-      if (ks.some(k => k === 'role' || k === 'permissions')) {
-        const d = w.data || {}; const same = (k) => !(k in d) || JSON.stringify(d[k]) === JSON.stringify(cur && cur.d[k]);
-        if (!(same('role') && same('permissions'))) throw err('permission-denied', 'Không được tự đổi vai trò / quyền');
+      const ks = topKeys(w), d = w.data || {}, own = !!(cur && conn.u && cur.d.user === conn.u);
+      const same = (k) => !(k in d) || JSON.stringify(d[k]) === JSON.stringify(cur && cur.d[k]);
+      if (ks.some(k => k === 'role' || k === 'permissions') && !(same('role') && same('permissions'))) throw err('permission-denied', 'Không được tự đổi vai trò / quyền');
+      if (ks.includes('pass') && !own) throw err('permission-denied', 'Chỉ đổi được mật khẩu của chính mình (đăng nhập lại rồi thử)');
+      if (!own) {
+        // Tài khoản người khác: chỉ được ghi "khóa gọi" do bot chống quấy rối (chỉ tăng, tối đa 31 ngày)
+        const okBan = ks.length && ks.every(k => k === 'callBanUntil') && typeof d.callBanUntil === 'number' && d.callBanUntil > (+(cur && cur.d.callBanUntil) || 0) && d.callBanUntil <= Date.now() + 31 * 864e5;
+        if (!okBan) deny('permission-denied', 'Chỉ sửa được tài khoản của chính mình', w);
+        continue;
       }
-      if (ks.includes('pass') && !(cur && conn.u && cur.d.user === conn.u)) throw err('permission-denied', 'Chỉ đổi được mật khẩu của chính mình (đăng nhập lại rồi thử)');
+      for (const k of ks) {
+        if (!ACC_LOCK.has(k) || k === 'role' || k === 'permissions' || same(k)) continue;
+        if (k === 'inviteCode' && !cur.d.inviteCode && typeof d.inviteCode === 'string' && /^[A-Z0-9]{1,20}$/.test(d.inviteCode) && !findInvite(d.inviteCode)) continue;   // lần đầu tạo mã mời
+        deny('permission-denied', 'Trường "' + k + '" do máy chủ quản lý — tải lại trang rồi thử lại', w);
+      }
     }
   }
 }
+function findInvite(code) { const m = COLS.get('accounts'); if (m) for (const [, x] of m) if (x.d && String(x.d.inviteCode || '').toUpperCase() === code) return true; return false; }
 
 /* ---------------------------------- GHI (set / update / delete + FieldValue) ---------------------------------- */
 const isFV = v => v && typeof v === 'object' && !Array.isArray(v) && typeof v.$fv === 'string';
@@ -274,7 +292,7 @@ function setPath(o, fieldPath, v, now) {
   const k = ps[ps.length - 1], r = isFV(v) ? applyFV(x[k], v, now) : clean(v, now);
   if (r === undefined) delete x[k]; else x[k] = r;
 }
-const KEEP = { accounts: ['pass', 'role', 'permissions'] };   // thành viên ghi đè cả tài liệu (set không merge) -> giữ các trường này
+const KEEP = { accounts: ['pass'].concat(Array.from(ACC_LOCK)) };   // thành viên ghi đè cả tài liệu (set không merge) -> giữ các trường này
 function applyWrite(w, now, changed, conn) {
   const { col: c, id } = splitPath(w.path), m = col(c), cur = m.get(id);
   let d;
@@ -1503,10 +1521,40 @@ function tourTick() {
 }
 setInterval(tourTick, 30000); setTimeout(tourTick, 8000);
 
+
+// ---- Tự mở khóa tài khoản: bấm yêu cầu -> chờ đủ số phút Admin đặt (settings/account_config.autoUnlockMinutes) -> máy chủ mở ----
+function unlockState(conn) {
+  if (!conn.u) throw err('unauthenticated', 'LOGIN');
+  const a = findAccount(conn.u); if (!a) throw err('unauthenticated', 'LOGIN');
+  const mins = parseInt((setting('account_config') || {}).autoUnlockMinutes) || 0;
+  return { a, mins };
+}
+function actUnlockReq(conn) {
+  const { a, mins } = unlockState(conn);
+  if (a.d.isBlocked !== true) return { open: true };
+  if (a.d.lockReason === 'security') throw err('failed-precondition', 'SECURITY');
+  if (mins <= 0) throw err('failed-precondition', 'OFF');
+  let at = +a.d.unlockRequestedAt || 0;
+  if (!at) { at = Date.now(); commit([{ op: 'update', path: 'accounts/' + a.id, data: { unlockRequestedAt: at } }], null, ACT_LOCAL); }
+  return { requestedAt: at, at: at + mins * 60000 };
+}
+function actUnlock(conn) {
+  const { a, mins } = unlockState(conn), now = Date.now();
+  if (a.d.isBlocked !== true) return { open: true };
+  if (a.d.lockReason === 'security') throw err('failed-precondition', 'SECURITY');
+  if (mins <= 0) throw err('failed-precondition', 'OFF');
+  const at = +a.d.unlockRequestedAt || 0;
+  if (!at || now < at + mins * 60000 - 2000) throw err('failed-precondition', 'WAIT', { at: at ? at + mins * 60000 : 0 });
+  commit([{ op: 'update', path: 'accounts/' + a.id, data: { isBlocked: false, unlockedAt: now, lockedAt: null, unlockRequestedAt: null, lastActive: now } }], null, ACT_LOCAL);
+  reauthAll();
+  console.log('[mở khóa] @' + a.d.user + ' tự mở khóa sau ' + mins + ' phút');
+  return { open: true };
+}
+
 const ACTS = { 'shop.buy': actShopBuy, 'cashout': actCashout, 'gift.turns': actGiftTurns,
   'lixi.pick': actLixi, 'wheel.claim': actWheelClaim, 'wheel.spin': actWheelSpin, 'tranh.open': actTranh, 'lucky.pick': actLuckyPick,
   'task.login': actTaskLogin, 'att.check': actAttend, 'invite.use': actInvite, 'gift.claim': actGiftClaim, 'con.wind': actConWind, 'con.free': actConFree, 'con.throw': actConThrow,
-  'rps.find': actRpsFind, 'rps.ping': actRpsPing, 'rps.move': actRpsMove, 'rps.leave': actRpsLeave };
+  'rps.find': actRpsFind, 'rps.ping': actRpsPing, 'rps.move': actRpsMove, 'rps.leave': actRpsLeave, 'acc.unlockReq': actUnlockReq, 'acc.unlock': actUnlock };
 function act(conn, fn, a) {
   const f = ACTS[fn];
   if (!f) throw err('invalid-argument', 'Lệnh lạ: ' + fn);
@@ -1534,7 +1582,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true, ver: VER, docs: n, cols: COLS.size, conns: CONNS.size, subs: SUBS.size, uptime: Math.round(process.uptime()) });
     }
     const c = httpConn(req, u);
-    if (u.pathname === '/api/commit' && req.method === 'POST') { const m = JSON.parse(await body(req, 1 << 20) || '{}'); const r = commit(m.writes || [], m.pre || null, c); return json(res, 200, { ok: true, v: r.v }); }
+    if (u.pathname === '/api/commit' && req.method === 'POST') { const m = JSON.parse(await body(req, 1 << 20) || '{}'); if (!c.local && m.token) { const o = verify(m.token); if (o) authConn(c, o.u); } const r = commit(m.writes || [], m.pre || null, c); return json(res, 200, { ok: true, v: r.v }); }
     if (u.pathname === '/api/get' && req.method === 'GET') { if (!isAdmin(c)) throw err('permission-denied', 'Chỉ Admin'); const x = getDoc(u.searchParams.get('path')); return json(res, 200, { ok: true, exists: !!x, d: x ? x.d : null, v: x ? x.v : 0 }); }
     if (u.pathname === '/api/query' && req.method === 'POST') { if (!isAdmin(c)) throw err('permission-denied', 'Chỉ Admin'); const m = JSON.parse(await body(req, 1 << 16) || '{}'); return json(res, 200, { ok: true, docs: runQuery(m.q).map(([id, x]) => ({ id, d: x.d, v: x.v, ut: x.ut })) }); }
     if (u.pathname.startsWith('/api/admin/')) {

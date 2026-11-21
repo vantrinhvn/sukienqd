@@ -18,7 +18,7 @@
         try { ws = new WebSocket(URL_); } catch (e) { return later(); }
         ws.onopen = function () {
             open = true; retry = 0; everOpen = true; clearTimeout(barT); barT = 0; showBar(false);
-            var tk = tok(); if (tk) sendAuth(tk);   // xác thực TRƯỚC mọi lệnh khác (máy chủ xử lý theo thứ tự)
+            var tk = tok(); if (tk) sendAuth(tk); else authLost();   // xác thực TRƯỚC mọi lệnh khác (máy chủ xử lý theo thứ tự)
             Object.keys(subs).forEach(function (k) { var s = subs[k]; s.resent = true; raw({ op: 'sub', sid: s.sid, path: s.path, q: s.q }); });   // nghe lại sau khi mất mạng
             var q = queue; queue = []; q.forEach(function (m) { raw(m); });
         };
@@ -71,10 +71,19 @@
     }
     function sendAuth(t) {
         var m = { op: 'auth', token: t, r: ++seq };
-        pend[m.r] = { ok: function (x) { AUTH.u = x.u; AUTH.role = x.role; link(x.u); }, no: function (e) { if (e && e.code === 'unauthenticated') { tok(null); AUTH.u = AUTH.role = ''; link(''); } }, m: m };
+        pend[m.r] = { ok: function (x) { AUTH.u = x.u; AUTH.role = x.role; link(x.u); }, no: function (e) { if (e && e.code === 'unauthenticated') { tok(null); AUTH.u = AUTH.role = ''; link(''); authLost(); } }, m: m };
         try { ws.send(JSON.stringify(m)); } catch (e) {}
     }
-    function login(u, p) { return req({ op: 'login', u: u, p: p }).then(function (x) { tok(x.token); AUTH.u = x.u; AUTH.role = x.role; link(x.u); return x; }); }
+    /* Mã xác thực hết hạn / không còn mà trang vẫn giữ phiên thành viên -> thoát phiên để đăng nhập lại (máy chủ không nhận lệnh ghi khi chưa xác thực) */
+    function authLost() {
+        try {
+            if (!localStorage.getItem('qd_sess') || sessionStorage.getItem('qd_auth_lost')) return;
+            sessionStorage.setItem('qd_auth_lost', '1');
+            ['qd_sess', 'qd_current_username'].forEach(function (k) { localStorage.removeItem(k); });
+            setTimeout(function () { location.reload(); }, 300);
+        } catch (e) {}
+    }
+    function login(u, p) { return req({ op: 'login', u: u, p: p }).then(function (x) { try { sessionStorage.removeItem('qd_auth_lost'); } catch (e) {} tok(x.token); AUTH.u = x.u; AUTH.role = x.role; link(x.u); return x; }); }
     function req(m) { return new Promise(function (ok, no) { m.r = ++seq; pend[m.r] = { ok: ok, no: no, m: m }; raw(m); }); }
     function onMsg(m) {
         if (m.re) { var p = pend[m.re]; if (!p) return; delete pend[m.re]; if (m.ok) p.ok(m); else { var e = err(m.code || 'unknown', m.message); if (m.x) e.x = m.x; p.no(e); } return; }
@@ -299,7 +308,7 @@
     window.QDdb = {
         url: URL_,
         http: URL_.replace(/^ws/, 'http').replace(/\/ws$/, ''),
-        beacon: function (writes) { try { var b = new Blob([JSON.stringify({ writes: enc(writes) })], { type: 'text/plain' }); return navigator.sendBeacon(window.QDdb.http + '/api/commit', b); } catch (e) { return false; } },
+        beacon: function (writes) { try { var b = new Blob([JSON.stringify({ writes: enc(writes), token: tok() })], { type: 'text/plain' }); return navigator.sendBeacon(window.QDdb.http + '/api/commit', b); } catch (e) { return false; } },
         status: function () { return { open: open, ever: everOpen, pending: Object.keys(pend).length, subs: Object.keys(subs).length, u: AUTH.u, role: AUTH.role }; },
         login: login,
         logout: function () { tok(null); AUTH.u = AUTH.role = ''; link(''); return req({ op: 'logout' }).catch(function () {}); },
