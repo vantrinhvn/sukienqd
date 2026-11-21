@@ -11,20 +11,22 @@
    Chạy: node --no-warnings server.js   (biến môi trường: PORT=8787, DATA=./data)
    ===================================================================================== */
 'use strict';
-const http = require('http'), crypto = require('crypto'), fs = require('fs'), path = require('path'), os = require('os'), zlib = require('zlib');
+const http = require('http'), crypto = require('crypto'), fs = require('fs'), path = require('path'), os = require('os'), zlib = require('zlib'), v8 = require('v8');
 const { pipeline } = require('stream/promises'), { execFileSync } = require('child_process');
 const { DatabaseSync } = require('node:sqlite');
 
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-14';
+const VER = 'qd-vps-15';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
 /* ---------------------------------- NHẬT KÝ (giữ 400 dòng gần nhất để xem trong Admin) ---------------------------------- */
-const LOGS = [];
-['log', 'warn', 'error'].forEach(k => { const o = console[k].bind(console); console[k] = (...a) => { const line = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' ' + (k === 'log' ? '' : k.toUpperCase() + ' ') + a.map(x => typeof x === 'string' ? x : (x && x.stack) || JSON.stringify(x)).join(' '); LOGS.push(line); if (LOGS.length > 400) LOGS.shift(); o(...a); }; });
+const LOGS = [], RUNLOG = path.join(DATA, 'run.log'), PREVLOG = path.join(DATA, 'run.prev.log');
+try { if (fs.existsSync(RUNLOG)) fs.renameSync(RUNLOG, PREVLOG); } catch (e) {}   // nhật ký lần chạy trước
+['log', 'warn', 'error'].forEach(k => { const o = console[k].bind(console); console[k] = (...a) => { const line = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' ' + (k === 'log' ? '' : k.toUpperCase() + ' ') + a.map(x => typeof x === 'string' ? x : (x && x.stack) || JSON.stringify(x)).join(' '); LOGS.push(line); if (LOGS.length > 400) LOGS.shift(); try { fs.appendFileSync(RUNLOG, line + '\n'); } catch (e) {} o(...a); }; });
+function tailFile(f, n) { try { const st = fs.statSync(f), len = Math.min(st.size, 256 * 1024), fd = fs.openSync(f, 'r'), b = Buffer.alloc(len); fs.readSync(fd, b, 0, len, st.size - len); fs.closeSync(fd); return b.toString('utf8').split('\n').filter(Boolean).slice(-n); } catch (e) { return []; } }
 process.on('uncaughtException', e => console.error('[qd] uncaught', e));
 process.on('unhandledRejection', e => console.error('[qd] unhandled', e));
 
@@ -152,6 +154,7 @@ function authConn(conn, u) { conn.u = u; conn.role = roleOf(u); return conn.role
 // Dữ liệu gửi ra: thành viên không thấy mật khẩu
 const HIDE = { accounts: ['pass'], pending_users: ['pass', 'password'] };
 function view(conn, c, d) {
+  if (c === 'push_broadcast' && d && d.kind === 'vps_alert' && !isStaff(conn) && d.target !== conn.u) return { kind: d.kind, target: d.target, status: d.status, createdAt: d.createdAt };
   if (c === 'rps_rooms' && d && d.status === 'playing') {
     const o = Object.assign({}, d), u = conn.u || '';
     if (o.p1Choice && d.player1 !== u) o.p1Choice = 'hidden';
@@ -337,7 +340,7 @@ function broadcastDone(id) {
 
 /* ---------------------------------- NGHE THỜI GIAN THỰC ---------------------------------- */
 const SUBS = new Set();
-const SECRET_DOCS = new Set(['settings/lucky_round_presets']);
+const SECRET_DOCS = new Set(['settings/lucky_round_presets', 'settings/vps_alert', 'settings/vps_alert_config']);
 function viewAt(conn, path, d) { const { col: c, id } = splitPath(path); if (d && !isStaff(conn) && SECRET_DOCS.has(c + '/' + id)) return {}; return view(conn, c, d); }
 function docPayload(conn, c, id, x) { return { id, d: SECRET_DOCS.has(c + '/' + id) ? viewAt(conn, c + '/' + id, x.d) : view(conn, c, x.d), v: x.v, ut: x.ut }; }
 function pushDoc(s) {
@@ -447,13 +450,132 @@ function stats(since) {
   const net = readNet();
   return {
     ver: VER, node: process.version, host: os.hostname(), os: os.type() + ' ' + os.release(), cores: os.cpus().length, cpuModel: (os.cpus()[0] || {}).model || '', load: os.loadavg(),
-    mem: { total: mem.total, avail: mem.avail, swapTotal: mem.swapTotal, swapFree: mem.swapFree }, proc: { rss: pm.rss, heap: pm.heapUsed },
+    mem: { total: mem.total, avail: mem.avail, swapTotal: mem.swapTotal, swapFree: mem.swapFree }, proc: { rss: pm.rss, heap: pm.heapUsed, heapLimit: v8.getHeapStatistics().heap_size_limit },
     disk, db: { file: fileSize(DBF) + fileSize(DBF + '-wal'), docs, cols: COLS.size, seq: SEQ },
     net: net ? { rxTotal: net.rx, txTotal: net.tx } : null, ws: { inB: STAT.inB, outB: STAT.outB },
     conns: CONNS.size, users: users.size, subs: SUBS.size, uptime: Math.round(process.uptime()), sysUptime: Math.round(os.uptime()), now: Date.now(),
     hist: HIST.filter(h => !since || h.t > since)
   };
 }
+
+
+/* ==================================================================================================
+   CẢNH BÁO SỚM: máy chủ tự đo RAM, bộ nhớ máy chủ QĐ, ổ cứng, CPU mỗi phút. Vượt ngưỡng Admin đặt -> gửi thông báo vào app
+   của Chủ hệ thống + Quản trị viên (tùy chọn thêm Quản lý), nhắc lại sau N giờ nếu vẫn cao, báo khi trở lại bình thường.
+   Bị tắt đột ngột (vd hết RAM) rồi tự bật lại -> cũng báo.
+   Cấu hình: settings/vps_alert_config · trạng thái: settings/vps_alert (chỉ Ban Quản Trị đọc được)
+   ================================================================================================== */
+const ALERT_KEYS = [
+  { k: 'ram', name: 'RAM của VPS', icon: '🧠', def: 85 },
+  { k: 'heap', name: 'Bộ nhớ máy chủ QĐ', icon: '📦', def: 80 },
+  { k: 'disk', name: 'Ổ cứng', icon: '💽', def: 85 },
+  { k: 'cpu', name: 'CPU (trung bình 5 phút)', icon: '⚙️', def: 90 }
+];
+const fmtB = n => { n = +n || 0; const u = ['B', 'KB', 'MB', 'GB', 'TB']; let i = 0; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return (i ? n.toFixed(n < 10 ? 1 : 0) : n) + ' ' + u[i]; };
+function alertCfg() {
+  const c = setting('vps_alert_config') || {}, n = (v, d, lo, hi) => { v = Math.round(Number(v)); return isFinite(v) && v > 0 ? Math.min(hi, Math.max(lo, v)) : d; }, o = { on: c.isEnabled !== false, remindH: 6, managers: c.managers === true };
+  ALERT_KEYS.forEach(a => { o[a.k] = n(c[a.k], a.def, 30, 99); });
+  const r = Number(c.remindH); o.remindH = isFinite(r) && r >= 0 ? Math.min(72, Math.round(r)) : 6;
+  return o;
+}
+const critOf = th => Math.round((th + (100 - th) / 2) * 10) / 10;   // mức nguy hiểm = giữa ngưỡng và 100%
+function alertRead() {
+  const mem = readMem(), hs = v8.getHeapStatistics(), now = Date.now(); let disk = null;
+  try { const st = fs.statfsSync(DATA); disk = { total: st.blocks * st.bsize, free: st.bavail * st.bsize }; } catch (e) {}
+  const cs = HIST.filter(h => h.cpu != null && now - h.t <= 5 * 60000);
+  const out = {};
+  out.ram = mem.total ? { v: (1 - mem.avail / mem.total) * 100, detail: 'đang dùng ' + fmtB(mem.total - mem.avail) + ' / ' + fmtB(mem.total) } : null;
+  out.heap = hs.heap_size_limit ? { v: hs.used_heap_size / hs.heap_size_limit * 100, detail: 'đang dùng ' + fmtB(hs.used_heap_size) + ' / giới hạn ' + fmtB(hs.heap_size_limit) } : null;
+  out.disk = disk && disk.total ? { v: (1 - disk.free / disk.total) * 100, detail: 'còn trống ' + fmtB(disk.free) + ' / ' + fmtB(disk.total) } : null;
+  out.cpu = cs.length >= 60 ? { v: cs.reduce((a, h) => a + h.cpu, 0) / cs.length, detail: os.cpus().length + ' nhân' } : null;   // cần đủ ~2 phút số liệu
+  return out;
+}
+let ALERT = { level: 0, notified: 0, notifiedAt: 0, since: 0, items: [], last: '', raw: {} };
+const ALERT_MS = +process.env.QD_ALERT_MS || 60000;   // đo mỗi phút
+try { const x = (getDoc('settings/vps_alert') || {}).d; if (x) ALERT = Object.assign(ALERT, { level: x.level || 0, notified: x.notified || 0, notifiedAt: x.notifiedAt || 0, since: x.since || 0 }); } catch (e) {}
+function alertRecipients(cfg) {
+  const out = [], m = COLS.get('accounts');
+  if (m) for (const [, x] of m) { const d = x.d || {}; if (!d.user || d.isBlocked === true) continue; if (d.owner === true || d.role === 'admin' || (cfg.managers && d.role === 'manager')) out.push(d.user); }
+  return Array.from(new Set(out));
+}
+function alertPush(cfg, title, body) {
+  const to = alertRecipients(cfg), now = Date.now();
+  if (!to.length) return to;
+  commit(to.map((u, i) => ({ op: 'set', path: 'push_broadcast/' + actId(), data: { title, body: body.slice(0, 900), image: '', target: u, status: 'pending', createdAt: now + i, by: 'vps-alert', kind: 'vps_alert' } })), null, ACT_LOCAL);
+  console.log('[cảnh báo] ' + title + ' -> ' + to.join(', '));
+  return to;
+}
+const pct = v => (Math.round(v * 10) / 10).toLocaleString('vi-VN') + '%';
+function alertTick() {
+  try {
+    const cfg = alertCfg(), r = alertRead(), now = Date.now(), prev = {};
+    (ALERT.items || []).forEach(x => { prev[x.k] = x.lv || 0; });
+    const items = ALERT_KEYS.map(a => {
+      const m = r[a.k]; if (!m) return { k: a.k, name: a.name, icon: a.icon, v: null, th: cfg[a.k], crit: critOf(cfg[a.k]), lv: 0, detail: '' };
+      const th = cfg[a.k], crit = critOf(th), was = prev[a.k] || 0;
+      const raw = m.v >= crit ? 2 : m.v >= th ? 1 : 0, pr = ALERT.raw[a.k] || 0; ALERT.raw[a.k] = raw;
+      let lv = raw > was ? Math.max(was, Math.min(raw, pr)) : raw;   // lên mức phải đúng 2 lần đo liền nhau (bỏ qua vọt lên chốc lát)
+      if (was === 2 && lv < 2 && m.v >= crit - 3) lv = 2;          // chống báo bật / tắt liên tục quanh ngưỡng
+      if (was >= 1 && lv < 1 && m.v >= th - 5) lv = 1;
+      return { k: a.k, name: a.name, icon: a.icon, v: Math.round(m.v * 10) / 10, th, crit, lv, detail: m.detail };
+    });
+    const level = cfg.on ? Math.max(0, ...items.map(x => x.lv)) : 0, bad = items.filter(x => x.lv > 0).sort((a, b) => b.lv - a.lv || b.v - a.v);
+    const lines = bad.map(x => x.icon + ' ' + x.name + ': ' + pct(x.v) + ' (ngưỡng ' + x.th + '%) — ' + x.detail).join('\n');
+    if (cfg.on && level > ALERT.notified) {
+      alertPush(cfg, (level === 2 ? '🚨 Máy chủ QĐ sắp quá tải' : '⚠️ Máy chủ QĐ đang cao') + ': ' + bad[0].name + ' ' + pct(bad[0].v),
+        lines + '\n' + (level === 2 ? 'Cần xử lý ngay: hệ thống có thể chậm hoặc ngừng chạy.' : 'Nên kiểm tra tab Máy chủ VPS trong Admin.'));
+      ALERT.notified = level; ALERT.notifiedAt = now; if (!ALERT.since) ALERT.since = now;
+    } else if (cfg.on && level >= 1 && cfg.remindH > 0 && now - ALERT.notifiedAt >= cfg.remindH * 3600e3) {
+      alertPush(cfg, '⏰ Nhắc lại: máy chủ QĐ vẫn ' + (level === 2 ? 'quá tải' : 'đang cao'), lines + '\nTừ lúc ' + new Date(ALERT.since || now).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) + '.');
+      ALERT.notified = level; ALERT.notifiedAt = now;
+    } else if (level === 0 && ALERT.notified > 0) {
+      if (cfg.on) alertPush(cfg, '✅ Máy chủ QĐ đã trở lại bình thường', items.filter(x => x.v != null).map(x => x.icon + ' ' + x.name + ': ' + pct(x.v)).join('\n'));
+      ALERT.notified = 0; ALERT.notifiedAt = now; ALERT.since = 0;
+    } else if (level >= 1 && level < ALERT.notified) ALERT.notified = level;
+    ALERT.level = level; ALERT.items = items;
+    const snap = JSON.stringify([level, ALERT.notified, ALERT.since, cfg, items.map(x => [x.lv, x.v == null ? null : Math.round(x.v)])]);
+    if (snap !== ALERT.last || now - (ALERT.wrote || 0) > 10 * 60000) {
+      ALERT.last = snap; ALERT.wrote = now;
+      commit([{ op: 'set', path: 'settings/vps_alert', data: { level, notified: ALERT.notified, notifiedAt: ALERT.notifiedAt, since: ALERT.since, items, on: cfg.on, managers: cfg.managers, updatedAt: now, restart: ALERT.restart || null } }], null, ACT_LOCAL);
+    }
+    const iv = k => { const x = items.find(i => i.k === k); return x && x.v != null ? x.v : null; };
+    qMetaSet.run('beat', JSON.stringify({ t: now, ram: iv('ram'), heap: iv('heap'), disk: iv('disk') }));
+    try { if (fs.statSync(RUNLOG).size > 2 * 1024 * 1024) fs.writeFileSync(RUNLOG, tailFile(RUNLOG, 2000).join('\n') + '\n'); } catch (e) {}
+  } catch (e) { console.error('[cảnh báo]', e); }
+}
+function alertState() {   // số đo mới nhất + ngưỡng đang lưu (mức cảnh báo giữ theo lần đo định kỳ)
+  const cfg = alertCfg(), st = Object.assign({}, (getDoc('settings/vps_alert') || {}).d || {}), r = alertRead(), lvOf = {};
+  (ALERT.items || []).forEach(x => { lvOf[x.k] = x.lv || 0; });
+  st.items = ALERT_KEYS.map(a => { const m = r[a.k]; return { k: a.k, name: a.name, icon: a.icon, v: m ? Math.round(m.v * 10) / 10 : null, th: cfg[a.k], crit: critOf(cfg[a.k]), lv: lvOf[a.k] || 0, detail: m ? m.detail : '' }; });
+  st.updatedAt = Date.now(); if (st.level == null) st.level = ALERT.level || 0;
+  return { cfg, state: st, recipients: alertRecipients(cfg), every: ALERT_MS };
+}
+function alertTest(conn) {
+  const cfg = alertCfg(), r = alertRead();
+  const to = alertPush(cfg, '🧪 Thử cảnh báo máy chủ QĐ', ALERT_KEYS.filter(a => r[a.k]).map(a => a.icon + ' ' + a.name + ': ' + pct(r[a.k].v) + ' (ngưỡng ' + cfg[a.k] + '%)').join('\n') + '\nGửi thử bởi ' + (conn.u || 'Admin') + '. Nhận được thông báo này là cảnh báo sớm đang hoạt động.');
+  return { to };
+}
+// bị tắt đột ngột? (lần chạy trước không đánh dấu tắt đàng hoàng)
+function markClean() { try { qMetaSet.run('run', JSON.stringify({ clean: true, at: Date.now() })); } catch (e) {} }
+(function () {
+  let prev = null, beat = 0, bi = {};
+  try { prev = JSON.parse((qMetaGet.get('run') || {}).v || 'null'); const bv = (qMetaGet.get('beat') || {}).v || ''; bi = /^\{/.test(bv) ? JSON.parse(bv) : { t: +bv || 0 }; beat = bi.t || 0; } catch (e) {}
+  qMetaSet.run('run', JSON.stringify({ clean: false, at: Date.now(), pid: process.pid }));
+  if (prev && prev.clean === false) {
+    const down = beat || prev.at, t = new Date(down).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const mem = (bi.ram != null && bi.ram >= 88) || (bi.heap != null && bi.heap >= 85), last = tailFile(PREVLOG, 40), errLine = last.slice().reverse().find(l => / ERROR /.test(l)) || '';
+    const why = mem ? 'Nhiều khả năng do hết bộ nhớ' + (bi.heap != null && bi.heap >= 85 ? ' (bộ nhớ máy chủ QĐ ' + pct(bi.heap) + ')' : ' (RAM ' + pct(bi.ram) + ')') + ' lúc cuối còn chạy.'
+      : errLine ? 'Lỗi cuối trong nhật ký: ' + errLine.slice(20, 220) : 'Không thấy lỗi trong nhật ký — có thể do VPS khởi động lại, hết RAM đột ngột hoặc bị tắt từ bên ngoài.';
+    ALERT.restart = { at: Date.now(), lastSeen: down, why, ram: bi.ram == null ? null : bi.ram, heap: bi.heap == null ? null : bi.heap };
+    console.log('[cảnh báo] lần chạy trước bị tắt đột ngột (khoảng ' + t + '). ' + why);
+    setTimeout(() => {
+      const cfg = alertCfg(), r = alertRead(); if (!cfg.on) return;
+      alertPush(cfg, '🔁 Máy chủ QĐ vừa bị tắt đột ngột và đã tự bật lại', 'Lần cuối còn chạy: khoảng ' + t + '.\n' + ALERT.restart.why + '\nHiện tại: ' +
+        ALERT_KEYS.filter(a => r[a.k]).map(a => a.name + ' ' + pct(r[a.k].v)).join(' · ') + '.\nXem Admin > Máy chủ VPS > Nhật ký > Lần chạy trước.');
+    }, Math.min(20000, ALERT_MS * 4));
+  }
+})();
+setInterval(alertTick, ALERT_MS); setTimeout(alertTick, Math.min(15000, ALERT_MS));
 
 /* ---------------------------------- SAO LƯU / KHÔI PHỤC / XUẤT ---------------------------------- */
 const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()); };
@@ -528,7 +650,7 @@ async function selfUpdate() {
   const ver = (/const VER = '([^']+)'/.exec(txt) || [])[1] || '?';
   fs.renameSync(next, __filename);
   console.log('[qd] đã tải bản mới ' + ver + ', khởi động lại...');
-  setTimeout(() => process.exit(0), 400);   // systemd tự chạy lại
+  setTimeout(() => { markClean(); process.exit(0); }, 400);   // systemd tự chạy lại
   return ver;
 }
 
@@ -552,9 +674,11 @@ async function admin(conn, m) {
     case 'backup': return { name: await makeBackup('tay') };
     case 'delBackup': { if (!safeName(m.name)) throw err('invalid-argument', 'Tên tệp sai'); fs.unlinkSync(path.join(BK, m.name)); return { ok: true }; }
     case 'restore': { if (!safeName(m.name)) throw err('invalid-argument', 'Tên tệp sai'); return restoreFrom(path.join(BK, m.name), m.mode); }
-    case 'logs': return LOGS.slice(-(+m.n || 200));
+    case 'logs': return m.prev ? tailFile(PREVLOG, +m.n || 200) : LOGS.slice(-(+m.n || 200));
     case 'conns': return [...CONNS].map(c => ({ u: c.u, role: c.role, ip: c.ip, at: c.at, ua: c.ua, subs: [...SUBS].filter(s => s.conn === c).length }));
-    case 'restart': setTimeout(() => process.exit(0), 300); return { ok: true };
+    case 'restart': setTimeout(() => { markClean(); process.exit(0); }, 300); return { ok: true };
+    case 'alertState': return alertState();
+    case 'alertTest': return alertTest(conn);
     case 'update': return { ver: await selfUpdate() };
     case 'token': return { token: sign(conn.u || 'admin') };
     case 'owner': {   // ai là Chủ hệ thống; claim = true: Admin đang đăng nhập tự nhận khi hệ thống CHƯA có chủ
@@ -1625,6 +1749,6 @@ server.on('upgrade', (req, socket) => {
 });
 server.listen(PORT, '127.0.0.1', () => console.log(`[qd] máy chủ ${VER} chạy ở cổng ${PORT}, dữ liệu: ${DATA}`));
 
-function bye() { try { sql.close(); } catch (e) {} process.exit(0); }
+function bye() { markClean(); try { sql.close(); } catch (e) {} process.exit(0); }
 process.on('SIGINT', bye); process.on('SIGTERM', bye);
 module.exports = { runQuery, commit, getDoc };

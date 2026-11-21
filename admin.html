@@ -870,6 +870,35 @@ html.qd-lite .qd-fx { display: none !important; }
         .qv-doc .mt { font-size: 11.5px; color: var(--text-muted); text-align: right; white-space: nowrap; }
         @media (max-width: 640px) { .qv-doc { grid-template-columns: 1fr; } .qv-doc .mt { text-align: left; } .qv-colname { max-width: 100%; } .qv-docs .qv-bar { flex-wrap: wrap; } }
         .qv-empty { padding: 34px 16px; text-align: center; color: var(--text-muted); font-size: 13.5px; }
+        /* Cảnh báo sớm */
+        .qva-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ef4444; margin-left: 4px; box-shadow: 0 0 0 3px rgba(239,68,68,.25); } .qva-dot[hidden] { display: none; }
+        .qva-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+        .qva-lv { font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 999px; border: 1px solid transparent; }
+        .qva-lv.l0 { background: rgba(34,197,94,.12); color: #22c55e; border-color: rgba(34,197,94,.35); }
+        .qva-lv.l1 { background: rgba(245,158,11,.12); color: #f59e0b; border-color: rgba(245,158,11,.4); }
+        .qva-lv.l2 { background: rgba(239,68,68,.14); color: #ef4444; border-color: rgba(239,68,68,.45); }
+        .qva-lv.off { background: var(--bg-elevated); color: var(--text-muted); border-color: var(--border-strong); }
+        .qva-rows { display: grid; gap: 12px; margin-bottom: 18px; }
+        .qva-row { display: grid; grid-template-columns: minmax(150px, 220px) 1fr 70px; gap: 12px; align-items: center; }
+        .qva-row .nm { font-weight: 700; font-size: 13.5px; } .qva-row .nm small { display: block; font-weight: 500; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+        .qva-row .v { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .qva-meter { position: relative; height: 12px; border-radius: 999px; background: var(--bg-elevated); border: 1px solid var(--border-strong); overflow: visible; }
+        .qva-meter > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+        .qva-meter > b { position: absolute; top: -4px; bottom: -4px; width: 2px; background: #f59e0b; } .qva-meter > b.c { background: #ef4444; }
+        .qva-form { display: grid; gap: 14px; padding-top: 16px; border-top: 1px solid var(--border-strong); }
+        .qva-ths { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+        .qva-ths label, .qva-line { display: grid; gap: 6px; font-size: 13px; font-weight: 700; }
+        .qva-ths input, .qva-line input[type=number] { font: inherit; font-size: 14px; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-main); width: 100%; }
+        .qva-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-weight: 600; } .qva-line input[type=number] { width: 90px; }
+        .qva-line input[type=checkbox] { width: 18px; height: 18px; accent-color: #0891b2; }
+        .qva-to { font-size: 13px; color: var(--text-muted); } .qva-to b { color: var(--text-main); }
+        .qva-banner { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 18px; padding: 12px 16px; border-radius: 14px; font-size: 13.5px; line-height: 1.55; cursor: pointer;
+            background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.45); color: #fcd34d; }
+        .qva-banner.l2 { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.5); color: #fca5a5; }
+        .qva-banner.info { background: rgba(6,182,212,.08); border-color: rgba(6,182,212,.4); color: #a5f3fc; }
+        .qva-banner b { color: inherit; } .qva-banner .go { margin-left: auto; white-space: nowrap; font-weight: 800; text-decoration: underline; }
+        .qva-banner[hidden] { display: none !important; }
+        @media (max-width: 640px) { .qva-row { grid-template-columns: 1fr 60px; } .qva-row .qva-meter { grid-column: 1 / -1; grid-row: 2; } }
         .qv-pager { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 12.5px; color: var(--text-muted); }
         .qv-up { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; font-size: 13px; } .qv-up[hidden] { display: none; }
         .qv-upbar { flex: 1; height: 10px; border-radius: 6px; background: rgba(148,163,184,.18); overflow: hidden; } .qv-upbar i { display: block; height: 100%; width: 0; background: #0891b2; transition: width .2s; }
@@ -1590,6 +1619,7 @@ html.qd-lite .qd-fx { display: none !important; }
 
         <main class="app-container">
             <div class="workspace">
+                <div class="qva-banner qvps-only" id="qva-banner" role="alert" hidden></div>
 
                 <section id="view-dashboard" class="view-section active">
                     <div class="dash-hero">
@@ -3787,6 +3817,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         <button type="button" data-t="backup"><i class="fa-solid fa-box-archive"></i> Sao lưu & khôi phục</button>
                         <button type="button" data-t="conns"><i class="fa-solid fa-plug"></i> Đang kết nối</button>
                         <button type="button" data-t="logs"><i class="fa-solid fa-scroll"></i> Nhật ký</button>
+                        <button type="button" data-t="alert"><i class="fa-solid fa-bell"></i> Cảnh báo sớm <span class="qva-dot" id="qva-dot" hidden></span></button>
                     </div>
 
                     <div class="card qv-pane" data-p="data">
@@ -3825,8 +3856,30 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="table-container"><table class="vsh-log"><thead><tr><th>Tài khoản</th><th>Vai trò</th><th>Địa chỉ IP</th><th>Kết nối từ</th><th>Đang nghe</th><th>Thiết bị</th></tr></thead><tbody id="qv-connlist"></tbody></table></div>
                     </div>
 
+                    <div class="card qv-pane" data-p="alert" hidden>
+                        <div class="qva-head"><span class="qva-lv off" id="qva-lv">Đang đọc…</span><span class="text-muted text-sm" id="qva-sub"></span></div>
+                        <div class="qva-rows" id="qva-rows"></div>
+                        <div class="qva-form">
+                            <label class="qva-line"><input type="checkbox" id="qva-on"> <span>Bật cảnh báo sớm (gửi thông báo vào app khi máy chủ sắp quá tải)</span></label>
+                            <div class="qva-ths">
+                                <label>🧠 RAM của VPS (%)<input type="number" id="qva-ram" min="30" max="99" inputmode="numeric"></label>
+                                <label>📦 Bộ nhớ máy chủ QĐ (%)<input type="number" id="qva-heap" min="30" max="99" inputmode="numeric"></label>
+                                <label>💽 Ổ cứng (%)<input type="number" id="qva-disk" min="30" max="99" inputmode="numeric"></label>
+                                <label>⚙️ CPU trung bình 5 phút (%)<input type="number" id="qva-cpu" min="30" max="99" inputmode="numeric"></label>
+                            </div>
+                            <label class="qva-line">Vẫn cao thì nhắc lại sau <input type="number" id="qva-remind" min="0" max="72" inputmode="numeric"> giờ <span class="text-muted text-sm">(0 = không nhắc lại)</span></label>
+                            <label class="qva-line"><input type="checkbox" id="qva-mgr"> <span>Gửi cả cho Quản lý</span></label>
+                            <div class="qva-to" id="qva-to"></div>
+                            <div class="qv-bar wrap">
+                                <button type="button" class="qv-btn primary" id="qva-save"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>
+                                <button type="button" class="qv-btn" id="qva-test"><i class="fa-solid fa-paper-plane"></i> Gửi thử thông báo</button>
+                            </div>
+                            <p class="text-muted text-sm" style="margin:0">Máy chủ tự đo mỗi phút. Vượt <b>ngưỡng</b> (vạch vàng) → thông báo <b>⚠️ đang cao</b>; vượt <b>mức nguy hiểm</b> (vạch đỏ, nằm giữa ngưỡng và 100%) → <b>🚨 sắp quá tải</b>. Trở lại bình thường cũng được báo. Máy chủ bị tắt đột ngột (thường do hết RAM) rồi tự bật lại cũng được báo.<br><b>Bộ nhớ máy chủ QĐ</b>: toàn bộ dữ liệu nằm trong bộ nhớ của chương trình máy chủ; chạm giới hạn này thì máy chủ bị tắt dù RAM của VPS còn trống.</p>
+                        </div>
+                    </div>
+
                     <div class="card qv-pane" data-p="logs" hidden>
-                        <div class="qv-bar"><button type="button" class="qv-btn sm" id="qv-logref"><i class="fa-solid fa-rotate"></i> Tải lại</button><span class="text-muted text-sm">200 dòng gần nhất của máy chủ</span></div>
+                        <div class="qv-bar"><button type="button" class="qv-btn sm" id="qv-logref"><i class="fa-solid fa-rotate"></i> Tải lại</button><select id="qv-logwhich" class="qv-sel" title="Xem nhật ký"><option value="">Lần chạy này</option><option value="1">Lần chạy trước (xem lý do bị tắt)</option></select><span class="text-muted text-sm">200 dòng gần nhất của máy chủ</span></div>
                         <pre class="qv-logs" id="qv-logs"></pre>
                     </div>
                 </section>
@@ -15736,7 +15789,8 @@ window.QDXlsx = (function () {
             f.collection('push_broadcast').orderBy('createdAt', 'desc').limit(20).onSnapshot(function (q) {
                 LAST = []; var h = [], st = new Date(); st.setHours(0, 0, 0, 0); var today = 0;
                 q.forEach(function (x) {
-                    var b = x.data(); LAST.push(b); if ((b.createdAt || 0) >= st.getTime() && b.status === 'done') today += (b.sent || 0);
+                    var b = x.data(); if (b.kind === 'vps_alert') return;   // cảnh báo máy chủ tự gửi: không hiện trong lịch sử thông báo
+                    LAST.push(b); if ((b.createdAt || 0) >= st.getTime() && b.status === 'done') today += (b.sent || 0);
                     h.push('<div class="pushn-h"><button type="button" class="pushn-again" data-i="' + (LAST.length - 1) + '" title="Chép lại để gửi lần nữa"><i class="fa-solid fa-copy"></i> Dùng lại</button><b>' + (b.image ? '🖼️ ' : '') + esc(b.title) + '</b> <span class="text-muted">· ' + (b.target === 'all' ? 'Tất cả' : '@' + esc(b.target)) + ' · ' + fmt(b.createdAt) + '</span><div class="pushn-hb">' + esc(b.body) + '</div>' + result(b) + '</div>');
                 });
                 el.innerHTML = h.length ? h.join('') : '<div class="text-muted text-sm">Chưa gửi thông báo nào.</div>';
@@ -17056,14 +17110,14 @@ window.QDXlsx = (function () {
                 $('qv-connlist').innerHTML = L.length ? L.map(function (c) { return '<tr><td><b>' + (c.u ? '@' + E(c.u) : '<span class="text-muted">chưa đăng nhập</span>') + '</b></td><td>' + E(c.role || '—') + '</td><td>' + E(c.ip) + '</td><td style="white-space:nowrap">' + tm(c.at) + '</td><td>' + c.subs + '</td><td class="text-sm text-muted" style="max-width:280px;word-break:break-word">' + E(c.ua) + '</td></tr>'; }).join('') : '<tr><td colspan="6" class="text-muted">Không có kết nối.</td></tr>';
             }).catch(function () {});
         }
-        function loadLogs() { A('logs', { n: 200 }).then(function (L) { var el = $('qv-logs'); el.textContent = L.join('\n') || '(trống)'; el.scrollTop = el.scrollHeight; }).catch(function (e) { $('qv-logs').textContent = e.message || e.code; }); }
+        function loadLogs() { A('logs', { n: 200, prev: !!$('qv-logwhich').value }).then(function (L) { var el = $('qv-logs'); el.textContent = L.join('\n') || '(trống)'; el.scrollTop = el.scrollHeight; }).catch(function (e) { $('qv-logs').textContent = e.message || e.code; }); }
 
         /* ---------------- Gắn sự kiện ---------------- */
         var TAB = 'data';
         function showTab(t) {
             TAB = t; Array.prototype.forEach.call($('qv-tabs').children, function (b) { b.classList.toggle('on', b.dataset.t === t); });
             Array.prototype.forEach.call(document.querySelectorAll('#view-vps .qv-pane'), function (p) { p.hidden = p.dataset.p !== t; });
-            if (t === 'data') loadCols(); if (t === 'backup') loadBackups(); if (t === 'conns') loadConns(); if (t === 'logs') loadLogs();
+            if (t === 'data') loadCols(); if (t === 'backup') loadBackups(); if (t === 'conns') loadConns(); if (t === 'logs') loadLogs(); if (t === 'alert') loadAlert();
         }
         $('qv-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) showTab(b.dataset.t); });
         $('qv-colq').addEventListener('input', renderCols);
@@ -17088,7 +17142,7 @@ window.QDXlsx = (function () {
             if (b.dataset.rs) restore(b.dataset.rs);
             if (b.dataset.del) ask({ title: 'Xóa bản sao lưu?', ok: 'Xóa', html: '<b>' + E(b.dataset.del) + '</b>' }).then(function (y) { if (y) A('delBackup', { name: b.dataset.del }).then(function () { toast('Đã xóa bản sao lưu', 'success'); loadBackups(); }).catch(function (e) { toast(e.message || e.code, 'error'); }); });
         });
-        $('qv-logref').onclick = loadLogs;
+        $('qv-logref').onclick = loadLogs; $('qv-logwhich').onchange = loadLogs;
         $('qv-restart').onclick = function () {
             ask({ title: 'Khởi động lại máy chủ?', icon: '🔄', ok: 'Khởi động lại', tone: 'warn', html: 'Mọi người mất kết nối khoảng 2–5 giây rồi tự nối lại. Dữ liệu không mất.' }).then(function (y) {
                 if (y) A('restart').then(function () { toast('Đang khởi động lại máy chủ…', 'info'); pill(false, 'Đang khởi động lại'); }).catch(function (e) { toast(e.message || e.code, 'error'); });
@@ -17100,6 +17154,73 @@ window.QDXlsx = (function () {
                 A('update').then(function (r) { toast('Đã tải bản ' + r.ver + ', máy chủ đang khởi động lại…', 'success'); H = []; lastT = 0; }).catch(function (e) { toast('Không cập nhật được: ' + (e.message || e.code), 'error'); }).then(function () { setTimeout(function () { b.disabled = false; }, 4000); });
             });
         };
+
+        /* ---------------- Cảnh báo sớm ---------------- */
+        var AL = null, AKEYS = [['ram', '🧠', 'RAM của VPS'], ['heap', '📦', 'Bộ nhớ máy chủ QĐ'], ['disk', '💽', 'Ổ cứng'], ['cpu', '⚙️', 'CPU (trung bình 5 phút)']];
+        var LVTXT = ['✅ Bình thường', '⚠️ Đang cao', '🚨 Sắp quá tải'];
+        function pctTxt(v) { return v == null ? '—' : (Math.round(v * 10) / 10).toLocaleString('vi-VN') + '%'; }
+        function paintAlert() {
+            if (!AL) return;
+            var st = AL.state || {}, cfg = AL.cfg || {}, items = st.items || [], lv = $('qva-lv');
+            lv.className = 'qva-lv ' + (cfg.on === false ? 'off' : 'l' + (st.level || 0)); lv.textContent = cfg.on === false ? '🔕 Đang tắt' : LVTXT[st.level || 0];
+            $('qva-sub').textContent = st.updatedAt ? 'Đo lúc ' + tm(st.updatedAt) + (st.since ? ' · cao từ ' + tm(st.since) : '') + (st.notifiedAt ? ' · báo gần nhất ' + tm(st.notifiedAt) : '') : '';
+            $('qva-rows').innerHTML = items.map(function (x) {
+                var col = x.lv === 2 ? '#ef4444' : x.lv === 1 ? '#f59e0b' : '#22c55e';
+                return '<div class="qva-row"><div class="nm">' + E(x.icon + ' ' + x.name) + '<small>' + E(x.detail || (x.v == null ? 'chưa đủ số liệu (cần ~2 phút)' : '')) + '</small></div>'
+                    + '<div class="qva-meter"><i style="width:' + Math.max(1, Math.min(100, x.v || 0)) + '%;background:' + col + '"></i><b style="left:' + x.th + '%" title="Ngưỡng ' + x.th + '%"></b><b class="c" style="left:' + x.crit + '%" title="Mức nguy hiểm ' + x.crit + '%"></b></div>'
+                    + '<div class="v" style="color:' + col + '">' + pctTxt(x.v) + '</div></div>';
+            }).join('') + (st.restart ? '<div class="qv-alert info" style="margin:0">🔁 Máy chủ bị tắt đột ngột (lần cuối còn chạy khoảng ' + tm(st.restart.lastSeen) + ') và đã tự bật lại lúc ' + tm(st.restart.at) + '. ' + E(st.restart.why || '') + ' Xem tab <b>Nhật ký</b> → <b>Lần chạy trước</b>.</div>' : '');
+            var to = AL.recipients || [];
+            $('qva-to').innerHTML = to.length ? 'Gửi vào app của: <b>' + to.map(E).join('</b>, <b>') + '</b> (cần mở app QD Elite trên Android ít nhất 1 lần sau khi đăng nhập)' : '⚠️ Chưa có ai nhận: cần tài khoản Chủ hệ thống / Quản trị viên.';
+            $('qva-dot').hidden = !(cfg.on !== false && st.level > 0);
+        }
+        function fillAlert() {
+            var c = AL && AL.cfg || {};
+            $('qva-on').checked = c.on !== false; $('qva-mgr').checked = !!c.managers; $('qva-remind').value = c.remindH == null ? 6 : c.remindH;
+            AKEYS.forEach(function (k) { $('qva-' + k[0]).value = c[k[0]] || ''; });
+        }
+        function loadAlert(keepForm) {
+            return A('alertState').then(function (r) { AL = r; paintAlert(); if (!keepForm) fillAlert(); }).catch(function (e) {
+                $('qva-lv').className = 'qva-lv off'; $('qva-lv').textContent = 'Chưa dùng được';
+                $('qva-rows').innerHTML = '<div class="qv-alert">' + (e && /Lệnh lạ/.test(e.message || '') ? 'Máy chủ đang chạy bản cũ — bấm <b>Cập nhật máy chủ</b> ở trên để có cảnh báo sớm.' : E(e && (e.message || e.code) || e)) + '</div>';
+            });
+        }
+        $('qva-save').onclick = function () {
+            var o = { isEnabled: $('qva-on').checked, managers: $('qva-mgr').checked, remindH: Math.max(0, Math.min(72, Math.round(+$('qva-remind').value || 0))), updatedAt: Date.now() }, bad = '';
+            AKEYS.forEach(function (k) { var v = Math.round(+$('qva-' + k[0]).value); if (!(v >= 30 && v <= 99)) bad = k[2]; o[k[0]] = v; });
+            if (bad) return toast('Ngưỡng "' + bad + '" phải từ 30 đến 99%', 'warning');
+            var b = this; b.disabled = true;
+            W.firebase.firestore().collection('settings').doc('vps_alert_config').set(o, { merge: true })
+                .then(function () { toast('Đã lưu cảnh báo sớm', 'success'); return loadAlert(); })
+                .catch(function (e) { toast('Không lưu được: ' + (e && e.message || e), 'error'); }).then(function () { b.disabled = false; });
+        };
+        $('qva-test').onclick = function () {
+            var b = this; b.disabled = true;
+            A('alertTest').then(function (r) { toast(r.to && r.to.length ? 'Đã gửi thử tới app của: ' + r.to.join(', ') : 'Chưa có ai để gửi', r.to && r.to.length ? 'success' : 'warning'); })
+                .catch(function (e) { toast('Không gửi được: ' + (e && e.message || e), 'error'); }).then(function () { b.disabled = false; });
+        };
+        /* Dải cảnh báo đầu trang Admin (mọi mục) khi máy chủ đang cao / vừa tự khởi động lại */
+        (function () {
+            var unsub = null, who = '';
+            function paintBanner(d) {
+                var el = $('qva-banner'); if (!el) return;
+                var role = typeof State !== 'undefined' ? State.currentUserRole : '', show = role === 'admin' || (role === 'manager' && d && d.managers);
+                var bad = d && d.on !== false ? (d.items || []).filter(function (x) { return x.lv > 0; }).sort(function (a, b) { return b.lv - a.lv || b.v - a.v; }) : [];
+                var rs = d && d.restart && Date.now() - d.restart.at < 6 * 3600e3 ? d.restart : null;
+                if (!show || (!bad.length && !rs)) { el.hidden = true; return; }
+                el.className = 'qva-banner qvps-only ' + (bad.length ? (d.level === 2 ? 'l2' : '') : 'info'); el.hidden = false;
+                el.innerHTML = (bad.length ? '<span>' + (d.level === 2 ? '🚨 <b>Máy chủ sắp quá tải:</b> ' : '⚠️ <b>Máy chủ đang cao:</b> ') + bad.map(function (x) { return E(x.name) + ' <b>' + pctTxt(x.v) + '</b> (ngưỡng ' + x.th + '%)'; }).join(' · ') + '</span>'
+                    : '<span>🔁 Máy chủ vừa bị tắt đột ngột và đã tự bật lại lúc <b>' + tm(rs.at) + '</b>.</span>') + '<span class="go">Xem chi tiết</span>';
+            }
+            $('qva-banner').onclick = function () { try { UI.navigate('vps'); setTimeout(function () { showTab('alert'); }, 50); } catch (e) {} };
+            setInterval(function () {
+                var u = typeof State !== 'undefined' && State.currentUser || '';
+                if (u === who) return; who = u;
+                if (unsub) { try { unsub(); } catch (e) {} unsub = null; }
+                if (!u) return paintBanner(null);
+                unsub = W.firebase.firestore().collection('settings').doc('vps_alert').onSnapshot(function (x) { var d = x.exists ? x.data() : null; paintBanner(d); if (d && AL && TAB === 'alert') { AL.state = d; paintAlert(); } }, function () { paintBanner(null); });
+            }, 1500);
+        })();
         function start() { if (active) return; active = true; H = []; lastT = 0; tick(); timer = setInterval(tick, 3000); showTab(TAB); }
         function stop() { active = false; clearInterval(timer); }
         (function hook(n) {
