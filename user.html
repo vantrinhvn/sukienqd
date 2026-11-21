@@ -11867,32 +11867,10 @@ html.qd-lite .qd-fx { display: none !important; }
                             updateAccData.inviteCode = invCode;
                         }
 
-                        // XỬ LÝ NHIỆM VỤ ĐĂNG NHẬP (LẦN ĐẦU / NGÀY)
-                        const todayStr = Utils.getTodayString();
-                        if(docData.lastLoginRewardDate !== todayStr) {
-                            try {
-                                const taskDoc = await taskP;
-                                let loginPoints = 10; // Mặc định
-                                if (taskDoc.exists && taskDoc.data().loginReward !== undefined) {
-                                    loginPoints = parseInt(taskDoc.data().loginReward);
-                                }
-                                if(loginPoints > 0) {
-                                    updateAccData.points = firebase.firestore.FieldValue.increment(loginPoints);
-                                    updateAccData.lastLoginRewardDate = todayStr;
-                                    
-                                    // Ghi lịch sử để hiện trong Lịch Sử Giao Dịch
-                                    db.collection("point_history").add({
-                                        user: State.currentUser,
-                                        action: "add",
-                                        detail: `Nhiệm vụ: Đăng nhập lần đầu trong ngày`,
-                                        pointsChanged: loginPoints,
-                                        timestamp: Date.now()
-                                    });
-                                    
-                                    setTimeout(() => Utils.toast(`🎁 Đăng nhập ngày mới: +${loginPoints} Điểm lì xì!`, "success"), 2500);
-                                }
-                            } catch(e) { console.error("Lỗi lấy cấu hình nhiệm vụ", e); }
-                        }
+                        // NHIỆM VỤ ĐĂNG NHẬP (LẦN ĐẦU / NGÀY): máy chủ kiểm tra ngày + cộng điểm (trang không tự cộng)
+                        if (window.QDdb && window.QDdb.act) window.QDdb.act('task.login', {}).then(r => {
+                            if (r && r.points > 0) setTimeout(() => Utils.toast(`🎁 Đăng nhập ngày mới: +${r.points} Điểm lì xì!`, "success"), 2500);
+                        }).catch(e => console.warn('task.login', e));
 
                         if(Object.keys(updateAccData).length > 0) {
                             db.collection("accounts").doc(State.currentDocId).update(updateAccData);
@@ -13418,31 +13396,15 @@ html.qd-lite .qd-fx { display: none !important; }
                 window.RPSSound.play('tap');
                 this.searching = true; btn.disabled = true; this.setHTML(btn, '<span class="rps2-spin"></span> ĐANG TÌM ĐỐI THỦ...');
                 try {
-                    const snap = await db.collection("rps_rooms").where("status", "==", "waiting").limit(10).get();
-                    const now = Date.now(); let joined = null;
-                    const docs = snap.docs.slice().sort((a, b) => (a.data().createdAt || 0) - (b.data().createdAt || 0));
-                    for (const d of docs) {
-                        const r = d.data();
-                        if (now - (r.ping || r.createdAt || 0) > this.STALE_MS) { d.ref.delete().catch(() => {}); continue; }   // phòng bỏ hoang
-                        if (r.player1 === me) { this.searching = false; this.renderLobbyBtn(); return window.Utils.toast("Bạn đang mở phòng ở tab khác!", "warning"); }
-                        const ok = await db.runTransaction(async (tx) => {
-                            const s = await tx.get(d.ref), x = s.exists ? s.data() : null;
-                            if (!x || x.status !== 'waiting' || x.player2) return false;
-                            tx.update(d.ref, { player2: me, status: 'playing', ping: Date.now() });
-                            return true;
-                        }).catch(() => false);
-                        if (ok) { joined = d.id; break; }
+                    // Máy chủ ghép trận: vào phòng chờ lâu nhất, không có thì mở phòng mới
+                    let r;
+                    try { r = await window.QDdb.play('rps.find', {}); }
+                    catch (e) {
+                        const m = { OFF: "Kéo Búa Bao hiện đang được bảo trì!", HOURS: `Đấu trường chỉ mở cửa từ ${c.start} đến ${c.end}!`, FEE: `Bạn cần ít nhất ${c.fee} điểm để vào bàn!`, OWN_ROOM: "Bạn đang mở phòng ở tab khác!" }[e && e.code];
+                        if (m) { this.searching = false; this.renderLobbyBtn(); return window.Utils.toast(m, e.code === 'OWN_ROOM' ? "warning" : "error"); }
+                        throw e;
                     }
-                    if (joined) { this.roomId = joined; this.isPlayer1 = false; }
-                    else {
-                        // Mở phòng chờ ngay (không đợi máy chủ xác nhận): phòng hiện tức thì, ghi lên máy chủ chạy song song
-                        const ref = db.collection("rps_rooms").doc();
-                        ref.set({
-                            player1: me, player2: null, p1Choice: null, p2Choice: null, p1Score: 0, p2Score: 0, round: 1, turn: 1,
-                            status: "waiting", roundWinner: null, deadline: null, createdAt: Date.now(), ping: Date.now()
-                        }).catch(e => { console.error('RPS create', e); window.Utils.toast("Lỗi kết nối máy chủ, không mở được phòng.", "error"); });
-                        this.roomId = ref.id; this.isPlayer1 = true;
-                    }
+                    this.roomId = r.roomId; this.isPlayer1 = !!r.isPlayer1;
                     this.searching = false;
                     this.enterRoom();
                 } catch (e) {
@@ -13470,7 +13432,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 }, err => { console.error('RPS room', err); });
                 // Chủ phòng báo "còn ở đây" trong lúc chờ, để người khác không bỏ qua phòng
                 if (this.isPlayer1) this.hbInt = setInterval(() => {
-                    if (this.roomId && this.lastStatus === 'waiting') this.room().update({ ping: Date.now() }).catch(() => {});
+                    if (this.roomId && this.lastStatus === 'waiting') window.QDdb.act('rps.ping', { roomId: this.roomId }).catch(() => {});
                 }, 20000);
                 window.RPSSound.duck(true);
                 this.applyConfig();
@@ -13482,7 +13444,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 const oppName = data[op === 'p1' ? 'player1' : 'player2'];
                 const key = this.keyOf(data), prev = this.lastStatus;
                 if (key !== this.lastKey) { this.lastKey = key; this.pending = null; }
-                const mine = data[me + 'Choice'] || this.pending, theirs = data[op + 'Choice'];
+                const mine = (data[me + 'Choice'] !== 'hidden' && data[me + 'Choice']) || this.pending, theirs = data[op + 'Choice'];
                 const myScore = data[me + 'Score'] || 0, oppScore = data[op + 'Score'] || 0;
                 this.myCurrentChoice = mine || null; this.lastStatus = data.status; this.lastData = data;
 
@@ -13577,15 +13539,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 window.RPSSound.play(choice === 'timeout' ? 'timeout' : 'pick', choice);
                 if (this.lastData) this.updateUI(this.lastData);   // hiện ngay, không đợi máy chủ
                 if (choice !== 'timeout' && navigator.vibrate) navigator.vibrate(15);
-                const ref = this.room(), field = this.isPlayer1 ? 'p1Choice' : 'p2Choice', limit = this.cfg().limit;
                 try {
-                    await db.runTransaction(async (tx) => {
-                        const s = await tx.get(ref); if (!s.exists) return;
-                        const d = s.data(); if (d.status !== 'playing' || d[field]) return;
-                        const upd = { [field]: choice };
-                        if (!d.deadline) upd.deadline = Date.now() + limit * 1000 + 500;   // người ra trước bắt đầu đếm giờ cho đối thủ
-                        tx.update(ref, upd);
-                    });
+                    await window.QDdb.act('rps.move', { roomId: this.roomId, choice: choice });   // máy chủ giữ chiêu, đối thủ chỉ thấy "đã ra chiêu"
                 } catch (e) {
                     console.error('RPS choice', e);
                     this.pending = null; this.myCurrentChoice = null;
@@ -13593,19 +13548,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     window.Utils.toast("Không gửi được chiêu, thử lại nhé.", "error");
                 }
             },
-            claimTimeout: async function() {
-                if (this.claiming || !this.roomId) return; this.claiming = true;
-                const ref = this.room(), op = this.isPlayer1 ? 'p2Choice' : 'p1Choice';
-                try {
-                    await db.runTransaction(async (tx) => {
-                        const s = await tx.get(ref); if (!s.exists) return;
-                        const d = s.data();
-                        if (d.status !== 'playing' || !d.deadline || Date.now() < d.deadline + 1500 || d[op]) return;
-                        tx.update(ref, { [op]: 'timeout' });
-                    });
-                } catch (e) {}
-                this.claiming = false;
-            },
+            claimTimeout: function() {},   // máy chủ tự xử thua hiệp khi hết giờ
 
             /* ---------- Chấm hiệp / sang hiệp / kết thúc ---------- */
             judge: function(a, b) {
@@ -13613,62 +13556,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 if (a === 'timeout') return 'p2'; if (b === 'timeout') return 'p1';
                 return ({ rock: 'scissors', scissors: 'paper', paper: 'rock' })[a] === b ? 'p1' : 'p2';
             },
-            checkGameLogic: function(data) {
-                if (data.status === 'playing' && data.p1Choice && data.p2Choice) this.resolveRound();
-                else if (data.status === 'revealing') this.scheduleNext(data);
-            },
-            resolveRound: async function() {
-                if (this.resolving || !this.roomId) return; this.resolving = true;
-                const ref = this.room();
-                try {
-                    await db.runTransaction(async (tx) => {
-                        const s = await tx.get(ref); if (!s.exists) return;
-                        const d = s.data(); if (d.status !== 'playing' || !d.p1Choice || !d.p2Choice) return;
-                        const w = this.judge(d.p1Choice, d.p2Choice);
-                        tx.update(ref, { status: 'revealing', roundWinner: w, revealAt: Date.now(),
-                            p1Score: (d.p1Score || 0) + (w === 'p1' ? 1 : 0), p2Score: (d.p2Score || 0) + (w === 'p2' ? 1 : 0) });
-                    });
-                } catch (e) { console.warn('RPS resolve', e); }
-                this.resolving = false;
-            },
-            scheduleNext: function(data) {
-                const key = this.keyOf(data); if (this.nextFor === key) return; this.nextFor = key;
-                const since = Date.now() - (data.revealAt || Date.now());
-                const wait = Math.min(3000, Math.max(900, 3000 - since)) + (this.isPlayer1 ? 0 : 1800);   // chủ phòng làm trước, khách làm thay nếu chủ phòng đã rời
-                clearTimeout(this.nextT); this.nextT = setTimeout(() => this.advance(key), wait);
-            },
-            advance: async function(key) {
-                if (!this.roomId) return;
-                const ref = this.room(); let fin = null;
-                try {
-                    await db.runTransaction(async (tx) => {
-                        fin = null;
-                        const s = await tx.get(ref); if (!s.exists) return;
-                        const d = s.data(); if (d.status !== 'revealing' || this.keyOf(d) !== key) return;
-                        if ((d.p1Score || 0) >= 2 || (d.p2Score || 0) >= 2) { tx.update(ref, { status: 'finished', finishedAt: Date.now() }); fin = d; }
-                        else tx.update(ref, { p1Choice: null, p2Choice: null, roundWinner: null, deadline: null, revealAt: null, status: 'playing',
-                                              round: (d.round || 1) + (d.roundWinner !== 'draw' ? 1 : 0), turn: (d.turn || 1) + 1 });
-                    });
-                } catch (e) { fin = null; console.warn('RPS advance', e); }
-                if (!fin) return;
-                const p1Won = fin.p1Score >= 2, winner = p1Won ? fin.player1 : fin.player2, loser = p1Won ? fin.player2 : fin.player1;
-                db.collection("rps_history").add({ player1: fin.player1, player2: fin.player2, p1Choice: fin.p1Choice, p2Choice: fin.p2Choice,
-                    p1Score: fin.p1Score, p2Score: fin.p2Score, winner: winner, timestamp: Date.now() }).catch(e => console.log(e));
-                this.finalizeGame(winner, loser);
-            },
-            finalizeGame: async function(winnerName, loserName) {
-                try {
-                    const c = this.cfg(), inc = firebase.firestore.FieldValue.increment;
-                    const [w, l] = await Promise.all([winnerName, loserName].map(u => db.collection("accounts").where("user", "==", u).limit(1).get()));
-                    if (w.empty || l.empty) return;
-                    const b = db.batch(), now = Date.now();
-                    b.update(w.docs[0].ref, { points: inc(c.win) });
-                    b.update(l.docs[0].ref, { points: inc(c.lose) });
-                    b.set(db.collection("point_history").doc(), { user: winnerName, action: 'rps', detail: `Kéo Búa Bao: thắng ${loserName}`, pointsChanged: c.win, timestamp: now });
-                    b.set(db.collection("point_history").doc(), { user: loserName, action: 'rps', detail: `Kéo Búa Bao: thua ${winnerName}`, pointsChanged: c.lose, timestamp: now });
-                    await b.commit();
-                } catch (e) { console.error('RPS finalize', e); }
-            },
+            // Lật bài / sang hiệp / kết thúc trận / cộng trừ điểm: máy chủ làm (đúng giờ, không phụ thuộc ai còn mở trang)
+            checkGameLogic: function() {},
 
             /* ---------- Kết quả trận ---------- */
             showResult: function(d) {
@@ -13698,7 +13587,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 this.timerInt = this.hbInt = this.cdInt = this.nextT = this.revealT = null;
                 if (this.unsubscribe) { this.unsubscribe(); this.unsubscribe = null; }
                 const id = this.roomId; this.roomId = null;
-                if (id && mode !== 'gone') { try { await db.collection("rps_rooms").doc(id).delete(); } catch (e) {} }
+                if (id && mode !== 'gone') { try { await window.QDdb.act('rps.leave', { roomId: id }); } catch (e) {} }
                 this.resetLobby(mode === 'quiet' ? null : (msg || "Đã rời phòng đấu."));
             },
             resetLobby: function(msg) {
@@ -14215,86 +14104,17 @@ html.qd-lite .qd-fx { display: none !important; }
                         }
                     }
 
-                    // NHANH: mọi bước kiểm tra chạy CÙNG LÚC thay vì lần lượt.
-                    // IP đã lấy sẵn khi vào trang; danh sách điểm danh hôm nay đang nghe trực tiếp -> kiểm tra ngay trên máy (0 lượt hỏi máy chủ).
-                    const att = window.AppCore.attToday, local = att && att.synced && att.date === todayStr ? att.rows : null;
-                    const ipP = window.QDFast ? window.QDFast.ip() : fetch('https://api.ipify.org?format=json').then(r => r.json()).then(j => j.ip);
-                    const ipCheckP = anti && !local ? ipP.then(ip => db.collection("attendance").where("date", "==", todayStr).where("ipAddress", "==", ip).get()) : null;
-                    const userP = local ? null : db.collection("attendance").where("date", "==", todayStr).where("userName", "==", State.currentUser).get();
-                    const rewardP = db.collection("settings").doc("attendance_reward_items").get();
-                    const taskP = db.collection("settings").doc("task_config").get();
-                    [ipCheckP, userP, rewardP, taskP].forEach(p => p && p.catch(() => {}));
-                    const currentIP = await ipP;
-
-                    if (anti) {
-                        const rows = local ? local.filter(r => r.ipAddress === currentIP) : (await ipCheckP).docs.map(d => d.data());
-                        const other = rows.find(r => r.userName !== State.currentUser);
-                        if (other) {
-                            throw proxyErr(`Địa chỉ mạng này (IP: ${currentIP}) đã được dùng để điểm danh cho [${other.userName}]. Nghi vấn điểm danh hộ!`, { by: 'ip', other: other.userName, ip: currentIP });
-                        }
-                    }
-
-                    const already = local ? local.some(r => r.userName === State.currentUser) : !(await userP).empty;
-                    if (already) { window.AppCore.hasAttendedToday = true; throw new Error("Bạn đã điểm danh thành công trước đó rồi!"); }
-
+                    // Máy chủ kiểm tra khung giờ, đã điểm danh chưa, cùng mạng (IP máy chủ thấy) với người khác, rồi ghi điểm danh + cộng thưởng
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TRUYỀN TẢI...`;
-                    const batch = db.batch();
-                    const newAttRef = db.collection("attendance").doc();
-                    const attData = {
-                        userId: State.currentDocId, userName: State.currentUser, time: now.toLocaleTimeString('vi-VN'), date: todayStr, timestamp: Date.now(), ipAddress: currentIP
-                    };
-
-                    let rewardSpins = 0; let rewardTickets = 0;
-                    const [rewardDoc, taskDoc] = await Promise.all([rewardP, taskP]);
-                    // Vật phẩm hệ thống (Admin > Thưởng Vật Phẩm Điểm Danh): items { points | tickets | spins | conThrows: { on, n, from, to } }
-                    // Mỗi món chỉ phát khi đang trong giờ hẹn riêng [from, to) (0 = không giới hạn; món chưa có giờ riêng dùng giờ chung cũ from / to).
-                    // Cấu hình cũ chưa có items -> chỉ thưởng lượt rút lì xì = tickets.
-                    const rwD = rewardDoc.exists ? rewardDoc.data() : {}, rwNow = Date.now();
-                    const rwIn = (f, t) => { f = Number(f) || 0; t = Number(t) || 0; return !(f && rwNow < f) && !(t && rwNow >= t); };
-                    const rewardItems = {};
-                    if (rewardDoc.exists && rwD.isEnabled === true) {
-                        const it = rwD.items && typeof rwD.items === 'object' ? rwD.items : null;
-                        if (it) ['points', 'tickets', 'spins', 'conThrows'].forEach(k => {
-                            const x = it[k] || {}, n = Math.min(1e6, parseInt(x.n, 10) || 0);
-                            if (x.on === true && n > 0 && rwIn(x.from !== undefined ? x.from : rwD.from, x.to !== undefined ? x.to : rwD.to)) rewardItems[k] = n;
-                        });
-                        else if ((parseInt(rwD.tickets, 10) || 0) > 0 && rwIn(rwD.from, rwD.to)) rewardItems.tickets = parseInt(rwD.tickets, 10);
+                    let res;
+                    try { res = await window.QDdb.play('att.check', {}); }
+                    catch (e) {
+                        if (e && e.code === 'ALREADY') { window.AppCore.hasAttendedToday = true; throw new Error("Bạn đã điểm danh thành công trước đó rồi!"); }
+                        if (e && e.code === 'HOURS') throw new Error("Cảnh báo Hệ thống: Bạn đang thao tác ngoài khung giờ quy định!");
+                        if (e && e.code === 'PROXY_IP') throw proxyErr(`Địa chỉ mạng này (IP: ${e.ip}) đã được dùng để điểm danh cho [${e.other}]. Nghi vấn điểm danh hộ!`, { by: 'ip', other: e.other, ip: e.ip });
+                        throw e;
                     }
-                    rewardSpins = rewardItems.spins || 0; rewardTickets = rewardItems.tickets || 0;
-                    if (Object.keys(rewardItems).length) {
-                        const accRef = db.collection("accounts").doc(State.currentDocId), upd = {};
-                        Object.keys(rewardItems).forEach(k => { upd[k] = firebase.firestore.FieldValue.increment(rewardItems[k]); });
-                        batch.update(accRef, upd);
-                        if (rewardItems.points) batch.set(db.collection("point_history").doc(), {
-                            user: State.currentUser, action: "add", detail: "Thưởng vật phẩm điểm danh", pointsChanged: rewardItems.points, timestamp: Date.now()
-                        });
-                    }
-
-                    attData.rewardTickets = rewardTickets;   // lưu vật phẩm thực nhận để Admin xem lịch sử chính xác
-                    attData.rewardItems = rewardItems;
-                    batch.set(newAttRef, attData);
-
-                    let attRewardPoints = 20;
-                    if (taskDoc.exists && taskDoc.data().attendanceReward !== undefined) {
-                        attRewardPoints = parseInt(taskDoc.data().attendanceReward);
-                    }
-                    // Không có vật phẩm thưởng nào đang phát (công tắc tổng tắt / các món tắt / ngoài giờ) -> CHỈ ghi nhận điểm danh, không cộng điểm Nhiệm vụ
-                    if (!Object.keys(rewardItems).length) attRewardPoints = 0;
-                    if (attRewardPoints > 0) {
-                        const accRef = db.collection("accounts").doc(State.currentDocId);
-                        batch.update(accRef, { points: firebase.firestore.FieldValue.increment(attRewardPoints) });
-                        
-                        const logRef = db.collection("point_history").doc();
-                        batch.set(logRef, {
-                            user: State.currentUser,
-                            action: "add",
-                            detail: `Nhiệm vụ: Điểm danh thành công`,
-                            pointsChanged: attRewardPoints,
-                            timestamp: Date.now()
-                        });
-                    }
-
-                    await batch.commit();
+                    const rewardItems = res.items || {}, attRewardPoints = res.task || 0, rewardSpins = rewardItems.spins || 0, rewardTickets = rewardItems.tickets || 0;
                     
                     if (window.AppCore.attConfig.antiProxyEnabled) {
                         localStorage.setItem('qd_device_att_date', todayStr);
@@ -14389,48 +14209,8 @@ html.qd-lite .qd-fx { display: none !important; }
                 btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
 
                 try {
-                    // NHANH: đọc cấu hình, tìm người mời và đọc tài khoản của mình CÙNG LÚC
-                    const configP = db.collection("settings").doc("invite_config").get();
-                    const inviterP = db.collection("accounts").where("inviteCode", "==", codeInput).limit(1).get();
-                    configP.catch(() => {}); inviterP.catch(() => {});
-                    let res = null;
-
-                    await db.runTransaction(async (transaction) => {
-                        const myRef = db.collection("accounts").doc(State.currentDocId);
-                        const [myDoc, configDoc, inviterSnap] = await Promise.all([transaction.get(myRef), configP, inviterP]);
-                        const cfg = IV.norm(configDoc.exists ? configDoc.data() : null);
-                        if(!cfg.on) throw "DISABLED";
-                        if(inviterSnap.empty) throw "NOT_FOUND";
-                        const inviterDoc = inviterSnap.docs[0];
-                        if(inviterDoc.id === State.currentDocId) throw "SELF";
-                        if(!myDoc.exists) throw "ERR";
-                        if(myDoc.data().hasUsedInvite) throw "ALREADY_USED";
-                        const inviterRef = db.collection("accounts").doc(inviterDoc.id);
-                        let inv = inviterDoc.data();
-                        // Có giới hạn thưởng người mời -> đọc lại số lần đã thưởng ngay trong giao dịch (chính xác khi nhiều người nhập cùng lúc)
-                        if(cfg.max > 0) { const fresh = await transaction.get(inviterRef); if(!fresh.exists) throw "NOT_FOUND"; inv = fresh.data(); }
-                        if(inv.invitedBy && inv.invitedBy === State.currentUser) throw "MUTUAL";   // A mời B rồi B lại nhập mã của A
-
-                        const capped = cfg.max > 0 && (Number(inv.inviteRewardCount) || 0) >= cfg.max;
-                        const gMe = IV.give(cfg, 'invitee'), gInvFull = IV.give(cfg, 'inviter'), gInv = capped ? {} : gInvFull;
-                        if(!Object.keys(gMe).length && !Object.keys(gInv).length) throw (capped && Object.keys(gInvFull).length ? "CAPPED" : "NO_REWARD");
-
-                        const FV = firebase.firestore.FieldValue, now = Date.now();
-                        const upMe = { hasUsedInvite: true, invitedBy: inv.user || '', invitedAt: now };
-                        const upInv = { inviteCount: FV.increment(1) };
-                        Object.keys(gMe).forEach(k => { upMe[k] = FV.increment(gMe[k]); });
-                        Object.keys(gInv).forEach(k => { upInv[k] = FV.increment(gInv[k]); });
-                        if(Object.keys(gInv).length) upInv.inviteRewardCount = FV.increment(1);
-                        transaction.update(myRef, upMe);
-                        transaction.update(inviterRef, upInv);
-                        transaction.set(db.collection("invite_history").doc(), {
-                            inviter: inv.user || '', invitee: State.currentUser,
-                            rewards: { invitee: gMe, inviter: gInv }, inviterCapped: capped,
-                            rewardAmount: gMe.tickets || 0,   // (cũ) để bản admin cũ vẫn đọc được
-                            timestamp: now
-                        });
-                        res = { gMe, gInv, inviter: inv.user || '', capped };
-                    });
+                    // Máy chủ tìm người mời, kiểm tra luật (đã dùng / tự mời / mời ngược / giới hạn) rồi cộng thưởng cho cả hai
+                    const res = await window.QDdb.play('invite.use', { code: codeInput }).catch(e => { throw (e && /^[A-Z_]+$/.test(e.code || '')) ? e.code : e; });
 
                     State.hasUsedInvite = true;
                     IV.done(res);
@@ -21415,12 +21195,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         });
         // Đổi tài khoản -> vẽ lại (đánh dấu "Bạn")
         // Tự cộng điểm / lượt thưởng của chính mình (khoản nào máy Admin chưa cộng)
-        function startAuto(u) {
-            TP.autoGive({ user: u || '', by: function () { return 'user:' + me(); }, done: function () {
-                try { window.Utils.toast('🎁 Đã cộng điểm lì xì / lượt thưởng Giải Đấu vào tài khoản của bạn!', 'success'); } catch (e) {}
-                if (window.Inventory) try { window.Inventory.renderList(); } catch (e) {}
-            } });
-        }
+        function startAuto(u) { TP.watchGiven(u || ''); TP.watch(); }   // điểm / lượt thưởng Giải Đấu do máy chủ tự cộng (sau 10 phút sơ đồ đứng yên)
         var lastU = null; function tick() { var u = me(); if (u !== lastU) { lastU = u; lastMine = null; startAuto(u); paint(); } }
         tick(); setInterval(tick, 2000);
         window.TourPrizeUser = {
@@ -24087,33 +23862,11 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         }
         function close() { if (W.UI) W.UI.closeModal('qd-gift'); }
 
-        async function claim(g) {
-            var D = db(), FV = firebase.firestore.FieldValue, cRef = D.collection('gift_claims').doc(cid(g)), gRef = D.collection('gifts').doc(g.id), aRef = D.collection('accounts').doc(docId);
-            var S = W.State || {}, got = null;
-            await D.runTransaction(function (tx) {
-                return Promise.all([tx.get(gRef), tx.get(cRef), tx.get(aRef)]).then(function (r) {
-                    var gs = r[0], cs = r[1], as = r[2], now = Date.now();
-                    if (cs.exists) throw new Error('DA_NHAN');
-                    if (!gs.exists) throw new Error('Món quà này đã bị Ban Quản Trị thu hồi.');
-                    var x = gs.data() || {}; x.id = g.id;
-                    if (x.enabled === false) throw new Error('Quà đang tạm tắt.');
-                    if (now < x.startAt) throw new Error('Chưa tới giờ mở quà.');
-                    if (now > x.endAt) throw new Error('Đã hết giờ nhận quà.');
-                    if (x.maxClaims && (x.claimCount || 0) >= x.maxClaims) throw new Error('Tiếc quá, quà đã được nhận hết!');
-                    var a = as.exists ? as.data() : {};
-                    if (a.isBlocked === true) throw new Error('Tài khoản đang bị khóa.');
-                    if (x.who === 'old' && +a.created_at && +a.created_at >= x.startAt) throw new Error('Quà này dành cho tài khoản tạo trước lúc mở quà.');
-                    var items = {}, upd = {}, gUpd = { claimCount: FV.increment(1), lastClaimAt: now };
-                    ITEMS.forEach(function (it) { var n = Math.max(0, Math.floor(+((x.items || {})[it[0]]) || 0)); if (n) { items[it[0]] = n; upd[it[0]] = FV.increment(n); gUpd['sum.' + it[0]] = FV.increment(n); } });
-                    if (!Object.keys(items).length) throw new Error('Quà chưa có vật phẩm.');
-                    tx.set(cRef, { giftId: g.id, giftTitle: x.title || '', user: user, userId: docId, fullName: S.fullName || a.fullName || '', items: items, at: now });
-                    tx.update(gRef, gUpd); tx.update(aRef, upd);
-                    var txt = ITEMS.filter(function (it) { return items[it[0]]; }).map(function (it) { return '+' + items[it[0]] + ' ' + it[2].toLowerCase(); }).join(', ');
-                    tx.set(D.collection('point_history').doc(), { user: user, action: 'add', detail: '🎁 Quà toàn hệ thống: ' + (x.title || '') + ' (' + txt + ')', pointsChanged: items.points || 0, timestamp: now });
-                    got = items;
-                });
-            });
-            return got;
+        var GIFT_ERR = { GONE: 'Món quà này đã bị Ban Quản Trị thu hồi.', OFF: 'Quà đang tạm tắt.', EARLY: 'Chưa tới giờ mở quà.', LATE: 'Đã hết giờ nhận quà.',
+            FULL: 'Tiếc quá, quà đã được nhận hết!', BLOCKED: 'Tài khoản đang bị khóa.', OLD_ONLY: 'Quà này dành cho tài khoản tạo trước lúc mở quà.', EMPTY: 'Quà chưa có vật phẩm.' };
+        async function claim(g) {   // máy chủ kiểm tra giờ / số lượng / đối tượng rồi cộng vật phẩm (1 lần mỗi người)
+            try { return (await W.QDdb.play('gift.claim', { id: g.id })).items; }
+            catch (e) { var c = e && e.code; if (c === 'DA_NHAN') throw new Error('DA_NHAN'); if (GIFT_ERR[c]) throw new Error(GIFT_ERR[c]); throw e; }
         }
         async function openGift() {
             var ov = d.getElementById('qd-gift'), g = cur; if (!g || busy) return;

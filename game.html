@@ -1453,7 +1453,7 @@ html.qd-lite .qd-fx { display: none !important; }
         function showResult() {
             if (!FLIGHT || !FLIGHT.crossed || FLIGHT.shown || !FLIGHT.done) return;
             FLIGHT.shown = true;
-            var o = FLIGHT.pred.outcome, r = FLIGHT.res, err = FLIGHT.err, el = $('result');
+            var r = FLIGHT.res, o = r && r.outcome ? r.outcome : FLIGHT.pred.outcome, err = FLIGHT.err, el = $('result');
             var title = o === 'hit' ? 'TRÚNG VÒNG!' : o === 'rim' ? 'CHẠM VÀNH!' : 'TRƯỢT RỒI!';
             var pts = '', extra = '';
             if (err) { extra = err; }
@@ -1472,10 +1472,13 @@ html.qd-lite .qd-fx { display: none !important; }
             setTimeout(function () { if (!S.busy) RING.torn = 0; }, 600);
             rollWind(); ui();
         }
+        // Gió do máy chủ đặt (sau mỗi lần ném máy chủ gửi gió cho lần sau) -> đường bay trên máy khớp với máy chủ tính
         function rollWind() {
-            var m = S.cfg.wind ? diff().wind : 0;
-            S.wind = m ? Math.round((Math.random() * 2 - 1) * m * 10) / 10 : 0;
-            if (m && Math.random() < 0.12) S.wind = 0;   // thỉnh thoảng lặng gió
+            if (S.nextWind != null) { S.wind = S.nextWind; S.nextWind = null; return paintWind(); }
+            paintWind();
+            if (window.QDdb && ME) window.QDdb.act('con.wind', {}).then(function (r) { if (!S.busy) { S.wind = r.wind; paintWind(); } }).catch(function () {});
+        }
+        function paintWind() {
             var w = $('wind'); w.hidden = !S.cfg.wind;
             $('wind-v').textContent = S.wind === 0 ? '🍃 Lặng gió' : Math.abs(S.wind).toFixed(1).replace('.', ',');
             $('wind-l').style.display = S.wind === 0 ? 'none' : '';
@@ -1486,27 +1489,11 @@ html.qd-lite .qd-fx { display: none !important; }
         /* ---------- Giao dịch: trừ lượt + thưởng ---------- */
         /* Giao dịch chỉ đụng tới tài khoản (giống Trạm Quy Đổi / Rút Lì Xì): trừ 1 lượt, cộng điểm, lưu chuỗi trúng (conStreak).
            Bảng xếp hạng / lịch sử / nhật ký điểm ghi riêng phía sau: nếu Firestore chưa cho phép thì lần ném vẫn được tính. */
-        function commitThrow(outcome, wind) {
-            var accRef = db.collection('accounts').doc(S.docId), cfg = S.cfg, ts = Date.now();
-            return db.runTransaction(function (t) {
-                return t.get(accRef).then(function (a) {
-                    if (!a.exists) throw { code: 'NOACC' };
-                    if (!cfg.enabled) throw { code: 'CLOSED' };
-                    var d = a.data(), left = Number(d.conThrows) || 0; if (left <= 0) throw { code: 'NOTURN' };
-                    var hit = outcome === 'hit', streak = hit ? (Number(d.conStreak) || 0) + 1 : 0;
-                    var base = hit ? cfg.hitPoints : outcome === 'rim' ? cfg.rimPoints : 0;
-                    var bonus = hit && cfg.streakEvery > 1 && cfg.streakBonus > 0 && streak % cfg.streakEvery === 0 ? cfg.streakBonus : 0, total = base + bonus;
-                    var upd = { conThrows: FV.increment(-1), conStreak: streak }; if (total > 0) upd.points = FV.increment(total);
-                    t.update(accRef, upd);
-                    return { base: base, bonus: bonus, total: total, streak: streak, left: left - 1 };
-                });
-            }).then(function (r) {
-                var hit = outcome === 'hit', soft = function (what) { return function (e) { console.warn('Ném còn: không ghi được ' + what + ' (kiểm tra quy tắc Firestore)', e && e.code, e); }; };
-                db.collection('con_stats').doc(ME).set({ user: ME, throws: FV.increment(1), hits: FV.increment(hit ? 1 : 0), rims: FV.increment(outcome === 'rim' ? 1 : 0), points: FV.increment(r.total),
-                    streak: r.streak, best: Math.max(S.best || 0, r.streak), updatedAt: ts }, { merge: true }).catch(soft('con_stats'));
-                db.collection('con_history').doc(ME + '_' + (9999999999999 - ts)).set({ user: ME, result: outcome, points: r.total, bonus: r.bonus, streak: r.streak, wind: wind, difficulty: cfg.difficulty, ts: ts }).catch(soft('con_history'));
-                if (r.total > 0) db.collection('point_history').add({ user: ME, action: 'nemcon', detail: 'Ném còn ' + (hit ? 'trúng vòng' : 'chạm vành') + (r.bonus ? ' (thưởng chuỗi ' + r.streak + ')' : ''), pointsChanged: r.total, timestamp: ts }).catch(soft('point_history'));
-                if (r.streak > (S.best || 0)) S.best = r.streak;
+        // Máy chủ tính đường bay với gió của máy chủ -> trúng / chạm vành / trượt, trừ lượt, cộng điểm, ghi BXH + lịch sử
+        function commitThrow(lp, ms) {
+            return window.QDdb.play('con.throw', { vx: lp.vx, vy: lp.vy, ms: ms }).then(function (r) {
+                if (r.best > (S.best || 0)) S.best = r.best;
+                S.nextWind = r.wind;
                 return r;
             });
         }
@@ -1521,11 +1508,11 @@ html.qd-lite .qd-fx { display: none !important; }
             FLIGHT = { pred: pred, crossed: false, shown: false, done: false };
             var fl = FLIGHT;
             sfx('throw');
-            commitThrow(pred.outcome, S.wind).then(function (r) {
+            commitThrow(lp, now).then(function (r) {
                 fl.res = r; fl.done = true; S.streak = r.streak; ui(); if (fl === FLIGHT) showResult();
             }).catch(function (e) {
                 var c = e && e.code;
-                fl.err = c === 'NOTURN' ? 'Hết lượt ném: lần ném này không được tính.' : c === 'CLOSED' ? 'Sân đã đóng: lần ném này không được tính.'
+                fl.err = c === 'NOTURN' ? 'Hết lượt ném: lần ném này không được tính.' : c === 'CLOSED' ? 'Sân đã đóng: lần ném này không được tính.' : c === 'FAST' ? 'Ném nhanh quá: lần ném này không được tính, lượt giữ nguyên.'
                     : c === 'permission-denied' ? 'Máy chủ từ chối ghi (quyền Firestore): lần ném không được tính, lượt giữ nguyên.'
                     : c === 'unavailable' || navigator.onLine === false ? 'Mất kết nối mạng: lần ném không được tính, lượt giữ nguyên.'
                     : 'Lỗi máy chủ' + (c ? ' (' + c + ')' : '') + ': lần ném không được tính, lượt giữ nguyên.';
@@ -1615,22 +1602,13 @@ html.qd-lite .qd-fx { display: none !important; }
         $('chip-free').addEventListener('click', function () { claimFree($('chip-free')); });
         function claimFree(btn) {
             if (!S.docId || btn.disabled) return; btn.disabled = true;
-            var accRef = db.collection('accounts').doc(S.docId), today = dayKey();
-            db.runTransaction(function (t) {
-                return Promise.all([t.get(accRef)]).then(function (g) {
-                    var cfg = S.cfg;
-                    if (!g[0].exists) throw { code: 'NOACC' };
-                    if (!cfg.enabled || cfg.freePerDay <= 0) throw { code: 'OFF' };
-                    if (g[0].data().conFreeDate === today) throw { code: 'TAKEN' };
-                    t.update(accRef, { conThrows: FV.increment(cfg.freePerDay), conFreeDate: today });
-                    return cfg.freePerDay;
-                });
-            }).then(function (n) {
-                S.turns = (S.turns || 0) + n; S.freeDate = today; sfx('free'); toast('🎁 Đã nhận ' + n + ' lượt ném còn miễn phí!', 'ok'); ui();
+            window.QDdb.play('con.free', {}).then(function (r) { S.freeDate = r.date; return r.n; }, function (e) { if (e && e.code === 'TAKEN') S.freeDate = dayKey(); throw e; })
+            .then(function (n) {
+                S.turns = (S.turns || 0) + n; sfx('free'); toast('🎁 Đã nhận ' + n + ' lượt ném còn miễn phí!', 'ok'); ui();
                 var c = $('chip-turns'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
             }).catch(function (e) {
                 var c = e && e.code; toast(c === 'TAKEN' ? 'Hôm nay bạn đã nhận lượt miễn phí rồi.' : c === 'OFF' ? 'Lượt miễn phí đang tắt.' : 'Không nhận được lượt' + (c ? ' (' + c + ')' : '') + ', thử lại sau.', 'err');
-                if (c === 'TAKEN') { S.freeDate = today; ui(); }
+                if (c === 'TAKEN') ui();
             }).then(function () { btn.disabled = false; });
         }
 

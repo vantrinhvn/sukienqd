@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-12';
+const VER = 'qd-vps-13';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -152,6 +152,12 @@ function authConn(conn, u) { conn.u = u; conn.role = roleOf(u); return conn.role
 // Dữ liệu gửi ra: thành viên không thấy mật khẩu
 const HIDE = { accounts: ['pass'], pending_users: ['pass', 'password'] };
 function view(conn, c, d) {
+  if (c === 'rps_rooms' && d && d.status === 'playing') {
+    const o = Object.assign({}, d), u = conn.u || '';
+    if (o.p1Choice && d.player1 !== u) o.p1Choice = 'hidden';
+    if (o.p2Choice && d.player2 !== u) o.p2Choice = 'hidden';
+    return o;
+  }
   const h = HIDE[c]; if (!h || !d) return d;
   if (isAdmin(conn)) return d;
   if (isStaff(conn)) {   // Quản lý: thấy mật khẩu thành viên (để hỗ trợ), KHÔNG thấy mật khẩu Ban Quản Trị khác
@@ -165,7 +171,8 @@ function view(conn, c, d) {
 const SETTINGS_OPEN = new Set(['ai_config']);   // cài đặt thành viên được ghi
 // Chỉ máy chủ (lệnh act) hoặc Ban Quản Trị được ghi: thành viên tự ghi = tự tạo đơn rút tiền / đơn quà / tặng lượt không trừ gì
 const SERVER_ONLY = new Set(['point_cashout', 'point_cashout_daily', 'shop_orders', 'point_shop_stock', 'point_shop_daily', 'transfer_history',
-  'lixi_history', 'lixi_daily', 'spin_history', 'wheel_stock', 'wheel_questions', 'tranhthuong_history', 'tranhthuong_stock', 'lucky_numbers', 'lucky_number_history', 'lucky_rewards']);
+  'lixi_history', 'lixi_daily', 'spin_history', 'wheel_stock', 'wheel_questions', 'tranhthuong_history', 'tranhthuong_stock', 'lucky_numbers', 'lucky_number_history', 'lucky_rewards',
+  'attendance', 'invite_history', 'gifts', 'gift_claims', 'tournament_rewards', 'con_stats', 'con_history', 'rps_rooms', 'rps_history']);
 function topKeys(w) { return Object.keys(w.data || {}).map(k => k.split('.')[0]); }
 /* Ban Quản Trị: 3 bậc
    - Chủ hệ thống (owner: true, đặt bằng lệnh "qd admin" trên VPS hoặc tự nhận khi hệ thống chưa có chủ): không ai trên web hạ quyền / khóa / xóa / đổi mật khẩu được.
@@ -1192,8 +1199,314 @@ function luckyTick() {
 }
 setInterval(luckyTick, 1000);
 
+
+/* ==================================================================================================
+   ĐIỂM TÍNH TRÊN MÁY CHỦ (đợt 3): nhiệm vụ đăng nhập · điểm danh · mã mời · quà toàn hệ thống · Ném Còn · Kéo Búa Bao · thưởng Giải Đấu
+   ================================================================================================== */
+const vnMin = t => { const d = new Date((t || Date.now()) + 7 * 3600e3); return d.getUTCHours() * 60 + d.getUTCMinutes(); };
+const hhmm = v => { const p = String(v || '').split(':').map(Number); return (p[0] || 0) * 60 + (p[1] || 0); };
+const cleanIp = ip => String(ip || '').replace(/^::ffff:/, '');
+const ITEM_KEYS = ['points', 'tickets', 'spins', 'conThrows'];
+function incUpd(items) { const u = {}; for (const k of Object.keys(items || {})) if (items[k] > 0) u[k] = actInc(items[k]); return u; }
+
+// ---- Nhiệm vụ: đăng nhập lần đầu trong ngày ----
+function actTaskLogin(conn) {
+  const me = actMe(conn), u = me.d.user, today = vnDayStr(), now = Date.now();
+  if (me.d.lastLoginRewardDate === today) return { points: 0 };
+  const t = setting('task_config') || {}, n = t.loginReward !== undefined ? parseInt(t.loginReward) : 10;
+  if (!(n > 0)) return { points: 0 };
+  commit([
+    { op: 'update', path: 'accounts/' + me.id, data: { points: actInc(n), lastLoginRewardDate: today } },
+    { op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'add', detail: 'Nhiệm vụ: Đăng nhập lần đầu trong ngày', pointsChanged: n, timestamp: now, by: 'server' } }
+  ], null, ACT_LOCAL);
+  return { points: n };
+}
+
+// ---- Điểm danh (khung giờ, chống điểm danh hộ theo IP do máy chủ thấy, vật phẩm thưởng) ----
+function actAttend(conn) {
+  const me = actMe(conn), u = me.d.user, now = Date.now(), today = vnDayStr(now), ac = setting('attendance') || {};
+  const s0 = hhmm(ac.start || '09:00'), e0 = hhmm(ac.end || '10:00'), cur = vnMin(now);
+  if (cur < s0 || cur > e0) throw err('failed-precondition', 'HOURS', { start: ac.start || '09:00', end: ac.end || '10:00' });
+  const sec = setting('security_config') || {}, anti = ac.antiProxyEnabled !== false && sec.isEnabled !== false, ip = cleanIp(conn.ip);
+  const am = COLS.get('attendance');
+  if (am) for (const [, x] of am) {
+    const r = x.d || {}; if (r.date !== today) continue;
+    if (r.userName === u) throw err('failed-precondition', 'ALREADY');
+    if (anti && ip && r.ipAddress === ip) throw err('failed-precondition', 'PROXY_IP', { other: r.userName, ip });
+  }
+  const rw = setting('attendance_reward_items'), rwD = rw || {}, rwIn = (f, t) => { f = Number(f) || 0; t = Number(t) || 0; return !(f && now < f) && !(t && now >= t); };
+  const items = {};
+  if (rw && rwD.isEnabled === true) {
+    const it = rwD.items && typeof rwD.items === 'object' ? rwD.items : null;
+    if (it) ITEM_KEYS.forEach(k => { const x = it[k] || {}, n = Math.min(1e6, parseInt(x.n, 10) || 0); if (x.on === true && n > 0 && rwIn(x.from !== undefined ? x.from : rwD.from, x.to !== undefined ? x.to : rwD.to)) items[k] = n; });
+    else if ((parseInt(rwD.tickets, 10) || 0) > 0 && rwIn(rwD.from, rwD.to)) items.tickets = parseInt(rwD.tickets, 10);
+  }
+  const t = setting('task_config') || {};
+  let task = t.attendanceReward !== undefined ? parseInt(t.attendanceReward) : 20;
+  if (!Object.keys(items).length || !(task > 0)) task = 0;
+  const upd = incUpd(items); if (task > 0) upd.points = actInc((items.points || 0) + task);
+  const W = [{ op: 'set', path: 'attendance/' + actId(), data: { userId: me.id, userName: u, time: new Date(now).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour12: false }), date: today, timestamp: now, ipAddress: ip, rewardTickets: items.tickets || 0, rewardItems: items, by: 'server' } }];
+  if (Object.keys(upd).length) W.push({ op: 'update', path: 'accounts/' + me.id, data: upd });
+  if (items.points) W.push({ op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'add', detail: 'Thưởng vật phẩm điểm danh', pointsChanged: items.points, timestamp: now, by: 'server' } });
+  if (task > 0) W.push({ op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'add', detail: 'Nhiệm vụ: Điểm danh thành công', pointsChanged: task, timestamp: now + 1, by: 'server' } });
+  commit(W, null, ACT_LOCAL);
+  return { items, task, ip };
+}
+
+// ---- Mã mời ----
+function inviteNorm(c) {
+  c = c || {}; const r = c.rewards && typeof c.rewards === 'object' ? c.rewards : null, lim = (v, d, lo, hi) => { v = parseInt(v, 10); if (isNaN(v)) v = d; return Math.min(hi, Math.max(lo, v)); };
+  const ms = v => { v = Number(v); return isFinite(v) && v > 0 ? Math.floor(v) : 0; }, out = { on: !!c.isEnabled, max: lim(c.maxPerInviter, 0, 0, 10000), rewards: {} };
+  ITEM_KEYS.forEach(k => {
+    if (r) { const x = r[k] || {}; out.rewards[k] = { on: x.on === true, invitee: lim(x.invitee, 0, 0, 1e6), inviter: lim(x.inviter, 0, 0, 1e6), from: ms(x.from), to: ms(x.to) }; }
+    else if (k === 'tickets') { const n = lim(c.rewardTickets, 1, 1, 1e6); out.rewards[k] = { on: true, invitee: n, inviter: n, from: 0, to: 0 }; }
+    else out.rewards[k] = { on: false, invitee: 0, inviter: 0, from: 0, to: 0 };
+  });
+  return out;
+}
+function inviteGive(cfg, side, now) { const g = {}; ITEM_KEYS.forEach(k => { const x = cfg.rewards[k]; if (x.on && !(x.from && now < x.from) && !(x.to && now >= x.to) && x[side] > 0) g[k] = x[side]; }); return g; }
+function actInvite(conn, a) {
+  const me = actMe(conn), u = me.d.user, code = String(a.code || '').trim().toUpperCase(), now = Date.now(), cfg = inviteNorm(setting('invite_config'));
+  if (!cfg.on) throw err('failed-precondition', 'DISABLED');
+  let inv = null; const m = COLS.get('accounts');
+  if (code && m) for (const [id, x] of m) if (x.d && String(x.d.inviteCode || '').toUpperCase() === code) { inv = { id, d: x.d }; break; }
+  if (!inv) throw err('failed-precondition', 'NOT_FOUND');
+  if (inv.id === me.id) throw err('failed-precondition', 'SELF');
+  if (me.d.hasUsedInvite) throw err('failed-precondition', 'ALREADY_USED');
+  if (inv.d.invitedBy && inv.d.invitedBy === u) throw err('failed-precondition', 'MUTUAL');
+  const capped = cfg.max > 0 && (Number(inv.d.inviteRewardCount) || 0) >= cfg.max;
+  const gMe = inviteGive(cfg, 'invitee', now), full = inviteGive(cfg, 'inviter', now), gInv = capped ? {} : full;
+  if (!Object.keys(gMe).length && !Object.keys(gInv).length) throw err('failed-precondition', capped && Object.keys(full).length ? 'CAPPED' : 'NO_REWARD');
+  const upMe = Object.assign({ hasUsedInvite: true, invitedBy: inv.d.user || '', invitedAt: now }, incUpd(gMe));
+  const upInv = Object.assign({ inviteCount: actInc(1) }, incUpd(gInv)); if (Object.keys(gInv).length) upInv.inviteRewardCount = actInc(1);
+  const W = [{ op: 'update', path: 'accounts/' + me.id, data: upMe }, { op: 'update', path: 'accounts/' + inv.id, data: upInv },
+    { op: 'set', path: 'invite_history/' + actId(), data: { inviter: inv.d.user || '', invitee: u, rewards: { invitee: gMe, inviter: gInv }, inviterCapped: capped, rewardAmount: gMe.tickets || 0, timestamp: now, by: 'server' } }];
+  if (gMe.points) W.push({ op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'add', detail: 'Mã mời: nhập mã của ' + (inv.d.user || ''), pointsChanged: gMe.points, timestamp: now, by: 'server' } });
+  if (gInv.points) W.push({ op: 'set', path: 'point_history/' + actId(), data: { user: inv.d.user || '', action: 'add', detail: 'Mã mời: ' + u + ' nhập mã của bạn', pointsChanged: gInv.points, timestamp: now, by: 'server' } });
+  commit(W, null, ACT_LOCAL);
+  return { gMe, gInv, inviter: inv.d.user || '', capped };
+}
+
+// ---- Quà toàn hệ thống (gifts / gift_claims) ----
+const GIFT_ITEM_NAME = { points: 'Điểm lì xì', tickets: 'Lượt rút lì xì', spins: 'Lượt vòng quay', conThrows: 'Lượt ném còn' };
+function actGiftClaim(conn, a) {
+  const me = actMe(conn), u = me.d.user, gid = String(a.id || ''), now = Date.now(), cid = gid + '__' + me.id;
+  if (getDoc('gift_claims/' + cid)) throw err('failed-precondition', 'DA_NHAN');
+  const gx = gid && getDoc('gifts/' + gid), x = gx && gx.d;
+  if (!x) throw err('failed-precondition', 'GONE');
+  if (x.enabled === false) throw err('failed-precondition', 'OFF');
+  if (now < x.startAt) throw err('failed-precondition', 'EARLY');
+  if (now > x.endAt) throw err('failed-precondition', 'LATE');
+  if (x.maxClaims && (x.claimCount || 0) >= x.maxClaims) throw err('failed-precondition', 'FULL');
+  if (x.who === 'old' && +me.d.created_at && +me.d.created_at >= x.startAt) throw err('failed-precondition', 'OLD_ONLY');
+  const items = {}, gUpd = { claimCount: actInc(1), lastClaimAt: now };
+  ITEM_KEYS.forEach(k => { const n = Math.max(0, Math.floor(+((x.items || {})[k]) || 0)); if (n) { items[k] = n; gUpd['sum.' + k] = actInc(n); } });
+  if (!Object.keys(items).length) throw err('failed-precondition', 'EMPTY');
+  const txt = ITEM_KEYS.filter(k => items[k]).map(k => '+' + items[k] + ' ' + GIFT_ITEM_NAME[k].toLowerCase()).join(', ');
+  commit([
+    { op: 'set', path: 'gift_claims/' + cid, data: { giftId: gid, giftTitle: x.title || '', user: u, userId: me.id, fullName: me.d.fullName || '', items, at: now } },
+    { op: 'update', path: 'gifts/' + gid, data: gUpd },
+    { op: 'update', path: 'accounts/' + me.id, data: incUpd(items) },
+    { op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'add', detail: '🎁 Quà toàn hệ thống: ' + (x.title || '') + ' (' + txt + ')', pointsChanged: items.points || 0, timestamp: now, by: 'server' } }
+  ], null, ACT_LOCAL);
+  return { items };
+}
+
+// ---- Ném Còn (game.html): gió do máy chủ đặt, máy chủ tính đường bay -> trúng / chạm vành / trượt ----
+const CON_DEF_CFG = { enabled: true, difficulty: 'normal', wind: true, hitPoints: 20, rimPoints: 5, streakEvery: 3, streakBonus: 30, freePerDay: 3 };
+const CON_DIFF = { easy: { r: 0.95, wind: 0.5, sway: 0 }, normal: { r: 0.72, wind: 1.2, sway: 0 }, hard: { r: 0.52, wind: 1.8, sway: 0.7 } };
+const CON_W = { D: 12, H: 9, y0: 1.4, z0: 0.5, g: 9.8, vz: 10.45, br: 0.15, rim: 0.13 };
+function conCfg() {
+  const c = setting('con_config') || {}, I = (v, d, lo, hi) => { v = parseInt(v, 10); if (isNaN(v)) v = d; return Math.min(hi, Math.max(lo, v)); }, D = CON_DEF_CFG;
+  return { enabled: c.enabled !== false, difficulty: ['easy', 'normal', 'hard'].indexOf(c.difficulty) >= 0 ? c.difficulty : 'normal', wind: c.wind !== false,
+    hitPoints: I(c.hitPoints, D.hitPoints, 0, 100000), rimPoints: I(c.rimPoints, D.rimPoints, 0, 100000), streakEvery: I(c.streakEvery, D.streakEvery, 0, 100),
+    streakBonus: I(c.streakBonus, D.streakBonus, 0, 100000), freePerDay: I(c.freePerDay, D.freePerDay, 0, 100) };
+}
+const CONWIND = new Map(), CONLAST = new Map();   // gió hiện tại / lần ném gần nhất của từng người
+function conWindFor(u, cfg, fresh) {
+  const m = cfg.wind ? CON_DIFF[cfg.difficulty].wind : 0, cur = CONWIND.get(u);
+  if (!fresh && cur && cur.m === m) return cur.w;
+  let w = m ? Math.round((rnd() * 2 - 1) * m * 10) / 10 : 0;
+  if (m && rnd() < 0.12) w = 0;   // thỉnh thoảng lặng gió
+  CONWIND.set(u, { w, m }); return w;
+}
+function actConWind(conn) { const me = actMe(conn); return { wind: conWindFor(me.d.user, conCfg(), false) }; }
+function actConFree(conn) {
+  const me = actMe(conn), cfg = conCfg(), today = dayDash();
+  if (!cfg.enabled || cfg.freePerDay <= 0) throw err('failed-precondition', 'OFF');
+  if (me.d.conFreeDate === today) throw err('failed-precondition', 'TAKEN');
+  commit([{ op: 'update', path: 'accounts/' + me.id, data: { conThrows: actInc(cfg.freePerDay), conFreeDate: today } }], null, ACT_LOCAL);
+  return { n: cfg.freePerDay, date: today };
+}
+function actConThrow(conn, a) {
+  const me = actMe(conn), u = me.d.user, cfg = conCfg(), now = Date.now();
+  if (!cfg.enabled) throw err('failed-precondition', 'CLOSED');
+  const left = Number(me.d.conThrows) || 0; if (left <= 0) throw err('failed-precondition', 'NOTURN');
+  if (now - (CONLAST.get(u) || 0) < 900) throw err('failed-precondition', 'FAST');   // một lần ném bay ~1,3 giây
+  const vx = Number(a.vx), vy = Number(a.vy), ms = Number(a.ms) || 0;
+  if (!isFinite(vx) || !isFinite(vy) || Math.abs(vx) > 40 || vy < -5 || vy > 60) throw err('invalid-argument', 'BAD');
+  CONLAST.set(u, now);
+  const wind = conWindFor(u, cfg, false), df = CON_DIFF[cfg.difficulty], W = CON_W;
+  const t = (W.D - W.z0) / W.vz, x = vx * t + 0.5 * wind * t * t, y = W.y0 + vy * t - 0.5 * W.g * t * t, rx = df.sway ? df.sway * Math.sin((ms + t * 1000) / 1000 * 1.4) : 0;
+  const d = Math.hypot(x - rx, y - W.H), outcome = d <= df.r - W.br * 0.6 ? 'hit' : d <= df.r + W.rim + W.br ? 'rim' : 'miss';
+  const hit = outcome === 'hit', streak = hit ? (Number(me.d.conStreak) || 0) + 1 : 0, base = hit ? cfg.hitPoints : outcome === 'rim' ? cfg.rimPoints : 0;
+  const bonus = hit && cfg.streakEvery > 1 && cfg.streakBonus > 0 && streak % cfg.streakEvery === 0 ? cfg.streakBonus : 0, total = base + bonus;
+  const upd = { conThrows: actInc(-1), conStreak: streak }; if (total > 0) upd.points = actInc(total);
+  const st = getDoc('con_stats/' + u), best = Math.max((st && st.d && +st.d.best) || 0, streak);
+  const Wr = [{ op: 'update', path: 'accounts/' + me.id, data: upd },
+    { op: 'set', path: 'con_stats/' + u, merge: true, data: { user: u, throws: actInc(1), hits: actInc(hit ? 1 : 0), rims: actInc(outcome === 'rim' ? 1 : 0), points: actInc(total), streak, best, updatedAt: now } },
+    { op: 'set', path: 'con_history/' + u + '_' + (9999999999999 - now), data: { user: u, result: outcome, points: total, bonus, streak, wind, difficulty: cfg.difficulty, ts: now } }];
+  if (total > 0) Wr.push({ op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'nemcon', detail: 'Ném còn ' + (hit ? 'trúng vòng' : 'chạm vành') + (bonus ? ' (thưởng chuỗi ' + streak + ')' : ''), pointsChanged: total, timestamp: now, by: 'server' } });
+  commit(Wr, null, ACT_LOCAL);
+  return { outcome, base, bonus, total, streak, left: left - 1, best, wind: conWindFor(u, cfg, true), d: Math.round(d * 1000) / 1000 };
+}
+
+// ---- Kéo Búa Bao: máy chủ ghép trận, giữ chiêu (che với đối thủ tới lúc lật), chấm hiệp, sang hiệp, trao điểm ----
+const RPS_STALE_MS = 90000, RPS_HANDS = ['rock', 'paper', 'scissors', 'timeout'];
+function rpsCfg() {
+  const c = setting('rps_config') || { isEnabled: true, start: '00:00', end: '23:59', fee: 5, winReward: 10, loseReward: -5, timeLimit: 10 }, n = (v, d) => { const x = parseInt(v); return isNaN(x) ? d : x; };
+  return { isEnabled: c.isEnabled !== false, start: c.start || '00:00', end: c.end || '23:59', fee: n(c.fee, 5), win: n(c.winReward, 10), lose: n(c.loseReward, -5), limit: Math.max(3, n(c.timeLimit, 10)) };
+}
+function rpsOpen(c) { if (!c.isEnabled) return 'off'; const cur = vnMin(), s2 = hhmm(c.start), e = hhmm(c.end); return (s2 <= e ? (cur >= s2 && cur <= e) : (cur >= s2 || cur <= e)) ? 'open' : 'hours'; }
+function rpsRoom(conn, id) {
+  const me = actMe(conn), x = id && getDoc('rps_rooms/' + id);
+  if (!x) throw err('failed-precondition', 'GONE');
+  const d = x.d, side = d.player1 === me.d.user ? 'p1' : d.player2 === me.d.user ? 'p2' : '';
+  if (!side) throw err('permission-denied', 'NOT_IN_ROOM');
+  return { me, d, side, path: 'rps_rooms/' + id };
+}
+function actRpsFind(conn) {
+  const me = actMe(conn), u = me.d.user, c = rpsCfg(), st = rpsOpen(c), now = Date.now();
+  if (st !== 'open') throw err('failed-precondition', st === 'off' ? 'OFF' : 'HOURS');
+  if ((+me.d.points || 0) < c.fee) throw err('failed-precondition', 'FEE', { fee: c.fee });
+  const rm = COLS.get('rps_rooms'), wait = [], drop = [];
+  if (rm) for (const [id, x] of rm) {
+    const r = x.d || {};
+    if (r.status !== 'waiting') continue;
+    if (now - (r.ping || r.createdAt || 0) > RPS_STALE_MS) { drop.push({ op: 'delete', path: 'rps_rooms/' + id }); continue; }
+    if (r.player1 === u) throw err('failed-precondition', 'OWN_ROOM');
+    if (!r.player2) wait.push({ id, at: r.createdAt || 0 });
+  }
+  wait.sort((a, b) => a.at - b.at);
+  if (wait.length) { commit(drop.concat([{ op: 'update', path: 'rps_rooms/' + wait[0].id, data: { player2: u, status: 'playing', ping: now } }]), null, ACT_LOCAL); return { roomId: wait[0].id, isPlayer1: false }; }
+  const id = actId();
+  commit(drop.concat([{ op: 'set', path: 'rps_rooms/' + id, data: { player1: u, player2: null, p1Choice: null, p2Choice: null, p1Score: 0, p2Score: 0, round: 1, turn: 1, status: 'waiting', roundWinner: null, deadline: null, createdAt: now, ping: now } }]), null, ACT_LOCAL);
+  return { roomId: id, isPlayer1: true };
+}
+function actRpsPing(conn, a) { const r = rpsRoom(conn, String(a.roomId || '')); if (r.d.status === 'waiting') commit([{ op: 'update', path: r.path, data: { ping: Date.now() } }], null, ACT_LOCAL); return {}; }
+function actRpsLeave(conn, a) {
+  let r; try { r = rpsRoom(conn, String(a.roomId || '')); } catch (e) { return {}; }
+  commit([{ op: 'delete', path: r.path }], null, ACT_LOCAL); return {};
+}
+const rpsJudge = (a, b) => a === b ? 'draw' : a === 'timeout' ? 'p2' : b === 'timeout' ? 'p1' : ({ rock: 'scissors', scissors: 'paper', paper: 'rock' })[a] === b ? 'p1' : 'p2';
+function rpsResolve(path, d, now) {   // đủ 2 chiêu -> lật bài
+  const w = rpsJudge(d.p1Choice, d.p2Choice);
+  commit([{ op: 'update', path, data: { status: 'revealing', roundWinner: w, revealAt: now, p1Score: (d.p1Score || 0) + (w === 'p1' ? 1 : 0), p2Score: (d.p2Score || 0) + (w === 'p2' ? 1 : 0) } }], null, ACT_LOCAL);
+}
+function actRpsMove(conn, a) {
+  const r = rpsRoom(conn, String(a.roomId || '')), ch = String(a.choice || ''), f = r.side + 'Choice', now = Date.now();
+  if (RPS_HANDS.indexOf(ch) < 0) throw err('invalid-argument', 'BAD');
+  if (r.d.status !== 'playing' || r.d[f]) return { ok: false };
+  const upd = { [f]: ch }; if (!r.d.deadline) upd.deadline = now + rpsCfg().limit * 1000 + 500;   // người ra trước bắt đầu đếm giờ cho đối thủ
+  commit([{ op: 'update', path: r.path, data: upd }], null, ACT_LOCAL);
+  const d = getDoc(r.path).d; if (d.p1Choice && d.p2Choice) rpsResolve(r.path, d, now);
+  return { ok: true };
+}
+function rpsFinish(path, d, now) {
+  const p1Won = (d.p1Score || 0) >= 2, winner = p1Won ? d.player1 : d.player2, loser = p1Won ? d.player2 : d.player1, c = rpsCfg();
+  const W = [{ op: 'update', path, data: { status: 'finished', finishedAt: now } },
+    { op: 'set', path: 'rps_history/' + actId(), data: { player1: d.player1, player2: d.player2, p1Choice: d.p1Choice, p2Choice: d.p2Choice, p1Score: d.p1Score, p2Score: d.p2Score, winner, timestamp: now, by: 'server' } }];
+  const wa = findAccount(winner), la = findAccount(loser);
+  if (wa && la) {
+    W.push({ op: 'update', path: 'accounts/' + wa.id, data: { points: actInc(c.win) } }, { op: 'update', path: 'accounts/' + la.id, data: { points: actInc(c.lose) } },
+      { op: 'set', path: 'point_history/' + actId(), data: { user: winner, action: 'rps', detail: 'Kéo Búa Bao: thắng ' + loser, pointsChanged: c.win, timestamp: now, by: 'server' } },
+      { op: 'set', path: 'point_history/' + actId(), data: { user: loser, action: 'rps', detail: 'Kéo Búa Bao: thua ' + winner, pointsChanged: c.lose, timestamp: now, by: 'server' } });
+  }
+  commit(W, null, ACT_LOCAL);
+}
+function rpsTick() {
+  const rm = COLS.get('rps_rooms'); if (!rm) return; const now = Date.now();
+  for (const [id, x] of Array.from(rm)) {
+    try {
+      const d = x.d || {}, path = 'rps_rooms/' + id;
+      if (d.status === 'playing' && d.deadline && now >= d.deadline + 1500 && (!d.p1Choice || !d.p2Choice)) {   // hết giờ: bên chưa ra chiêu bị xử thua hiệp
+        const upd = {}; if (!d.p1Choice) upd.p1Choice = 'timeout'; if (!d.p2Choice) upd.p2Choice = 'timeout';
+        commit([{ op: 'update', path, data: upd }], null, ACT_LOCAL); rpsResolve(path, getDoc(path).d, now);
+      } else if (d.status === 'revealing' && now >= (d.revealAt || 0) + 3000) {
+        if ((d.p1Score || 0) >= 2 || (d.p2Score || 0) >= 2) rpsFinish(path, d, now);
+        else commit([{ op: 'update', path, data: { p1Choice: null, p2Choice: null, roundWinner: null, deadline: null, revealAt: null, status: 'playing', round: (d.round || 1) + (d.roundWinner !== 'draw' ? 1 : 0), turn: (d.turn || 1) + 1 } }], null, ACT_LOCAL);
+      } else if ((d.status === 'finished' && now - (d.finishedAt || 0) > 120000) || (d.status === 'waiting' && now - (d.ping || d.createdAt || 0) > 10 * 60000) || (d.status === 'playing' && now - Math.max(d.ping || 0, d.deadline || 0, d.revealAt || 0, d.createdAt || 0) > 30 * 60000)) {
+        commit([{ op: 'delete', path }], null, ACT_LOCAL);   // phòng bỏ hoang
+      }
+    } catch (e) { console.error('[kbb]', id, e); }
+  }
+}
+setInterval(rpsTick, 400);
+
+// ---- Thưởng Giải Đấu: điểm / lượt tự cộng sau khi sơ đồ đứng yên 10 phút (máy chủ chạy, không cần ai mở trang) ----
+const TOUR_TIERS = ['champ', 'second', 'third', 'fourth', 'top8'], TOUR_TIER_NAME = { champ: 'Vô Địch', second: 'Á Quân', third: 'Hạng Ba', fourth: 'Hạng Tư', top8: 'Tứ Kết' };
+const TOUR_FMT = { single: 'Giải Đơn', double: 'Giải Đôi' }, TOUR_GRACE = 10 * 60000;
+const TOUR_ITEM_U = { points: 'điểm lì xì', spins: 'lượt quay', tickets: 'lượt rút lì xì', conThrows: 'lượt ném còn' }, TOUR_ITEMS = ['points', 'spins', 'tickets', 'conThrows'];
+function tourCompute(cfg) {   // = QDB.compute trên trang (sơ đồ loại trực tiếp)
+  const valid = n => [4, 8, 16, 32, 64].indexOf(n) >= 0 ? n : 8, roundName = t => t === 2 ? 'Chung Kết' : t === 4 ? 'Bán Kết' : t === 8 ? 'Tứ Kết' : 'Vòng 1/' + (t / 2);
+  const sideOf = (e, slot) => e && (e.name || (e.members && e.members.length)) ? { t: 'e', e, slot } : { t: 'bye' };
+  const mk = (r, m, sides, rs, no, label) => { const o = { r, m, key: r + '-' + m, sides, no, label, w: -1, res: rs || null, decided: '' }, a = sides[0].t, b = sides[1].t;
+    if (a === 'e' && b === 'e') { if (rs && (rs.w === 0 || rs.w === 1)) { o.w = rs.w; o.decided = 'play'; } } else if (a === 'e' && b === 'bye') { o.w = 0; o.decided = 'bye'; } else if (a === 'bye' && b === 'e') { o.w = 1; o.decided = 'bye'; } else if (a === 'bye' && b === 'bye') o.decided = 'void';
+    return o; };
+  const adv = mt => mt.decided === 'void' ? { t: 'bye' } : mt.w >= 0 ? mt.sides[mt.w] : { t: 'tbd' }, lose = mt => mt.decided === 'play' ? mt.sides[1 - mt.w] : mt.decided ? { t: 'bye' } : { t: 'tbd' };
+  const N = valid(+cfg.size), R = Math.round(Math.log(N) / Math.LN2), res = cfg.results || {}, ent = cfg.entries || [], rounds = []; let no = 0;
+  for (let r = 0; r < R; r++) { const cnt = N >> (r + 1), row = []; for (let m = 0; m < cnt; m++) { const sides = r === 0 ? [sideOf(ent[2 * m], 2 * m), sideOf(ent[2 * m + 1], 2 * m + 1)] : [adv(rounds[r - 1][2 * m]), adv(rounds[r - 1][2 * m + 1])]; const mt = mk(r, m, sides, res[r + '-' + m], 0, roundName(N >> r)); if (mt.decided !== 'void' && !(mt.decided === 'bye' && r === 0)) mt.no = ++no; row.push(mt); } rounds.push(row); }
+  let third = null; if (cfg.third && R >= 2) { const sf = rounds[R - 2]; third = mk('t', 0, [lose(sf[0]), lose(sf[1])], res.third, ++no, 'Tranh Hạng 3'); third.key = 'third'; }
+  const fin = rounds[R - 1][0];
+  return { N, R, rounds, third, champion: fin.w >= 0 ? fin.sides[fin.w] : null, runnerUp: fin.decided === 'play' ? fin.sides[1 - fin.w] : null, thirdPlace: third && third.w >= 0 ? third.sides[third.w] : null };
+}
+function tourAwards(fmt, cfg, pc) {
+  if (!pc || pc.on !== true || !cfg || !(cfg.entries || []).some(Boolean)) return [];
+  let C; try { C = tourCompute(cfg); } catch (e) { return []; }
+  if (!(C.champion && C.champion.t === 'e')) return [];
+  const list = [], put = (k, s2) => { if (s2 && s2.t === 'e' && s2.e) list.push({ k, e: s2.e }); };
+  put('champ', C.champion); put('second', C.runnerUp);
+  if (C.third) { put('third', C.thirdPlace); if (C.third.decided === 'play') put('fourth', C.third.sides[1 - C.third.w]); }
+  else if (C.R >= 2) C.rounds[C.R - 2].forEach(m => { if (m.decided === 'play') put('third', m.sides[1 - m.w]); });
+  if (C.R >= 3) C.rounds[C.R - 3].forEach(m => { if (m.decided === 'play') put('top8', m.sides[1 - m.w]); });
+  const t3 = !!cfg.third && ([4, 8, 16, 32, 64].indexOf(+cfg.size) >= 0 ? +cfg.size : 8) >= 4, tierName = k => k === 'third' && !t3 ? 'Đồng Hạng Ba' : TOUR_TIER_NAME[k];
+  const num = (v, max) => { v = Math.floor(Number(v) || 0); return v > 0 ? Math.min(v, max || 1e9) : 0; }, split = pc.split === 'team' ? 'team' : 'each', key = fmt + '_' + (cfg.createdAt || 0), out = [];
+  list.forEach(p => {
+    const raw = (pc.tiers || {})[p.k] || {}, t = { cash: num(raw.cash), gift: String(raw.gift || '').replace(/\s+/g, ' ').trim().slice(0, 80) }; TOUR_ITEMS.forEach(k => { t[k] = num(raw[k], 1e6); });
+    if (!(t.cash > 0 || t.gift || TOUR_ITEMS.some(k => t[k] > 0))) return;
+    const mem = (p.e.members || []).filter(m => m && m.u), n = mem.length, items = {};
+    TOUR_ITEMS.forEach(k => { const v = split === 'team' && n > 1 ? Math.floor(t[k] / n) : t[k]; if (v > 0) items[k] = v; });
+    const cash = split === 'team' && n > 1 ? Math.floor(t.cash / n / 1000) * 1000 : t.cash;
+    const itxt = TOUR_ITEMS.filter(k => items[k] > 0).map(k => '+' + Number(items[k]).toLocaleString('vi-VN') + ' ' + TOUR_ITEM_U[k]).join(' · ');
+    const prize = [cash > 0 ? cash.toLocaleString('vi-VN') + ' VNĐ' : '', itxt, t.gift].filter(Boolean).join(' + ') + ' · Giải Đấu: ' + tierName(p.k) + ' ' + TOUR_FMT[fmt] + (cfg.title ? ' (' + cfg.title + ')' : '');
+    mem.forEach(m => out.push({ id: key + '_' + p.k + '_' + m.u, user: m.u, fmt, tier: p.k, tierName: tierName(p.k), team: p.e.name || m.u, items, readyAt: (cfg.updatedAt || 0) + TOUR_GRACE, prize }));
+  });
+  return out;
+}
+function tourTick() {
+  try {
+    const pc = setting('tournament_prize') || {}, a = setting('tournament_bracket'), b = setting('tournament_bracket_double'), now = Date.now();
+    const br = { single: a && a.format !== 'double' ? a : null, double: b || (a && a.format === 'double' ? a : null) };
+    for (const f of ['single', 'double']) {
+      if (!br[f]) continue;
+      for (const w of tourAwards(f, br[f], pc[f])) {
+        if (!Object.keys(w.items).length || now < w.readyAt || getDoc('tournament_rewards/' + w.id)) continue;
+        const acc = findAccount(w.user); if (!acc) continue;
+        const W = [{ op: 'set', path: 'tournament_rewards/' + w.id, data: { user: w.user, fmt: w.fmt, tier: w.tier, team: w.team, items: w.items, prize: w.prize, at: now, by: 'server' } },
+          { op: 'update', path: 'accounts/' + acc.id, data: incUpd(w.items) }];
+        if (w.items.points > 0) W.push({ op: 'set', path: 'point_history/' + actId(), data: { user: w.user, action: 'add', detail: 'Giải Đấu: ' + w.tierName + ' ' + TOUR_FMT[f], pointsChanged: w.items.points, timestamp: now, by: 'server' } });
+        commit(W, null, ACT_LOCAL);
+        console.log('[giải đấu] trao ' + w.id);
+      }
+    }
+  } catch (e) { console.error('[giải đấu]', e); }
+}
+setInterval(tourTick, 30000); setTimeout(tourTick, 8000);
+
 const ACTS = { 'shop.buy': actShopBuy, 'cashout': actCashout, 'gift.turns': actGiftTurns,
-  'lixi.pick': actLixi, 'wheel.claim': actWheelClaim, 'wheel.spin': actWheelSpin, 'tranh.open': actTranh, 'lucky.pick': actLuckyPick };
+  'lixi.pick': actLixi, 'wheel.claim': actWheelClaim, 'wheel.spin': actWheelSpin, 'tranh.open': actTranh, 'lucky.pick': actLuckyPick,
+  'task.login': actTaskLogin, 'att.check': actAttend, 'invite.use': actInvite, 'gift.claim': actGiftClaim, 'con.wind': actConWind, 'con.free': actConFree, 'con.throw': actConThrow,
+  'rps.find': actRpsFind, 'rps.ping': actRpsPing, 'rps.move': actRpsMove, 'rps.leave': actRpsLeave };
 function act(conn, fn, a) {
   const f = ACTS[fn];
   if (!f) throw err('invalid-argument', 'Lệnh lạ: ' + fn);
