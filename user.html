@@ -10717,7 +10717,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=8"><\/script>');
+        document.write('<script src="qd-db.js?v=9"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -11537,7 +11537,7 @@ html.qd-lite .qd-fx { display: none !important; }
             var now = Date.now();
             list().forEach(function (r) {
                 var key = r.id + '@' + r.at;
-                if (isPending(r) && now >= r.at && !tried[key]) {
+                if (isPending(r) && now >= r.at + 20000 && !tried[key]) {   // máy chủ tự quay đúng giờ; trang chỉ quay dự phòng khi máy chủ trễ quá 20 giây
                     tried[key] = true;
                     claim(r.id, r.at).catch(function (e) { console.warn('LuckySchedule claim', e); setTimeout(function () { tried[key] = false; }, 2000); });
                 }
@@ -12814,6 +12814,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 this.ctx.fillStyle = "#ffffff"; this.ctx.font = "900 30px 'Font Awesome 6 Free'"; this.ctx.textAlign = "center"; this.ctx.textBaseline = "middle"; this.ctx.fillText("", centerX, centerY);
             },
             startSpin: function() {
+                return void (location.href = 'qt.html');   // bản cũ nhúng trong Trang chủ: Vòng Quay giờ do máy chủ tính ở qt.html
                 if (this.isSpinning) return;
                 if (State.availableSpins <= 0) return Utils.toast("Bạn đã hết lượt quay! Hãy điểm danh để nhận thêm.", "warning");
 
@@ -12868,7 +12869,7 @@ html.qd-lite .qd-fx { display: none !important; }
             },
             processResult: function(winIndex) {
                 window.Sound.playWin();
-                const resultText = State.wheelPrizes[winIndex].text;
+                const resultText = State.wheelPrizes[winIndex].text;   // (bản cũ, không còn dùng: Vòng Quay chạy ở qt.html)
                 document.getElementById('wheelPrizeText').innerText = resultText;
                 window.UI.openModal('modal-wheel-result');
                 db.collection("spin_history").add({ userId: State.currentUser, result: resultText, timestamp: Date.now() });
@@ -12902,6 +12903,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 }
             },
             openTicket: function(index) {
+                return void (location.href = 'tranht.html');   // bản cũ nhúng trong Trang chủ: Rút Lì Xì giờ do máy chủ tính ở tranht.html
                 if (State.availableTickets <= 0) return Utils.toast("Bạn đã hết lượt xé phiếu!", "warning");
                 if (this.hasPlayed) return;
                 
@@ -18778,62 +18780,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Mọi kiểm tra (đã rút chưa / đóng cửa / hết ngân sách) và việc chọn phần thưởng
                 // diễn ra TRONG giao dịch để không thể rút trùng hay vượt ngân sách ngày.
-                var ref = db.collection('accounts').doc(window.State.currentDocId);   // (đổi lại nếu mã tài khoản cũ không còn — xem fix() bên dưới)
-                var cfgRef = db.collection('settings').doc('lixi_config');
-                var dayRef = db.collection('lixi_daily').doc(key);
+                // Máy chủ kiểm tra (đã rút chưa / đóng cửa / hết ngân sách ngày), chọn phần thưởng rồi cộng điểm — trang chỉ chạy hiệu ứng
                 var big = false;
-                // NHANH: đọc tài khoản + cấu hình (+ ngân sách ngày) CÙNG LÚC. Bộ đếm ngân sách ngày là tài liệu chung nhiều người cùng ghi:
-                // chỉ đọc trong giao dịch khi ngân sách sắp cạn (dễ vượt), còn lại cộng thẳng -> không tranh chấp, không phải chờ thử lại.
-                var localSpent = function () { return (self.daily && self.daily.points) || 0; };
-                var tight = function (c) { if (!c || !(c.dailyBudget > 0)) return false; var mx = 0; c.prizes.forEach(function (p) { if (p.points > mx) mx = p.points; }); return c.dailyBudget - localSpent() <= mx * 5; };
-                var run = function (exact) { return db.runTransaction(async function (t) {
-                    var needDay = exact || !self.cfg || tight(self.cfg);
-                    var got = await Promise.all([t.get(ref), t.get(cfgRef), needDay ? t.get(dayRef) : null]);
-                    var accD = got[0], cfgD = got[1], dayD = got[2];
-                    var data = (accD && accD.data && accD.data()) || {};
-                    var cfg = normCfg(cfgD && cfgD.exists ? cfgD.data() : null);
-                    var same = data.lixiDate === today;
-                    var used = same ? (data.lixiCount != null ? data.lixiCount : 1) : 0;
-                    var sum = same ? (data.lixiTotal != null ? data.lixiTotal : (data.lixiAmount || 0)) : 0;
-                    if (used >= drawLimit(cfg)) throw { code: 'LIXI_CLAIMED', count: used, total: sum, last: data.lixiAmount || 0, cfg: cfg };
-                    if (!cfgOpen(cfg)) throw { code: 'LIXI_CLOSED', cfg: cfg };  // gồm cả 'chưa tới giờ mở'
-                    if (!dayD && tight(cfg)) throw { code: 'EXACT' };
-                    var spent = dayD ? ((dayD.exists && dayD.data().points) || 0) : localSpent();
-                    var list = cfg.prizes.filter(function (p) { return p.chance > 0; });
-                    if (cfg.dailyBudget > 0) {
-                        list = list.filter(function (p) { return p.points <= cfg.dailyBudget - spent; });
-                        if (!list.length) throw { code: 'LIXI_SOLDOUT', cfg: cfg, spent: spent };
-                    }
-                    var prize = pickWeighted(list);
-                    big = prize >= cfg.bigThreshold;
-                    t.update(ref, { points: firebase.firestore.FieldValue.increment(prize), lixiDate: today, lixiAmount: prize, lixiCount: used + 1, lixiTotal: sum + prize });
-                    t.set(dayRef, { date: today, count: firebase.firestore.FieldValue.increment(1), points: firebase.firestore.FieldValue.increment(prize) }, { merge: true });
-                    t.set(db.collection('lixi_history').doc(), { user: window.State.currentUser, amount: prize, date: today, dateKey: key, seq: used + 1, timestamp: Date.now(), status: 'ok' });
-                    t.set(db.collection('point_history').doc(), { user: window.State.currentUser, action: 'add', detail: 'Rút lì xì: +' + prize + ' điểm', pointsChanged: prize, timestamp: Date.now() });
-                    return { prize: prize, count: used + 1, total: sum + prize };
-                }); };
-                // Tự thử lại khi lỗi tạm thời (nhiều người rút cùng lúc tranh bộ đếm ngân sách ngày, mạng chập chờn),
-                // mã tài khoản cũ không còn (phiên khôi phục) -> tìm lại theo tên đăng nhập rồi rút tiếp.
-                var BIZ = { LIXI_CLAIMED: 1, LIXI_CLOSED: 1, LIXI_SOLDOUT: 1 };
-                var TEMP = /aborted|failed-precondition|unavailable|deadline-exceeded|resource-exhausted|internal|cancelled|unknown/;
-                var fix = function () {
-                    return db.collection('accounts').where('user', '==', window.State.currentUser).limit(1).get().then(function (q) {
-                        if (q.empty) throw { code: 'not-found' };
-                        if (q.docs[0].id !== window.State.currentDocId) { window.State.currentDocId = q.docs[0].id; try { var ss = JSON.parse(localStorage.getItem('qd_sess') || 'null'); if (ss && ss.u === window.State.currentUser) { ss.id = q.docs[0].id; localStorage.setItem('qd_sess', JSON.stringify(ss)); } } catch (e) {} }
-                        ref = db.collection('accounts').doc(window.State.currentDocId);
-                    });
-                };
-                var attempt = function (n, exact) {
-                    return run(exact).catch(function (e) {
-                        var c = (e && e.code) || '';
-                        if (c === 'EXACT') return attempt(n, true);
-                        if (BIZ[c] || n >= 3) throw e;
-                        if (c === 'not-found' || /No document to update/i.test((e && e.message) || '')) return fix().then(function () { return attempt(n + 1, exact); });
-                        if (TEMP.test(c) || !c) { msg.textContent = 'Đông người rút quá, đang thử lại…'; return sleep(400 + Math.random() * 700 * (n + 1)).then(function () { return attempt(n + 1, true); }); }
-                        throw e;
-                    });
-                };
-                var tx = attempt(0, false);
+                var tx = window.QDdb.play('lixi.pick', {}).then(function (r) { big = !!r.big; return r; });
 
                 var prize = 0;
                 Promise.all([tx, sleep(650)]).then(function (res) {
@@ -18858,9 +18807,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     self.busy = false;
                     var toast = function (m, t) { if (window.Utils && window.Utils.toast) window.Utils.toast(m, t); };
                     var code = err && err.code;
-                    if (code === 'LIXI_CLAIMED') { self.cfg = err.cfg; self.justClaimed = { date: today, count: err.count, total: err.total, last: err.last }; toast(drawLimit(err.cfg) > 1 ? 'Bạn đã hết lượt rút hôm nay, mai quay lại nhé!' : 'Hôm nay bạn đã rút lì xì rồi, mai quay lại nhé!', 'warning'); }
-                    else if (code === 'LIXI_CLOSED') { self.cfg = err.cfg; toast(cfgPhase(err.cfg).phase === 'upcoming' ? 'Lì xì chưa tới giờ mở cửa!' : 'Lì xì vừa đóng cửa!', 'warning'); }
-                    else if (code === 'LIXI_SOLDOUT') { self.cfg = err.cfg; self.daily = { points: err.spent, count: (self.daily && self.daily.count) || 0 }; toast('Lì xì hôm nay đã phát hết!', 'warning'); }
+                    if (code === 'LIXI_CLAIMED') { self.justClaimed = { date: today, count: err.count, total: err.total, last: err.last }; toast(drawLimit(self.cfg) > 1 ? 'Bạn đã hết lượt rút hôm nay, mai quay lại nhé!' : 'Hôm nay bạn đã rút lì xì rồi, mai quay lại nhé!', 'warning'); }
+                    else if (code === 'LIXI_CLOSED') { toast(err.phase === 'upcoming' ? 'Lì xì chưa tới giờ mở cửa!' : 'Lì xì vừa đóng cửa!', 'warning'); }
+                    else if (code === 'LIXI_SOLDOUT') { self.daily = { points: err.spent, count: (self.daily && self.daily.count) || 0 }; toast('Lì xì hôm nay đã phát hết!', 'warning'); }
                     else {
                         console.error('LiXi error', err);
                         var ec = (err && (err.code || err.name)) || 'lỗi lạ', em = String((err && err.message) || err || '').slice(0, 300);
@@ -20146,13 +20095,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!me || !n || this.saving || !this.canEdit()) return;
                 if (!this.confirming) { this.confirming = true; this.render(); return; }   // bấm lần 2 để xác nhận
                 this.saving = true; this.render();
-                var ref = db.collection('lucky_numbers').doc(me);
-                db.runTransaction(function (tx) {
-                    return tx.get(ref).then(function (doc) {
-                        if (doc.exists && doc.data().number && doc.data().canEdit !== true) throw new Error('locked');
-                        tx.set(ref, { user: me, number: n, lastUpdated: Date.now(), canEdit: false });
-                    });
-                }).then(function () {
+                // Máy chủ kiểm tra số đã chốt (chỉ đổi được khi Admin cấp phép) rồi lưu
+                window.QDdb.play('lucky.pick', { number: n }).catch(function (e) { if (e && e.code === 'LOCKED') throw new Error('locked'); throw e; })
+                .then(function () {
                     self.sel = null; self.confirming = false;
                     Utils.toast('Đã chốt số may mắn ' + pad(n) + '. Chúc bạn may mắn!', 'success');
                     var ball = $('ln2-my-number'); if (ball) { ball.classList.remove('pop'); void ball.offsetWidth; ball.classList.add('pop'); }

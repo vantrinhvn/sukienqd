@@ -4391,7 +4391,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=8"><\/script>');
+        document.write('<script src="qd-db.js?v=9"><\/script>');
     })();
     </script>
     <!-- ===== QD SESSION: phiên đăng nhập dùng chung TOÀN HỆ THỐNG + trạng thái hoạt động thời gian thực =====
@@ -5006,7 +5006,7 @@ html.qd-lite .qd-fx { display: none !important; }
             var now = Date.now();
             list().forEach(function (r) {
                 var key = r.id + '@' + r.at;
-                if (isPending(r) && now >= r.at && !tried[key]) {
+                if (isPending(r) && now >= r.at + 20000 && !tried[key]) {   // máy chủ tự quay đúng giờ; trang chỉ quay dự phòng khi máy chủ trễ quá 20 giây
                     tried[key] = true;
                     claim(r.id, r.at).catch(function (e) { console.warn('LuckySchedule claim', e); setTimeout(function () { tried[key] = false; }, 2000); });
                 }

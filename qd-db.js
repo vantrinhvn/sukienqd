@@ -77,7 +77,7 @@
     function login(u, p) { return req({ op: 'login', u: u, p: p }).then(function (x) { tok(x.token); AUTH.u = x.u; AUTH.role = x.role; link(x.u); return x; }); }
     function req(m) { return new Promise(function (ok, no) { m.r = ++seq; pend[m.r] = { ok: ok, no: no, m: m }; raw(m); }); }
     function onMsg(m) {
-        if (m.re) { var p = pend[m.re]; if (!p) return; delete pend[m.re]; if (m.ok) p.ok(m); else p.no(err(m.code || 'unknown', m.message)); return; }
+        if (m.re) { var p = pend[m.re]; if (!p) return; delete pend[m.re]; if (m.ok) p.ok(m); else { var e = err(m.code || 'unknown', m.message); if (m.x) e.x = m.x; p.no(e); } return; }
         var s = subs[m.sid]; if (!s) return;
         if (m.ev === 'doc') s.onDoc(m);
         else if (m.ev === 'q') s.onQuery(m);
@@ -308,6 +308,8 @@
         admin: function (fn, args) { return req(Object.assign({ op: 'admin', fn: fn }, args || {})).then(function (m) { return m.data; }); },
         /* Trò chơi / đổi điểm do máy chủ tính (thành viên không tự cộng trừ điểm). Lỗi: e.message = mã ngắn (POINTS, DAILY...) */
         act: function (fn, args) { return req({ op: 'act', fn: fn, a: args || {}, cid: cid() }).then(function (m) { return m.data; }); },
+        /* Như act, nhưng lỗi luật trả về dạng { code: 'CLOSED', ...dữ liệu kèm } giống các trò chơi cũ tự ném ra -> giữ nguyên phần báo lỗi của trang */
+        play: function (fn, args) { return window.QDdb.act(fn, args).catch(function (e) { if (e && /^[A-Z_]+$/.test(e.message || '') && e.code !== 'internal') { var o = { code: e.message, srv: e.code }; if (e.x) for (var k in e.x) o[k] = e.x[k]; throw o; } throw e; }); },
         ping: function () { var t = performance.now(); return req({ op: 'hello' }).then(function () { return Math.round(performance.now() - t); }); }
     };
 })();

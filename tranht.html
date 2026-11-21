@@ -503,7 +503,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=8"><\/script>');
+        document.write('<script src="qd-db.js?v=9"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -1552,40 +1552,14 @@ html.qd-lite .qd-fx { display: none !important; }
 
                 State.hasPlayed = true;
                 TetSound.unlock();   // mở khóa âm thanh ngay lúc bấm (trình duyệt yêu cầu thao tác người dùng)
-                const accRef = db.collection("accounts").doc(State.currentDocId);
-                const cfgRef = db.collection("settings").doc("tranhthuong_config");
-                const stockRef = db.collection("tranhthuong_stock").doc("counts");
-
                 // Phản hồi tức thì: bao vừa chạm rung lên trong lúc máy chủ chốt phần thưởng
                 const picked = document.getElementById(`ticket-${index}`); if (picked) picked.classList.add('picking');
-                // Giao dịch: kiểm tra đóng/mở + còn lượt + còn số lượng giải, rồi trừ 1 lượt và cộng "đã trúng" cho giải đó
-                // NHANH: đọc tài khoản + cấu hình CÙNG LÚC (trước đây 3 lần đọc nối nhau). Kho giải chung (tranhthuong_stock) nhiều người
-                // cùng ghi -> chỉ đọc khi giải vừa chọn có giới hạn số lượng và sắp hết; còn lại cộng thẳng -> không tranh chấp, không chờ thử lại.
-                const counts0 = State.counts || {}, near = p => !!p && p.qty != null && p.qty - (counts0[p.id] || 0) <= 3;
-                const run = (exact) => db.runTransaction(async (tx) => {
-                    const local = exact ? null : this.pickFrom(State.prizes || [], counts0);
-                    const needSt = exact || !local || near(local);
-                    const [acc, c, st] = await Promise.all([tx.get(accRef), tx.get(cfgRef), needSt ? tx.get(stockRef) : null]);
-                    const cfg = c.exists ? c.data() : {};
-                    if (this.closedBy(cfg)) throw { code: 'CLOSED' };
-                    const left = (acc.exists && acc.data().tickets) || 0;
-                    if (left <= 0) throw { code: 'NOTICKET' };
-                    const prizes = this.normPrizes(cfg.prizes);
-                    let prize;
-                    if (st) prize = this.pickFrom(prizes, (st.exists && st.data().counts) || {});
-                    else {
-                        prize = prizes.find(p => p.id === local.id && p.qty === local.qty && p.chance === local.chance);
-                        if (!prize || near(prize)) throw { code: 'EXACT' };
-                    }
-                    tx.update(accRef, { tickets: firebase.firestore.FieldValue.increment(-1) });
-                    if (prize && prize.qty != null) tx.set(stockRef, { counts: { [prize.id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
-                    return { remain: left - 1, text: prize ? prize.text : "Lời Chúc Tết", prizeId: prize ? prize.id : null };
-                });
-                run(false).catch(e => { if (e && e.code === 'EXACT') return run(true); throw e; }).then(({ remain, text, prizeId }) => {
+                // Máy chủ kiểm tra đóng/mở + còn lượt + kho giải, trừ 1 lượt, chọn phần thưởng và ghi lịch sử trúng giải
+                window.QDdb.play('tranh.open', { n: 1, wishes: [this.randomWish()] }).then(r => { const x = r.picks[0]; return { remain: r.remain, text: x.text, prizeId: x.prizeId, srvWish: x.wish }; }).then(({ remain, text, prizeId, srvWish }) => {
                     if (picked) picked.classList.remove('picking');
                     const isWish = this.isWishPrize(text);
                     const winningPrize = isWish ? "Lời Chúc Tết" : text;
-                    const wish = isWish ? this.randomWish() : null;
+                    const wish = isWish ? (srvWish || this.randomWish()) : null;
                     document.getElementById(`result-${index}`).innerText = isWish ? "Lời chúc Tết" : winningPrize;
                     if (isWish) document.querySelector(`#ticket-${index} .card-ico`).textContent = '🎊';
                     TetSound.open();
@@ -1610,14 +1584,7 @@ html.qd-lite .qd-fx { display: none !important; }
 
                         TetSound.melody();
 
-                        db.collection("tranhthuong_history").add({
-                            userId: State.currentUser,
-                            result: winningPrize,
-                            prizeId: prizeId,
-                            wish: wish,
-                            remain: remain,
-                            timestamp: Date.now()
-                        }).catch(e => console.error("Lỗi lưu lịch sử:", e));
+                        // lịch sử trúng giải do máy chủ ghi
                     }, 1500);
                 }).catch(err => {
                     if (picked) picked.classList.remove('picking');
@@ -1636,26 +1603,10 @@ html.qd-lite .qd-fx { display: none !important; }
                 if (!State.currentDocId || (State.availableTickets || 0) < N) { Utils.toast("Bạn không đủ lượt rút!", "warning"); this.paintPick(); return; }
                 State.hasPlayed = true; this.refreshLock();
                 idx.forEach(i => { const e = document.getElementById(`ticket-${i}`); if (e) e.classList.add('picking'); });
-                const accRef = db.collection("accounts").doc(State.currentDocId);
-                const cfgRef = db.collection("settings").doc("tranhthuong_config");
-                const stockRef = db.collection("tranhthuong_stock").doc("counts");
-                db.runTransaction(async (tx) => {
-                    const [acc, c, st] = await Promise.all([tx.get(accRef), tx.get(cfgRef), tx.get(stockRef)]);
-                    const cfg = c.exists ? c.data() : {};
-                    if (this.closedBy(cfg)) throw { code: 'CLOSED' };
-                    const left = (acc.exists && acc.data().tickets) || 0;
-                    if (left < N) throw { code: 'NOTICKET' };
-                    const prizes = this.normPrizes(cfg.prizes), counts = Object.assign({}, (st.exists && st.data().counts) || {}), inc = {}, picks = [];
-                    for (let k = 0; k < N; k++) {
-                        const p = this.pickFrom(prizes, counts);
-                        if (p && p.qty != null) { counts[p.id] = (counts[p.id] || 0) + 1; inc[p.id] = (inc[p.id] || 0) + 1; }
-                        picks.push({ text: p ? p.text : "Lời Chúc Tết", prizeId: p ? p.id : null });
-                    }
-                    tx.update(accRef, { tickets: firebase.firestore.FieldValue.increment(-N) });
-                    if (Object.keys(inc).length) { const m = {}; Object.keys(inc).forEach(id => m[id] = firebase.firestore.FieldValue.increment(inc[id])); tx.set(stockRef, { counts: m }, { merge: true }); }
-                    return { left, picks };
-                }).then(({ left, picks }) => {
-                    const res = picks.map(p => { const w = this.isWishPrize(p.text); return { prize: w ? "Lời Chúc Tết" : p.text, prizeId: p.prizeId, wish: w ? this.randomWish() : null }; });
+                const ws = []; for (let k = 0; k < N; k++) ws.push(this.randomWish());
+                // Máy chủ trừ N lượt, chọn N phần thưởng (tôn trọng kho còn lại) và ghi lịch sử trúng giải
+                window.QDdb.play('tranh.open', { n: N, wishes: ws }).then(r => ({ left: r.left, picks: r.picks })).then(({ left, picks }) => {
+                    const res = picks.map(p => { const w = this.isWishPrize(p.text); return { prize: w ? "Lời Chúc Tết" : p.text, prizeId: p.prizeId, wish: w ? (p.wish || this.randomWish()) : null }; });
                     for (let i = 0; i < 6; i++) if (idx.indexOf(i) < 0) document.getElementById(`ticket-${i}`).classList.add('disabled');
                     idx.forEach((i, k) => setTimeout(() => {
                         const env = document.getElementById(`ticket-${i}`); if (!env) return;
@@ -1676,10 +1627,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         const modal = document.getElementById('modal-result');
                         modal.style.display = 'flex'; void modal.offsetWidth; modal.classList.add('active');
                         TetSound.melody();
-                        const now = Date.now();
-                        res.forEach((x, k) => db.collection("tranhthuong_history").add({
-                            userId: State.currentUser, result: x.prize, prizeId: x.prizeId, wish: x.wish, remain: left - 1 - k, multi: N, timestamp: now + k
-                        }).catch(e => console.error("Lỗi lưu lịch sử:", e)));
+                        // lịch sử trúng giải do máy chủ ghi
                     }, (N - 1) * 320 + 1500);
                 }).catch(err => {
                     idx.forEach(i => { const e = document.getElementById(`ticket-${i}`); if (e) e.classList.remove('picking'); });

@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-11';
+const VER = 'qd-vps-12';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -65,7 +65,7 @@ function splitPath(p) {
   return { col: s.slice(0, -1).join('/'), id: s[s.length - 1] };
 }
 function getDoc(p) { const { col: c, id } = splitPath(p); const x = (COLS.get(c) || new Map()).get(id); return x || null; }
-function err(code, msg) { const e = new Error(msg || code); e.code = code; return e; }
+function err(code, msg, x) { const e = new Error(msg || code); e.code = code; if (x) e.x = x; return e; }
 
 /* ---------------------------------- GIÁ TRỊ & SO SÁNH (theo thứ tự của Firestore) ---------------------------------- */
 function typeRank(v) {
@@ -164,7 +164,8 @@ function view(conn, c, d) {
 // Luật ghi cho thành viên (Ban Quản Trị không bị giới hạn)
 const SETTINGS_OPEN = new Set(['ai_config']);   // cài đặt thành viên được ghi
 // Chỉ máy chủ (lệnh act) hoặc Ban Quản Trị được ghi: thành viên tự ghi = tự tạo đơn rút tiền / đơn quà / tặng lượt không trừ gì
-const SERVER_ONLY = new Set(['point_cashout', 'point_cashout_daily', 'shop_orders', 'point_shop_stock', 'point_shop_daily', 'transfer_history']);
+const SERVER_ONLY = new Set(['point_cashout', 'point_cashout_daily', 'shop_orders', 'point_shop_stock', 'point_shop_daily', 'transfer_history',
+  'lixi_history', 'lixi_daily', 'spin_history', 'wheel_stock', 'wheel_questions', 'tranhthuong_history', 'tranhthuong_stock', 'lucky_numbers', 'lucky_number_history', 'lucky_rewards']);
 function topKeys(w) { return Object.keys(w.data || {}).map(k => k.split('.')[0]); }
 /* Ban Quản Trị: 3 bậc
    - Chủ hệ thống (owner: true, đặt bằng lệnh "qd admin" trên VPS hoặc tự nhận khi hệ thống chưa có chủ): không ai trên web hạ quyền / khóa / xóa / đổi mật khẩu được.
@@ -311,12 +312,14 @@ function broadcastDone(id) {
 
 /* ---------------------------------- NGHE THỜI GIAN THỰC ---------------------------------- */
 const SUBS = new Set();
-function docPayload(conn, c, id, x) { return { id, d: view(conn, c, x.d), v: x.v, ut: x.ut }; }
+const SECRET_DOCS = new Set(['settings/lucky_round_presets']);
+function viewAt(conn, path, d) { const { col: c, id } = splitPath(path); if (d && !isStaff(conn) && SECRET_DOCS.has(c + '/' + id)) return {}; return view(conn, c, d); }
+function docPayload(conn, c, id, x) { return { id, d: SECRET_DOCS.has(c + '/' + id) ? viewAt(conn, c + '/' + id, x.d) : view(conn, c, x.d), v: x.v, ut: x.ut }; }
 function pushDoc(s) {
   const x = getDoc(s.path), v = x ? x.v : 0;
   if (s.last === v) return;
   s.last = v; STAT.r++;
-  send(s.conn, { ev: 'doc', sid: s.sid, exists: !!x, d: x ? view(s.conn, splitPath(s.path).col, x.d) : null, v, ut: x ? x.ut : 0 });
+  send(s.conn, { ev: 'doc', sid: s.sid, exists: !!x, d: x ? viewAt(s.conn, s.path, x.d) : null, v, ut: x ? x.ut : 0 });
 }
 function pushQuery(s, force) {
   let res;
@@ -558,7 +561,7 @@ function onText(conn, txt) {
       }
       case 'auth': { const o = verify(m.token); if (!o) { conn.u = ''; conn.role = ''; return send(conn, { re: m.r, code: 'unauthenticated', message: 'Mã xác thực hết hạn' }); } authConn(conn, o.u); return send(conn, { re: m.r, ok: true, role: conn.role, u: conn.u }); }
       case 'logout': conn.u = ''; conn.role = ''; return send(conn, { re: m.r, ok: true });
-      case 'get': { STAT.r++; const x = getDoc(m.path); return send(conn, { re: m.r, ok: true, exists: !!x, d: x ? view(conn, splitPath(m.path).col, x.d) : null, v: x ? x.v : 0, ut: x ? x.ut : 0 }); }
+      case 'get': { STAT.r++; const x = getDoc(m.path); return send(conn, { re: m.r, ok: true, exists: !!x, d: x ? viewAt(conn, m.path, x.d) : null, v: x ? x.v : 0, ut: x ? x.ut : 0 }); }
       case 'query': { const res = runQuery(m.q); STAT.r += res.length || 1; return send(conn, { re: m.r, ok: true, docs: res.map(([id, x]) => docPayload(conn, m.q.col, id, x)) }); }
       case 'commit': {
         if (m.cid && DONE.has(m.cid)) return send(conn, Object.assign({ re: m.r }, DONE.get(m.cid)));
@@ -581,7 +584,7 @@ function onText(conn, txt) {
         const k = m.cid ? 'act:' + (conn.u || '') + ':' + m.cid : '';
         if (k && DONE.has(k)) return send(conn, Object.assign({ re: m.r }, DONE.get(k)));
         let out; try { out = { ok: true, data: act(conn, String(m.fn || ''), m.a || {}) }; }
-        catch (e) { out = { code: e.code || 'internal', message: String(e.message || e).slice(0, 300) }; if (!e.code) console.error('[act]', m.fn, e); }
+        catch (e) { out = { code: e.code || 'internal', message: String(e.message || e).slice(0, 300) }; if (e.x) out.x = e.x; if (!e.code) console.error('[act]', m.fn, e); }
         if (k) { DONE.set(k, out); if (DONE.size > 20000) DONE.delete(DONE.keys().next().value); }
         return send(conn, Object.assign({ re: m.r }, out));
       }
@@ -975,7 +978,222 @@ function actGiftTurns(conn, a) {
   return { recv: tg.d.user, used: used + 1, left: +findAccount(u).d[type] || 0 };
 }
 
-const ACTS = { 'shop.buy': actShopBuy, 'cashout': actCashout, 'gift.turns': actGiftTurns };
+
+/* ==================================================================================================
+   ĐIỂM TÍNH TRÊN MÁY CHỦ (đợt 2): Lì Xì (Trang chủ) · Vòng Quay + câu hỏi (qt.html) · Rút Lì Xì Xuân (tranht.html) · Quay Số (quays.html)
+   Máy chủ chọn phần thưởng (ngẫu nhiên theo tỉ lệ Admin đặt), trừ lượt, ghi lịch sử trúng giải. Trang chỉ chạy hiệu ứng theo kết quả máy chủ trả về.
+   Lịch sử trúng giải (spin_history, tranhthuong_history, lucky_rewards) là nguồn của Admin > Trả thưởng -> thành viên không còn tự ghi được.
+   ================================================================================================== */
+const rnd = () => crypto.randomInt(0, 2 ** 32) / 2 ** 32;
+const vnTs = (d, t) => { if (!(d && t)) return null; const v = Date.parse(d + 'T' + (String(t).length === 5 ? t + ':00' : t) + '+07:00'); return isNaN(v) ? null : v; };   // giờ Admin hẹn = giờ Việt Nam
+const vnDayStr = t => new Date(t || Date.now()).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });   // "21/11/2026" giống Utils.getTodayString trên trang
+const noAcc = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase();
+const wishText = v => { v = String(v == null ? '' : v).slice(0, 400); return v || null; };
+
+// ---- Lì Xì Trang chủ (giống LiXi trong user.html) ----
+const LIXI_DEF = [{ points: 8, chance: 35 }, { points: 18, chance: 30 }, { points: 28, chance: 20 }, { points: 38, chance: 10 }, { points: 68, chance: 4 }, { points: 88, chance: 1 }];
+function lixiNorm(d) {
+  d = d || {};
+  let prizes = (Array.isArray(d.prizes) ? d.prizes : []).map(p => ({ points: Math.floor(Number(p && p.points)), chance: Number(p && p.chance) })).filter(p => p.points >= 1 && isFinite(p.chance) && p.chance >= 0);
+  if (!prizes.some(p => p.chance > 0)) prizes = LIXI_DEF.slice();
+  return { isEnabled: d.isEnabled !== false, endDate: d.endDate || '', endTime: d.endTime || '', openDate: d.openDate || '', openTime: d.openTime || '', prizes,
+    bigThreshold: Number(d.bigThreshold) > 0 ? Number(d.bigThreshold) : 68, dailyBudget: Math.max(0, Math.floor(Number(d.dailyBudget) || 0)),
+    allowRedraw: d.allowRedraw === true, maxPerDay: Math.min(50, Math.max(2, Math.floor(Number(d.maxPerDay)) || 3)) };
+}
+function lixiPhase(c, now) {
+  if (!c.isEnabled) return 'closed';
+  const op = vnTs(c.openDate, c.openTime), dl = vnTs(c.endDate, c.endTime);
+  if (op && now < op) return 'upcoming';
+  if (dl && now >= dl) return 'closed';
+  return 'open';
+}
+function actLixi(conn) {
+  const me = actMe(conn), u = me.d.user, now = Date.now(), c = lixiNorm(setting('lixi_config')), today = vnDayStr(now), key = dayDash(now);
+  const d = me.d, same = d.lixiDate === today, used = same ? (d.lixiCount != null ? d.lixiCount : 1) : 0, sum = same ? (d.lixiTotal != null ? d.lixiTotal : (d.lixiAmount || 0)) : 0;
+  if (used >= (c.allowRedraw ? c.maxPerDay : 1)) throw err('failed-precondition', 'LIXI_CLAIMED', { count: used, total: sum, last: d.lixiAmount || 0 });
+  const ph = lixiPhase(c, now);
+  if (ph !== 'open') throw err('failed-precondition', 'LIXI_CLOSED', { phase: ph });
+  const dd = getDoc('lixi_daily/' + key), spent = (dd && dd.d && +dd.d.points) || 0;
+  let list = c.prizes.filter(p => p.chance > 0);
+  if (c.dailyBudget > 0) { list = list.filter(p => p.points <= c.dailyBudget - spent); if (!list.length) throw err('failed-precondition', 'LIXI_SOLDOUT', { spent }); }
+  const tot = list.reduce((a, p) => a + p.chance, 0), r = rnd() * tot; let s2 = 0, prize = list[0].points;
+  for (const p of list) { s2 += p.chance; if (r < s2) { prize = p.points; break; } }
+  commit([
+    { op: 'update', path: 'accounts/' + me.id, data: { points: actInc(prize), lixiDate: today, lixiAmount: prize, lixiCount: used + 1, lixiTotal: sum + prize } },
+    { op: 'set', path: 'lixi_daily/' + key, merge: true, data: { date: today, count: actInc(1), points: actInc(prize) } },
+    { op: 'set', path: 'lixi_history/' + actId(), data: { user: u, amount: prize, date: today, dateKey: key, seq: used + 1, timestamp: now, status: 'ok' } },
+    { op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'add', detail: 'Rút lì xì: +' + prize + ' điểm', pointsChanged: prize, timestamp: now, by: 'server' } }
+  ], null, ACT_LOCAL);
+  return { prize, count: used + 1, total: sum + prize, big: prize >= c.bigThreshold, points: +findAccount(u).d.points || 0 };
+}
+
+// ---- Giải thưởng dạng ô (Vòng Quay / Rút Lì Xì Xuân) ----
+function prizeNorm(list, def) {
+  const src = (Array.isArray(list) && list.length) ? list : def;
+  return src.map((p, i) => ({ id: p.id || ('p' + i), text: String(p.text || ''), qty: (p.qty === '' || p.qty == null || isNaN(parseInt(p.qty))) ? null : Math.max(0, parseInt(p.qty)), chance: parseFloat(p.chance) || 0 }));
+}
+function closedBy(c) {   // settings/wheel_config, tranhthuong_config: isEnabled, endDate + endTime
+  c = c || {};
+  if (c.isEnabled === false) return 'off';
+  const dl = vnTs(c.endDate, c.endTime);
+  if (dl && Date.now() >= dl) return 'expired';
+  return null;
+}
+function pickPrize(prizes, counts) {   // chỉ trong các ô còn số lượng; trả về chỉ số (-1 = hết sạch)
+  const avail = []; prizes.forEach((p, i) => { if (p.chance > 0 && !(p.qty != null && (counts[p.id] || 0) >= p.qty)) avail.push(i); });
+  if (!avail.length) return -1;
+  let tot = 0; avail.forEach(i => { tot += prizes[i].chance; });
+  const r = rnd() * tot; let s2 = 0;
+  for (const i of avail) { s2 += prizes[i].chance; if (r <= s2) return i; }
+  return avail[avail.length - 1];
+}
+
+// ---- Vòng Quay (qt.html) ----
+const WHEEL_DEF = [{ id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 12 }, { id: 'w1', text: 'Lời Chúc Tết', qty: null, chance: 27 }, { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 6 },
+  { id: 'w2', text: 'Lời Chúc Tết', qty: null, chance: 27 }, { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 }, { id: 'w3', text: 'Lời Chúc Tết', qty: null, chance: 26 }];
+const wheelWish = t => !t || /chuc may man|loi chuc|chuc tet|ti nua|them ti/.test(noAcc(t));
+function quizCfg(q) {
+  q = q || {}; const mode = q.mode === 'random' ? 'random' : 'all', n = parseInt(q.count);
+  return { mode, count: isNaN(n) ? (mode === 'random' ? 3 : 0) : Math.min(50, Math.max(0, n)), rotateMin: Math.max(0, parseInt(q.rotateMin) || 0), start: q.start || '', end: q.end || '' };
+}
+function quizOpen(c, now) {   // khung giờ hiện câu hỏi hằng ngày (giờ Việt Nam)
+  const mins = h => { const m = /^(\d{1,2}):(\d{2})$/.exec(h || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+  const s2 = mins(c.start), e = mins(c.end);
+  if (s2 == null || e == null || s2 === e) return true;
+  const d = new Date(now + 7 * 3600e3), cur = d.getUTCHours() * 60 + d.getUTCMinutes();
+  return s2 < e ? (cur >= s2 && cur < e) : (cur >= s2 || cur < e);
+}
+function actWheelClaim(conn, a) {   // trả lời đúng câu hỏi -> giữ 1 vé quay (người đúng ĐẦU TIÊN)
+  const me = actMe(conn), u = me.d.user, now = Date.now(), cfg = setting('wheel_config') || {}, qid = String(a.qid || ''), h = String(a.h || '');
+  if (closedBy(cfg)) throw err('failed-precondition', 'CLOSED');
+  const q = qid && getDoc('wheel_questions/' + qid), d = q && q.d;
+  if (!d || d.active === false) throw err('failed-precondition', 'GONE');
+  if ((d.showAt && now < d.showAt) || (d.hideAt && now >= d.hideAt) || !quizOpen(quizCfg(cfg.quiz), now)) throw err('failed-precondition', 'NOTNOW');
+  if (d.claimedBy) throw err('failed-precondition', 'TAKEN', { by: d.claimedBy });
+  if (!h || !(d.answerHashes || []).includes(h)) throw err('failed-precondition', 'WRONG');
+  commit([{ op: 'update', path: 'wheel_questions/' + qid, data: { claimedBy: u, claimedAt: now, ticketUsed: false } }], null, ACT_LOCAL);
+  return { qid };
+}
+function actWheelSpin(conn, a) {
+  const me = actMe(conn), u = me.d.user, now = Date.now(), cfg = setting('wheel_config') || {};
+  if (closedBy(cfg)) throw err('failed-precondition', 'CLOSED');
+  // dùng vé từ câu hỏi trước (vé cũ nhất), hết vé thì dùng lượt quay trong tài khoản
+  let tk = null; const qm = COLS.get('wheel_questions');
+  if (qm) for (const [id, x] of qm) if (x.d && x.d.claimedBy === u && x.d.ticketUsed !== true && (!tk || (x.d.claimedAt || 0) < (tk.d.claimedAt || 0))) tk = { id, d: x.d };
+  const spins = +me.d.spins || 0;
+  if (!tk && spins <= 0) throw err('failed-precondition', 'NOSPIN');
+  const prizes = prizeNorm(cfg.prizes, WHEEL_DEF), st = getDoc('wheel_stock/counts'), idx = pickPrize(prizes, (st && st.d && st.d.counts) || {});
+  const p = idx >= 0 ? prizes[idx] : null, isWish = !p || wheelWish(p.text), result = isWish ? 'Lời Chúc Tết' : p.text;
+  const W = [tk ? { op: 'update', path: 'wheel_questions/' + tk.id, data: { ticketUsed: true, usedAt: now } } : { op: 'update', path: 'accounts/' + me.id, data: { spins: actInc(-1) } }];
+  if (p && p.qty != null) W.push({ op: 'set', path: 'wheel_stock/counts', merge: true, data: { counts: { [p.id]: actInc(1) } } });
+  W.push({ op: 'set', path: 'spin_history/' + actId(), data: { userId: u, result, prizeId: p ? p.id : null, wish: isWish ? wishText(a.wish) : null, questionId: tk ? tk.id : null, source: tk ? 'question' : 'account', timestamp: now, by: 'server' } });
+  commit(W, null, ACT_LOCAL);
+  if (!isWish) console.log('[act] @' + u + ' Vòng Quay trúng ' + result);
+  return { idx, prizes, result, isWish, questionId: tk ? tk.id : null, remain: tk ? null : spins - 1 };
+}
+
+// ---- Rút Lì Xì Xuân (tranht.html): mở 1 hoặc 3 bao ----
+const TRANH_DEF = [{ id: 'm10', text: '10.000 VNĐ', qty: 20, chance: 15 }, { id: 'm20', text: '20.000 VNĐ', qty: 10, chance: 8 }, { id: 'm50', text: '50.000 VNĐ', qty: 3, chance: 2 }, { id: 'luck', text: 'Lời Chúc Tết', qty: null, chance: 75 }];
+const tranhWish = t => !t || /chuc may man|loi chuc|chuc tet|may man lan sau/.test(noAcc(t));
+function actTranh(conn, a) {
+  const me = actMe(conn), u = me.d.user, now = Date.now(), cfg = setting('tranhthuong_config') || {}, N = Math.max(1, Math.min(3, pint(a.n, 1)));
+  if (closedBy(cfg)) throw err('failed-precondition', 'CLOSED');
+  const left = +me.d.tickets || 0;
+  if (left < N) throw err('failed-precondition', 'NOTICKET');
+  const prizes = prizeNorm(cfg.prizes, TRANH_DEF), st = getDoc('tranhthuong_stock/counts'), counts = Object.assign({}, (st && st.d && st.d.counts) || {}), inc = {}, picks = [];
+  const wishes = Array.isArray(a.wishes) ? a.wishes : [];
+  for (let k = 0; k < N; k++) {
+    const i = pickPrize(prizes, counts), p = i >= 0 ? prizes[i] : null;
+    if (p && p.qty != null) { counts[p.id] = (counts[p.id] || 0) + 1; inc[p.id] = (inc[p.id] || 0) + 1; }
+    const text = p ? p.text : 'Lời Chúc Tết', w = tranhWish(text);
+    picks.push({ text, prizeId: p ? p.id : null, prize: w ? 'Lời Chúc Tết' : text, wish: w ? (wishText(wishes[k]) || 'Chúc Mừng Năm Mới — An Khang Thịnh Vượng!') : null });
+  }
+  const W = [{ op: 'update', path: 'accounts/' + me.id, data: { tickets: actInc(-N) } }];
+  if (Object.keys(inc).length) { const m = {}; for (const id of Object.keys(inc)) m[id] = actInc(inc[id]); W.push({ op: 'set', path: 'tranhthuong_stock/counts', merge: true, data: { counts: m } }); }
+  picks.forEach((x, k) => W.push({ op: 'set', path: 'tranhthuong_history/' + actId(), data: Object.assign({ userId: u, result: x.prize, prizeId: x.prizeId, wish: x.wish, remain: left - 1 - k }, N > 1 ? { multi: N } : {}, { timestamp: now + k, by: 'server' }) }));
+  commit(W, null, ACT_LOCAL);
+  picks.forEach(x => { if (!x.wish) console.log('[act] @' + u + ' Rút Lì Xì trúng ' + x.prize); });
+  return { left, remain: left - N, picks };
+}
+
+// ---- Quay Số May Mắn: thành viên chốt số (1 lần, Admin cấp phép mới được đổi) ----
+function actLuckyPick(conn, a) {
+  const me = actMe(conn), u = me.d.user, n = pint(a.number, 0);
+  if (!(n >= 1 && n <= 100)) throw err('invalid-argument', 'NUMBER');
+  const cur = getDoc('lucky_numbers/' + u);
+  if (cur && cur.d && cur.d.number && cur.d.canEdit !== true) throw err('failed-precondition', 'LOCKED');
+  commit([{ op: 'set', path: 'lucky_numbers/' + u, data: { user: u, number: n, lastUpdated: Date.now(), canEdit: false } }], null, ACT_LOCAL);
+  return { number: n };
+}
+
+// ---- Quay Số theo giờ hẹn: máy chủ tự quay đúng giờ (không cần Admin mở trang), ghi lịch sử + trao thưởng 1 lần ----
+const LUCKY_MISS_MS = 10 * 60 * 1000;
+const LR_KEYS = [['points', 'Điểm lì xì', 'điểm lì xì'], ['spins', 'Lượt vòng quay', 'lượt quay'], ['tickets', 'Lượt rút lì xì', 'lượt rút lì xì'], ['conThrows', 'Lượt ném còn', 'lượt ném còn']];
+const lrN0 = v => { v = parseInt(v, 10); return isNaN(v) || v < 0 ? 0 : Math.min(v, 1e9); };
+const pad2 = x => String(x).padStart(2, '0');
+function lrNorm(c) {
+  c = c || {}; const main = {}, near = {};
+  LR_KEYS.forEach(k => { main[k[0]] = lrN0((c.main || {})[k[0]]); near[k[0]] = lrN0((c.near || {})[k[0]]); });
+  return { on: c.isEnabled === true, since: +c.since || 0, mode: c.mode === 'split' ? 'split' : 'each', main, cash: lrN0(c.cash), nearOn: c.nearOn === true, near, nearCash: lrN0(c.nearCash) };
+}
+const lrEmpty = (r, cash) => !cash && LR_KEYS.every(k => !(r[k[0]] > 0));
+function lrShare(part, cash, count, mode) {
+  const o = {}; LR_KEYS.forEach(k => { const v = part[k[0]] || 0; o[k[0]] = mode === 'split' && count > 1 ? Math.floor(v / count) : v; });
+  let c = cash || 0; if (mode === 'split' && count > 1) { const e = Math.floor(c / count); c = e >= 1000 ? Math.floor(e / 1000) * 1000 : e; }
+  o.cash = c; return o;
+}
+function lrText(r) { if (!r) return ''; const a = []; if (r.cash > 0) a.push(fmtVN(r.cash) + 'đ tiền mặt'); LR_KEYS.forEach(k => { if (r[k[0]] > 0) a.push('+' + fmtVN(r[k[0]]) + ' ' + k[2]); }); return a.join(' · '); }
+function luckyDraw(id, r, now) {   // 1 lượt hẹn giờ tới giờ: chốt số -> phát cho mọi màn hình -> lịch sử -> trao thưởng (1 lần ghi)
+  const live = setting('lucky_live') || {}, pre0 = ((setting('lucky_round_presets') || {}).byId || {})[id];
+  const pre = (pre0 != null && pre0 !== '') ? parseInt(pre0, 10) : null;
+  const num = (pre >= 1 && pre <= 100) ? pre : crypto.randomInt(1, 101);
+  const W = [{ op: 'set', path: 'settings/lucky_live', merge: true, data: { isLive: true, startedAt: live.isLive ? (live.startedAt || now) : now, rollId: now, rollAt: now, rollNumber: num, rollLabel: r.label || null, rollRound: id,
+    rounds: { [id]: { done: true, doneAt: now, missed: false, number: num } } } }];
+  const main = [], near0 = [], c = lrNorm(setting('lucky_reward_config')), ln = COLS.get('lucky_numbers');
+  if (ln) for (const [, x] of ln) { const v = x.d || {}, k = parseInt(v.number, 10); if (!v.user || isNaN(k)) continue; if (k === num) main.push(v.user); else if (c.nearOn && Math.abs(k - num) === 1) near0.push(v.user); }
+  const histId = actId(), rec = { number: num, winners: main.slice(), timestamp: now, source: 'schedule', by: 'server' };
+  if (r.label) rec.round = r.label;
+  const award = c.on && !(c.since && now < c.since - 60000) && !(lrEmpty(c.main, c.cash) && (!c.nearOn || lrEmpty(c.near, c.nearCash)));
+  if (award) {
+    const near = near0.filter(x => main.indexOf(x) < 0), users = main.concat(near);
+    const each = lrShare(c.main, c.cash, main.length, c.mode), eachNear = lrShare(c.near, c.nearCash, near.length, c.mode);
+    W.push({ op: 'set', path: 'lucky_rewards/' + histId, data: { number: num, histId, winners: main, near, all: users, each, eachNear: c.nearOn ? eachNear : null,
+      cash: main.length ? each.cash : 0, nearCash: near.length ? eachNear.cash : 0, mode: c.mode, at: now, wonAt: now, round: r.label || null, source: 'schedule', by: 'server' } });
+    Object.assign(rec, { rewarded: true, rewardText: lrText(each), nearUsers: near, nearText: c.nearOn ? lrText(eachNear) : '' });
+    const give = (u, rw, isNear) => {
+      const a = findAccount(u); if (!a) return; const up = {}; let any = false;
+      LR_KEYS.forEach(k => { if (rw[k[0]] > 0) { up[k[0]] = actInc(rw[k[0]]); any = true; } });
+      if (any) W.push({ op: 'update', path: 'accounts/' + a.id, data: up });
+      if (rw.points > 0) W.push({ op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'add', detail: 'Quay Số May Mắn: ' + (isNear ? 'giải phụ (lệch 1 số) — số ' : 'trúng số ') + pad2(num), pointsChanged: rw.points, timestamp: now, by: 'server' } });
+    };
+    main.forEach(u => give(u, each, false)); near.forEach(u => give(u, eachNear, true));
+  }
+  W.splice(1, 0, { op: 'set', path: 'lucky_number_history/' + histId, data: rec });
+  commit(W, null, ACT_LOCAL);
+  console.log('[quay số] ' + (r.label || id) + ': số ' + pad2(num) + ' · trúng: ' + (main.join(', ') || 'không ai'));
+}
+let luckyBusy = false;
+function luckyTick() {
+  if (luckyBusy) return; luckyBusy = true;
+  try {
+    const live = setting('lucky_live'), rounds = (live && live.rounds) || {}, now = Date.now();
+    const due = Object.keys(rounds).map(id => Object.assign({ id }, rounds[id])).filter(r => r && r.at && !r.done && now >= r.at).sort((a, b) => a.at - b.at);
+    for (const r of due) {
+      if (now - r.at > LUCKY_MISS_MS) { commit([{ op: 'set', path: 'settings/lucky_live', merge: true, data: { rounds: { [r.id]: { done: true, doneAt: now, missed: true } } } }], null, ACT_LOCAL); continue; }
+      try { luckyDraw(r.id, r, now); }
+      catch (e) {   // lỗi bất thường: bỏ lượt này (không thử lại liên tục mỗi giây)
+        console.error('[quay số] lỗi lượt ' + r.id, e);
+        try { commit([{ op: 'set', path: 'settings/lucky_live', merge: true, data: { rounds: { [r.id]: { done: true, doneAt: now, missed: true, error: String(e.message || e).slice(0, 200) } } } }], null, ACT_LOCAL); } catch (x) {}
+      }
+      break;   // mỗi lần 1 lượt (lượt sau quay ở nhịp kế tiếp, màn hình kịp chạy hiệu ứng)
+    }
+  } catch (e) { console.error('[quay số]', e); }
+  luckyBusy = false;
+}
+setInterval(luckyTick, 1000);
+
+const ACTS = { 'shop.buy': actShopBuy, 'cashout': actCashout, 'gift.turns': actGiftTurns,
+  'lixi.pick': actLixi, 'wheel.claim': actWheelClaim, 'wheel.spin': actWheelSpin, 'tranh.open': actTranh, 'lucky.pick': actLuckyPick };
 function act(conn, fn, a) {
   const f = ACTS[fn];
   if (!f) throw err('invalid-argument', 'Lệnh lạ: ' + fn);

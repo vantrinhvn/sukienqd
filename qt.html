@@ -534,7 +534,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=8"><\/script>');
+        document.write('<script src="qd-db.js?v=9"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -1678,56 +1678,16 @@ html.qd-lite .qd-fx { display: none !important; }
                     }
                 }
             },
-            // Dùng 1 lượt quay (vé từ câu hỏi đã xác thực) trong giao dịch: kiểm tra lại đóng/mở + vé còn hiệu lực
-            // Thứ tự dùng lượt: vé từ câu hỏi trước, hết vé thì dùng lượt quay trong tài khoản
-            /* NHANH: 1 giao dịch đọc vé/tài khoản + cấu hình CÙNG LÚC (trước đây 3 lần đọc nối nhau).
-               Kho giải chung (wheel_stock) nhiều người cùng ghi: chỉ đọc khi ô vừa chọn có giới hạn số lượng và sắp hết,
-               còn lại cộng thẳng (increment) -> không tranh chấp (mỗi lần tranh chấp SDK phải chờ ~1 giây rồi thử lại). */
-            spinTx: function(mainRef, check, consume, exact) {
-                const cfgRef = db.collection("settings").doc("wheel_config"), stockRef = db.collection("wheel_stock").doc("counts");
-                const counts = State.counts || {}, near = p => !!p && p.qty != null && p.qty - (counts[p.id] || 0) <= 3;
-                return db.runTransaction(async (tx) => {
-                    const lp = State.prizes || [], li = exact ? -1 : Wheel.pickIndex(lp, counts);
-                    const needSt = exact || li < 0 || near(lp[li]);
-                    const [m, c, st] = await Promise.all([tx.get(mainRef), tx.get(cfgRef), needSt ? tx.get(stockRef) : null]);
-                    const cfg = c.exists ? c.data() : {};
-                    if (Wheel.closedBy(cfg)) throw { code: 'CLOSED' };
-                    const extra = check(m) || {};
-                    const prizes = Wheel.normPrizes(cfg.prizes);
-                    let idx;
-                    if (st) idx = Wheel.pickIndex(prizes, (st.exists && st.data().counts) || {});
-                    else {
-                        const a = prizes[li], b = lp[li];
-                        if (!a || !b || a.id !== b.id || a.qty !== b.qty || a.chance !== b.chance || near(a)) throw { code: 'EXACT' };
-                        idx = li;
-                    }
-                    consume(tx);
-                    if (idx >= 0 && prizes[idx].qty != null) tx.set(stockRef, { counts: { [prizes[idx].id]: firebase.firestore.FieldValue.increment(1) } }, { merge: true });
-                    return Object.assign({ idx, prizes }, extra);
-                }).catch(e => { if (!exact && e && e.code === 'EXACT') return Wheel.spinTx(mainRef, check, consume, true); throw e; });
-            },
-            // Dùng 1 lượt quay (vé từ câu hỏi đã xác thực) trong giao dịch: kiểm tra lại đóng/mở + vé còn hiệu lực
-            // Thứ tự dùng lượt: vé từ câu hỏi trước, hết vé thì dùng lượt quay trong tài khoản
             consumeSpin: function() {
-                const mine = Quiz.tickets()[0];
-                if (!mine) return this.consumeAccountSpin();
-                const qRef = db.collection("wheel_questions").doc(mine.id);
-                return this.spinTx(qRef, q => {
-                    const d = q.exists ? q.data() : null;
-                    if (!d || d.claimedBy !== State.currentUser || d.ticketUsed === true) throw { code: 'NOSPIN' };
-                }, tx => tx.update(qRef, { ticketUsed: true, usedAt: Date.now() }))
-                    .then((r) => { Wheel.lastQuestionId = mine.id; return r; });
+                // Máy chủ dùng vé câu hỏi (hết vé thì lượt quay), chọn ô trúng theo tỉ lệ + kho còn lại, ghi lịch sử trúng giải
+                Wheel.pendingWish = Wheel.randomWish();
+                return window.QDdb.play('wheel.spin', { wish: Wheel.pendingWish }).then(r => {
+                    Wheel.lastQuestionId = r.questionId || null; if (r.remain != null) Wheel.lastRemain = r.remain;
+                    Wheel.lastResult = r;
+                    return r;
+                });
             },
-            consumeAccountSpin: function() {
-                if (!State.accountDocId || State.accountSpins <= 0) return Promise.reject({ code: 'NOSPIN' });
-                const accRef = db.collection("accounts").doc(State.accountDocId);
-                return this.spinTx(accRef, a => {
-                    const left = (a.exists && a.data().spins) || 0;
-                    if (left <= 0) throw { code: 'NOSPIN' };
-                    return { remain: left - 1 };
-                }, tx => tx.update(accRef, { spins: firebase.firestore.FieldValue.increment(-1) }))
-                    .then((r) => { Wheel.lastQuestionId = null; Wheel.lastRemain = r.remain; return r; });
-            },
+            consumeAccountSpin: function() { return this.consumeSpin(); },
 
             startSpin: function() {
                 if (this.isSpinning) return;
@@ -1830,7 +1790,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 const isWish = this.forceWish || this.isWishPrize(rawText);
                 Sound.playWin(isWish ? 'wish' : 'prize');   // lời chúc: chuông gió + đàn tranh; trúng quà: chiêng + pháo
                 const resultText = isWish ? "Lời Chúc Tết" : rawText;
-                const wish = isWish ? this.randomWish() : null;
+                const wish = isWish ? (this.pendingWish || this.randomWish()) : null;   // đúng câu chúc máy chủ đã lưu
 
                 document.getElementById('resultIcon').textContent = isWish ? '🧧' : '🏆';
                 document.getElementById('resultTitle').textContent = isWish ? 'LỘC ĐẦU XUÂN!' : 'XIN CHÚC MỪNG!';
@@ -1844,16 +1804,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 void modal.offsetWidth; 
                 modal.classList.add('active');
 
-                // Ghi vào Firestore (spin_history)
-                db.collection("spin_history").add({
-                    userId: State.currentUser,
-                    result: resultText,
-                    prizeId: this.forceWish ? null : (State.prizes[winIndex].id || null),
-                    wish: wish,
-                    questionId: Wheel.lastQuestionId || null,
-                    source: Wheel.lastQuestionId ? 'question' : 'account',
-                    timestamp: Date.now()
-                }).catch(err => console.error("Lỗi lưu lịch sử:", err));
+                // Lịch sử trúng giải (spin_history) do máy chủ ghi ngay lúc quay
                 this.forceWish = false;
             },
 
@@ -2128,22 +2079,11 @@ const QVis = {
                Bấm "Xác thực" lúc đó chỉ còn 1 lượt ghi (một nửa thời gian). Vẫn an toàn: nếu câu hỏi đã đổi (người khác trả lời trước)
                máy chủ từ chối lần ghi, giao dịch tự đọc lại và báo "đã có người xác thực". Mỗi lúc chỉ giữ 1 giao dịch mở sẵn. */
             _warm: null,
-            claimTx: function(qid, hashP, onRead) {
-                const ref = db.collection("wheel_questions").doc(qid), cfgRef = db.collection("settings").doc("wheel_config");
-                const run = db.runTransaction.__qdOrig || db.runTransaction;
-                return run.call(db, async (tx) => {
-                    const [snap, c] = await Promise.all([tx.get(ref), tx.get(cfgRef)]);
-                    if (onRead) onRead();
-                    const h = await hashP;   // chờ người chơi bấm Xác thực (đáp án đã đúng)
-                    if (Wheel.closedBy(c.exists ? c.data() : {})) throw { code: 'CLOSED' };
-                    const d = snap.exists ? snap.data() : null;
-                    if (!d || d.active === false) throw { code: 'GONE' };
-                    const now = Date.now();
-                    if ((d.showAt && now < d.showAt) || (d.hideAt && now >= d.hideAt) || !QVis.win(QVis.cfg(c.exists ? c.data().quiz : null), now).open) throw { code: 'NOTNOW' };
-                    if (d.claimedBy) throw { code: 'TAKEN', by: d.claimedBy };
-                    if (!(d.answerHashes || []).includes(h)) throw { code: 'WRONG' };
-                    tx.update(ref, { claimedBy: State.currentUser, claimedAt: Date.now(), ticketUsed: false });
-                });
+            claimTx: async function(qid, hashP, onRead) {
+                const h = await hashP;   // chờ người chơi bấm Xác thực (đáp án đã đúng)
+                if (onRead) onRead();
+                // Máy chủ kiểm tra: vòng quay mở, câu còn hiệu lực / trong khung giờ, chưa ai trả lời, đáp án đúng -> giữ 1 vé quay
+                return window.QDdb.play('wheel.claim', { qid: qid, h: h });
             },
             warm: function(qid) {
                 const w = this._warm;
