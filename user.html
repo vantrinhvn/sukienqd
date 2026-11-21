@@ -21974,6 +21974,10 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 case 'regid': if (W.RegID && W.RegID.open) { W.RegID.open(); return true; } break;
                 case 'inventory': case 'transfer': case 'profile': case 'settings': if (U && U.openModal) { U.openModal('modal-' + a); return true; } break;
                 case 'lixi': if (nav('dashboard')) { setTimeout(function () { var c = d.getElementById('lixi-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 250); return true; } break;
+                case 'cashout': if (W.Cashout && W.Cashout.open) { W.Cashout.open(); return true; } break;
+                case 'gifts': if (W.QDGift && W.QDGift.show) { W.QDGift.show(); return true; } break;
+                case 'bank': if (W.PayoutUser && W.PayoutUser.openForm) { W.PayoutUser.openForm(); return true; } break;
+                case 'videos': return nav('videos');
             }
             return false;
         }
@@ -22007,7 +22011,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
         });
 
         var ADM_GO = { 'qt.html': 'wheel', 'tranht.html': 'tranhthuong', 'game.html': 'nemcon', 'quays.html': 'luckynumber', 'index.html': 'approvals', 'user.html': 'dashboard' };
-        var ADM_DO = { attendance: 'attendance', shop: 'pointshop', lucky: 'luckynumber', rps: 'rps', regid: 'registration', tournament: 'tournament', news: 'news', lixi: 'lixi', inventory: 'accounts', transfer: 'transfer', profile: 'accounts' };
+        var ADM_DO = { attendance: 'attendance', shop: 'pointshop', lucky: 'luckynumber', rps: 'rps', regid: 'registration', tournament: 'tournament', news: 'news', lixi: 'lixi', inventory: 'accounts', transfer: 'transfer', profile: 'accounts', cashout: 'payout', bank: 'payout', gifts: 'gifts', videos: 'videos' };
 
         /* ---------- user.html#qd-act=...: chờ đăng nhập xong rồi mở đúng chức năng ---------- */
         var pending = null, pendT = 0;
@@ -25317,34 +25321,20 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
                 return usedToday().then(function (n) {
                     if (n >= LIMIT) { vsStatus('Hôm nay bạn đã chia sẻ đủ ' + LIMIT + ' video. Mai quay lại nhé!', 'err'); return; }
                     vsStatus('⏳ Đang chia sẻ…');
-                    var db = firebase.firestore(), ref = db.collection('settings').doc('video_share');
-                    var item = { uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), p: o.p, id: o.id, v: !!o.v, t: o.t || 0, url: o.url, thumb: o.thumb || '', author: o.author || '', title: title, desc: note, pin: false, hidden: false, createdAt: Date.now(), by: me(), byName: myName(), src: 'user' };
-                    return db.runTransaction(function (tx) {
-                        return tx.get(ref).then(function (doc) {
-                            var items = doc.exists && Array.isArray(doc.data().items) ? doc.data().items.slice() : [];
-                            if (items.some(function (x) { return x.p === item.p && x.id === item.id; })) throw new Error('dup');
-                            items.unshift(item);
-                            if (items.length > 60) { var keep = items.filter(function (x) { return x.pin; }), rest = items.filter(function (x) { return !x.pin; }); items = keep.concat(rest).slice(0, 60); }
-                            tx.set(ref, { items: items, updatedAt: Date.now() }, { merge: true });
-                        });
-                    }).then(function () {
-                        log('share', item); UI.closeModal('modal-vshare');
+                    // Máy chủ kiểm tra link, trùng video, giới hạn 3 video / ngày rồi thêm vào mục Video + ghi lịch sử
+                    return window.QDdb.play('video.share', { p: o.p, id: o.id, v: !!o.v, t: o.t || 0, url: o.url, thumb: o.thumb || '', author: o.author || '', title: title, desc: note }).then(function () {
+                        UI.closeModal('modal-vshare');
                         try { Utils.toast('Đã chia sẻ video 🎬', 'success'); } catch (e) {}
                         filter = ''; setTimeout(function () { renderGrid(); }, 300);
-                    }).catch(function (e) { vsStatus(e && e.message === 'dup' ? 'Video này đã có trong mục Video rồi.' : 'Chưa chia sẻ được, thử lại sau.', 'err'); });
+                    }).catch(function (e) { var c = e && e.code; vsStatus(c === 'DUP' ? 'Video này đã có trong mục Video rồi.' : c === 'LIMIT' ? 'Hôm nay bạn đã chia sẻ đủ ' + LIMIT + ' video. Mai quay lại nhé!' : c === 'TITLE' ? 'Nhập tiêu đề video.' : c === 'BAD' ? 'Link video không hợp lệ.' : 'Chưa chia sẻ được, thử lại sau.', 'err'); });
                 });
             }).then(function () { btn.disabled = false; }, function () { btn.disabled = false; });
         }
         function removeMine() {
             var it = LIST[idx]; if (!it || it.by !== me() || it.src !== 'user') return;
             if (!confirm('Gỡ video "' + (it.title || '') + '" khỏi mục Video?')) return;
-            var db = firebase.firestore(), ref = db.collection('settings').doc('video_share');
-            db.runTransaction(function (tx) {
-                return tx.get(ref).then(function (doc) {
-                    var items = doc.exists && Array.isArray(doc.data().items) ? doc.data().items : [];
-                    tx.set(ref, { items: items.filter(function (x) { return !(x.uid === it.uid && x.by === me()); }), updatedAt: Date.now() }, { merge: true });
-                });
-            }).then(function () { log('self_remove', it); UI.closeModal('modal-vid'); try { Utils.toast('Đã gỡ video', 'success'); } catch (e) {} })
+            window.QDdb.play('video.remove', { uid: it.uid })   // máy chủ chỉ cho gỡ video của chính mình
+            .then(function () { UI.closeModal('modal-vid'); try { Utils.toast('Đã gỡ video', 'success'); } catch (e) {} })
               .catch(function () { try { Utils.toast('Chưa gỡ được, thử lại sau', 'error'); } catch (e) {} });
         }
         return { share: share, send: send, removeMine: removeMine, openList: openList, play: function (uid) { var i = LIST.map(function (x) { return x.uid; }).indexOf(uid); if (i < 0) { filter = ''; renderGrid(); i = LIST.map(function (x) { return x.uid; }).indexOf(uid); } play(i); } };

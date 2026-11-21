@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-15';
+const VER = 'qd-vps-16';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -171,16 +171,16 @@ function view(conn, c, d) {
   return o || d;
 }
 // Luật ghi cho thành viên (Ban Quản Trị không bị giới hạn)
-const SETTINGS_OPEN = new Set(['ai_config']);   // cài đặt thành viên được ghi
+const SETTINGS_OPEN = new Set([]);   // cài đặt thành viên được ghi (không còn: dạy Quân Sư AI chỉ Ban Quản Trị; chia sẻ video đi qua lệnh act)
 // Chỉ máy chủ (lệnh act) hoặc Ban Quản Trị được ghi: thành viên tự ghi = tự tạo đơn rút tiền / đơn quà / tặng lượt không trừ gì
 const SERVER_ONLY = new Set(['point_cashout', 'point_cashout_daily', 'shop_orders', 'point_shop_stock', 'point_shop_daily', 'transfer_history',
   'lixi_history', 'lixi_daily', 'spin_history', 'wheel_stock', 'wheel_questions', 'tranhthuong_history', 'tranhthuong_stock', 'lucky_numbers', 'lucky_number_history', 'lucky_rewards',
-  'attendance', 'invite_history', 'gifts', 'gift_claims', 'tournament_rewards', 'con_stats', 'con_history', 'rps_rooms', 'rps_history', 'point_history']);
+  'attendance', 'invite_history', 'gifts', 'gift_claims', 'tournament_rewards', 'con_stats', 'con_history', 'rps_rooms', 'rps_history', 'point_history', 'video_share_log']);
 /* Đợt 4: trường trong tài khoản chỉ máy chủ (lệnh act) / Ban Quản Trị được đổi -> thành viên không tự cộng điểm, lượt, mở khóa, đổi tên... */
 const ACC_LOCK = new Set(['points', 'spins', 'tickets', 'conThrows', 'conStreak', 'conFreeDate', 'lixiDate', 'lixiAmount', 'lixiCount', 'lixiTotal', 'lastLoginRewardDate',
   'giftDay', 'giftCount', 'hasUsedInvite', 'invitedBy', 'invitedAt', 'inviteCount', 'inviteRewardCount', 'inviteCode', 'isBlocked', 'lockedAt', 'lockReason', 'unlockedAt', 'unlockRequestedAt',
   'role', 'permissions', 'owner', 'user', 'created_at', 'callBanUntil', 'kickAt']);
-const UNAUTH_OK = new Set(['pending_users', 'error_logs', 'app_errors', 'security_flags']);   // chưa đăng nhập: chỉ gửi đơn đăng ký / báo lỗi
+const UNAUTH_OK = new Set(['pending_users', 'error_logs', 'app_errors', 'security_flags', 'ai_unanswered']);   // chưa đăng nhập: chỉ gửi đơn đăng ký / báo lỗi
 const AUDIT = process.env.QD_AUDIT === '1';   // chạy thử: chỉ ghi nhận vi phạm, không chặn
 function deny(code, msg, w) { if (AUDIT) { console.error('[audit] ' + code + ' ' + w.op + ' ' + w.path + ' ' + JSON.stringify(w.data || {}).slice(0, 160)); return; } throw err(code, msg); }
 function topKeys(w) { return Object.keys(w.data || {}).map(k => k.split('.')[0]); }
@@ -1675,10 +1675,43 @@ function actUnlock(conn) {
   return { open: true };
 }
 
+
+// ---- 🎬 Chia sẻ video (settings/video_share.items): thành viên tối đa 3 video / ngày, gỡ được video của chính mình ----
+const VID_LIMIT = 3;
+const vClean = (v, n) => String(v == null ? '' : v).replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim().slice(0, n);
+function vDayStart(t) { const d = new Date((t || Date.now()) + 7 * 3600e3); d.setUTCHours(0, 0, 0, 0); return d.getTime() - 7 * 3600e3; }
+function actVideoShare(conn, a) {
+  const me = actMe(conn), u = me.d.user, now = Date.now(), p = String(a.p || ''), id = String(a.id || ''), url = String(a.url || '').trim();
+  if (['youtube', 'tiktok'].indexOf(p) < 0 || !/^[A-Za-z0-9_-]{4,40}$/.test(id) || url.length > 400 || !/^https:\/\/([a-z0-9-]+\.)*(youtube\.com|youtu\.be|tiktok\.com)\//i.test(url)) throw err('invalid-argument', 'BAD');
+  const title = vClean(a.title, 100); if (!title) throw err('invalid-argument', 'TITLE');
+  const thumb = /^https:\/\/[^\s"'<>]{4,500}$/.test(String(a.thumb || '')) ? String(a.thumb) : '';
+  let n = 0; const lm = COLS.get('video_share_log'), t0 = vDayStart(now);
+  if (lm) for (const [, x] of lm) { const d = x.d || {}; if (d.user === u && d.act === 'share' && d.role === 'member' && (d.time || 0) >= t0) n++; }
+  if (n >= VID_LIMIT) throw err('failed-precondition', 'LIMIT', { limit: VID_LIMIT });
+  const cur = (setting('video_share') || {}), items0 = Array.isArray(cur.items) ? cur.items.slice() : [];
+  if (items0.some(x => x && x.p === p && x.id === id)) throw err('failed-precondition', 'DUP');
+  const item = { uid: now.toString(36) + crypto.randomBytes(3).toString('hex').slice(0, 4), p, id, v: !!a.v, t: Math.max(0, Math.min(86400, Math.floor(+a.t || 0))), url, thumb, author: vClean(a.author, 80),
+    title, desc: vClean(a.desc, 200), pin: false, hidden: false, createdAt: now, by: u, byName: vClean(me.d.fullName || u, 60), src: 'user' };
+  let items = [item].concat(items0);
+  if (items.length > 60) { const keep = items.filter(x => x.pin), rest = items.filter(x => !x.pin); items = keep.concat(rest).slice(0, 60); }
+  commit([{ op: 'set', path: 'settings/video_share', merge: true, data: { items, updatedAt: now } },
+    { op: 'set', path: 'video_share_log/' + actId(), data: { act: 'share', user: u, name: item.byName, role: 'member', vuid: item.uid, p, id, url, title, time: now } }], null, ACT_LOCAL);
+  return { item, left: VID_LIMIT - n - 1 };
+}
+function actVideoRemove(conn, a) {
+  const me = actMe(conn), u = me.d.user, uid = String(a.uid || ''), cur = setting('video_share') || {}, items = Array.isArray(cur.items) ? cur.items : [];
+  const it = items.find(x => x && x.uid === uid && x.by === u && x.src === 'user');
+  if (!it) throw err('failed-precondition', 'GONE');
+  const now = Date.now();
+  commit([{ op: 'set', path: 'settings/video_share', merge: true, data: { items: items.filter(x => x !== it), updatedAt: now } },
+    { op: 'set', path: 'video_share_log/' + actId(), data: { act: 'self_remove', user: u, name: it.byName || u, role: 'member', vuid: it.uid, p: it.p || '', id: it.id || '', url: it.url || '', title: it.title || '', time: now } }], null, ACT_LOCAL);
+  return { ok: true };
+}
+
 const ACTS = { 'shop.buy': actShopBuy, 'cashout': actCashout, 'gift.turns': actGiftTurns,
   'lixi.pick': actLixi, 'wheel.claim': actWheelClaim, 'wheel.spin': actWheelSpin, 'tranh.open': actTranh, 'lucky.pick': actLuckyPick,
   'task.login': actTaskLogin, 'att.check': actAttend, 'invite.use': actInvite, 'gift.claim': actGiftClaim, 'con.wind': actConWind, 'con.free': actConFree, 'con.throw': actConThrow,
-  'rps.find': actRpsFind, 'rps.ping': actRpsPing, 'rps.move': actRpsMove, 'rps.leave': actRpsLeave, 'acc.unlockReq': actUnlockReq, 'acc.unlock': actUnlock };
+  'rps.find': actRpsFind, 'rps.ping': actRpsPing, 'rps.move': actRpsMove, 'rps.leave': actRpsLeave, 'acc.unlockReq': actUnlockReq, 'acc.unlock': actUnlock, 'video.share': actVideoShare, 'video.remove': actVideoRemove };
 function act(conn, fn, a) {
   const f = ACTS[fn];
   if (!f) throw err('invalid-argument', 'Lệnh lạ: ' + fn);

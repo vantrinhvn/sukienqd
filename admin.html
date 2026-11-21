@@ -4291,7 +4291,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                         <div class="flex gap-2 flex-wrap">
                             <button type="button" class="btn btn-success" style="padding: 14px 24px;" onclick="QDReport.open('giftsys')"><i class="fa-solid fa-file-export mr-2"></i> Xuất Báo Cáo</button>
-                            <button type="button" class="btn btn-primary" style="padding: 14px 24px;" onclick="GiftAdmin.edit()"><i class="fa-solid fa-plus mr-2"></i> Tạo quà mới</button>
+                            <button type="button" class="btn btn-primary" style="padding: 14px 24px;" onclick="SysGiftAdmin.edit()"><i class="fa-solid fa-plus mr-2"></i> Tạo quà mới</button>
                         </div>
                     </div>
 
@@ -4306,7 +4306,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="card mb-8 gf-editor" id="gf-editor" style="display: none;">
                         <div class="flex items-center justify-between gap-3 flex-wrap mb-2">
                             <h3 class="text-lg m-0 flex items-center gap-2"><span style="font-size: 22px;">🎁</span> <span id="gf-ed-title">Tạo quà mới</span></h3>
-                            <button type="button" class="btn btn-outline" onclick="GiftAdmin.cancel()">Đóng</button>
+                            <button type="button" class="btn btn-outline" onclick="SysGiftAdmin.cancel()">Đóng</button>
                         </div>
                         <p class="text-muted text-sm mb-4" id="gf-ed-note">Thành viên thấy nút quà 🎁 ở Trang Chủ trong khoảng thời gian bạn đặt, mỗi người nhận đúng 1 lần.</p>
                         <input type="hidden" id="gf-id">
@@ -4340,11 +4340,11 @@ html.qd-lite .qd-fx { display: none !important; }
                                         <div><span class="text-muted text-xs">Đóng lúc</span><input type="datetime-local" class="form-control" id="gf-end"></div>
                                     </div>
                                     <div class="rb-pres mt-3">
-                                        <button type="button" onclick="GiftAdmin.preset('now')">Mở ngay</button>
-                                        <button type="button" onclick="GiftAdmin.preset('today')">Hết hôm nay</button>
-                                        <button type="button" onclick="GiftAdmin.preset('3d')">3 ngày</button>
-                                        <button type="button" onclick="GiftAdmin.preset('7d')">7 ngày</button>
-                                        <button type="button" onclick="GiftAdmin.preset('tet')">Mùng 1 – Mùng 3 Tết</button>
+                                        <button type="button" onclick="SysGiftAdmin.preset('now')">Mở ngay</button>
+                                        <button type="button" onclick="SysGiftAdmin.preset('today')">Hết hôm nay</button>
+                                        <button type="button" onclick="SysGiftAdmin.preset('3d')">3 ngày</button>
+                                        <button type="button" onclick="SysGiftAdmin.preset('7d')">7 ngày</button>
+                                        <button type="button" onclick="SysGiftAdmin.preset('tet')">Mùng 1 – Mùng 3 Tết</button>
                                     </div>
                                 </div>
                                 <div class="rb-block rb-grid">
@@ -4368,8 +4368,8 @@ html.qd-lite .qd-fx { display: none !important; }
                             </div>
                         </div>
                         <div class="flex justify-end gap-2 mt-6 flex-wrap">
-                            <button type="button" class="btn btn-outline" onclick="GiftAdmin.cancel()">Hủy</button>
-                            <button type="button" class="btn btn-primary" id="gf-save" onclick="GiftAdmin.save()"><i class="fa-solid fa-paper-plane mr-2"></i> Lưu &amp; phát quà</button>
+                            <button type="button" class="btn btn-outline" onclick="SysGiftAdmin.cancel()">Hủy</button>
+                            <button type="button" class="btn btn-primary" id="gf-save" onclick="SysGiftAdmin.save()"><i class="fa-solid fa-paper-plane mr-2"></i> Lưu &amp; phát quà</button>
                         </div>
                     </div>
 
@@ -4381,14 +4381,14 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="card-header m-0 p-6 flex items-center justify-between gap-3 flex-wrap" style="background: var(--bg-elevated); border-bottom: 1px solid var(--border-strong);">
                             <h3 class="card-title text-lg m-0" id="gf-rp-title">Báo cáo nhận quà</h3>
                             <div class="flex gap-2 flex-wrap">
-                                <button type="button" class="btn btn-outline" id="gf-rp-tab-got" onclick="GiftAdmin.rpTab('got')">✅ Đã nhận</button>
-                                <button type="button" class="btn btn-outline" id="gf-rp-tab-not" onclick="GiftAdmin.rpTab('not')">⏳ Chưa nhận</button>
-                                <button type="button" class="btn btn-success" onclick="GiftAdmin.exportCsv()"><i class="fa-solid fa-file-export mr-1"></i> Xuất Excel</button>
-                                <button type="button" class="btn btn-outline" onclick="GiftAdmin.closeReport()">Đóng</button>
+                                <button type="button" class="btn btn-outline" id="gf-rp-tab-got" onclick="SysGiftAdmin.rpTab('got')">✅ Đã nhận</button>
+                                <button type="button" class="btn btn-outline" id="gf-rp-tab-not" onclick="SysGiftAdmin.rpTab('not')">⏳ Chưa nhận</button>
+                                <button type="button" class="btn btn-success" onclick="SysGiftAdmin.exportCsv()"><i class="fa-solid fa-file-export mr-1"></i> Xuất Excel</button>
+                                <button type="button" class="btn btn-outline" onclick="SysGiftAdmin.closeReport()">Đóng</button>
                             </div>
                         </div>
                         <div class="gf-rp-sum p-6" id="gf-rp-sum"></div>
-                        <div class="px-6 pb-4"><input type="text" class="form-control" id="gf-rp-q" placeholder="Tìm tên tài khoản / họ tên..." oninput="GiftAdmin.rpDraw()"></div>
+                        <div class="px-6 pb-4"><input type="text" class="form-control" id="gf-rp-q" placeholder="Tìm tên tài khoản / họ tên..." oninput="SysGiftAdmin.rpDraw()"></div>
                         <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
                             <table class="w-full">
                                 <thead id="gf-rp-head"></thead>
@@ -10679,7 +10679,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         });
 
         var ADM_GO = { 'qt.html': 'wheel', 'tranht.html': 'tranhthuong', 'game.html': 'nemcon', 'quays.html': 'luckynumber', 'index.html': 'approvals', 'user.html': 'dashboard' };
-        var ADM_DO = { attendance: 'attendance', shop: 'pointshop', lucky: 'luckynumber', rps: 'rps', regid: 'registration', tournament: 'tournament', news: 'news', lixi: 'lixi', inventory: 'accounts', transfer: 'transfer', profile: 'accounts' };
+        var ADM_DO = { attendance: 'attendance', shop: 'pointshop', lucky: 'luckynumber', rps: 'rps', regid: 'registration', tournament: 'tournament', news: 'news', lixi: 'lixi', inventory: 'accounts', transfer: 'transfer', profile: 'accounts', cashout: 'payout', bank: 'payout', gifts: 'gifts', videos: 'videos' };
 
         /* ---------- user.html#qd-act=...: chờ đăng nhập xong rồi mở đúng chức năng ---------- */
         var pending = null, pendT = 0;
@@ -14620,7 +14620,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
        gifts/{id}: title, icon, msg, items{points,tickets,spins,conThrows}, startAt, endAt (ms), enabled, maxClaims, who ('all'|'old'),
                    claimCount, sum{...}, createdAt, createdBy, updatedAt, updatedBy
        gift_claims/{giftId__accountId}: giftId, giftTitle, user, userId, fullName, items, at  (thành viên tự tạo khi mở quà, mỗi người 1 lần) */
-    window.GiftAdmin = (function () {
+    window.SysGiftAdmin = (function () {
         'use strict';
         var $ = function (id) { return document.getElementById(id); }, VN = 7 * 3600e3;
         var ICONS = ['🎁', '🧧', '🏮', '🎆', '🌸', '💰', '🏆', '🎉'];
@@ -14660,10 +14660,10 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                     + '<div class="gf-chips">' + chips(g.items || {}) + '</div>'
                     + '<div class="gf-meta"><span>🎉 ' + n.toLocaleString('vi-VN') + ' người đã nhận</span><span>' + (g.maxClaims ? 'giới hạn ' + g.maxClaims.toLocaleString('vi-VN') : 'không giới hạn') + '</span></div>'
                     + (g.maxClaims ? '<div class="gf-bar"><i style="width:' + pct + '%"></i></div>' : '')
-                    + '<div class="gf-acts"><button type="button" class="btn btn-primary" onclick="GiftAdmin.report(\'' + g.id + '\')"><i class="fa-solid fa-chart-column mr-1"></i> Báo cáo</button>'
-                    + '<button type="button" class="btn btn-outline" onclick="GiftAdmin.edit(\'' + g.id + '\')"><i class="fa-solid fa-pen mr-1"></i> Sửa</button>'
-                    + '<button type="button" class="btn btn-outline" onclick="GiftAdmin.toggle(\'' + g.id + '\')">' + (g.enabled === false ? '▶ Bật' : '⏸ Tắt') + '</button>'
-                    + '<button type="button" class="btn btn-outline" data-del="' + g.id + '" onclick="GiftAdmin.del(\'' + g.id + '\', this)"><i class="fa-solid fa-trash mr-1"></i> Xóa</button></div></div>';
+                    + '<div class="gf-acts"><button type="button" class="btn btn-primary" onclick="SysGiftAdmin.report(\'' + g.id + '\')"><i class="fa-solid fa-chart-column mr-1"></i> Báo cáo</button>'
+                    + '<button type="button" class="btn btn-outline" onclick="SysGiftAdmin.edit(\'' + g.id + '\')"><i class="fa-solid fa-pen mr-1"></i> Sửa</button>'
+                    + '<button type="button" class="btn btn-outline" onclick="SysGiftAdmin.toggle(\'' + g.id + '\')">' + (g.enabled === false ? '▶ Bật' : '⏸ Tắt') + '</button>'
+                    + '<button type="button" class="btn btn-outline" data-del="' + g.id + '" onclick="SysGiftAdmin.del(\'' + g.id + '\', this)"><i class="fa-solid fa-trash mr-1"></i> Xóa</button></div></div>';
             }).join('');
         }
         function listen() {
@@ -14676,7 +14676,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         }
 
         /* ---------- Soạn / sửa ---------- */
-        function drawIcons() { $('gf-icons').innerHTML = ICONS.map(function (i) { return '<button type="button" class="' + (i === icon ? 'on' : '') + '" onclick="GiftAdmin.icon(\'' + i + '\')" aria-label="Biểu tượng ' + i + '">' + i + '</button>'; }).join(''); }
+        function drawIcons() { $('gf-icons').innerHTML = ICONS.map(function (i) { return '<button type="button" class="' + (i === icon ? 'on' : '') + '" onclick="SysGiftAdmin.icon(\'' + i + '\')" aria-label="Biểu tượng ' + i + '">' + i + '</button>'; }).join(''); }
         function readForm() {
             var items = {}; ITEMS.forEach(function (it) { items[it[0]] = $('gf-i-' + it[0]).value; });
             return { title: $('gf-title').value.trim().slice(0, 60), msg: $('gf-msg').value.trim().slice(0, 240), icon: icon, items: itemsOf(items),

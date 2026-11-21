@@ -385,8 +385,9 @@
            1. DỮ LIỆU TRỰC TIẾP (chỉ đọc)
            ===================================================================== */
         var DOCS = ['lixi_config', 'wheel_config', 'tranhthuong_config', 'point_shop_config', 'rps_config', 'con_config', 'attendance',
-            'attendance_reward_items', 'task_config', 'invite_config', 'transfer_config', 'security_config', 'account_config', 'registration_config', 'lucky_live', 'maintenance', 'ai_config'];
-        var L = { cfg: {}, got: {}, stock: {}, acc: null, accId: null, accLoaded: false, att: null, lucky: undefined, fb: false, online: false, role: 'user' };
+            'attendance_reward_items', 'task_config', 'invite_config', 'transfer_config', 'security_config', 'account_config', 'registration_config', 'lucky_live', 'maintenance', 'ai_config',
+            'point_cashout', 'lucky_reward_config', 'tournament_prize', 'call_guard', 'payout_config', 'video_share'];
+        var L = { cfg: {}, got: {}, stock: {}, acc: null, accId: null, accLoaded: false, att: null, lucky: undefined, fb: false, online: false, role: 'user', gifts: null, gotGift: {}, staff: {} };
         var db = null;
 
         function initFB() {
@@ -403,7 +404,14 @@
             [['wheel', 'wheel_stock'], ['tranh', 'tranhthuong_stock'], ['shop', 'point_shop_stock']].forEach(function (p) {
                 db.collection(p[1]).doc('counts').onSnapshot(function (s) { L.stock[p[0]] = (s.exists && s.data().counts) || {}; }, function () {});
             });
+            if (!GUEST && !LOCKED) {   // quà toàn hệ thống đang mở + danh sách Ban Quản Trị (để chỉ đúng người cần nhắn)
+                db.collection('gifts').where('enabled', '==', true).onSnapshot(function (q) { var a = []; q.forEach(function (x) { var g = x.data(); g.id = x.id; a.push(g); }); L.gifts = a; }, function () { L.gifts = []; });
+                ['admin', 'manager'].forEach(function (r) {
+                    db.collection('accounts').where('role', '==', r).onSnapshot(function (q) { var a = []; q.forEach(function (x) { var d = x.data(); if (d.user && d.isBlocked !== true) a.push({ u: d.user, n: d.fullName || d.user, owner: d.owner === true }); }); L.staff[r] = a; }, function () {});
+                });
+            }
             if (ME) {
+                db.collection('gift_claims').where('user', '==', ME).onSnapshot(function (q) { var o = {}; q.forEach(function (x) { o[x.data().giftId] = 1; }); L.gotGift = o; }, function () {});
                 db.collection('accounts').where('user', '==', ME).limit(1).onSnapshot(function (snap) {
                     L.accLoaded = true;
                     if (snap.empty) { L.acc = null; L.accId = null; } else { L.acc = snap.docs[0].data(); L.accId = snap.docs[0].id; }
@@ -593,6 +601,51 @@
                 return { live: l.isLive === true, total: list.length, next: next, last: done[done.length - 1] || null };
             }
         };
+        // Phần thưởng nhiều loại -> chữ: { points, spins, tickets, conThrows } + tiền mặt
+        var ITEM_U = { points: 'điểm lì xì', spins: 'lượt vòng quay', tickets: 'lượt rút lì xì', conThrows: 'lượt ném còn' };
+        function itemTxt(o, cash) {
+            var a = []; if (cash > 0) a.push('<b>' + fmt(cash) + 'đ tiền mặt</b>');
+            Object.keys(ITEM_U).forEach(function (k) { var n = num((o || {})[k], 0); if (n > 0) a.push('<b>+' + fmt(n) + ' ' + ITEM_U[k] + '</b>'); });
+            return a.join(', ');
+        }
+        // Đổi điểm ra tiền: settings/point_cashout (giống trang chính + máy chủ)
+        C.cashout = function () {
+            var c = L.cfg.point_cashout || {}, def = [10000, 20000, 50000, 100000];
+            var tiers = (Array.isArray(c.tiers) ? c.tiers : def).map(function (x) { return Math.round(+x); }).filter(function (x) { return x >= 1000; }).sort(function (a, b) { return a - b; });
+            var per = Math.max(1, Math.round(+c.per1000 || 1000));
+            return { on: c.isEnabled !== false, per: per, tiers: tiers.length ? tiers : def, daily: Math.max(0, Math.round(+c.dailyLimit || 0)), cost: function (a) { return Math.round(a * per / 1000); } };
+        };
+        // Thưởng Quay Số: settings/lucky_reward_config
+        C.luckyReward = function () {
+            var c = L.cfg.lucky_reward_config || {}, n0 = function (v) { v = parseInt(v, 10); return isNaN(v) || v < 0 ? 0 : v; };
+            var main = itemTxt(c.main, n0(c.cash)), near = c.nearOn === true ? itemTxt(c.near, n0(c.nearCash)) : '';
+            return { on: c.isEnabled === true && !!(main || near), split: c.mode === 'split', main: main, near: near, pts: n0((c.main || {}).points) };
+        };
+        // Thưởng Giải Đấu: settings/tournament_prize { single | double: { on, split, tiers: { champ, second, third, fourth, top8 } } }
+        C.tourPrize = function (f) {
+            var p = (L.cfg.tournament_prize || {})[f] || {}, T = { champ: '🥇 Vô Địch', second: '🥈 Á Quân', third: '🥉 Hạng Ba', fourth: 'Hạng Tư', top8: 'Tứ Kết' }, rows = [];
+            if (p.on !== true) return { on: false, rows: rows };
+            Object.keys(T).forEach(function (k) { var t = (p.tiers || {})[k] || {}, x = itemTxt(t, num(t.cash, 0)); var g = String(t.gift || '').trim(); if (g) x += (x ? ', ' : '') + '<b>' + esc(g) + '</b>'; if (x) rows.push([T[k], x]); });
+            return { on: rows.length > 0, rows: rows, team: p.split === 'team' };
+        };
+        // Bot kiểm soát cuộc gọi: settings/call_guard
+        C.callGuard = function () {
+            var g = L.cfg.call_guard || {};
+            return { on: g.on !== false, win: num(g.winDays, 30), warn: num(g.warnAt, 1), ban1: num(g.ban1At, 2), ban7: num(g.ban7At, 3), miss: num(g.missMax, 3), spamH: num(g.spamBanH, 3), rate: num(g.rateMax, 8), rateMin: num(g.rateMin, 10) };
+        };
+        C.payout = function () { return { on: (L.cfg.payout_config || {}).isEnabled !== false }; };
+        C.giftsOpen = function () {   // quà toàn hệ thống đang mở mà mình chưa nhận
+            var now = Date.now(), acc = L.acc;
+            return (L.gifts || []).filter(function (g) {
+                return g.enabled !== false && now >= (g.startAt || 0) && now <= (g.endAt || 0) && !(g.maxClaims && (g.claimCount || 0) >= g.maxClaims)
+                    && !(g.who === 'old' && acc && +acc.created_at && +acc.created_at >= g.startAt) && !L.gotGift[g.id];
+            });
+        };
+        C.staffTxt = function () {
+            var a = (L.staff.admin || []).slice().sort(function (x, y) { return (y.owner ? 1 : 0) - (x.owner ? 1 : 0); }), m = L.staff.manager || [];
+            var one = function (x) { return '<b>' + esc(x.n) + '</b>' + (x.n !== x.u ? ' (' + esc(x.u) + ')' : '') + (x.owner ? ' 👑' : ''); };
+            return { admins: a.map(one).join(', '), managers: m.map(one).join(', ') };
+        };
         var isWish = function (t) { var n = norm(t); return !t || /chuc may man|loi chuc|chuc tet|may man lan sau|ti nua|them ti/.test(n); };
         var DIFF_NAME = { easy: 'Dễ', normal: 'Thường', hard: 'Khó' };
 
@@ -626,16 +679,17 @@
               keys: ['tong quan', 'co che', 'he thong', 'quan doan', 'qd tlh', 'hoat dong the nao', 'gioi thieu', 'choi the nao', 'bat dau tu dau', 'nguoi moi', 'huong dan', 'luat', 'the le', 'cach choi', 'web nay', 'trang nay la gi', 'lam duoc gi'],
               ans: function () {
                   return P('<b>QĐ TLH</b> (Quân Đoàn T"L"Headshot) là cổng sự kiện Tết Đinh Mùi 2027 của team. Mọi hoạt động xoay quanh <b>4 loại tài sản</b> trong Túi đồ của bạn:')
-                      + UL(['💰 <b>Điểm lì xì</b> — "tiền tệ" chính. Kiếm từ đăng nhập, điểm danh, lì xì hằng ngày, Kéo Búa Bao, Ném Còn. Dùng để đổi lượt ở <b>Trạm Quy Đổi</b>.',
+                      + UL(['💰 <b>Điểm lì xì</b> — "tiền tệ" chính. Kiếm từ đăng nhập, điểm danh, lì xì hằng ngày, Kéo Búa Bao, Ném Còn... Dùng để đổi lượt ở <b>Trạm Quy Đổi</b> hoặc <b>đổi ra tiền mặt</b>.',
                           '🧧 <b>Lượt rút lì xì</b> — mở 1 trong 6 bao ở trang Rút Lì Xì, trúng tiền mặt hoặc lời chúc.',
                           '🎡 <b>Lượt vòng quay</b> — nhận được khi bạn là người <b>trả lời đúng sớm nhất</b> một câu hỏi ở trang Vòng Quay.',
                           '🎯 <b>Lượt ném còn</b> — chơi Ném Còn để kiếm thêm điểm.'])
-                      + P('Vòng lặp chính: <b>làm nhiệm vụ hằng ngày → tích điểm → đổi lượt → trúng thưởng</b>. Ngoài ra còn Quay Số May Mắn theo giờ, Giải đấu máy chủ, Trò chuyện nội bộ và Bản tin Quân Đoàn.')
+                      + P('Vòng lặp chính: <b>làm nhiệm vụ hằng ngày → tích điểm → đổi lượt / đổi tiền → trúng thưởng</b>. Ngoài ra còn Quay Số May Mắn theo giờ, Giải đấu, Quà toàn hệ thống, Video chia sẻ, Trò chuyện & gọi điện nội bộ và Bản tin Quân Đoàn.')
+                      + (GUEST ? '' : P('🖥️ Mọi điểm và lượt đều do <b>máy chủ của Quân Đoàn</b> tính và ghi lại — công bằng cho tất cả, không ai tự sửa được.'))
                       + (GUEST ? P('👉 Mọi tính năng chỉ mở sau khi bạn <b>có tài khoản và đăng nhập</b>. Tạo tài khoản ngay để bắt đầu nhận lộc!') : '');
               },
               acts: function () {
                   return GUEST ? [{ t: '📝 Đăng ký ngay', do: 'register' }, { t: '📋 Cách tạo tài khoản', ask: 'register' }]
-                      : [{ t: '📖 Tóm tắt từng mục', ask: 'userpage' }, { t: '📅 Hôm nay nên làm gì?', ask: 'today' }, { t: '💰 Cách kiếm điểm', ask: 'points' }, { t: '🎟️ Lấy lượt ở đâu', ask: 'turns' }];
+                      : [{ t: '📖 Tóm tắt từng mục', ask: 'userpage' }, { t: '📅 Hôm nay nên làm gì?', ask: 'today' }, { t: '💰 Cách kiếm điểm', ask: 'points' }, { t: '🎟️ Lấy lượt ở đâu', ask: 'turns' }, { t: '💵 Đổi điểm ra tiền', ask: 'cashout' }];
               } },
 
             { id: 'today', icon: '📅', title: 'Hôm nay mình nên làm gì?',
@@ -671,6 +725,7 @@
                       : { c: 'wt', i: '🎯', t: 'Chưa nhận <b>' + cn.free + ' lượt ném miễn phí</b> — vào sân Ném Còn để nhận' });
                   if ((acc.spins || 0) > 0) rows.push({ c: 'wt', i: '🎡', t: 'Bạn đang giữ <b>' + acc.spins + ' lượt vòng quay</b> chưa dùng' });
                   if ((acc.tickets || 0) > 0) rows.push({ c: 'wt', i: '🧧', t: 'Bạn còn <b>' + acc.tickets + ' lượt rút lì xì</b> — mở bao thôi!' });
+                  var gf = C.giftsOpen(); if (gf.length) rows.push({ c: 'wt', i: '🎁', t: 'Có <b>' + gf.length + ' quà toàn hệ thống</b> bạn chưa nhận: <b>' + esc(gf[0].title || 'Quà') + '</b>' + (gf.length > 1 ? ' và ' + (gf.length - 1) + ' quà khác' : '') + ' (hạn ' + fmtWhen(gf[0].endAt) + ')' });
                   if (L.lucky === null) rows.push({ c: 'no', i: '🔢', t: 'Bạn <b>chưa chọn số may mắn</b>' + (lk.next ? ' — lượt quay tới lúc ' + fmtWhen(lk.next.at) : '') });
                   else if (L.lucky && L.lucky.number) rows.push({ c: 'ck', i: '🔢', t: 'Số may mắn của bạn: <b>' + pad(parseInt(L.lucky.number, 10)) + '</b>' + (lk.next ? ' · quay lúc ' + fmtWhen(lk.next.at) : '') });
                   return P('Việc hôm nay của <b>' + esc(ME) + '</b>:') + UL(rows) + LIVE();
@@ -681,6 +736,7 @@
                   if (L.acc && L.acc.spins > 0) a.push({ t: '🎡 Vòng quay', go: 'qt.html' });
                   if (L.acc && L.acc.tickets > 0) a.push({ t: '🎁 Rút lì xì', go: 'tranht.html' });
                   if (L.lucky === null) a.push({ t: '🔢 Chọn số', do: 'lucky' });
+                  if (C.giftsOpen().length) a.push({ t: '🎁 Mở quà', do: 'gifts' });
                   return a;
               } },
 
@@ -704,13 +760,16 @@
                       C.attReward().on ? '✅ Điểm danh đúng khung ' + a.start + ' – ' + a.end + ': <b>+' + (t.att + C.attReward().pts) + '</b>' : '',
                       '🧧 Lì xì hằng ngày: <b>' + lx.min + '–' + lx.max + '</b> điểm/lần, ' + lx.limit + ' lần/ngày',
                       '⚔️ Kéo Búa Bao: thắng <b>' + pts(r.win) + '</b>, thua <b>' + pts(r.lose) + '</b>',
-                      '🎯 Ném Còn: lọt vòng <b>+' + cn.hit + '</b>, chạm vành <b>+' + cn.rim + '</b>' + (cn.every > 1 && cn.bonus > 0 ? ', mỗi ' + cn.every + ' lần lọt liên tiếp thêm <b>+' + cn.bonus + '</b>' : '')
+                      '🎯 Ném Còn: lọt vòng <b>+' + cn.hit + '</b>, chạm vành <b>+' + cn.rim + '</b>' + (cn.every > 1 && cn.bonus > 0 ? ', mỗi ' + cn.every + ' lần lọt liên tiếp thêm <b>+' + cn.bonus + '</b>' : ''),
+                      C.luckyReward().pts > 0 ? '🔢 Trúng Quay Số May Mắn: <b>+' + fmt(C.luckyReward().pts) + '</b>' : '',
+                      '🎁 Quà toàn hệ thống, 🤝 mã mời, 🏆 thưởng Giải Đấu — khi Ban Quản Trị mở'
                   ]) + '<h4 style="margin-top:10px">Dùng điểm để làm gì</h4>' + UL([
                       '🏪 Trạm Quy Đổi: đổi lấy lượt rút lì xì / lượt ném còn (từ <b>' + fmt(minCost) + ' điểm</b>)',
-                      '⚔️ Vào bàn Kéo Búa Bao cần có ít nhất <b>' + r.fee + ' điểm</b>'
-                  ]) + (L.acc ? P('Bạn đang có <b>' + fmt(L.acc.points) + ' điểm</b>.') : '') + LIVE();
+                      C.cashout().on ? '💵 Đổi ra <b>tiền mặt</b>: <b>' + fmt(C.cashout().cost(10000)) + ' điểm = 10.000đ</b>, Ban Quản Trị chuyển khoản' : '',
+                      '⚔️ Vào bàn Kéo Búa Bao cần có ít nhất <b>' + r.fee + ' điểm</b> (không bị trừ khi vào)'
+                  ]) + (L.acc ? P('Bạn đang có <b>' + fmt(L.acc.points) + ' điểm</b>.') : '') + P('🖥️ Điểm được <b>máy chủ</b> cộng / trừ và ghi vào <b>Lịch sử</b> — thao tác lỗi giữa chừng thì không bị trừ.') + LIVE();
               },
-              acts: [{ t: '🏪 Trạm Quy Đổi', ask: 'shop' }, { t: '📅 Việc hôm nay', ask: 'today' }] },
+              acts: [{ t: '🏪 Trạm Quy Đổi', ask: 'shop' }, { t: '💵 Đổi ra tiền', ask: 'cashout' }, { t: '📅 Việc hôm nay', ask: 'today' }] },
 
             { id: 'turns', icon: '🎟️', title: 'Lấy lượt quay / lượt rút / lượt ném ở đâu?',
               keys: ['luot', 'lay luot', 'them luot', 'kiem luot', 'nhan luot', 'het luot', 'mua luot', 'lam sao co luot', 'nguon luot', 've', 'luot quay o dau', 'luot rut o dau', 'khong co luot'],
@@ -720,7 +779,7 @@
                       + '<h4 style="margin-top:10px">🧧 Lượt rút lì xì</h4>' + UL(['Đổi điểm ở <b>Trạm Quy Đổi</b>',
                           iv.on && iv.me.tickets ? 'Nhập <b>mã mời</b> của bạn bè: bạn nhận <b>+' + iv.me.tickets + ' lượt</b>' : (iv.on ? '' : 'Mã mời (hiện Ban Quản Trị đang tắt)'),
                           ar.line('tickets'),
-                          'Đồng đội tặng, hoặc Ban Quản Trị tặng'])
+                          'Đồng đội tặng, Ban Quản Trị tặng, hoặc <b>Quà toàn hệ thống</b> (khi có)'])
                       + '<h4 style="margin-top:10px">🎯 Lượt ném còn</h4>' + UL([cn.free > 0 ? '<b>' + cn.free + ' lượt miễn phí mỗi ngày</b> nhận ngay tại sân' : '', 'Đổi điểm ngay tại sân hoặc ở Trạm Quy Đổi', iv.on && iv.me.conThrows ? 'Nhập <b>mã mời</b>: <b>+' + iv.me.conThrows + ' lượt</b>' : '', ar.line('conThrows'), 'Ban Quản Trị tặng']) + LIVE();
               },
               acts: [{ t: '🧠 Câu hỏi nhận lượt quay', ask: 'quiz' }, { t: '🏪 Trạm Quy Đổi', ask: 'shop' }, { t: '🤝 Mã mời', ask: 'invite' }] },
@@ -734,7 +793,8 @@
                           ar.ends ? '⏰ Vật phẩm có hạn: ' + ar.ends + '.' : '',
                           ar.later ? '⏳ Sắp có thêm: ' + ar.later + '.' : '',
                           'Vào mục <b>Điểm Danh</b> → bấm nút xanh <b>"Xác nhận có mặt"</b>. Ngoài khung giờ nút sẽ bị khóa.',
-                          a.anti ? '🛡️ Đang bật <b>chống điểm danh hộ</b>: mỗi thiết bị và mỗi mạng Internet chỉ điểm danh cho <b>1 tài khoản/ngày</b>.' : 'Chống điểm danh hộ đang tắt.',
+                          a.anti ? '🛡️ Đang bật <b>chống điểm danh hộ</b>: mỗi thiết bị và mỗi địa chỉ mạng (máy chủ tự nhận) chỉ điểm danh cho <b>1 tài khoản/ngày</b>.' : 'Chống điểm danh hộ đang tắt.',
+                          'Máy chủ kiểm tra giờ, ghi sổ điểm danh và cộng thưởng — bấm lại lần 2 sẽ báo "đã điểm danh", không cộng thêm.',
                           'Danh sách ai đã điểm danh hôm nay hiện ngay bên dưới nút.'])
                       + (ME && L.att != null ? P(L.att ? '✅ Bạn <b>đã điểm danh</b> hôm nay.' : '⬜ Bạn <b>chưa điểm danh</b> hôm nay.') : '') + LIVE();
               },
@@ -745,7 +805,7 @@
               ans: function () {
                   var a = C.att();
                   return P(a.anti ? 'Chế độ <b>chống điểm danh hộ</b> đang bật. Hệ thống từ chối khi:' : 'Hiện Ban Quản Trị đang <b>tắt</b> chống điểm danh hộ, nhưng quy tắc vẫn là:')
-                      + UL(['Thiết bị này đã điểm danh cho <b>một tài khoản khác</b> trong hôm nay.', 'Mạng Internet (Wi-Fi/4G) bạn đang dùng đã được dùng để điểm danh cho người khác hôm nay.'])
+                      + UL(['Thiết bị này đã điểm danh cho <b>một tài khoản khác</b> trong hôm nay.', 'Địa chỉ mạng (Wi-Fi / 4G) mà <b>máy chủ</b> nhận được từ bạn đã được dùng để điểm danh cho người khác hôm nay — thông báo lỗi sẽ ghi rõ địa chỉ và tên người đó.'])
                       + P('Cách xử lý: dùng <b>điện thoại và mạng của chính bạn</b> (ví dụ tắt Wi-Fi chung, chuyển sang 4G). Nếu bạn và đồng đội ở chung nhà/chung Wi-Fi, hãy nhắn <b>Ban Quản Trị</b> để được ghi nhận thủ công.')
                       + '<span class="note">Mỗi tài khoản chỉ nên điểm danh bằng thiết bị của chính chủ — điểm danh hộ là vi phạm quy định Quân Đoàn.</span>';
               },
@@ -843,7 +903,10 @@
                   return P('<b>Đấu trường Kéo Búa Bao</b> ' + st + ' — mở từ <b>' + r.start + '</b> đến <b>' + r.end + '</b>.')
                       + UL(['Bấm <b>Tìm đối thủ ngay</b>: hệ thống tự ghép với người đang chờ.', 'Đấu 1 chọi 1, <b>ai thắng 2 hiệp trước thắng trận</b>. Hòa thì đánh lại hiệp đó.',
                           '✊ Búa thắng ✌️ Kéo · ✌️ Kéo thắng 🖐️ Bao · 🖐️ Bao thắng ✊ Búa', 'Mỗi lượt có <b>' + r.limit + ' giây</b> để ra chiêu — hết giờ không chọn là <b>thua hiệp đó</b>.',
-                          'Cần ít nhất <b>' + r.fee + ' điểm</b> để vào bàn.', 'Kết quả: thắng <b>' + pts(r.win) + ' điểm</b>, thua <b>' + pts(r.lose) + ' điểm</b>.',
+                          'Cần có ít nhất <b>' + r.fee + ' điểm</b> để vào bàn (không bị trừ khi vào).', 'Kết quả: thắng <b>' + pts(r.win) + ' điểm</b>, thua <b>' + pts(r.lose) + ' điểm</b>.',
+                          '🙈 Chiêu bạn chọn được <b>máy chủ giữ kín</b> tới lúc lật bài — đối thủ chỉ thấy "Đã ra chiêu!", không thể nhìn trộm.',
+                          '🖥️ Máy chủ ghép trận, chấm từng hiệp, tự xử thua khi hết giờ và cộng / trừ điểm lúc kết thúc — không phụ thuộc máy ai còn mở.',
+                          'Rời phòng giữa trận thì trận <b>bị hủy</b>: không ai được hay mất điểm.',
                           '🏅 Thắng 50 trận để mở thành tựu <b>Chiến Thần Kéo Búa Bao</b>.']) + LIVE();
               },
               acts: [{ t: '⚔️ Vào đấu trường', do: 'rps' }] },
@@ -853,7 +916,8 @@
               ans: function () {
                   var c = C.con();
                   return P('<b>Ném Còn</b> ' + (c.on ? TAG('ok', 'ĐANG MỞ') : TAG('no', 'ĐANG ĐÓNG')) + ' — trò dân gian: ném quả còn lọt qua vòng treo trên cột tre. Độ khó: <b>' + DIFF_NAME[c.diff] + '</b>.')
-                      + UL(['Chạm sân rồi <b>vuốt lên</b>: vuốt dài ném cao, vuốt chéo để đổi hướng.', c.wind ? 'Để ý <b>gió</b> 🍃 — gió thổi lệch quả còn, hãy ném bù.' : '',
+                      + UL(['Chạm sân rồi <b>vuốt lên</b>: vuốt dài ném cao, vuốt chéo để đổi hướng.', c.wind ? 'Để ý <b>gió</b> 🍃 (máy chủ đặt, đổi sau mỗi lần ném) — gió thổi lệch quả còn, hãy ném bù.' : '',
+                          '🖥️ Máy chủ tính đường bay để chấm <b>lọt vòng / chạm vành / trượt</b>, trừ lượt và cộng điểm. Ném dồn dập (dưới ~1 giây / lần) thì lần đó không được tính, lượt giữ nguyên.',
                           'Mỗi lần ném tốn <b>1 lượt ném còn</b>.', '🎯 Lọt vòng <b>+' + c.hit + '</b> · 🥏 Chạm vành <b>+' + c.rim + '</b>' + (c.every > 1 && c.bonus > 0 ? ' · 🔥 Mỗi ' + c.every + ' lần lọt liên tiếp <b>+' + c.bonus + '</b>' : '') + ' điểm',
                           c.free > 0 ? 'Mỗi ngày nhận <b>' + c.free + ' lượt miễn phí</b> ngay tại sân.' : '', c.shop ? 'Hết lượt: đổi điểm lấy lượt ngay tại sân (nút 🏪).' : '',
                           'Có <b>Bảng xếp hạng</b> theo số lần ném trúng.'])
@@ -866,7 +930,8 @@
               ans: function () {
                   var k = C.lucky(), s = P('<b>Quay Số May Mắn</b>: mỗi thành viên chọn <b>1 con số từ 01 đến 100</b> (thẻ 🎯 Quay Số May Mắn ở Trang chủ).')
                       + UL(['Chọn xong số sẽ <b>bị khóa</b>; muốn đổi phải được Ban Quản Trị cho phép sửa.', 'Nhiều người có thể chọn trùng một số — trúng thì tất cả cùng được vinh danh.',
-                          'Đến giờ hẹn, hệ thống quay ra 1 số và mọi người xem <b>trực tiếp</b> cùng lúc ở trang Quay Số Đầu Xuân.', 'Ai có số trùng kết quả là <b>trúng thưởng</b>; lịch sử các lượt được lưu lại.']);
+                          'Đến giờ hẹn, <b>máy chủ tự quay</b> ra 1 số (không cần ai mở trang) và mọi người xem <b>trực tiếp</b> cùng lúc ở trang Quay Số Đầu Xuân.', 'Ai có số trùng kết quả là <b>trúng thưởng</b>; lịch sử các lượt được lưu lại.',
+                          (function () { var lr = C.luckyReward(); return lr.on ? '🎁 Thưởng: ' + (lr.main || 'theo Ban Quản Trị') + (lr.split ? ' (chia đều cho những người cùng trúng)' : ' cho mỗi người trúng') + (lr.near ? '; lệch 1 số (giải phụ): ' + lr.near : '') + '. Điểm / lượt máy chủ cộng ngay, tiền mặt Ban Quản Trị chuyển khoản.' : ''; })()]);
                   if (k.next) s += P('⏰ Lượt quay tới: <b>' + esc(k.next.label || 'Lượt kế tiếp') + '</b> lúc <b>' + fmtWhen(k.next.at) + '</b> (còn ' + fmtLeft(k.next.at - Date.now()) + ').');
                   else if (k.total) s += P('Các lượt quay đã lên lịch đều đã diễn ra.');
                   if (k.last) s += P('Kết quả gần nhất: <b>' + pad(parseInt(k.last.number, 10)) + '</b>' + (k.last.label ? ' (' + esc(k.last.label) + ')' : '') + '.');
@@ -914,19 +979,101 @@
               keys: ['tui do', 'tui qua', 'lich su', 'lich su nhan qua', 'lich su giao dich', 'xem lai', 'bien dong', 'kho do'],
               ans: function () {
                   return P('<b>Túi Quà Cá Nhân</b> (bấm vào ô điểm ở Trang chủ) hiển thị:')
-                      + UL(['💰 Điểm lì xì (nút <b>Đổi quà</b>), 🧧 Lượt rút lì xì (nút <b>Rút ngay</b>), 🎡 Lượt vòng quay (nút <b>Quay ngay</b>).', '<b>Lịch sử nhận quà</b> lọc theo: Tiền · Lì xì · Vòng quay · Điểm.',
+                      + UL(['💰 Điểm lì xì (nút <b>Đổi quà</b> và <b>Đổi ra tiền</b>), 🧧 Lượt rút lì xì (nút <b>Rút ngay</b>), 🎡 Lượt vòng quay (nút <b>Quay ngay</b>).', '<b>Lịch sử nhận quà</b> lọc theo: Tiền · Lì xì · Vòng quay · Điểm.',
+                          '🏦 Nút <b>tài khoản nhận thưởng</b> để khai số tài khoản nhận tiền mặt.',
                           'Túi đồ tự đồng bộ với máy chủ, không cần tải lại trang.', 'Từng trò còn có nút Lịch sử riêng (Vòng Quay, Rút Lì Xì, Ném Còn...).']);
               },
               acts: [{ t: '🎒 Mở Túi đồ', do: 'inventory' }] },
 
             { id: 'claim', icon: '💵', title: 'Trúng tiền mặt thì nhận thế nào?',
-              keys: ['nhan tien', 'tra thuong', 'trao thuong', 'rut tien', 'bao gio nhan', 'nhan qua the nao', 'trung roi', 'chuyen khoan', 'nhan thuong', 'xac nhan nhan qua', 'tien mat'],
+              keys: ['nhan tien', 'tra thuong', 'trao thuong', 'rut tien', 'bao gio nhan', 'nhan qua the nao', 'trung roi', 'chuyen khoan', 'nhan thuong', 'xac nhan nhan qua', 'tien mat',
+                  'trung tien nhan', 'tien nhan the nao', 'nhan giai', 'tai khoan nhan thuong', 'khai tai khoan', 'so tai khoan', 'ngan hang', 'chuyen khoan chua', 'bao gio chuyen', 'chua nhan duoc tien'],
               ans: function () {
-                  return P('Khi trúng giải tiền mặt ở Vòng Quay hoặc Rút Lì Xì:')
-                      + UL(['Kết quả được <b>ghi tự động</b> vào lịch sử (có thời gian, tên giải) — Ban Quản Trị đối soát theo dữ liệu này.', 'Bạn xem lại ở nút <b>Lịch sử</b> trên trang trò chơi hoặc mục <b>💵 Tiền</b> trong Túi đồ.',
-                          'Ban Quản Trị sẽ liên hệ và <b>trao thưởng trực tiếp</b>. Nên chụp màn hình kết quả để đối chiếu khi cần.', 'Có thắc mắc về phần thưởng, nhắn <b>Ban Quản Trị</b> qua Trò Chuyện Nội Bộ.']);
+                  var pay = C.payout();
+                  return P('Tiền mặt đến từ: 🎡 Vòng Quay, 🧧 Rút Lì Xì, 🔢 Quay Số, 🏆 Giải Đấu và 💵 Đổi điểm ra tiền.')
+                      + UL(['Kết quả trúng giải do <b>máy chủ ghi tự động</b> (có thời gian, tên giải) — Ban Quản Trị trả thưởng theo đúng dữ liệu này, không ai sửa được.',
+                          pay.on ? '🏦 Khai <b>tài khoản nhận thưởng</b> 1 lần trong <b>Hồ sơ</b> (hoặc nút 🏦 trong Túi đồ): chọn ngân hàng, số tài khoản, tên chủ tài khoản. Khai xong bị khóa — muốn đổi phải nhờ Ban Quản Trị mở.' : '',
+                          'Ban Quản Trị <b>chuyển khoản</b> theo danh sách chờ trả. Ở Hồ sơ bạn thấy số tiền <b>Đã chuyển khoản</b> và <b>Chờ chuyển</b>.',
+                          'Xem lại từng giải ở nút <b>Lịch sử</b> trên trang trò chơi hoặc mục <b>💵 Tiền</b> trong Túi đồ.', 'Có thắc mắc, nhắn <b>Ban Quản Trị</b> qua Trò Chuyện Nội Bộ.']) + LIVE();
+              },
+              acts: [{ t: '🏦 Khai tài khoản nhận thưởng', do: 'bank' }, { t: '💬 Nhắn Ban Quản Trị', do: 'chat' }] },
+
+            { id: 'cashout', icon: '💵', title: 'Đổi điểm lì xì ra tiền mặt',
+              keys: ['doi tien', 'doi ra tien', 'doi diem ra tien', 'rut diem', 'quy doi tien', 'doi diem lay tien', 'ban diem', 'diem ra tien', 'tien mat tu diem', 'cashout', 'doi diem thanh tien', 'muc doi tien', 'han muc', 'doi duoc moc nao', 'moc nao', 'moc doi', 'doi duoc bao nhieu tien', 'ti gia'],
+              ans: function () {
+                  var c = C.cashout(), pay = C.payout();
+                  var rows = c.tiers.map(function (a) { return [fmt(a) + 'đ', fmt(c.cost(a)) + ' điểm']; });
+                  var s = P('<b>Đổi Điểm Lì Xì Ra Tiền</b> ' + (c.on ? TAG('ok', 'ĐANG MỞ') : TAG('no', 'ĐANG ĐÓNG')) + ' — tỉ giá <b>' + fmt(c.cost(10000)) + ' điểm = 10.000đ</b>.') + TBL(rows)
+                      + UL(['Mở từ nút <b>💵 Đổi điểm lì xì ra tiền mặt</b> ở Trạm Quy Đổi, hoặc nút <b>Đổi ra tiền</b> trong Túi đồ.',
+                          'Cần khai <b>tài khoản nhận tiền</b> trước' + (pay.on ? ' (Hồ sơ → 🏦, khai 1 lần)' : '') + '.',
+                          c.daily > 0 ? 'Mỗi người đổi tối đa <b>' + fmt(c.daily) + 'đ/ngày</b> (làm mới lúc 0 giờ).' : '',
+                          'Bấm mốc → xác nhận: <b>máy chủ trừ điểm ngay</b> và tạo đơn <b>chờ chuyển khoản</b>. Không đủ điểm / quá hạn mức thì không trừ gì.',
+                          'Ban Quản Trị chuyển khoản theo đơn. Nếu đơn <b>không được duyệt</b>, điểm được <b>hoàn lại</b> đầy đủ.', 'Lịch sử và trạng thái từng đơn hiện ngay trong hộp đổi tiền.']);
+                  if (L.acc) { var a = L.acc.points || 0, can = c.tiers.filter(function (t) { return c.cost(t) <= a; }); s += P('Bạn có <b>' + fmt(a) + ' điểm</b> — ' + (can.length ? 'đổi được tối đa mốc <b>' + fmt(can[can.length - 1]) + 'đ</b>.' : 'chưa đủ cho mốc nhỏ nhất (' + fmt(c.cost(c.tiers[0])) + ' điểm).')); }
+                  return s + LIVE();
+              },
+              acts: [{ t: '💵 Mở đổi tiền', do: 'cashout' }, { t: '🏦 Khai tài khoản nhận tiền', do: 'bank' }, { t: '💰 Cách kiếm điểm', ask: 'points' }] },
+
+            { id: 'gifts', icon: '🎁', title: 'Quà toàn hệ thống',
+              keys: ['qua toan he thong', 'qua he thong', 'qua tang', 'hop qua', 'mo qua', 'nhan qua', 'qua su kien', 'qua chung', 'giftcode', 'qua mien phi', 'qua admin tang'],
+              ans: function () {
+                  var all = (L.gifts || []).filter(function (g) { return Date.now() <= (g.endAt || 0); }), mine = C.giftsOpen();
+                  var s = P('<b>Quà toàn hệ thống</b>: Ban Quản Trị tặng cả Quân Đoàn theo dịp — điểm lì xì, lượt quay, lượt rút, lượt ném.')
+                      + UL(['Khi có quà, <b>hộp quà tự hiện</b> lúc bạn mở trang chính → bấm <b>Mở quà</b>.', 'Mỗi người nhận <b>1 lần</b>/quà; quà có <b>giờ mở – giờ đóng</b> và có thể giới hạn số người nhận (ai nhanh tay trước).',
+                          'Có quà chỉ dành cho <b>tài khoản tạo trước</b> lúc mở quà.', 'Máy chủ kiểm tra rồi cộng thẳng vào Túi đồ, ghi Lịch sử.']);
+                  if (all.length) s += '<h4 style="margin-top:10px">Quà hiện có</h4>' + TBL(all.slice(0, 6).map(function (g) {
+                      var st = L.gotGift[g.id] ? TAG('ok', 'Đã nhận') : Date.now() < (g.startAt || 0) ? TAG('wt', 'Mở ' + fmtWhen(g.startAt)) : (g.maxClaims && (g.claimCount || 0) >= g.maxClaims) ? TAG('no', 'Hết quà') : TAG('wt', 'Chờ nhận');
+                      return [esc((g.icon || '🎁') + ' ' + (g.title || 'Quà')) + '<br><small>' + itemTxt(g.items, 0) + ' · hạn ' + fmtWhen(g.endAt) + '</small>', st];
+                  }));
+                  else s += P('Hiện <b>chưa có quà</b> nào đang mở — theo dõi Bản tin nhé.');
+                  return s + LIVE();
+              },
+              acts: function () { return C.giftsOpen().length ? [{ t: '🎁 Mở quà ngay', do: 'gifts' }] : [{ t: '📰 Bản tin', do: 'news' }]; } },
+
+            { id: 'calls', icon: '📞', title: 'Gọi thoại / gọi video & khóa gọi',
+              keys: ['goi dien', 'goi thoai', 'goi video', 'cuoc goi', 'video call', 'khoa goi', 'bi khoa goi', 'khong goi duoc', 'chan goi', 'bao cao cuoc goi', 'quay roi', 'goi nho', 'cuoc goi nho', 'do chuong', 'nhac chuong', 'goi khong nghe'],
+              ans: function () {
+                  var g = C.callGuard();
+                  return '<h4>📞 Cách gọi</h4>' + UL(['Mở phòng chat riêng với người đó → bấm nút <b>📞 gọi thoại</b> hoặc <b>🎥 gọi video</b>.', 'Đổ chuông tối đa <b>45 giây</b>; không nghe thì thành <b>📵 Cuộc gọi nhỡ</b> trong tin nhắn.',
+                          'Trong cuộc gọi video: đổi camera, hiệu ứng Tết, chia sẻ màn hình, loa ngoài.', 'Muốn điện thoại đổ chuông khi đã thoát app: dùng <b>app QD Elite (Android)</b> và bật đủ quyền ở Cài đặt → 📞 Nhận cuộc gọi khi tắt app.',
+                          'Âm thanh / hình nối thẳng giữa 2 máy; mạng chặn kết nối thẳng (hay gặp ở 4G) thì đi qua máy chủ trung chuyển của Quân Đoàn.'])
+                      + '<h4 style="margin-top:10px">🛡️ An toàn khi gọi</h4>' + UL(['Gặp quấy rối / xúc phạm / đe dọa: bấm <b>🚩</b> trong cuộc gọi để báo cáo (kèm ảnh bằng chứng) hoặc <b>chặn</b> người đó.',
+                          g.on ? '🤖 <b>Bot kiểm soát</b> tự chạy: đủ <b>' + g.ban1 + ' người khác nhau</b> báo cáo trong ' + g.win + ' ngày → khóa gọi 1 ngày; ' + g.ban7 + ' người → 7 ngày (1 người không tự khóa được ai).' : 'Bot kiểm soát cuộc gọi đang tắt — Ban Quản Trị xử lý báo cáo thủ công.',
+                          g.on ? 'Gọi dồn dập: người nhận không nghe ≥ <b>' + g.miss + ' cuộc liên tiếp</b> thì tự từ chối và tạm chặn gọi lại; gọi quá <b>' + g.rate + ' người</b> trong ' + g.rateMin + ' phút thì tạm dừng.' : '',
+                          'Bị khóa gọi: hiện hộp cảnh báo kèm giờ hết khóa. Thấy bị khóa oan → nhắn <b>Ban Quản Trị</b>, BQT gỡ được ngay.']) + LIVE();
+              },
+              acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }, { t: '🔔 Thông báo & app', ask: 'notif' }] },
+
+            { id: 'videos', icon: '🎬', title: 'Video chia sẻ',
+              keys: ['video', 'chia se video', 'youtube', 'tiktok', 'dang video', 'xem video', 'muc video', 'gui video', 'go video'],
+              ans: function () {
+                  var it = ((L.cfg.video_share || {}).items || []).filter(function (x) { return x && !x.hidden; });
+                  return P('Mục <b>🎬 Video Chia Sẻ</b>: video hay của anh em Quân Đoàn, chạm là xem ngay.' + (it.length ? ' Hiện có <b>' + it.length + ' video</b>.' : ''))
+                      + UL(['Bấm <b>➕ Chia sẻ video của bạn</b> → dán link <b>YouTube</b> hoặc <b>TikTok</b> → đặt tiêu đề → gửi.', 'Mỗi người chia sẻ tối đa <b>3 video/ngày</b>; video đã có rồi thì không đăng trùng.',
+                          'Bạn tự <b>gỡ</b> được video của mình (mở video → nút gỡ). Ban Quản Trị có thể ghim hoặc ẩn video.']);
+              },
+              acts: [{ t: '🎬 Mở mục Video', do: 'videos' }] },
+
+            { id: 'roles', icon: '👥', title: 'Ban Quản Trị gồm ai? Phân quyền',
+              keys: ['ban quan tri gom ai', 'ai la admin', 'admin la ai', 'quan ly la ai', 'phan quyen', 'vai tro', 'chu he thong', 'quan tri vien', 'ai quan ly', 'bqt la ai', 'cap quyen', 'quyen han'],
+              ans: function () {
+                  var st = C.staffTxt();
+                  return UL(['👤 <b>Thành viên</b>: chơi, nhận thưởng, chat, gọi điện.', '🧑‍💼 <b>Quản lý</b>: giúp duyệt và quản lý thành viên theo quyền được giao (không đổi được vai trò hay quyền).',
+                          '🛡️ <b>Quản trị viên</b>: cấu hình toàn bộ sự kiện, trả thưởng.', '👑 <b>Chủ hệ thống</b>: toàn quyền, kể cả máy chủ và phân quyền.'])
+                      + (st.admins ? P('Quản trị viên: ' + st.admins + '.') : '') + (st.managers ? P('Quản lý: ' + st.managers + '.') : '')
+                      + P('Cần hỗ trợ: nhắn một người trong Ban Quản Trị qua <b>Trò Chuyện Nội Bộ</b>.');
               },
               acts: [{ t: '💬 Nhắn Ban Quản Trị', do: 'chat' }] },
+
+            { id: 'fair', icon: '🖥️', title: 'Điểm có bị tính sai / mất không?',
+              keys: ['tinh diem o dau', 'may chu', 'server', 'vps', 'bi tru oan', 'diem bi sai', 'khong duoc cong', 'chua duoc cong', 'cong thieu', 'mat luot', 'bi tru 2 lan', 'tru hai lan', 'diem co an toan', 'du lieu co mat', 'cong bang'],
+              ans: function () {
+                  return UL(['Điểm, lượt và kết quả mọi trò (lì xì, vòng quay, rút lì xì, quay số, Kéo Búa Bao, Ném Còn, đổi quà, đổi tiền...) đều do <b>máy chủ</b> tính và ghi — máy bạn chỉ hiển thị.',
+                          'Máy chủ chỉ báo "xong" sau khi đã lưu. Lỗi hoặc mất mạng giữa chừng thì <b>không trừ</b>; bấm lại / gửi lại cũng <b>không bị trừ 2 lần</b>.',
+                          'Mỗi lần cộng / trừ đều có trong <b>Lịch sử</b> (Túi đồ) kèm thời gian, lý do.', 'Dữ liệu được sao lưu tự động mỗi đêm.',
+                          'Thấy sai thật: chụp màn hình Lịch sử + ghi giờ, nhắn <b>Ban Quản Trị</b> để đối soát.']);
+              },
+              acts: [{ t: '🎒 Mở Túi đồ', do: 'inventory' }, { t: '💬 Nhắn Ban Quản Trị', do: 'chat' }] },
 
             { id: 'register', icon: '📝', title: 'Cách tạo tài khoản',
               keys: ['dang ky', 'tao tai khoan', 'lap tai khoan', 'dang ky tai khoan', 'tao acc', 'tao nick', 'lam tai khoan', 'tham gia', 'gia nhap', 'vao team', 'ten dang nhap', 'mo tai khoan', 'chua co tai khoan', 'thanh vien moi'],
@@ -972,7 +1119,8 @@
               ans: function () {
                   return UL(['Đăng nhập ở <b>trang chính</b> (user.html) bằng tên đăng nhập + mật khẩu đã đăng ký. Tích <b>"Ghi nhớ"</b> để lần sau khỏi gõ lại.',
                           'Báo "thông tin không chính xác": kiểm tra chữ hoa/thường, khoảng trắng thừa, hoặc tài khoản <b>chưa được duyệt</b>.', (function () { var se = C.account().sess; return se > 0 ? 'Không thao tác quá <b>' + fmtMin(se) + '</b>, phiên đăng nhập <b>tự thoát ở mọi trang</b> đang mở (còn 60 giây sẽ có nhắc "Tiếp tục") — chỉ cần đăng nhập lại. Đăng xuất ở 1 trang là các trang khác thoát theo.' : 'Phiên đăng nhập không tự hết hạn; bấm <b>Đăng xuất</b> là mọi trang đang mở cùng thoát.'; })(),
-                          '<b>Quên mật khẩu</b>: hệ thống không có nút tự lấy lại — hãy nhắn <b>Ban Quản Trị</b> để được cấp lại.', 'Đăng nhập lần đầu mỗi ngày còn được <b>+' + C.task().login + ' điểm</b>.']);
+                          '<b>Quên mật khẩu</b>: hệ thống không có nút tự lấy lại — hãy nhắn <b>Ban Quản Trị</b> để được cấp lại.', 'Đăng nhập lần đầu mỗi ngày còn được <b>+' + C.task().login + ' điểm</b> (máy chủ cộng, mỗi ngày 1 lần).',
+                          'Trang tự đưa về màn hình đăng nhập khi <b>phiên hết hạn</b> hoặc mã đăng nhập trên máy bị hỏng — chỉ cần đăng nhập lại, dữ liệu không mất.']);
               },
               acts: function () { return [GUEST ? { t: '🔑 Đến trang đăng nhập', do: 'login' } : { t: '🔑 Trang đăng nhập', go: 'user.html' }, { t: '🔒 Tài khoản bị khóa?', ask: 'locked' }].concat(GUEST ? [{ t: '📝 Chưa có tài khoản?', ask: 'register' }] : []); } },
 
@@ -981,7 +1129,7 @@
               ans: function () {
                   var a = C.account();
                   return P('Để giữ an toàn, tài khoản sẽ <b>tự khóa</b> nếu ' + (a.inact > 0 ? '<b>không hoạt động quá ' + fmtMin(a.inact) + '</b>' : 'Ban Quản Trị khóa') + '.')
-                      + UL([a.auto > 0 ? 'Khi đăng nhập sẽ hiện hộp <b>Tài khoản bị khóa</b> → bấm <b>Yêu cầu mở khóa</b>: sau <b>' + fmtMin(a.auto) + '</b> hệ thống tự mở và đăng nhập lại cho bạn (có đồng hồ đếm ngược).'
+                      + UL([a.auto > 0 ? 'Khi đăng nhập sẽ hiện hộp <b>Tài khoản bị khóa</b> → bấm <b>Yêu cầu mở khóa</b>: máy chủ ghi giờ bạn bấm, đủ <b>' + fmtMin(a.auto) + '</b> thì máy chủ tự mở và đăng nhập lại cho bạn (có đồng hồ đếm ngược). Khóa do gian lận thì không tự mở được.'
                               : 'Hiện Ban Quản Trị <b>tắt tự mở khóa</b> — nhắn BQT để được mở.',
                           a.temp > 0 ? 'Sau khi mở khóa, tài khoản được dùng trong <b>' + fmtMin(a.temp) + '</b> rồi sẽ khóa lại nếu chưa được BQT mở hẳn.' : '',
                           'Đăng nhập đều đặn mỗi ngày (điểm danh, mở lì xì) để tài khoản không bị khóa.']) + LIVE();
@@ -1006,7 +1154,12 @@
                       + UL(['Thể thức <b>Giải Đơn (1 vs 1)</b> hoặc <b>Giải Đôi (2 vs 2)</b>, quy mô 4 → 64. Thiếu người thì có suất <b>Miễn đấu</b> tự đi tiếp.',
                           'Điện thoại: xem <b>Theo vòng</b> (vuốt trái/phải đổi vòng, tab ⭐ <b>Trận Của Tôi</b>). Máy tính/xoay ngang: xem <b>Sơ đồ</b> cây, phóng to bằng chụm 2 ngón hoặc Ctrl + lăn chuột.',
                           'Ban Quản Trị nhập tỉ số → người thắng tự vào vòng sau. Ký hiệu: <b>W.O / BỎ</b> (đối thủ bỏ cuộc), <b>LOẠI</b>, <b>★</b> (đặc cách).',
-                          'Bấm tên tuyển thủ để xem thẻ chi tiết: Cá nhân · ID Game · Tài khoản · Thành tích.', 'Muốn được xếp vào giải: nhớ <b>Đăng ký ID Game</b> trước.']);
+                          'Bấm tên tuyển thủ để xem thẻ chi tiết: Cá nhân · ID Game · Tài khoản · Thành tích.', 'Muốn được xếp vào giải: nhớ <b>Đăng ký ID Game</b> trước.'])
+                      + (function () {
+                          var o = '', F = { single: 'Giải Đơn', double: 'Giải Đôi' };
+                          Object.keys(F).forEach(function (f) { var tp = C.tourPrize(f); if (tp.on) o += '<h4 style="margin-top:10px">🏆 Thưởng ' + F[f] + (tp.team ? ' <small>(chia đều cho cả đội)</small>' : ' <small>(mỗi thành viên của đội)</small>') + '</h4>' + TBL(tp.rows); });
+                          return o ? o + '<span class="note">Điểm / lượt thưởng được <b>máy chủ tự cộng</b> khi sơ đồ không đổi 10 phút; tiền mặt và quà hiện vật do Ban Quản Trị trao.</span>' + LIVE() : '';
+                      })();
               },
               acts: [{ t: '🏆 Mở Giải Đấu', do: 'tournament' }, { t: '🪪 Đăng ký ID', ask: 'regid' }] },
 
@@ -1019,10 +1172,14 @@
               acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }, { t: '🔔 Thông báo', ask: 'notif' }] },
 
             { id: 'notif', icon: '🔔', title: 'Thông báo đẩy',
-              keys: ['thong bao', 'push', 'khong nhan thong bao', 'bat thong bao', 'banner', 'notification'],
+              keys: ['thong bao', 'push', 'khong nhan thong bao', 'bat thong bao', 'banner', 'notification', 'app', 'ung dung', 'tai app', 'cap nhat app', 'app android', 'qd elite', 'khong do chuong', 'am bao', 'tieng tin nhan'],
               ans: function () {
-                  return UL(['Vào <b>Cài đặt</b> → <b>Kiểm tra Thông báo</b> → Bật, rồi cho phép thông báo khi trình duyệt hỏi.', 'Bấm <b>Test (5s)</b> rồi thoát ra màn hình chính để thử banner.',
-                          'Không thấy thông báo: kiểm tra quyền thông báo của trình duyệt/điện thoại; trên iPhone cần "Thêm vào Màn hình chính" rồi mở web từ biểu tượng đó.', 'Bấm thông báo sẽ mở lại web và vào đúng phòng chat.']);
+                  return '<h4>📱 App QD Elite (Android)</h4>' + UL(['Nhận <b>tin nhắn, thông báo của Ban Quản Trị và cuộc gọi</b> kể cả khi đã thoát hoặc vuốt tắt app — app giữ kết nối nền với máy chủ Quân Đoàn.',
+                          'Tin nhắn và cuộc gọi dùng <b>2 âm báo riêng</b>; cuộc gọi đổ chuông như cuộc gọi thường.',
+                          'Vào <b>Cài đặt</b> → bật <b>Nhận thông báo mới</b>, rồi làm theo mục <b>📞 Nhận cuộc gọi khi tắt app</b> (cho phép thông báo nổi, hiện trên màn hình khóa, tự khởi động, không giới hạn pin — máy Xiaomi / Oppo / Vivo rất hay chặn mấy quyền này).',
+                          'Bấm <b>Test (5s)</b> rồi thoát ra màn hình chính để thử. App bản cũ sẽ hiện dải đỏ nhắc <b>cập nhật app</b>.'])
+                      + '<h4 style="margin-top:10px">🌐 Trên trình duyệt (máy tính, iPhone)</h4>' + UL(['Chỉ nhận thông báo khi trang <b>đang mở</b> (kể cả đang ở tab khác). Đóng trang là không nhận được — muốn nhận khi tắt hãy dùng app Android.',
+                          'Bấm thông báo sẽ mở đúng phòng chat.']);
               },
               acts: [{ t: '⚙️ Mở Cài đặt', do: 'settings' }] },
 
@@ -1054,8 +1211,9 @@
             { id: 'network', icon: '📶', title: 'Mất mạng / lỗi kết nối / chậm',
               keys: ['mat mang', 'loi ket noi', 'khong co mang', 'lag', 'cham', 'giat', 'loi may chu', 'request timeout', 'treo', 'khong tai duoc', 'loi'],
               ans: function () {
-                  return UL(['Khi mất mạng, trên cùng màn hình hiện thẻ đỏ <b>"Không có kết nối Internet"</b> — bấm <b>Thử lại</b> hoặc chờ, hệ thống tự kết nối lại.',
-                          'Thao tác bị lỗi giữa chừng (đổi quà, rút lì xì, quay) thì <b>không bị trừ</b> điểm/lượt.', 'Máy chậm: hệ thống tự bật chế độ nhẹ (tắt bớt hiệu ứng hoa rơi, làm mờ).',
+                  return UL(['Trên cùng màn hình có dải báo: <b>📵 Máy đang mất mạng</b> (lỗi ở phía bạn) hoặc <b>⚠️ Chưa kết nối được máy chủ QĐ… Đang thử lại</b> (máy chủ đang bận / khởi động lại). Cứ chờ, trang tự kết nối lại.',
+                          'Thao tác đang làm dở sẽ <b>tự gửi lại</b> khi có mạng và máy chủ không làm 2 lần. Lỗi giữa chừng (đổi quà, rút lì xì, quay) thì <b>không bị trừ</b> điểm/lượt.',
+                          'Điểm và lượt do máy chủ tính, nên lúc máy chủ chưa kết nối thì các trò có điểm sẽ chờ — chưa chơi tạm trên máy được.', 'Máy chậm: hệ thống tự bật chế độ nhẹ (tắt bớt hiệu ứng hoa rơi, làm mờ).',
                           'Vẫn lỗi: tải lại trang, kiểm tra Wi-Fi/4G, hoặc chụp màn hình gửi Ban Quản Trị.']);
               } },
 
@@ -1067,7 +1225,8 @@
             { id: 'contact', icon: '🙋', title: 'Liên hệ Ban Quản Trị / báo lỗi',
               keys: ['lien he', 'ban quan tri', 'admin', 'bao loi', 'khieu nai', 'gap admin', 'ho tro', 'giup voi', 'can giup', 'nguoi that', 'quan ly'],
               ans: function () {
-                  return P('Cần người thật hỗ trợ? Nhắn <b>Ban Quản Trị</b> qua <b>Trò Chuyện Nội Bộ</b> (chọn tài khoản quản trị trong Danh bạ).')
+                  var st = C.staffTxt();
+                  return P('Cần người thật hỗ trợ? Nhắn <b>Ban Quản Trị</b> qua <b>Trò Chuyện Nội Bộ</b> (chọn tài khoản quản trị trong Danh bạ).' + (st.admins ? ' Quản trị viên: ' + st.admins + '.' : ''))
                       + UL(['Ghi rõ <b>tên đăng nhập</b>, thời gian, việc bạn đang làm.', 'Đính kèm <b>ảnh chụp màn hình</b> lỗi hoặc kết quả trúng thưởng.']);
               },
               acts: [{ t: '💬 Nhắn Ban Quản Trị', do: 'chat' }] },
@@ -1082,7 +1241,8 @@
                       ['🧧 Lì xì hằng ngày', lx.phase === 'upcoming' ? TAG('wt', 'Sắp mở') : on(lx.phase === 'open')],
                       ['🎡 Vòng Quay', on(!w.closed)], ['🎁 Rút Lì Xì', on(!t.closed)], ['🏪 Trạm Quy Đổi', on(s.on)],
                       ['⚔️ Kéo Búa Bao (' + r.start + '–' + r.end + ')', r.state === 'hours' ? TAG('wt', 'Ngoài giờ') : on(r.state === 'open')],
-                      ['🎯 Ném Còn', on(cn.on)], ['🤝 Mã mời', on(C.invite().on)], ['🎁 Tặng quà đồng đội', C.gift().st === 'wait' ? TAG('wt', 'Sắp mở') : on(C.gift().open)], ['🪪 Đăng ký ID Game', on(C.reg().on)],
+                      ['🎯 Ném Còn', on(cn.on)], ['💵 Đổi điểm ra tiền', on(C.cashout().on)], ['🎁 Quà toàn hệ thống', (L.gifts || []).some(function (g) { return Date.now() >= (g.startAt || 0) && Date.now() <= (g.endAt || 0); }) ? TAG('ok', 'Có quà') : TAG('no', 'Chưa có')],
+                      ['🤝 Mã mời', on(C.invite().on)], ['🎁 Tặng quà đồng đội', C.gift().st === 'wait' ? TAG('wt', 'Sắp mở') : on(C.gift().open)], ['🪪 Đăng ký ID Game', on(C.reg().on)],
                       ['🔢 Quay số kế tiếp', k.next ? fmtWhen(k.next.at) : 'Chưa có lịch']
                   ]) + LIVE();
               } },
@@ -1163,10 +1323,20 @@
                       time: gf.st === 'off' ? 'Ban Quản Trị đang tắt.' + (gf.msg ? ' <i>' + esc(gf.msg) + '</i>' : '') : gf.st === 'wait' ? 'Mở lúc <b>' + fmtWhen(gf.from) + '</b>' + (gf.to ? ', đóng lúc <b>' + fmtWhen(gf.to) + '</b>' : '') + '.'
                           : gf.st === 'end' ? 'Đã đóng lúc <b>' + fmtWhen(gf.to) + '</b>.' : (gf.to ? 'Mở đến <b>' + fmtWhen(gf.to) + '</b>.' : 'Mở cả ngày.') + (gf.daily > 0 ? ' Mỗi người <b>' + gf.daily + ' lần/ngày</b>.' : ''),
                       how: 'Túi đồ → "Tặng lượt cho đồng đội": chọn ' + (gf.txt || 'loại quà') + ', nhập tên đăng nhập người nhận + số lượng' + (gf.max > 0 ? ' (tối đa ' + gf.max + '/lần)' : '') + '. Điểm lì xì không chuyển được; mọi lần tặng đều lưu lịch sử.', ask: 'transfer' });
+                  var co = C.cashout();
+                  s += SEC({ n: '💵 Đổi điểm ra tiền mặt', tag: co.on ? TAG('ok', 'Đang mở') : TAG('no', 'Đóng'), off: !co.on,
+                      time: co.on ? 'Mở cả ngày' + (co.daily > 0 ? '; mỗi người tối đa <b>' + fmt(co.daily) + 'đ/ngày</b>' : '') + '.' : 'Ban Quản Trị đang tắt.',
+                      how: 'Chọn mốc ' + co.tiers.map(function (a) { return fmt(a) + 'đ'; }).join(' · ') + ' (<b>' + fmt(co.cost(10000)) + ' điểm = 10.000đ</b>), máy chủ trừ điểm ngay và tạo đơn; Ban Quản Trị chuyển khoản vào tài khoản bạn đã khai.', ask: 'cashout' });
+                  var gfs = C.giftsOpen();
+                  s += SEC({ n: '🎁 Quà toàn hệ thống', tag: gfs.length ? TAG('ok', gfs.length + ' quà chờ nhận') : TAG('no', 'Chưa có'), off: !gfs.length,
+                      time: gfs.length ? 'Hạn nhận: <b>' + fmtWhen(gfs[0].endAt) + '</b>.' : 'Ban Quản Trị tặng theo dịp, có hạn giờ.',
+                      how: 'Hộp quà tự hiện khi mở trang — bấm <b>Mở quà</b> để nhận điểm / lượt (mỗi người 1 lần).', ask: 'gifts' });
                   s += SEC({ n: '🎒 Túi đồ', tag: TAG('ok', 'Luôn mở'),
                       how: 'Xem điểm / lượt rút / lượt quay / lượt ném + lịch sử nhận quà, nút đổi quà và tặng lượt.', ask: 'inventory' });
                   s += SEC({ n: '🏆 Giải Đấu · 💬 Trò Chuyện · 📰 Bản Tin', tag: TAG('ok', 'Luôn mở'),
                       how: 'Xem sơ đồ thi đấu kiểu World Cup (Ban Quản Trị nhập kết quả), nhắn tin riêng với thành viên, đọc thông báo sự kiện của BQT.', ask: 'tournament' });
+                  s += SEC({ n: '📞 Gọi thoại / video · 🎬 Video chia sẻ', tag: TAG('ok', 'Luôn mở'),
+                      how: 'Gọi 1-1 ngay trong phòng chat (có bot chống quấy rối). Mục Video: xem và chia sẻ video YouTube / TikTok, tối đa 3 video/ngày.', ask: 'calls' });
 
                   return s + '<span class="note">Bấm <b>Chi tiết ›</b> ở từng mục để xem đầy đủ luật, giải thưởng và số liệu của bạn.</span>' + LIVE();
               },
@@ -1184,7 +1354,7 @@
               keys: ['hack', 'cheat', 'gian lan', 'bug', 'lach luat', 'tool', 'auto', 'xin dap an', 'cho dap an', 'ma admin', 'mat khau admin', 'admin gateway', 'vao trang admin', 'so chot', 'hack diem', 'bug diem', 'nhan ban'],
               ans: function () {
                   var sc = L.cfg.security_config || {}, on = sc.isEnabled !== false;
-                  return P('Quân Sư không hỗ trợ gian lận, lấy đáp án hay vào khu vực quản trị — mọi thao tác điểm/lượt đều được máy chủ kiểm tra và ghi lịch sử, tài khoản vi phạm có thể bị khóa.')
+                  return P('Quân Sư không hỗ trợ gian lận, lấy đáp án hay vào khu vực quản trị. Điểm, lượt và kết quả trò chơi đều do <b>máy chủ tính</b> — sửa dữ liệu trên máy mình không có tác dụng, mọi thao tác đều ghi lịch sử và tài khoản vi phạm có thể bị khóa.')
                       + (on ? P('🛡️ Hệ thống <b>chống gian lận đang bật</b>: tự phát hiện tool / script tự bấm, phần mềm auto-click, nhiều tài khoản trên 1 thiết bị, thao tác dồn dập bất thường và báo ngay cho Ban Quản Trị'
                           + (sc.autoBlock !== false ? ' (thao tác tự động bị <b>tạm chặn</b>)' : '') + '. Tài khoản bị khóa vì gian lận <b>không tự mở khóa được</b> — phải liên hệ BQT.') : '')
                       + P('Nếu bạn phát hiện <b>lỗi</b> (bug), hãy báo cho Ban Quản Trị — đó mới là cách được ghi nhận 🫡');
@@ -1215,7 +1385,12 @@
             locked: ['accounts', 'Quản trị tài khoản', 'Cấu hình khóa & mở tự động'], regid: ['registration', 'Đăng ký ID game', 'Đóng/mở vòng đăng ký · Cho phép nộp lại'],
             tournament: ['tournament', 'Giải đấu', 'Sơ đồ giải đấu · Thiết lập đi tiếp'], news: ['news', 'Bản tin', 'Soạn bản tin'],
             transfer: ['transfer', 'Tặng lượt', 'Đóng/mở · Loại được tặng · Giới hạn & hẹn giờ · Lịch sử tặng'], inventory: ['accounts', 'Quản trị tài khoản', 'Ví điểm / lượt của từng thành viên'],
-            status: ['dashboard', 'Tổng quan', ''], userpage: ['dashboard', 'Tổng quan', 'Giờ mở / đóng của từng mục chỉnh ở mục riêng — hỏi tên mục để xem']
+            status: ['dashboard', 'Tổng quan', ''], userpage: ['dashboard', 'Tổng quan', 'Giờ mở / đóng của từng mục chỉnh ở mục riêng — hỏi tên mục để xem'],
+            cashout: ['payout', 'Trả thưởng', 'Đổi điểm ra tiền: tỉ giá, mốc, hạn mức · Duyệt / không trả (tự hoàn điểm)'], claim: ['payout', 'Trả thưởng', 'Danh sách giải tiền mặt chờ chuyển khoản'],
+            gifts: ['gifts', 'Quà toàn hệ thống', 'Tạo quà · Giờ mở / đóng · Giới hạn người nhận'], calls: ['calls', 'Cuộc gọi', 'Máy chủ trung chuyển · Bot kiểm soát · Báo cáo & cảnh báo · Gỡ khóa gọi'],
+            videos: ['videos', 'Chia sẻ video', 'Đăng / ghim / ẩn video · Lịch sử chia sẻ'], notif: ['apppush', 'Thông báo App', 'Gửi thông báo vào app Android của thành viên'],
+            roles: ['accounts', 'Quản trị tài khoản', 'Phân quyền: Thành viên / Quản lý / Quản trị viên'], fair: ['vps', 'Máy chủ VPS', 'Tài nguyên · Dữ liệu · Sao lưu · Cảnh báo sớm'],
+            network: ['vps', 'Máy chủ VPS', 'Tài nguyên · Nhật ký · Cảnh báo sớm']
         };
         KB.push(
             { id: 'admguide', adminOnly: true, icon: '🛡️', title: 'Cấu hình từng tính năng ở đâu trong Admin?',
@@ -1227,10 +1402,23 @@
                       ['🎁 Rút Lì Xì 6 bao: giải, số lượng, tỉ lệ', 'Rút lì xì'], ['🎡 Giải vòng quay + câu hỏi nhận lượt', 'Vòng quay'],
                       ['🔢 Lịch quay số, phát trực tiếp', 'Quay số may mắn'], ['⚔️ Giờ mở, phí, thưởng/phạt Kéo Búa Bao', 'Kéo búa bao'],
                       ['🎯 Sân Ném Còn, điểm, lượt miễn phí, tặng lượt', 'Ném còn'], ['🤝 Mã mời', 'Mã mời'], ['📝 Duyệt đăng ký', 'Phê duyệt tài khoản'],
-                      ['🔒 Khóa / mở khóa tự động, phân quyền', 'Quản trị tài khoản'], ['🪪 Đăng ký ID game', 'Đăng ký ID game'], ['🏆 Sơ đồ giải đấu', 'Giải đấu'], ['📰 Thông báo', 'Bản tin']])
+                      ['🔒 Khóa / mở khóa tự động, phân quyền', 'Quản trị tài khoản'], ['🪪 Đăng ký ID game', 'Đăng ký ID game'], ['🏆 Sơ đồ giải đấu, thưởng giải', 'Giải đấu'], ['📰 Bản tin', 'Bản tin'],
+                      ['💵 Trả thưởng tiền mặt, đổi điểm ra tiền', 'Trả thưởng'], ['🎁 Quà toàn hệ thống', 'Quà toàn hệ thống'], ['📞 Gọi điện, máy chủ trung chuyển, bot chặn gọi', 'Cuộc gọi'],
+                      ['🔔 Gửi thông báo vào app', 'Thông báo App'], ['🎬 Video chia sẻ', 'Chia sẻ video'], ['🤖 Bot báo cáo hằng ngày', 'Bot báo cáo'],
+                      ['🖥️ Máy chủ: tài nguyên, dữ liệu, sao lưu, cảnh báo sớm, cập nhật', 'Máy chủ VPS']])
                       + P('Hỏi tên tính năng (vd. <i>"vòng quay"</i>) để xem luật hiện hành và nút mở thẳng mục cấu hình.');
               },
-              acts: [{ t: '📡 Đang mở gì?', ask: 'status' }, { t: '✎ Cách dạy Quân Sư', ask: 'admteach' }] },
+              acts: [{ t: '📡 Đang mở gì?', ask: 'status' }, { t: '🖥️ Máy chủ VPS', ask: 'admserver' }, { t: '✎ Cách dạy Quân Sư', ask: 'admteach' }] },
+            { id: 'admserver', adminOnly: true, icon: '🖥️', title: 'Máy chủ VPS & cảnh báo sớm',
+              keys: ['may chu vps', 'vps', 'server', 'cap nhat may chu', 'sao luu', 'khoi phuc', 'canh bao som', 'het ram', 'het o', 'qua tai', 'tai nguyen', 'qd update', 'nhat ky may chu'],
+              ans: function () {
+                  return UL(['Toàn bộ hệ thống chạy trên <b>máy chủ VPS</b> của Quân Đoàn: dữ liệu, đăng nhập, chat, báo hiệu cuộc gọi, thông báo app và <b>mọi phép tính điểm / lượt</b>.',
+                          'Admin → <b>Máy chủ VPS</b>: xem CPU / RAM / ổ đĩa / mạng, xem & sửa dữ liệu, <b>Sao lưu & khôi phục</b> (tự sao lưu 3:30 mỗi đêm, giữ 14 ngày), danh sách đang kết nối, nhật ký (cả <b>lần chạy trước</b>).',
+                          'Nút <b>Cập nhật máy chủ</b>: tải bản mới từ GitHub, kiểm tra lỗi rồi tự khởi động lại (hoặc gõ <code>qd update</code> trên VPS).',
+                          'Tab <b>Cảnh báo sớm</b>: vượt ngưỡng RAM / bộ nhớ máy chủ QĐ / ổ cứng / CPU → gửi thông báo vào app của Chủ hệ thống + Quản trị viên (tùy chọn thêm Quản lý); máy chủ bị tắt đột ngột rồi tự bật lại cũng báo. Có nút <b>Gửi thử</b>.',
+                          'Hết tài nguyên: máy chủ chậm hoặc tự khởi động lại; dữ liệu đã lưu không mất, thao tác dở thì không trừ điểm. VPS tắt hẳn thì cả hệ thống dừng — nên tải bản sao lưu về máy định kỳ.']);
+              },
+              acts: [{ t: '🖥️ Mở Máy chủ VPS', adm: 'vps' }] },
             { id: 'admteach', adminOnly: true, icon: '✎', title: 'Dạy Quân Sư câu trả lời riêng',
               keys: ['day ai', 'day quan su', 'them cau tra loi', 'cau tra loi rieng', 'huan luyen', 'cau chua tra loi', 'loi chao', 'faq'],
               ans: function () {
@@ -1338,11 +1526,11 @@
         }
         function typing() { var r = document.createElement('div'); r.className = 'row b in'; r.innerHTML = '<img class="mini" src="' + AV + '" alt=""><div class="bub typing" aria-label="Quân Sư đang trả lời"><i></i><i></i><i></i></div>'; log.appendChild(r); scrollEnd(); return r; }
         function gridHTML(only) {
-            var ids = only || (GUEST ? GUEST_IDS : null) || ['overview', 'userpage', 'today', 'points', 'turns', 'attendance', 'lixi', 'tranh', 'wheel', 'quiz', 'shop', 'rps', 'con', 'lucky', 'invite', 'locked', 'tournament', 'status', 'contact'];
+            var ids = only || (GUEST ? GUEST_IDS : null) || ['overview', 'userpage', 'today', 'points', 'turns', 'attendance', 'lixi', 'tranh', 'wheel', 'quiz', 'shop', 'cashout', 'gifts', 'rps', 'con', 'lucky', 'invite', 'locked', 'tournament', 'calls', 'notif', 'claim', 'status', 'contact'];
             return '<div class="grid">' + ids.map(function (id) { var t = byId(id); if (!t) return ''; return '<button type="button" class="gbtn" data-a="' + esc(JSON.stringify({ ask: id, t: t.title })) + '"><span>' + t.icon + '</span>' + esc(t.title) + '</button>'; }).join('') + '</div>';
         }
         var PAGE_TOPICS = { 'qt.html': ['wheel', 'quiz', 'claim'], 'tranht.html': ['tranh', 'turns', 'claim'], 'quays.html': ['lucky', 'status'], 'game.html': ['con', 'turns'],
-            'index.html': ['register', 'overview', 'tet'], 'baotri.html': ['maintenance', 'overview'], 'user.html': ['userpage', 'today', 'points', 'turns'], 'admin.html': ['admguide', 'status', 'admteach'] };
+            'index.html': ['register', 'overview', 'tet'], 'baotri.html': ['maintenance', 'overview'], 'user.html': ['userpage', 'today', 'points', 'cashout'], 'admin.html': ['admguide', 'admserver', 'status', 'admteach'] };
         var PAGE_NAME = { 'qt.html': 'Vòng Quay', 'tranht.html': 'Rút Lì Xì', 'quays.html': 'Quay Số', 'game.html': 'Ném Còn', 'index.html': 'Trang sự kiện', 'baotri.html': 'Bảo trì', 'user.html': 'Trang chính' };
         function suggest(ids) {
             if (LOCKED) { $('sugg').innerHTML = ''; return; }
@@ -1437,7 +1625,8 @@
 
         /* ---------- Nút hành động ---------- */
         var DO_GO = { attendance: 'user.html', lixi: 'user.html', shop: 'user.html', inventory: 'user.html', lucky: 'user.html', rps: 'user.html', transfer: 'user.html', profile: 'user.html',
-            regid: 'user.html', tournament: 'user.html', chat: 'user.html', news: 'user.html', settings: 'user.html', login: 'user.html', register: 'index.html' };
+            regid: 'user.html', tournament: 'user.html', chat: 'user.html', news: 'user.html', settings: 'user.html', login: 'user.html', register: 'index.html',
+            cashout: 'user.html', gifts: 'user.html', bank: 'user.html', videos: 'user.html' };
         function runAct(a) {
             if (a.teach) { if (isAdmin() && db) openTeach(); else toast('Chỉ Ban Quản Trị dùng được chức năng này.'); return; }
             if (a.ask) {
