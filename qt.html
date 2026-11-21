@@ -534,7 +534,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=10"><\/script>');
+        document.write('<script src="qd-db.js?v=11"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -928,7 +928,8 @@ html.qd-lite .qd-fx { display: none !important; }
             admin: 'Ban Quản Trị đã đăng xuất tài khoản của bạn khỏi hệ thống.',
             all: 'Ban Quản Trị vừa đăng xuất toàn bộ thành viên.',
             locked: 'Tài khoản của bạn đã bị khóa.',
-            deleted: 'Tài khoản không còn tồn tại trên hệ thống.'
+            deleted: 'Tài khoản không còn tồn tại trên hệ thống.',
+            device: 'Tài khoản vừa được đăng nhập trên một thiết bị khác (mỗi tài khoản chỉ dùng 1 thiết bị cùng lúc). Nếu không phải bạn, hãy đổi mật khẩu và báo Ban Quản Trị.'
         };
         function now() { return Date.now(); }
         function ls(k, v) {

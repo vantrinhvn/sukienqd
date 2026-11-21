@@ -3501,6 +3501,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="sec-rules">
                             <div class="sec-grp"><div class="sec-grp-t"><i class="fa-solid fa-mobile-screen"></i> Trên máy thành viên <small>(thời gian thực)</small></div><div id="sec-rules-client"></div></div>
                             <div class="sec-grp"><div class="sec-grp-t"><i class="fa-solid fa-database"></i> Quét dữ liệu <small>(khi bấm Quét / mở mục này)</small></div><div id="sec-rules-scan"></div></div>
+                            <div class="sec-grp full"><div class="sec-grp-t"><i class="fa-solid fa-server"></i> Máy chủ chặn khi đăng nhập <small>(chống dùng nhiều thiết bị — mặc định tắt; xem tab "Đa thiết bị")</small></div><div id="sec-rules-server" class="sec-rules-2"></div></div>
                         </div>
                         <div class="inv-foot">
                             <div class="sec-white" style="flex: 1 1 420px;">
@@ -3516,6 +3517,11 @@ html.qd-lite .qd-fx { display: none !important; }
                             <div class="sec-tabs" role="tablist">
                                 <button type="button" class="on" data-t="flags"><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo <span class="sec-badge" id="sec-b-flags">0</span></button>
                                 <button type="button" data-t="errors"><i class="fa-solid fa-bug"></i> Lỗi hệ thống <span class="sec-badge" id="sec-b-errors">0</span></button>
+                                <button type="button" data-t="devices"><i class="fa-solid fa-mobile-screen-button"></i> Đa thiết bị <span class="sec-badge zero" id="sec-b-devices">0</span></button>
+                            </div>
+                            <div class="sec-tools hidden" id="sec-tools-devices">
+                                <button class="btn btn-outline" onclick="SecAdmin.loadDevices()"><i class="fa-solid fa-rotate"></i> Tải lại</button>
+                                <input type="search" class="form-control inv-search" id="sec-d-q" placeholder="Tìm tài khoản...">
                             </div>
                             <div class="sec-tools" id="sec-tools-flags">
                                 <button class="btn btn-primary" id="sec-scan" onclick="SecAdmin.scan()"><i class="fa-solid fa-magnifying-glass-chart"></i> Quét dữ liệu ngay</button>
@@ -4444,7 +4450,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=10"><\/script>');
+        document.write('<script src="qd-db.js?v=11"><\/script>');
     })();
     </script>
     <!-- ===== QD SESSION: phiên đăng nhập dùng chung TOÀN HỆ THỐNG + trạng thái hoạt động thời gian thực =====
@@ -4474,7 +4480,8 @@ html.qd-lite .qd-fx { display: none !important; }
             admin: 'Ban Quản Trị đã đăng xuất tài khoản của bạn khỏi hệ thống.',
             all: 'Ban Quản Trị vừa đăng xuất toàn bộ thành viên.',
             locked: 'Tài khoản của bạn đã bị khóa.',
-            deleted: 'Tài khoản không còn tồn tại trên hệ thống.'
+            deleted: 'Tài khoản không còn tồn tại trên hệ thống.',
+            device: 'Tài khoản vừa được đăng nhập trên một thiết bị khác (mỗi tài khoản chỉ dùng 1 thiết bị cùng lúc). Nếu không phải bạn, hãy đổi mật khẩu và báo Ban Quản Trị.'
         };
         function now() { return Date.now(); }
         function ls(k, v) {
@@ -13464,6 +13471,14 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
     .sec-rules { display: grid; grid-template-columns: 1fr 1fr; }
     .sec-grp { min-width: 0; }
     .sec-grp + .sec-grp { border-left: 1px solid var(--border-strong); }
+    .sec-grp.full { grid-column: 1 / -1; border-left: 0 !important; border-top: 1px solid var(--border-strong); }
+    .sec-rules-2 { display: grid; grid-template-columns: 1fr 1fr; } @media (max-width: 900px) { .sec-rules-2 { grid-template-columns: 1fr; } }
+    .sd-sec { margin: 6px 0 14px; } .sd-sec h4 { font-size: 14px; font-weight: 800; margin: 4px 0 10px; display: flex; align-items: center; gap: 8px; }
+    .sd-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--border-strong); border-radius: 12px; margin-bottom: 8px; background: var(--bg-elevated); }
+    .sd-row b { font-size: 14px; } .sd-row small { display: block; color: var(--text-muted); font-size: 12px; margin-top: 3px; word-break: break-word; }
+    .sd-row .sd-act { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; } .sd-tag { display: inline-block; font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; margin-left: 6px; background: rgba(239,68,68,.14); color: #ef4444; }
+    .sd-tag.ok { background: rgba(34,197,94,.14); color: #22c55e; } .sd-tag.mu { background: var(--bg-surface); color: var(--text-muted); }
+    @media (max-width: 640px) { .sd-row { grid-template-columns: 1fr; } .sd-row .sd-act { justify-content: flex-start; } }
     .sec-grp-t { padding: 12px 20px; font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-normal); background: var(--bg-elevated); }
     .sec-grp-t small { text-transform: none; letter-spacing: 0; font-weight: 600; }
     .sec-rule { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border-normal); }
@@ -13563,6 +13578,8 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             { k: 'rhythm', g: 'client', ic: '🎯', name: 'Nhịp bấm đều bất thường', sev: 'med', desc: '20 lần bấm liên tiếp cách đều nhau gần như tuyệt đối — dấu hiệu phần mềm auto-click.' },
             { k: 'bot', g: 'client', ic: '🕹️', name: 'Trình duyệt tự động hóa', sev: 'high', desc: 'Trình duyệt đang bị điều khiển bằng công cụ (webdriver / bot).' },
             { k: 'device', g: 'client', ic: '📱', name: 'Nhiều tài khoản trên 1 thiết bị', sev: 'med', desc: 'Ghi mã thiết bị khi đăng nhập; khi quét, báo thiết bị dùng cho nhiều tài khoản.', nums: [['n', 'tài khoản trở lên', 3, 2, 50]] },
+            { k: 'oneDevice', g: 'server', ic: '📲', name: '1 tài khoản – 1 thiết bị', sev: 'high', def: false, desc: 'Đăng nhập ở thiết bị mới thì thiết bị cũ bị đăng xuất ngay. Máy cũ còn đang dùng (có thao tác trong 10 phút) mà vẫn đăng nhập máy mới = 1 lần vi phạm; đủ số lần trong khoảng giờ thì tự khóa tài khoản (0 = không khóa). Miễn: Quản lý, Quản trị viên, danh sách Bỏ qua.', nums: [['n', 'lần vi phạm thì khóa', 3, 0, 50], ['h', 'giờ (khoảng đếm)', 24, 1, 720]] },
+            { k: 'oneAccount', g: 'server', ic: '👥', name: '1 thiết bị – 1 tài khoản', sev: 'high', def: false, desc: 'Thiết bị gắn với tài khoản đầu tiên dùng nó; tài khoản khác đăng nhập trên thiết bị đó bị chặn. Cố đủ số lần thì tự khóa tài khoản đó (0 = không khóa). Thiết bị bỏ không quá số ngày thì được dùng cho tài khoản khác (0 = giữ mãi). Miễn: Quản lý, Quản trị viên, danh sách Bỏ qua.', nums: [['n', 'lần cố đăng nhập thì khóa', 2, 0, 50], ['days', 'ngày thì nhả thiết bị', 30, 0, 3650]] },
             { k: 'neg', g: 'scan', ic: '➖', name: 'Số dư âm', sev: 'high', desc: 'Điểm / lượt nhỏ hơn 0 — lỗi dữ liệu hoặc khai thác lỗi trừ lượt.' },
             { k: 'lixi', g: 'scan', ic: '🧧', name: 'Vượt giới hạn lì xì / ngày', sev: 'high', desc: 'Mở lì xì hằng ngày nhiều hơn số lần cấu hình cho phép.' },
             { k: 'attDup', g: 'scan', ic: '✅', name: 'Điểm danh trùng ngày', sev: 'med', desc: 'Hơn 1 lần điểm danh trong cùng một ngày.' },
@@ -13573,7 +13590,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             { k: 'ip', g: 'scan', ic: '🌐', name: 'Nhiều tài khoản / 1 mạng', sev: 'low', desc: 'Nhiều tài khoản điểm danh từ cùng một địa chỉ mạng (có thể là Wi-Fi chung, cần xem xét).', nums: [['n', 'tài khoản trở lên', 4, 2, 100]] }
         ];
         var RMAP = {}; RULES.forEach(function (r) { RMAP[r.k] = r; });
-        var FLAG_T = { source: ['🔒', 'Cố mở mã nguồn'], devtools: ['🛠️', 'Đang mở DevTools'], proxy: ['🛡️', 'Bị chặn điểm danh hộ'], script: ['🤖', 'Script tự bấm'], rhythm: ['🎯', 'Nhịp bấm đều bất thường'], bot: ['🕹️', 'Trình duyệt tự động hóa'] };
+        var FLAG_T = { source: ['🔒', 'Cố mở mã nguồn'], devtools: ['🛠️', 'Đang mở DevTools'], proxy: ['🛡️', 'Bị chặn điểm danh hộ'], script: ['🤖', 'Script tự bấm'], rhythm: ['🎯', 'Nhịp bấm đều bất thường'], bot: ['🕹️', 'Trình duyệt tự động hóa'], multi_device: ['📲', '1 tài khoản dùng nhiều thiết bị'], multi_account: ['👥', 'Nhiều tài khoản trên 1 thiết bị (bị chặn)'], auto_lock: ['🔒', 'Máy chủ tự khóa tài khoản'] };
         var KIND = { js: 'Lỗi trang (JS)', promise: 'Lỗi xử lý ngầm', console: 'Lỗi đã bắt', resource: 'File không tải được' };
 
         function norm(c) {
@@ -13581,7 +13598,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             var pp = c.protect || {};   // Bảo vệ mã nguồn (mặc định TẮT; các tùy chọn: phím + chuột phải + miễn BQT bật, sao chép + DevTools tắt)
             o.prot = { on: pp.on === true, keys: pp.keys !== false, menu: pp.menu !== false, copy: pp.copy === true, devtools: pp.devtools === true, staffExempt: pp.staffExempt !== false, msg: String(pp.msg || '') };
             RULES.forEach(function (R) {
-                if (R.top || R.ext) return; var x = r[R.k] || {}, v = { on: x.on !== false };
+                if (R.top || R.ext) return; var x = r[R.k] || {}, v = { on: R.def === false ? x.on === true : x.on !== false };
                 (R.nums || []).forEach(function (n) { var t = parseInt(x[n[0]], 10); v[n[0]] = isNaN(t) ? n[2] : Math.min(n[4], Math.max(n[3], t)); });
                 o.rules[R.k] = v;
             });
@@ -13594,7 +13611,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         function rulesPayload(c) { var o = {}; Object.keys(c.rules).forEach(function (k) { o[k] = c.rules[k]; }); return o; }
         function buildRules() {
             if ($('sec-rules-client').childElementCount) return;
-            ['client', 'scan'].forEach(function (g) {
+            ['client', 'scan', 'server'].forEach(function (g) {
                 $('sec-rules-' + g).innerHTML = RULES.filter(function (R) { return R.g === g; }).map(function (R) {
                     return '<div class="sec-rule" data-k="' + R.k + '"><span class="ic">' + R.ic + '</span><div><b>' + esc(R.name) + (R.sev ? '<span class="sev ' + SEV[R.sev][1] + '">' + SEV[R.sev][0] + '</span>' : '') + '</b><small>' + esc(R.desc) + '</small></div>'
                         + '<div class="sw"><label class="switch"><input type="checkbox" data-rule="' + R.k + '" aria-label="Bật / tắt ' + esc(R.name) + '"><span class="slider"></span></label></div>'
@@ -13611,6 +13628,8 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             d.querySelectorAll('#view-security .sec-tabs button').forEach(function (b) { b.addEventListener('click', function () { SA.tab = b.dataset.t; render(); }); });
             ['sec-f-sev', 'sec-f-st', 'sec-e-st', 'sec-e-kind'].forEach(function (id) { $(id).addEventListener('change', render); });
             var qt = 0; $('sec-f-q').addEventListener('input', function () { clearTimeout(qt); qt = setTimeout(render, 150); });
+            $('sec-d-q').addEventListener('input', function () { clearTimeout(qt); qt = setTimeout(render, 150); });
+            d.querySelectorAll('#view-security .sec-tabs button[data-t="devices"]').forEach(function (b) { b.addEventListener('click', function () { SA.loadDevices(); }); });
             $('sec-white-in').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); SA.addWhite(); } });
             $('sec-list').addEventListener('click', onAct);
             $('sec-white').addEventListener('click', function (e) { var b = e.target.closest('[data-rm]'); if (b) SA.rmWhite(b.dataset.rm); });
@@ -13741,7 +13760,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         function findings() {
             var res = (SA.state.resolved || {});
             var fl = SA.flags.map(function (f) { var t = FLAG_T[f.type] || ['⚠️', f.type];
-                return { key: 'flag:' + f.id, id: f.id, sev: f.sev || 'med', users: f.user ? [f.user] : [], title: t[1], icon: t[0], detail: f.detail || '', at: f.at || 0, src: 'client', page: f.page, device: f.device, ua: f.ua, done: f.status === 'resolved', rule: f.type }; });
+                return { key: 'flag:' + f.id, id: f.id, sev: f.sev || 'med', users: f.user ? [f.user] : [], title: t[1], icon: t[0], detail: f.detail || '', at: f.at || 0, src: f.by === 'server' ? 'server' : 'client', page: f.page, device: f.device, ua: f.ua, done: f.status === 'resolved', rule: f.type }; });
             var sc = SA.scanF.map(function (f) { return Object.assign({}, f, { icon: (RMAP[f.rule] || {}).ic || '⚠️', done: !!res[f.key] }); });
             return fl.concat(sc).filter(function (f) { return !(f.users.length && f.users.every(white)); }).sort(function (a, b) { return (a.done - b.done) || ({ high: 0, med: 1, low: 2 }[a.sev] - { high: 0, med: 1, low: 2 }[b.sev]) || (b.at - a.at); });
         }
@@ -13750,13 +13769,14 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         function render() {
             if (!$('sec-list')) return;
             d.querySelectorAll('#view-security .sec-tabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === SA.tab); });
-            $('sec-tools-flags').classList.toggle('hidden', SA.tab !== 'flags'); $('sec-tools-errors').classList.toggle('hidden', SA.tab !== 'errors');
+            $('sec-tools-flags').classList.toggle('hidden', SA.tab !== 'flags'); $('sec-tools-errors').classList.toggle('hidden', SA.tab !== 'errors'); $('sec-tools-devices').classList.toggle('hidden', SA.tab !== 'devices');
             var all = findings(), open = all.filter(function (f) { return !f.done; }), errOpen = SA.errors.filter(function (e) { return e.status !== 'fixed'; });
             var bf = $('sec-b-flags'), be = $('sec-b-errors'); bf.textContent = open.length; bf.classList.toggle('zero', !open.length); be.textContent = errOpen.length; be.classList.toggle('zero', !errOpen.length);
             stats(all, open, errOpen);
             d.querySelectorAll('.js-sec-badge').forEach(function (x) { x.textContent = open.length > 99 ? '99+' : open.length; x.style.display = open.length ? '' : 'none'; });
             $('sec-scan-info').innerHTML = SA.tab === 'flags' ? (SA.lastScan ? '<i class="fa-solid fa-clock-rotate-left"></i> Quét dữ liệu lần cuối: ' + fDT(SA.lastScan) + ' (' + ago(SA.lastScan) + ') · ' + SA.scanF.length + ' dấu hiệu từ dữ liệu, ' + SA.flags.length + ' cảnh báo từ máy thành viên' : 'Chưa quét dữ liệu — bấm <b>Quét dữ liệu ngay</b>.') + (SA.cfg.on ? '' : ' · <b class="text-warning">Chống gian lận đang TẮT</b>')
                 : (SA.cfg.err ? 'Lỗi gửi về từ máy thành viên, gộp theo từng lỗi. Bấm "Đã sửa" sau khi khắc phục — nếu lỗi xuất hiện lại sẽ tự mở lại.' : '<b class="text-warning">Tự ghi lỗi đang TẮT</b> — chỉ hiện các lỗi đã ghi trước đó.');
+            if (SA.tab === 'devices') { $('sec-scan-info').innerHTML = devInfo(); return renderDevices(); }
             if (SA.tab === 'errors') return renderErrors();
             var sev = $('sec-f-sev').value, st = $('sec-f-st').value, q = ($('sec-f-q').value || '').trim().toLowerCase();
             var list = all.filter(function (f) { return (!sev || f.sev === sev) && (!st || (st === 'open' ? !f.done : f.done)) && (!q || f.users.some(function (u) { return u.toLowerCase().indexOf(q) >= 0; })); });
@@ -13764,7 +13784,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
             $('sec-list').innerHTML = list.slice(0, 300).map(function (f) {
                 var s = SEV[f.sev] || SEV.med, u0 = f.users[0], a0 = accOf(u0), locked = a0 && a0.isBlocked;
                 return '<div class="sf ' + f.sev + (f.done ? ' done' : '') + '"><div class="sf-ic">' + f.icon + '</div><div style="min-width:0">'
-                    + '<div class="sf-t"><b>' + esc(f.title) + '</b><span class="sev ' + s[1] + '">' + s[0] + '</span><span class="sf-src">' + (f.src === 'client' ? '📱 Máy thành viên' : '🔍 Quét dữ liệu') + '</span>' + (f.done ? '<span class="sf-src">✓ Đã xử lý</span>' : '') + '</div>'
+                    + '<div class="sf-t"><b>' + esc(f.title) + '</b><span class="sev ' + s[1] + '">' + s[0] + '</span><span class="sf-src">' + (f.src === 'client' ? '📱 Máy thành viên' : f.src === 'server' ? '🖥️ Máy chủ' : '🔍 Quét dữ liệu') + '</span>' + (f.done ? '<span class="sf-src">✓ Đã xử lý</span>' : '') + '</div>'
                     + '<p>' + esc(f.detail) + '</p>'
                     + (f.users.length ? '<div class="sf-users">' + f.users.slice(0, 12).map(function (u) { var a = accOf(u); return '<button type="button" class="sf-u' + (a && a.isBlocked ? ' lk' : '') + '" data-hist="' + esc(u) + '" title="Xem lịch sử biến động của ' + esc(u) + '">' + (a && a.isBlocked ? '🔒' : '👤') + ' ' + esc(u) + '</button>'; }).join('') + (f.users.length > 12 ? '<span class="text-muted text-sm">+' + (f.users.length - 12) + '</span>' : '') + '</div>' : '')
                     + '<small class="m">' + (f.at ? fDT(f.at) + ' · ' + ago(f.at) : '') + (f.page ? ' · trang ' + esc(f.page) : '') + (f.device ? ' · thiết bị ' + esc(String(f.device).slice(0, 10)) : '') + (f.ua ? ' · ' + esc(String(f.ua).replace(/^Mozilla\/5\.0 /, '').slice(0, 70)) : '') + '</small></div>'
@@ -13774,6 +13794,48 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
                     + (f.users.length ? '<button class="btn btn-outline" data-white="' + esc(f.users.join(',')) + '" title="Không cảnh báo các tài khoản này nữa"><i class="fa-solid fa-eye-slash"></i> Bỏ qua</button>' : '')
                     + '</div></div>';
             }).join('') + (list.length > 300 ? '<div class="sec-empty">Hiện 300 / ' + list.length + ' — dùng bộ lọc để thu hẹp.</div>' : '');
+        }
+        /* ---------- Đa thiết bị (máy chủ ghi khi đăng nhập) ---------- */
+        SA.dev = null;
+        function devInfo() {
+            var r = SA.cfg.rules, A = r.oneDevice || {}, B = r.oneAccount || {}, on = function (x) { return x && x.on && SA.cfg.on ? '<b style="color:var(--color-success)">BẬT</b>' : '<b class="text-muted">TẮT</b>'; };
+            return '📲 1 tài khoản – 1 thiết bị: ' + on(A) + (A.on ? ' (khóa sau ' + (A.n ? A.n + ' lần / ' + A.h + ' giờ' : '— không khóa') + ')' : '') + ' · 👥 1 thiết bị – 1 tài khoản: ' + on(B) + (B.on ? ' (khóa sau ' + (B.n ? B.n + ' lần cố' : '— không khóa') + ')' : '')
+                + '<br>Danh sách dưới đây do máy chủ ghi mỗi lần đăng nhập (kể cả khi đang tắt, để bật lên là có dữ liệu ngay).';
+        }
+        SA.loadDevices = function () {
+            if (!window.QDdb || !QDdb.admin) { $('sec-list').innerHTML = '<div class="sec-empty">Cần máy chủ VPS.</div>'; return; }
+            $('sec-list').innerHTML = '<div class="sec-empty"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</div>';
+            QDdb.admin('secDevices').then(function (r) { SA.dev = r; var n = r.devs.filter(function (x) { return Object.keys(x.denied || {}).length; }).length + r.sess.filter(function (x) { return x.kicks; }).length;
+                var b = $('sec-b-devices'); b.textContent = n; b.classList.toggle('zero', !n); if (SA.tab === 'devices') renderDevices(); },
+                function (e) { $('sec-list').innerHTML = '<div class="sec-empty">' + (e && /Lệnh lạ/.test(e.message || '') ? 'Máy chủ đang chạy bản cũ — vào Máy chủ VPS bấm <b>Cập nhật máy chủ</b>.' : esc(e && e.message || e)) + '</div>'; });
+        };
+        function devName(id) { id = String(id || ''); return (id.indexOf('a:') === 0 ? '📱 App Android ' : id.indexOf('w:') === 0 ? '🌐 Trình duyệt ' : '❔ ') + '<code>' + esc(id.slice(2, 12)) + '…</code>'; }
+        function uaShort(ua) { ua = String(ua || ''); var m = ua.match(/\(([^)]+)\)/); return esc((m ? m[1] : ua).slice(0, 70)); }
+        function renderDevices() {
+            var r = SA.dev; if (!r) { SA.loadDevices(); return; }
+            var q = ($('sec-d-q').value || '').trim().toLowerCase(), hit = function (u) { return !q || String(u || '').toLowerCase().indexOf(q) >= 0; };
+            var ss = r.sess.filter(function (x) { return hit(x.user); }), dv = r.devs.filter(function (x) { return hit(x.user) || (x.users || []).some(hit) || Object.keys(x.denied || {}).some(hit); });
+            var h = '<div class="sd-sec"><h4>📲 Tài khoản đăng nhập nhiều thiết bị <span class="sd-tag mu">' + ss.length + '</span></h4>' + (ss.length ? ss.map(function (x) {
+                var a = accOf(x.user), lk = a && a.isBlocked;
+                return '<div class="sd-row"><div><b>' + esc(x.user) + '</b>' + (x.kicks ? '<span class="sd-tag">' + x.kicks + ' lần vi phạm / ' + r.cfg.A.h + ' giờ</span>' : '') + (x.live > 1 ? '<span class="sd-tag">đang mở ' + x.live + ' thiết bị</span>' : '') + (lk ? '<span class="sd-tag">🔒 đã khóa</span>' : '')
+                    + '<small>Thiết bị hiện tại: ' + devName(x.dev) + ' · đăng nhập ' + fDT(x.at) + (x.lastKick ? ' · vi phạm gần nhất ' + ago(x.lastKick) : '') + (x.ip ? ' · IP ' + esc(x.ip) : '') + '<br>' + uaShort(x.ua) + '</small></div>'
+                    + '<div class="sd-act"><button class="btn btn-outline" data-hist="' + esc(x.user) + '"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử</button><button class="btn btn-outline" data-kick="' + esc(x.user) + '"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất mọi nơi</button>'
+                    + (x.kicks ? '<button class="btn btn-outline" data-dclear="' + esc(x.user) + '"><i class="fa-solid fa-eraser"></i> Xóa đếm</button>' : '') + (lk ? '' : '<button class="btn btn-outline" data-lock="' + esc(x.user) + '" data-why="Dùng 1 tài khoản trên nhiều thiết bị"><i class="fa-solid fa-lock"></i> Khóa</button>') + '</div></div>';
+            }).join('') : '<div class="sec-empty">Chưa có tài khoản nào đăng nhập nhiều thiết bị.</div>') + '</div>';
+            h += '<div class="sd-sec"><h4>👥 Thiết bị có nhiều tài khoản <span class="sd-tag mu">' + dv.length + '</span></h4>' + (dv.length ? dv.map(function (x) {
+                var den = Object.keys(x.denied || {}), others = (x.users || []).filter(function (u) { return u !== x.user && !(u in (x.denied || {})); });
+                return '<div class="sd-row"><div><b>' + devName(x.id) + '</b> → <b>' + esc(x.user || '(chưa gắn)') + '</b>' + (den.length ? '<span class="sd-tag">' + den.length + ' tài khoản bị chặn</span>' : '')
+                    + '<small>' + (den.length ? 'Bị chặn: ' + den.map(function (u) { var a = accOf(u); return esc(u) + ' (' + x.denied[u] + ' lần' + (a && a.isBlocked ? ', 🔒' : '') + ')'; }).join(', ') + '<br>' : '') + (others.length ? 'Từng đăng nhập: ' + others.map(esc).join(', ') + '<br>' : '')
+                    + 'Dùng lần cuối ' + fDT(x.last) + (x.ip ? ' · IP ' + esc(x.ip) : '') + ' · ' + uaShort(x.ua) + '</small></div>'
+                    + '<div class="sd-act"><button class="btn btn-outline" data-unbind="' + esc(x.id) + '" title="Cho thiết bị này dùng được cho tài khoản khác"><i class="fa-solid fa-link-slash"></i> Gỡ gắn thiết bị</button>'
+                    + den.map(function (u) { return '<button class="btn btn-outline" data-white="' + esc(u) + '" title="Miễn kiểm tra cho ' + esc(u) + '"><i class="fa-solid fa-user-check"></i> Miễn ' + esc(u) + '</button>'; }).join('') + '</div></div>';
+            }).join('') : '<div class="sec-empty">Chưa có thiết bị nào dùng cho nhiều tài khoản.</div>') + '</div>';
+            $('sec-list').innerHTML = h;
+        }
+        function devAct(b) {
+            if (b.dataset.kick) return QDdb.admin('secKick', { u: b.dataset.kick }).then(function (r) { toast('Đã đăng xuất ' + b.dataset.kick + ' trên ' + r.kicked + ' kết nối'); SA.loadDevices(); }, function (e) { toast(e.message || 'Lỗi', 'error'); });
+            if (b.dataset.dclear) return QDdb.admin('secClear', { u: b.dataset.dclear }).then(function () { toast('Đã xóa đếm vi phạm của ' + b.dataset.dclear); SA.loadDevices(); }, function (e) { toast(e.message || 'Lỗi', 'error'); });
+            if (b.dataset.unbind) return QDdb.admin('secUnbind', { dev: b.dataset.unbind }).then(function () { toast('Đã gỡ gắn thiết bị — tài khoản khác đăng nhập được'); SA.loadDevices(); }, function (e) { toast(e.message || 'Lỗi', 'error'); });
         }
         function renderErrors() {
             var st = $('sec-e-st').value, k = $('sec-e-kind').value;
@@ -13803,6 +13865,7 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         /* ---------- Xử lý ---------- */
         function onAct(e) {
             var b = e.target.closest('button'); if (!b) return;
+            if (b.dataset.kick || b.dataset.dclear || b.dataset.unbind) return devAct(b);
             if (b.dataset.hist) { if (typeof AdminActions !== 'undefined' && AdminActions.viewUserHistory) AdminActions.viewUserHistory(b.dataset.hist); return; }
             if (b.dataset.done) return SA.resolve(b.dataset.done);
             if (b.dataset.white) { b.dataset.white.split(',').forEach(function (u) { if (!white(u)) SA.cfg.white.push(u); }); save({ whitelist: SA.cfg.white }, 'Đã bỏ qua cảnh báo cho ' + b.dataset.white.replace(/,/g, ', ')); renderCfg(); render(); return; }

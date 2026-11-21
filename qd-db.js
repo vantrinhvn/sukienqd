@@ -71,7 +71,7 @@
     }
     function sendAuth(t) {
         var m = { op: 'auth', token: t, r: ++seq };
-        pend[m.r] = { ok: function (x) { AUTH.u = x.u; AUTH.role = x.role; link(x.u); }, no: function (e) { if (e && e.code === 'unauthenticated') { tok(null); AUTH.u = AUTH.role = ''; link(''); authLost(); } }, m: m };
+        pend[m.r] = { ok: function (x) { AUTH.u = x.u; AUTH.role = x.role; link(x.u); }, no: function (e) { if (e && e.code === 'unauthenticated') { if (e.message === 'OTHER_DEVICE') return kicked('other-device'); if (e.message === 'SIGNED_OUT') return kicked('admin'); tok(null); AUTH.u = AUTH.role = ''; link(''); authLost(); } }, m: m };
         try { ws.send(JSON.stringify(m)); } catch (e) {}
     }
     /* Mã xác thực hết hạn / không còn mà trang vẫn giữ phiên thành viên -> thoát phiên để đăng nhập lại (máy chủ không nhận lệnh ghi khi chưa xác thực) */
@@ -83,9 +83,51 @@
             setTimeout(function () { location.reload(); }, 300);
         } catch (e) {}
     }
-    function login(u, p) { return req({ op: 'login', u: u, p: p }).then(function (x) { try { sessionStorage.removeItem('qd_auth_lost'); } catch (e) {} tok(x.token); AUTH.u = x.u; AUTH.role = x.role; link(x.u); return x; }); }
+    /* Mã thiết bị gửi kèm khi đăng nhập (chống dùng nhiều thiết bị / nhiều tài khoản — Admin > Chống gian lận):
+       app Android: ANDROID_ID (bền); trình duyệt: mã lưu trong máy (dùng chung với QDGuard). fp: dấu vân tay trình duyệt để Admin đối chiếu. */
+    function devId() {
+        try { if (window.QDNative && QDNative.deviceId) { var a = String(QDNative.deviceId() || ''); if (a) return 'a:' + a; } } catch (e) {}
+        try { var v = localStorage.getItem('qd_dev_id'); if (!v) { v = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); localStorage.setItem('qd_dev_id', v); } return 'w:' + v; } catch (e) { return ''; }
+    }
+    function fp() {
+        try {
+            var n = navigator, sc = window.screen || {}, t = [n.userAgent, n.platform, n.language, (Intl.DateTimeFormat().resolvedOptions() || {}).timeZone, sc.width + 'x' + sc.height, window.devicePixelRatio, n.hardwareConcurrency, n.deviceMemory, n.maxTouchPoints].join('|'), h1 = 0x811c9dc5, h2 = 5381;
+            for (var i = 0; i < t.length; i++) { var c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619) >>> 0; h2 = (Math.imul(h2, 33) + c) >>> 0; }
+            return h1.toString(16) + h2.toString(16);
+        } catch (e) { return ''; }
+    }
+    /* Bị đăng xuất bởi máy chủ: đăng nhập ở thiết bị khác / tài khoản bị khóa / Ban Quản Trị đăng xuất -> báo rõ rồi về màn đăng nhập */
+    var KICK = { 'other-device': ['📲 Tài khoản đã đăng nhập ở thiết bị khác', 'Thiết bị này vừa bị đăng xuất vì tài khoản của bạn được đăng nhập trên một thiết bị khác. Mỗi tài khoản chỉ dùng trên <b>1 thiết bị</b> cùng lúc.<br><br>Nếu không phải bạn, hãy đăng nhập lại, đổi mật khẩu và báo Ban Quản Trị.'],
+        locked: ['🔒 Tài khoản đã bị khóa', 'Tài khoản bị hệ thống chống gian lận khóa (dùng nhiều thiết bị / nhiều tài khoản). Vui lòng liên hệ Ban Quản Trị để được kiểm tra.'],
+        admin: ['🚪 Đã đăng xuất', 'Ban Quản Trị đã đăng xuất tài khoản của bạn trên mọi thiết bị. Vui lòng đăng nhập lại.'] };
+    var kickedShown = false;
+    function kicked(reason) {
+        tok(null); AUTH.u = AUTH.role = ''; link('');
+        try { localStorage.removeItem('qd_app_auth'); sessionStorage.setItem('qd_auth_lost', '1'); } catch (e) {}   // app không tự đăng nhập lại (tránh giành qua giành lại)
+        if (kickedShown) return; kickedShown = true;
+        // trang có QDSession: kết thúc phiên theo cách chung (mọi trang cùng trình duyệt thoát theo, về trang đăng nhập kèm lý do)
+        var Q = window.QDSession, r = reason === 'other-device' ? 'device' : reason;
+        if (Q && Q.end && Q.kind !== 'public' && !(Q.kind === 'user' && r === 'locked')) { try { Q.end(r); return; } catch (e) {} }
+        try { ['qd_sess', 'qd_current_username'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+        var k = KICK[reason] || KICK['other-device'];
+        var show = function () {
+            if (!document.body) return setTimeout(show, 100);
+            var o = document.createElement('div'); o.id = 'qd-kicked';
+            o.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(10,0,0,.82);display:flex;align-items:center;justify-content:center;padding:20px;font:15px/1.55 system-ui,sans-serif';
+            o.innerHTML = '<div style="max-width:420px;width:100%;background:#2a0505;border:1px solid #b45309;border-radius:18px;padding:22px 20px;color:#fde68a;box-shadow:0 20px 60px rgba(0,0,0,.6)">'
+                + '<div style="font-weight:800;font-size:18px;margin-bottom:10px;color:#ffd700">' + k[0] + '</div><div style="color:#fef3c7">' + k[1] + '</div>'
+                + '<button type="button" style="margin-top:18px;width:100%;padding:12px;border:0;border-radius:12px;background:#ffd700;color:#3d0000;font-weight:800;font-size:15px;cursor:pointer">Đăng nhập lại</button></div>';
+            o.querySelector('button').onclick = function () { location.reload(); };
+            document.body.appendChild(o);
+        };
+        show();
+    }
+    var DEV_MSG = { DEVICE_TAKEN: function (x) { return 'Thiết bị này đã được dùng cho tài khoản khác' + (x && x.other ? ' (' + x.other + ')' : '') + '. Mỗi thiết bị chỉ dùng 1 tài khoản.' + (x && x.locked ? ' Tài khoản bạn vừa nhập đã bị khóa do cố đăng nhập nhiều lần.' : x && x.left != null ? ' Còn ' + x.left + ' lần thử nữa là tài khoản này bị khóa.' : '') + ' Cần đổi thiết bị, hãy liên hệ Ban Quản Trị.'; },
+        LOCKED_MULTI: function (x) { return 'Tài khoản đã bị khóa vì đăng nhập trên nhiều thiết bị cùng lúc' + (x && x.n ? ' (' + x.n + ' lần trong ' + x.h + ' giờ)' : '') + '. Vui lòng liên hệ Ban Quản Trị.'; } };
+    function login(u, p) { return req({ op: 'login', u: u, p: p, dev: devId(), fp: fp() }).then(function (x) { try { sessionStorage.removeItem('qd_auth_lost'); } catch (e) {} tok(x.token); AUTH.u = x.u; AUTH.role = x.role; link(x.u); return x; }); }
     function req(m) { return new Promise(function (ok, no) { m.r = ++seq; pend[m.r] = { ok: ok, no: no, m: m }; raw(m); }); }
     function onMsg(m) {
+        if (m.ev === 'kicked') return kicked(m.reason);
         if (m.re) { var p = pend[m.re]; if (!p) return; delete pend[m.re]; if (m.ok) p.ok(m); else { var e = err(m.code || 'unknown', m.message); if (m.x) e.x = m.x; p.no(e); } return; }
         var s = subs[m.sid]; if (!s) return;
         if (m.ev === 'doc') s.onDoc(m);
@@ -188,7 +230,10 @@
         if (q.col === 'accounts') q.where.forEach(function (w) { if (w[1] === '==' && w[0] === 'user') cu = w[2]; if (w[1] === '==' && w[0] === 'pass') cp = w[2]; });
         return req({ op: 'query', q: q }).then(function (m) {
             var d = me._snap(m.docs), snap = new QuerySnap(me, d, d.map(function (x, i) { return { type: 'added', doc: x, oldIndex: -1, newIndex: i }; }));
-            if (cu != null && cp != null && d.length && !(AUTH.u === cu && tok())) return login(String(cu), String(cp)).then(function () { return snap; }, function () { return snap; });
+            if (cu != null && cp != null && d.length && !(AUTH.u === cu && tok())) return login(String(cu), String(cp)).then(function () { return snap; }, function (e) {
+                if (e && DEV_MSG[e.message]) { var x = new Error(DEV_MSG[e.message](e.x)); x.code = 'qd-device'; x.qdMsg = x.message; x.qdCode = e.message; throw x; }   // bị chặn vì thiết bị: báo rõ cho trang đăng nhập
+                return snap;
+            });
             return snap;
         });
     };
@@ -310,7 +355,7 @@
         http: URL_.replace(/^ws/, 'http').replace(/\/ws$/, ''),
         beacon: function (writes) { try { var b = new Blob([JSON.stringify({ writes: enc(writes), token: tok() })], { type: 'text/plain' }); return navigator.sendBeacon(window.QDdb.http + '/api/commit', b); } catch (e) { return false; } },
         status: function () { return { open: open, ever: everOpen, pending: Object.keys(pend).length, subs: Object.keys(subs).length, u: AUTH.u, role: AUTH.role }; },
-        login: login,
+        login: login, deviceId: devId,
         logout: function () { tok(null); AUTH.u = AUTH.role = ''; link(''); return req({ op: 'logout' }).catch(function () {}); },
         token: function () { return tok(); },
         who: function () { return { u: AUTH.u, role: AUTH.role }; },

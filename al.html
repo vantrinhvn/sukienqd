@@ -292,7 +292,7 @@
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=10"><\/script>');
+        document.write('<script src="qd-db.js?v=11"><\/script>');
     })();
     </script>
     <script id="qd-ai-js">
@@ -471,6 +471,8 @@
            ===================================================================== */
         var C = {
             task: function () { var t = L.cfg.task_config || {}; return { login: num(t.loginReward, 10), att: num(t.attendanceReward, 20) }; },
+            devRule: function () { var sc = L.cfg.security_config || {}, r = sc.rules || {}, m = sc.isEnabled !== false, A = r.oneDevice || {}, B = r.oneAccount || {};
+                return { A: m && A.on === true, An: A.n == null ? 3 : +A.n, Ah: A.h || 24, B: m && B.on === true, Bn: B.n == null ? 2 : +B.n, Bd: B.days == null ? 30 : +B.days }; },
             att: function () { var a = L.cfg.attendance || {}; return { start: a.start || '09:00', end: a.end || '10:00', anti: a.antiProxyEnabled !== false && (L.cfg.security_config || {}).isEnabled !== false }; },
             // Thưởng vật phẩm điểm danh: items { points | tickets | spins | conThrows: { on, n, from, to } } (cũ: chỉ tickets; giờ chung from / to)
             // Mỗi món có hẹn giờ riêng (ms, 0 = không giới hạn); món chưa có giờ riêng dùng giờ chung cũ
@@ -1122,7 +1124,22 @@
                           '<b>Quên mật khẩu</b>: hệ thống không có nút tự lấy lại — hãy nhắn <b>Ban Quản Trị</b> để được cấp lại.', 'Đăng nhập lần đầu mỗi ngày còn được <b>+' + C.task().login + ' điểm</b> (máy chủ cộng, mỗi ngày 1 lần).',
                           'Trang tự đưa về màn hình đăng nhập khi <b>phiên hết hạn</b> hoặc mã đăng nhập trên máy bị hỏng — chỉ cần đăng nhập lại, dữ liệu không mất.']);
               },
-              acts: function () { return [GUEST ? { t: '🔑 Đến trang đăng nhập', do: 'login' } : { t: '🔑 Trang đăng nhập', go: 'user.html' }, { t: '🔒 Tài khoản bị khóa?', ask: 'locked' }].concat(GUEST ? [{ t: '📝 Chưa có tài khoản?', ask: 'register' }] : []); } },
+              acts: function () { return [GUEST ? { t: '🔑 Đến trang đăng nhập', do: 'login' } : { t: '🔑 Trang đăng nhập', go: 'user.html' }, { t: '🔒 Tài khoản bị khóa?', ask: 'locked' }, { t: '📲 Bị đăng xuất / nhiều thiết bị', ask: 'devices' }].concat(GUEST ? [{ t: '📝 Chưa có tài khoản?', ask: 'register' }] : []); } },
+
+            { id: 'devices', icon: '📲', title: 'Dùng nhiều thiết bị / nhiều tài khoản',
+              keys: ['thiet bi khac', 'nhieu thiet bi', 'dang nhap thiet bi khac', 'dien thoai khac', 'may khac', 'doi may', 'doi dien thoai', 'nhieu tai khoan', 'acc phu', 'clone', 'dung chung may', 'bi dang xuat', 'tu dang xuat', 'thiet bi nay da duoc dung', '1 thiet bi'],
+              ans: function () {
+                  var d = C.devRule(), out = [];
+                  if (!d.A && !d.B) return P('Hiện Ban Quản Trị <b>chưa bật</b> giới hạn thiết bị — bạn đăng nhập trên nhiều máy được. Lưu ý: dùng nhiều tài khoản để gom điểm vẫn là <b>gian lận</b> và có thể bị khóa khi BQT kiểm tra.');
+                  if (d.A) out.push('📲 <b>1 tài khoản – 1 thiết bị</b>: đăng nhập máy mới thì máy cũ <b>bị đăng xuất ngay</b> (hiện thông báo "Tài khoản đã đăng nhập ở thiết bị khác").'
+                      + (d.An > 0 ? ' Máy này còn đang dùng (thao tác trong 10 phút) mà cứ đăng nhập máy khác, đủ <b>' + d.An + ' lần trong ' + d.Ah + ' giờ</b> thì tài khoản <b>bị khóa tự động</b>.' : ''));
+                  if (d.B) out.push('👥 <b>1 thiết bị – 1 tài khoản</b>: mỗi điện thoại / trình duyệt chỉ dùng cho <b>tài khoản đầu tiên</b> đăng nhập trên nó; tài khoản khác bị chặn ("Thiết bị này đã được dùng cho tài khoản khác").'
+                      + (d.Bn > 0 ? ' Cố đăng nhập <b>' + d.Bn + ' lần</b> thì tài khoản đó bị khóa.' : '') + (d.Bd > 0 ? ' Thiết bị bỏ không quá <b>' + d.Bd + ' ngày</b> sẽ được dùng lại cho tài khoản khác.' : ''));
+                  out.push('<b>Đổi điện thoại / dùng chung máy với người nhà?</b> Nhắn Ban Quản Trị — BQT có thể <b>gỡ gắn thiết bị</b> hoặc miễn kiểm tra cho bạn.');
+                  out.push('Bị đăng xuất mà <b>không phải bạn</b> đăng nhập chỗ khác? Đăng nhập lại ngay, <b>đổi mật khẩu</b> và báo BQT.');
+                  return UL(out) + P('Tài khoản bị khóa vì lý do này <b>không tự mở được</b> — phải liên hệ Ban Quản Trị.');
+              },
+              acts: [{ t: '🔒 Tài khoản bị khóa?', ask: 'locked' }, { t: '🙋 Liên hệ BQT', ask: 'contact' }] },
 
             { id: 'locked', icon: '🔒', title: 'Tài khoản bị khóa',
               keys: ['bi khoa', 'khoa tai khoan', 'mo khoa', 'tai khoan bi khoa', 'yeu cau mo khoa', 'khong hoat dong', 'bi block', 'ban acc'],
@@ -1357,6 +1374,7 @@
                   return P('Quân Sư không hỗ trợ gian lận, lấy đáp án hay vào khu vực quản trị. Điểm, lượt và kết quả trò chơi đều do <b>máy chủ tính</b> — sửa dữ liệu trên máy mình không có tác dụng, mọi thao tác đều ghi lịch sử và tài khoản vi phạm có thể bị khóa.')
                       + (on ? P('🛡️ Hệ thống <b>chống gian lận đang bật</b>: tự phát hiện tool / script tự bấm, phần mềm auto-click, nhiều tài khoản trên 1 thiết bị, thao tác dồn dập bất thường và báo ngay cho Ban Quản Trị'
                           + (sc.autoBlock !== false ? ' (thao tác tự động bị <b>tạm chặn</b>)' : '') + '. Tài khoản bị khóa vì gian lận <b>không tự mở khóa được</b> — phải liên hệ BQT.') : '')
+                      + (function () { var d = C.devRule(); return d.A || d.B ? P('📲 Máy chủ đang giới hạn: ' + [d.A ? '<b>1 tài khoản – 1 thiết bị</b>' : '', d.B ? '<b>1 thiết bị – 1 tài khoản</b>' : ''].filter(Boolean).join(' và ') + ' — vi phạm nhiều lần sẽ bị <b>tự khóa</b>.') : ''; })()
                       + P('Nếu bạn phát hiện <b>lỗi</b> (bug), hãy báo cho Ban Quản Trị — đó mới là cách được ghi nhận 🫡');
               },
               acts: [{ t: '🙋 Báo lỗi cho BQT', ask: 'contact' }] }

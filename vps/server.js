@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-16';
+const VER = 'qd-vps-17';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -143,7 +143,7 @@ function roleOf(u) { const a = findAccount(u); if (!a || a.d.isBlocked === true)
 const ROLES = new Set(['user', 'manager', 'admin']);
 const isStaff = c => !!c && (c.local || c.role === 'admin' || c.role === 'manager');
 const isAdmin = c => !!c && (c.local || c.role === 'admin');
-function sign(u) { const body = Buffer.from(JSON.stringify({ u, exp: Date.now() + 60 * 864e5 })).toString('base64url'); return body + '.' + crypto.createHmac('sha256', SECRET).update(body).digest('base64url'); }
+function sign(u, sid, dev) { const body = Buffer.from(JSON.stringify(Object.assign({ u, exp: Date.now() + 60 * 864e5 }, sid ? { s: sid } : {}, dev ? { d: dev } : {}))).toString('base64url'); return body + '.' + crypto.createHmac('sha256', SECRET).update(body).digest('base64url'); }
 function verify(t) {
   const [body, mac] = String(t || '').split('.'); if (!body || !mac) return null;
   const want = crypto.createHmac('sha256', SECRET).update(body).digest('base64url');
@@ -154,6 +154,7 @@ function authConn(conn, u) { conn.u = u; conn.role = roleOf(u); return conn.role
 // Dữ liệu gửi ra: thành viên không thấy mật khẩu
 const HIDE = { accounts: ['pass'], pending_users: ['pass', 'password'] };
 function view(conn, c, d) {
+  if ((c === 'acc_sessions' || c === 'acc_devices') && !isStaff(conn)) return {};   // phiên / thiết bị: chỉ Ban Quản Trị xem
   if (c === 'push_broadcast' && d && d.kind === 'vps_alert' && !isStaff(conn) && d.target !== conn.u) return { kind: d.kind, target: d.target, status: d.status, createdAt: d.createdAt };
   if (c === 'rps_rooms' && d && d.status === 'playing') {
     const o = Object.assign({}, d), u = conn.u || '';
@@ -175,7 +176,8 @@ const SETTINGS_OPEN = new Set([]);   // cài đặt thành viên được ghi (k
 // Chỉ máy chủ (lệnh act) hoặc Ban Quản Trị được ghi: thành viên tự ghi = tự tạo đơn rút tiền / đơn quà / tặng lượt không trừ gì
 const SERVER_ONLY = new Set(['point_cashout', 'point_cashout_daily', 'shop_orders', 'point_shop_stock', 'point_shop_daily', 'transfer_history',
   'lixi_history', 'lixi_daily', 'spin_history', 'wheel_stock', 'wheel_questions', 'tranhthuong_history', 'tranhthuong_stock', 'lucky_numbers', 'lucky_number_history', 'lucky_rewards',
-  'attendance', 'invite_history', 'gifts', 'gift_claims', 'tournament_rewards', 'con_stats', 'con_history', 'rps_rooms', 'rps_history', 'point_history', 'video_share_log']);
+  'attendance', 'invite_history', 'gifts', 'gift_claims', 'tournament_rewards', 'con_stats', 'con_history', 'rps_rooms', 'rps_history', 'point_history', 'video_share_log',
+  'acc_sessions', 'acc_devices']);
 /* Đợt 4: trường trong tài khoản chỉ máy chủ (lệnh act) / Ban Quản Trị được đổi -> thành viên không tự cộng điểm, lượt, mở khóa, đổi tên... */
 const ACC_LOCK = new Set(['points', 'spins', 'tickets', 'conThrows', 'conStreak', 'conFreeDate', 'lixiDate', 'lixiAmount', 'lixiCount', 'lixiTotal', 'lastLoginRewardDate',
   'giftDay', 'giftCount', 'hasUsedInvite', 'invitedBy', 'invitedAt', 'inviteCount', 'inviteRewardCount', 'inviteCode', 'isBlocked', 'lockedAt', 'lockReason', 'unlockedAt', 'unlockRequestedAt',
@@ -678,6 +680,12 @@ async function admin(conn, m) {
     case 'conns': return [...CONNS].map(c => ({ u: c.u, role: c.role, ip: c.ip, at: c.at, ua: c.ua, subs: [...SUBS].filter(s => s.conn === c).length }));
     case 'restart': setTimeout(() => { markClean(); process.exit(0); }, 300); return { ok: true };
     case 'alertState': return alertState();
+    case 'secDevices': return secDevices();
+    case 'secUnbind': { const id = devKey(m.dev); if (!id) throw err('invalid-argument', 'Thiếu mã thiết bị'); commit([{ op: 'delete', path: 'acc_devices/' + id }], null, ACT_LOCAL); return { ok: true }; }
+    case 'secKick': { const u = String(m.u || ''); if (!findAccount(u)) throw err('not-found', 'Không có tài khoản'); const n = kickUser(u, null, 'admin'); commit([{ op: 'set', path: 'acc_sessions/' + u, merge: true, data: { user: u, sid: '', dev: '', outAt: Date.now() } }], null, ACT_LOCAL); return { kicked: n }; }   // mã cấp trước lúc này hết hiệu lực (cả máy đang tắt)
+    case 'secClear': { const u = String(m.u || ''); const x = getDoc('acc_sessions/' + u); if (x) commit([{ op: 'update', path: 'acc_sessions/' + u, data: { kicks: [] } }], null, ACT_LOCAL);
+      const dm = COLS.get('acc_devices'), W = []; if (dm) for (const [id, y] of dm) if (y.d && y.d.denied && y.d.denied[u] != null) W.push({ op: 'update', path: 'acc_devices/' + id, data: { ['denied.' + u]: { $fv: 'del' } } });
+      if (W.length) commit(W, null, ACT_LOCAL); return { ok: true }; }
     case 'alertTest': return alertTest(conn);
     case 'update': return { ver: await selfUpdate() };
     case 'token': return { token: sign(conn.u || 'admin') };
@@ -699,6 +707,7 @@ function onText(conn, txt) {
   const now = Date.now(); STAT.req++;
   if (!conn.rt || now - conn.rt > 10000) { conn.rt = now; conn.rn = 0; }
   if (++conn.rn > RATE && !isStaff(conn)) return send(conn, { re: m.r, code: 'resource-exhausted', message: 'Gửi yêu cầu quá nhanh' });
+  if (m.op === 'act' || m.op === 'commit' || m.op === 'login') conn.la = now;   // lần thao tác gần nhất (chống nhiều thiết bị: máy kia có "đang dùng" không)
   const fail = e => { send(conn, { re: m.r, code: e.code || 'internal', message: String(e.message || e).slice(0, 300) }); if (!e.code) console.error('[qd]', e); };
   try {
     switch (m.op) {
@@ -706,9 +715,14 @@ function onText(conn, txt) {
       case 'login': {   // đúng tên + mật khẩu -> cấp mã xác thực 60 ngày
         let a = null; const um = COLS.get('accounts'); if (um) for (const [id, x] of um) if (x.d && x.d.user === String(m.u || '') && x.d.pass === m.p) { a = { id, d: x.d }; break; }   // trùng tên (dữ liệu cũ): lấy đúng tài khoản khớp mật khẩu
         if (!a) { conn.u = ''; conn.role = ''; return send(conn, { re: m.r, code: 'unauthenticated', message: 'Sai tên đăng nhập hoặc mật khẩu' }); }
-        authConn(conn, a.d.user); return send(conn, { re: m.r, ok: true, token: sign(a.d.user), role: conn.role, u: conn.u });
+        const dev = devKey(m.dev), sid = actId();
+        try { deviceGate(conn, a, dev, String(m.fp || '').slice(0, 64), sid); }
+        catch (e) { conn.u = ''; conn.role = ''; return send(conn, Object.assign({ re: m.r, code: e.code || 'permission-denied', message: String(e.message || e) }, e.x ? { x: e.x } : {})); }
+        authConn(conn, a.d.user); conn.sid = sid; conn.dev = dev; return send(conn, { re: m.r, ok: true, token: sign(a.d.user, sid, dev), role: conn.role, u: conn.u });
       }
-      case 'auth': { const o = verify(m.token); if (!o) { conn.u = ''; conn.role = ''; return send(conn, { re: m.r, code: 'unauthenticated', message: 'Mã xác thực hết hạn' }); } authConn(conn, o.u); return send(conn, { re: m.r, ok: true, role: conn.role, u: conn.u }); }
+      case 'auth': { const o = verify(m.token); if (!o) { conn.u = ''; conn.role = ''; return send(conn, { re: m.r, code: 'unauthenticated', message: 'Mã xác thực hết hạn' }); }
+        const bad = sessionBad(o); if (bad) { conn.u = ''; conn.role = ''; return send(conn, { re: m.r, code: 'unauthenticated', message: bad }); }   // đã đăng nhập ở thiết bị khác / BQT đăng xuất mọi nơi
+        conn.sid = o.s || ''; conn.dev = o.d || ''; authConn(conn, o.u); return send(conn, { re: m.r, ok: true, role: conn.role, u: conn.u }); }
       case 'logout': conn.u = ''; conn.role = ''; return send(conn, { re: m.r, ok: true });
       case 'get': { STAT.r++; const x = getDoc(m.path); return send(conn, { re: m.r, ok: true, exists: !!x, d: x ? viewAt(conn, m.path, x.d) : null, v: x ? x.v : 0, ut: x ? x.ut : 0 }); }
       case 'query': { const res = runQuery(m.q); STAT.r += res.length || 1; return send(conn, { re: m.r, ok: true, docs: res.map(([id, x]) => docPayload(conn, m.q.col, id, x)) }); }
@@ -1708,6 +1722,100 @@ function actVideoRemove(conn, a) {
   return { ok: true };
 }
 
+
+/* ==================================================================================================
+   CHỐNG DÙNG NHIỀU THIẾT BỊ (Admin > Chống gian lận > Máy chủ chặn khi đăng nhập; mặc định TẮT)
+   - 1 tài khoản – 1 thiết bị (rules.oneDevice {on, n, h}): đăng nhập ở thiết bị mới -> thiết bị cũ bị đăng xuất ngay
+     (mã xác thực cũ hết hiệu lực). Đang dùng ở máy kia mà vẫn đăng nhập máy mới = 1 lần vi phạm; đủ n lần trong h giờ -> tự khóa (n = 0: không khóa).
+   - 1 thiết bị – 1 tài khoản (rules.oneAccount {on, n, days}): thiết bị gắn với tài khoản đầu tiên dùng nó; tài khoản khác đăng nhập -> chặn;
+     cố đủ n lần -> tự khóa tài khoản đó (n = 0: không khóa). Thiết bị không dùng quá `days` ngày thì nhả cho tài khoản khác (0 = giữ mãi).
+   Miễn: Quản lý / Quản trị viên / Chủ hệ thống và danh sách "Bỏ qua" (whitelist).
+   Mã thiết bị: app Android = ANDROID_ID (bền, cài lại app vẫn giữ); trình duyệt = mã lưu trong máy (xóa dữ liệu trình duyệt / ẩn danh sẽ ra mã mới).
+   Ghi: acc_sessions/{tài khoản} = { sid, dev, at, ip, ua, kicks: [mốc vi phạm] } · acc_devices/{mã} = { user, first, last, users[], denied{tài khoản: số lần} }
+   ================================================================================================== */
+const devKey = v => String(v || '').replace(/[^A-Za-z0-9:_-]/g, '').slice(0, 80);
+function secCfg() {
+  const c = setting('security_config') || {}, r = c.rules || {}, A = r.oneDevice || {}, B = r.oneAccount || {}, on = c.isEnabled !== false;
+  const I = (v, d, lo, hi) => { v = parseInt(v, 10); return isNaN(v) ? d : Math.min(hi, Math.max(lo, v)); };
+  return { white: new Set((Array.isArray(c.whitelist) ? c.whitelist : []).map(String)),
+    A: { on: on && A.on === true, n: I(A.n, 3, 0, 50), h: I(A.h, 24, 1, 720) },
+    B: { on: on && B.on === true, n: I(B.n, 2, 0, 50), days: I(B.days, 30, 0, 3650) } };
+}
+function secExempt(u, cfg) { const a = findAccount(u); if (!a) return false; const r = a.d.role; return r === 'admin' || r === 'manager' || a.d.owner === true || cfg.white.has(u); }
+const maskU = u => { u = String(u || ''); return u.length <= 2 ? u[0] + '*' : u.slice(0, 2) + '*'.repeat(Math.min(4, u.length - 2)) + (u.length > 4 ? u.slice(-1) : ''); };
+function secFlag(type, sev, user, detail, extra) {
+  try { commit([{ op: 'set', path: 'security_flags/' + actId(), data: Object.assign({ type, sev, user, detail, page: 'máy chủ', at: Date.now(), status: 'new', by: 'server' }, extra || {}) }], null, ACT_LOCAL); } catch (e) { console.error('[chống gian lận]', e); }
+}
+function kickUser(u, keep, reason) {   // đăng xuất các kết nối của u (trừ keep(c) = true): báo cho trang rồi ngắt
+  let n = 0;
+  for (const c of Array.from(CONNS)) if (c.u === u && !(keep && keep(c))) { n++; try { send(c, { ev: 'kicked', reason }); } catch (e) {} c.u = ''; c.role = ''; setTimeout(() => drop(c), 400); }
+  return n;
+}
+function secLock(u, why) {
+  const a = findAccount(u); if (!a || a.d.isBlocked === true) return false;
+  commit([{ op: 'update', path: 'accounts/' + a.id, data: { isBlocked: true, lockReason: 'security', lockedAt: Date.now(), lockNote: why } }], null, ACT_LOCAL);
+  reauthAll(); kickUser(u, null, 'locked');
+  secFlag('auto_lock', 'high', u, 'Tự khóa tài khoản: ' + why);
+  console.log('[chống gian lận] khóa @' + u + ': ' + why);
+  return true;
+}
+const ACTIVE_MS = +process.env.QD_ACTIVE_MS || 10 * 60e3;   // máy kia có thao tác trong 10 phút gần đây mới tính là "đang dùng cùng lúc" (bỏ qua app để chạy nền / tab bỏ quên)
+function deviceGate(conn, a, dev, fp, sid) {
+  const cfg = secCfg(), u = a.d.user, now = Date.now(), ex = secExempt(u, cfg), ip = cleanIp(conn.ip), ua = String(conn.ua || '').slice(0, 160);
+  // --- 1 thiết bị – 1 tài khoản ---
+  if (dev) {
+    const dk = 'acc_devices/' + dev, d0 = (getDoc(dk) || {}).d || null, owner = d0 && d0.user;
+    const live = !!(d0 && (cfg.B.days === 0 || now - (d0.last || 0) < cfg.B.days * 864e5)), ownerOk = !!(owner && findAccount(owner) && !secExempt(owner, cfg));
+    if (cfg.B.on && !ex && owner && owner !== u && live && ownerOk) {
+      const tries = (+((d0.denied || {})[u]) || 0) + 1;
+      commit([{ op: 'set', path: dk, merge: true, data: { denied: { [u]: actInc(1) }, deniedAt: now, users: { $fv: 'au', a: [u] } } }], null, ACT_LOCAL);
+      secFlag('multi_account', tries >= 2 ? 'high' : 'med', u, 'Đăng nhập trên thiết bị đã dùng cho tài khoản ' + owner + ' — bị chặn (lần ' + tries + ')', { device: dev, other: owner, ua });
+      const locked = cfg.B.n > 0 && tries >= cfg.B.n ? secLock(u, 'Dùng nhiều tài khoản trên 1 thiết bị (thiết bị của ' + owner + ')') : false;
+      throw err('permission-denied', 'DEVICE_TAKEN', { other: maskU(owner), locked, left: cfg.B.n > 0 ? Math.max(0, cfg.B.n - tries) : null });
+    }
+    const take = !ex && (!owner || owner === u || !live || !ownerOk);   // gắn thiết bị cho tài khoản thường (BQT / danh sách bỏ qua không giữ thiết bị)
+    const upd = { last: now, lastUser: u, ip, ua, users: { $fv: 'au', a: [u] } };
+    if (fp) upd.fp = fp;
+    if (take) { upd.user = u; if (owner !== u) upd.first = now; }
+    commit([{ op: 'set', path: dk, merge: true, data: upd }], null, ACT_LOCAL);
+  }
+  // --- 1 tài khoản – 1 thiết bị cùng lúc ---
+  if (ex) return;
+  const sk = 'acc_sessions/' + u, s0 = (getDoc(sk) || {}).d || null;
+  const kicks = (s0 && Array.isArray(s0.kicks) ? s0.kicks : []).filter(t => now - t < cfg.A.h * 3600e3);
+  if (cfg.A.on && s0 && s0.dev !== dev) {
+    const other = c => c.u === u && c.dev !== dev, active = Array.from(CONNS).some(c => other(c) && !/okhttp|QDLink/i.test(c.ua || '') && now - (c.la || 0) < ACTIVE_MS);   // đang mở trang ở máy kia (không tính kết nối nền của app)
+    if (active) kicks.push(now);
+    const lock = active && cfg.A.n > 0 && kicks.length >= cfg.A.n;
+    if (!lock) kickUser(u, c => !other(c), 'other-device');   // khóa thì secLock tự đăng xuất mọi nơi với lý do "locked"
+    if (active) secFlag('multi_device', lock ? 'high' : 'med', u, 'Đăng nhập thiết bị mới trong khi thiết bị khác đang dùng — ' + (lock ? 'đủ số lần, khóa tài khoản' : 'thiết bị cũ bị đăng xuất') + ' (lần ' + kicks.length + ' trong ' + cfg.A.h + ' giờ)', { device: dev, other: s0.dev || '', ua });
+    if (lock) {
+      commit([{ op: 'set', path: sk, data: { user: u, sid, dev, ip, ua, at: now, kicks } }], null, ACT_LOCAL);
+      secLock(u, 'Dùng chung 1 tài khoản trên nhiều thiết bị cùng lúc (' + kicks.length + ' lần trong ' + cfg.A.h + ' giờ)');
+      throw err('permission-denied', 'LOCKED_MULTI', { n: kicks.length, h: cfg.A.h });
+    }
+  }
+  commit([{ op: 'set', path: sk, data: { user: u, sid, dev, ip, ua, at: now, kicks } }], null, ACT_LOCAL);
+}
+function sessionBad(o) {   // mã xác thực còn dùng được? '' = được; 'SIGNED_OUT' = BQT đã đăng xuất mọi nơi sau khi cấp mã; 'OTHER_DEVICE' = đã đăng nhập thiết bị khác (khi bật 1 tài khoản – 1 thiết bị)
+  const s0 = (getDoc('acc_sessions/' + o.u) || {}).d;
+  if (s0 && s0.outAt && (+o.exp || 0) - 60 * 864e5 <= s0.outAt) return 'SIGNED_OUT';
+  const cfg = secCfg(); if (!cfg.A.on || !s0 || secExempt(o.u, cfg)) return '';
+  if (o.s && o.s === s0.sid) return '';
+  if (o.d && o.d === s0.dev) return '';   // cùng thiết bị (vd: app + trình duyệt nhúng)
+  return 'OTHER_DEVICE';
+}
+function secDevices() {   // cho Admin: thiết bị bị nhiều tài khoản cố dùng + tài khoản đổi thiết bị nhiều
+  const cfg = secCfg(), now = Date.now(), devs = [], sess = [], live = {};
+  for (const c of CONNS) if (c.u) (live[c.u] = live[c.u] || new Set()).add(c.dev || '?');
+  const dm = COLS.get('acc_devices');
+  if (dm) for (const [id, x] of dm) { const d = x.d || {}, den = d.denied || {}, us = Array.isArray(d.users) ? d.users : []; if (Object.keys(den).length || us.length > 1) devs.push({ id, user: d.user || '', users: us, denied: den, last: d.last || 0, first: d.first || 0, ua: d.ua || '', ip: d.ip || '', deniedAt: d.deniedAt || 0 }); }
+  const sm = COLS.get('acc_sessions');
+  if (sm) for (const [id, x] of sm) { const d = x.d || {}, k = (d.kicks || []).filter(t => now - t < cfg.A.h * 3600e3); if (k.length || (live[id] && live[id].size > 1)) sess.push({ user: id, dev: d.dev || '', at: d.at || 0, kicks: k.length, lastKick: k.length ? k[k.length - 1] : 0, live: live[id] ? live[id].size : 0, ua: d.ua || '', ip: d.ip || '' }); }
+  devs.sort((a, b) => Math.max(b.deniedAt, b.last) - Math.max(a.deniedAt, a.last)); sess.sort((a, b) => b.lastKick - a.lastKick || b.at - a.at);
+  return { cfg: { A: cfg.A, B: cfg.B }, devs: devs.slice(0, 300), sess: sess.slice(0, 300), total: { devs: dm ? dm.size : 0, sess: sm ? sm.size : 0 } };
+}
+
 const ACTS = { 'shop.buy': actShopBuy, 'cashout': actCashout, 'gift.turns': actGiftTurns,
   'lixi.pick': actLixi, 'wheel.claim': actWheelClaim, 'wheel.spin': actWheelSpin, 'tranh.open': actTranh, 'lucky.pick': actLuckyPick,
   'task.login': actTaskLogin, 'att.check': actAttend, 'invite.use': actInvite, 'gift.claim': actGiftClaim, 'con.wind': actConWind, 'con.free': actConFree, 'con.throw': actConThrow,
@@ -1739,7 +1847,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true, ver: VER, docs: n, cols: COLS.size, conns: CONNS.size, subs: SUBS.size, uptime: Math.round(process.uptime()) });
     }
     const c = httpConn(req, u);
-    if (u.pathname === '/api/commit' && req.method === 'POST') { const m = JSON.parse(await body(req, 1 << 20) || '{}'); if (!c.local && m.token) { const o = verify(m.token); if (o) authConn(c, o.u); } const r = commit(m.writes || [], m.pre || null, c); return json(res, 200, { ok: true, v: r.v }); }
+    if (u.pathname === '/api/commit' && req.method === 'POST') { const m = JSON.parse(await body(req, 1 << 20) || '{}'); if (!c.local && m.token) { const o = verify(m.token); if (o && !sessionBad(o)) authConn(c, o.u); } const r = commit(m.writes || [], m.pre || null, c); return json(res, 200, { ok: true, v: r.v }); }
     if (u.pathname === '/api/get' && req.method === 'GET') { if (!isAdmin(c)) throw err('permission-denied', 'Chỉ Admin'); const x = getDoc(u.searchParams.get('path')); return json(res, 200, { ok: true, exists: !!x, d: x ? x.d : null, v: x ? x.v : 0 }); }
     if (u.pathname === '/api/query' && req.method === 'POST') { if (!isAdmin(c)) throw err('permission-denied', 'Chỉ Admin'); const m = JSON.parse(await body(req, 1 << 16) || '{}'); return json(res, 200, { ok: true, docs: runQuery(m.q).map(([id, x]) => ({ id, d: x.d, v: x.v, ut: x.ut })) }); }
     if (u.pathname.startsWith('/api/admin/')) {

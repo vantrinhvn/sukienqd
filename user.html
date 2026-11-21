@@ -10717,7 +10717,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=10"><\/script>');
+        document.write('<script src="qd-db.js?v=11"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -11111,7 +11111,8 @@ html.qd-lite .qd-fx { display: none !important; }
             admin: 'Ban Quản Trị đã đăng xuất tài khoản của bạn khỏi hệ thống.',
             all: 'Ban Quản Trị vừa đăng xuất toàn bộ thành viên.',
             locked: 'Tài khoản của bạn đã bị khóa.',
-            deleted: 'Tài khoản không còn tồn tại trên hệ thống.'
+            deleted: 'Tài khoản không còn tồn tại trên hệ thống.',
+            device: 'Tài khoản vừa được đăng nhập trên một thiết bị khác (mỗi tài khoản chỉ dùng 1 thiết bị cùng lúc). Nếu không phải bạn, hãy đổi mật khẩu và báo Ban Quản Trị.'
         };
         function now() { return Date.now(); }
         function ls(k, v) {
@@ -11919,8 +11920,9 @@ html.qd-lite .qd-fx { display: none !important; }
                         setTimeout(() => { document.getElementById('auth-gate').style.display = 'none'; document.getElementById('app-shell').style.display = 'flex'; if(window.HomeVideo) window.HomeVideo.start(); if(window.Music) window.Music.autoStart(); if(window.LiXi) window.LiXi.start(); if(window.WheelTab) window.WheelTab.start(); if(window.RxTab) window.RxTab.start(); if(window.LnTab) window.LnTab.start(); Auth.ping(); window.AppCore.init(); window.Chat.init(); window.SessionManager.resetTimer(); Utils.toast(`Xác thực an toàn. Chào mừng ${State.currentUser}!`, "success"); }, 500);
                     }
                 } catch(e) { 
-                    console.error("Login Error:", e);
-                    Utils.toast(`Lỗi Máy Chủ: Request Timeout.`, "error"); 
+                    if (!(e && e.qdMsg)) console.error("Login Error:", e);
+                    if (e && e.qdMsg) { try { localStorage.removeItem('qd_app_auth'); } catch (x) {} Utils.toast(e.qdMsg, "error"); }   // bị chặn vì thiết bị (chống gian lận)
+                    else Utils.toast(`Lỗi Máy Chủ: Request Timeout.`, "error"); 
                     b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false; 
                 }
             },
@@ -11943,7 +11945,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     // Khóa do hệ thống chống gian lận (Admin > Chống gian lận): không tự mở, phải liên hệ Ban Quản Trị
                     const pre = await userP;
                     if (pre.exists && pre.data().lockReason === 'security') {
-                        timerDisplay.innerHTML = `<span class="text-danger" style="font-size:16px;line-height:1.5;display:block;">🛡️ Tài khoản đang được Ban Quản Trị kiểm tra (nghi vấn gian lận).<br>Vui lòng liên hệ Ban Quản Trị để được mở khóa.</span>`;
+                        timerDisplay.innerHTML = `<span class="text-danger" style="font-size:16px;line-height:1.5;display:block;">🛡️ Tài khoản đang được Ban Quản Trị kiểm tra (nghi vấn gian lận).${pre.data().lockNote ? '<br><small style="font-size:13.5px;opacity:.9">Lý do: ' + String(pre.data().lockNote).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]) + '</small>' : ''}<br>Vui lòng liên hệ Ban Quản Trị để được mở khóa.</span>`;
                         return;
                     }
                     const configDoc = await db.collection("settings").doc("account_config").get();
