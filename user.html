@@ -138,7 +138,7 @@
     <link rel="stylesheet" href="vendor/fa/css/all.min.css">
     <link rel="preload" href="vendor/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="vendor/fonts.css">
-    <link rel="stylesheet" href="qd-ui.css?v=2">
+    <link rel="stylesheet" href="qd-ui.css?v=3">
 
     <style>
         /* ---------------------------------------------------------------------
@@ -24893,7 +24893,23 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             Array.prototype.forEach.call(document.querySelectorAll('#chat-history-ui .msg-row.show-meta'), function (r) { r.classList.remove('show-meta'); });
             if (on) row.classList.add('show-meta');
         });
-        return { prep: prep, label: label };
+        // Khung chat vừa màn hình (máy tính): đo chỗ bắt đầu của khung để chiều cao = phần màn hình còn lại
+        function fit() {
+            var m = document.querySelector('#view-chat .chat-module'); if (!m || !m.getClientRects().length || innerWidth < 1024) return;
+            var sc = document.querySelector('.main-content-wrapper'), top = Math.round(m.getBoundingClientRect().top + (sc ? sc.scrollTop : 0));
+            if (top > 0 && top < innerHeight - 200) document.documentElement.style.setProperty('--qd-chat-top', top + 'px');
+            if (sc) {   // phần đệm dưới trang còn làm trang cuộn được -> trừ bớt để không cuộn (đầu khung không bị thanh trên che)
+                var ex = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--qd-chat-extra'), 10) || 0, over = sc.scrollHeight - sc.clientHeight;
+                if (over > 0 && over < 300) document.documentElement.style.setProperty('--qd-chat-extra', (ex + over) + 'px');
+                sc.scrollTop = 0;
+            }
+        }
+        window.addEventListener('resize', function () { clearTimeout(fit.t); fit.t = setTimeout(fit, 120); });
+        (function hook(n) {
+            if (!window.UI || !UI.navigate) { if (n < 60) setTimeout(function () { hook(n + 1); }, 500); return; }
+            var nav = UI.navigate; UI.navigate = function (v) { var r = nav.apply(this, arguments); if (v === 'chat') { setTimeout(fit, 30); setTimeout(fit, 400); } return r; };
+        })(0);
+        return { prep: prep, label: label, fit: fit };
     })();
     </script>
 

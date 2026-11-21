@@ -313,3 +313,16 @@ html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper > .btn-primary {
 }
 html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper > .btn-primary i { color: inherit !important; }
 html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper > .btn-primary::after, html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper > .btn-primary::before { display: none !important; }
+
+/* Khung chat vừa đúng màn hình: không cao hơn cửa sổ (trước đây cao tối thiểu 600 px -> máy tính xách tay phải cuộn, phần trên
+   bị thanh đầu trang che, ô nhập tin bị khuất), không tràn ngang (tin dài / cửa sổ hẹp không đẩy khung ra ngoài) */
+html:is(#qdui, *):is(#qdui, *) #view-chat :is(.chat-module, .chat-main, .chat-active-state, .chat-history, .chat-header, .chat-input-wrapper) { min-width: 0 !important; max-width: 100% !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-history { overflow-x: hidden !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-header > div:first-child { min-width: 0 !important; }
+@media (min-width: 1024px) {
+    html:is(#qdui, *):is(#qdui, *):is(#qdui, *):is(#qdui, *) #view-chat .chat-module {
+        height: calc(100vh - var(--qd-chat-top, 116px) - 22px - var(--qd-chat-extra, 0px)) !important; height: calc(100dvh - var(--qd-chat-top, 116px) - 22px - var(--qd-chat-extra, 0px)) !important;
+        min-height: 340px !important; max-height: none !important;
+    }
+    html:is(#qdui, *):is(#qdui, *) #view-chat .chat-sidebar { width: clamp(260px, 28vw, 340px) !important; flex: 0 0 auto; }
+}
