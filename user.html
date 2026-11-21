@@ -138,7 +138,7 @@
     <link rel="stylesheet" href="vendor/fa/css/all.min.css">
     <link rel="preload" href="vendor/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="vendor/fonts.css">
-    <link rel="stylesheet" href="qd-ui.css?v=1">
+    <link rel="stylesheet" href="qd-ui.css?v=2">
 
     <style>
         /* ---------------------------------------------------------------------
@@ -10479,7 +10479,7 @@ html.qd-lite .qd-fx { display: none !important; }
                     <div class="chat-module">
                         <aside class="chat-sidebar" id="chat-sidebar">
                             <div class="chat-search-wrap">
-                                <h3 class="text-xl mb-4 font-bold">Danh bạ Kênh</h3>
+                                <h3 class="text-xl mb-4 font-bold">Đoạn chat</h3>
                                 <div class="relative"><i class="fa-solid fa-search absolute text-muted" style="left: 18px; top: 50%; transform: translateY(-50%); font-size: 16px;"></i><input type="text" id="inp-search-contact" class="form-control" style="padding-left: 48px; border-radius: var(--radius-full);" placeholder="Tìm kiếm liên hệ..." onkeyup="window.Chat.filterContacts()"></div>
                             </div>
                             <div class="contact-list" id="contact-list-ui">
@@ -12480,6 +12480,9 @@ html.qd-lite .qd-fx { display: none !important; }
                     let html = start > 0 ? `<div class="qd-older"><button type="button" onclick="window.Chat.showOlder()"><i class="fa-solid fa-clock-rotate-left"></i> Xem tin nhắn cũ hơn (${start})</button></div>` : '';
                     
                     const unreadUpdates = [];
+                    // Kiểu Messenger: gom tin liên tiếp, mốc thời gian, ảnh "đã xem" dưới tin cuối cùng mỗi người đã xem
+                    const QG = window.QDMsgr ? window.QDMsgr.prep(ms, start, State.currentUser, State.chatTarget) : { sep: {}, first: {}, last: {}, heads: {}, mine: -1 };
+                    const qdNm = u => (State.nicknames || {})[u] || (((State.accInfo || {})[u] || {}).fullName) || u;
 
                     ms.forEach((m, idx) => { 
                         const isM = m.from === State.currentUser; 
@@ -12538,9 +12541,9 @@ html.qd-lite .qd-fx { display: none !important; }
                         const atMe = !isM && !m.revoked && window.QDMention && window.QDMention.forMe(m);
                         let textHtml = safeText ? `<div>${safeText}</div>` : '';
                         
-                        let senderNameHtml = '';
+                        let senderNameHtml = '', nameHtml = '';
                         if (State.chatTarget === 'general' && !isM) {
-                             senderNameHtml = m.bot && window.QDMention ? window.QDMention.senderHtml(m) : (window.QDStaff ? window.QDStaff.sender(m.from, State.nicknames[m.from] || m.from) : `<div class="msg-sender" style="color: var(--color-info);">${String(State.nicknames[m.from] || m.from).replace(/</g, '&lt;')}</div>`);
+                             nameHtml = m.bot && window.QDMention ? window.QDMention.senderHtml(m) : (window.QDStaff ? window.QDStaff.sender(m.from, qdNm(m.from)) : `<div class="msg-sender">${String(qdNm(m.from)).replace(/</g, '&lt;')}</div>`);
                         }
                         if (atMe && !m.bot) senderNameHtml = `<div class="qd-at-tag">@ Nhắc đến bạn</div>` + senderNameHtml;
                         if (m.auto === 'payout' && !m.revoked) senderNameHtml = `<div class="qd-auto-tag">🤖 Tin tự động · Trả thưởng</div>` + senderNameHtml;
@@ -12557,12 +12560,16 @@ html.qd-lite .qd-fx { display: none !important; }
                         let actionsHtml = isM ? revokeBtn + infoBtn + heartBtn : heartBtn + infoBtn;
                         // Nhấp đúp vào tin nhắn = thả / bỏ tim
                         let msgBubbleHtml = `<div class="msg-bubble-container"><div class="msg-bubble" ${m.revoked ? '' : `ondblclick="window.Chat.toggleHeart('${m.id}')"`}>${senderNameHtml}${textHtml}${imgHtml}</div>${heartHtml}</div>`;
-                        // Ảnh đại diện cạnh tin nhắn của người khác (chỉ ở tin đầu của 1 chuỗi tin liên tiếp, các tin sau chừa chỗ cho thẳng hàng)
-                        const prevM = idx > start ? ms[idx - 1] : null;
-                        const showAvt = !isM && (!prevM || prevM.from !== m.from || (m.time - prevM.time) > 300000);
-                        const avtHtml = isM || !window.QDChatAvt ? '' : (showAvt ? window.QDChatAvt(m.from, State.nicknames[m.from] || m.from, m.bot) : '<div class="msg-avt sp" aria-hidden="true"></div>');
-                        let layoutHtml = isM ? `${actionsHtml}${msgBubbleHtml}` : `${avtHtml}${msgBubbleHtml}${actionsHtml}`;
-                        html += `<div class="msg-row ${isM?'me':'them'}${avtHtml ? ' has-avt' : ''} ${heartHtml ? 'has-heart' : ''}${m.bot ? ' is-bot' : ''}${atMe ? ' at-me' : ''}${m.auto ? ' is-auto' : ''}"><div class="flex items-center gap-2">${layoutHtml}</div><div class="text-xs text-muted mt-2 font-bold ${isM?'text-right':'text-left'}">${tm}${statusHtml}</div></div>`;
+                        // Kiểu Messenger: ảnh đại diện ở tin CUỐI của chuỗi, tên người gửi ở trên tin ĐẦU (Kênh Chung), giờ + nút thả tim / thu hồi hiện khi chạm vào tin
+                        const gFirst = QG.first[idx] !== false, gLast = QG.last[idx] !== false;
+                        const avtHtml = isM || !window.QDChatAvt ? '' : (gLast ? window.QDChatAvt(m.from, qdNm(m.from), m.bot) : '<div class="msg-avt sp" aria-hidden="true"></div>');
+                        const heads = QG.heads[idx] || [];
+                        const seenTitle = heads.map(u => String(qdNm(u)).replace(/"/g, '&quot;').replace(/</g, '&lt;')).join(', ');
+                        let tailHtml = '';
+                        if (heads.length && window.QDChatAvt) tailHtml = `<div class="mg-seen" title="Đã xem: ${seenTitle}" onclick="window.Chat.showInfo('${m.id}','seen')">${heads.slice(0, 6).map(u => '<span class="mg-h">' + window.QDChatAvt(u, qdNm(u)) + '</span>').join('')}${heads.length > 6 ? '<span class="mg-more">+' + (heads.length - 6) + '</span>' : ''}</div>`;
+                        else if (QG.mine === idx && !QG.seenMine && !m.revoked) tailHtml = `<div class="mg-sent"><i class="fa-regular fa-circle-check"></i> Đã gửi</div>`;
+                        if (QG.sep[idx]) html += `<div class="mg-sep">${QG.sep[idx]}</div>`;
+                        html += `<div class="msg-row mg ${isM?'me':'them'}${gFirst ? ' g-first' : ''}${gLast ? ' g-last' : ''}${avtHtml ? ' has-avt' : ''} ${heartHtml ? 'has-heart' : ''}${m.bot ? ' is-bot' : ''}${atMe ? ' at-me' : ''}${m.auto ? ' is-auto' : ''}" data-mid="${m.id}">${nameHtml && gFirst ? `<div class="mg-name">${nameHtml}</div>` : ''}<div class="mg-line">${avtHtml}${msgBubbleHtml}<span class="mg-acts">${actionsHtml}</span></div><div class="mg-meta">${tm}${statusHtml}</div>${tailHtml}</div>`;
 });
                     if (html !== box.__qdHtml) { box.innerHTML = html; box.__qdHtml = html; }   // nội dung không đổi -> không vẽ lại
                     State.heartPop = null;
@@ -24838,6 +24845,55 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             var S = window.State || {}, url = src((S.avatars || {})[u]), nm = String(name || u || '?');
             return '<div class="msg-avt avatar-circle' + (url ? ' has-img' : '') + '" title="' + esc(nm) + '">' + (url ? '<img class="avt-img" src="' + url + '" alt="" loading="lazy" decoding="async">' : esc(nm.charAt(0).toUpperCase())) + '</div>';
         };
+    })();
+    </script>
+
+    <script id="qd-msgr-js">
+    /* ===== TRÒ CHUYỆN KIỂU MESSENGER =====
+       - Gom tin liên tiếp của 1 người (cách nhau ≤ 5 phút): góc bong bóng nối liền, ảnh đại diện ở tin cuối, tên ở tin đầu.
+       - Mốc thời gian giữa đoạn chat khi cách nhau > 15 phút / sang ngày mới: "17:27", "TH 6 LÚC 21:54", "21 THG 11 LÚC 21:54".
+       - Ảnh nhỏ "đã xem" của từng người nằm dưới tin cuối cùng người đó đã xem; tin cuối của mình chưa ai xem -> "Đã gửi".
+       - Chạm vào tin: hiện giờ gửi + nút thả tim / xem / thu hồi (máy tính: rê chuột). Nhấp đúp vẫn thả tim. */
+    window.QDMsgr = (function () {
+        var GAP = 15 * 60e3, JOIN = 5 * 60e3;
+        function pad(n) { return (n < 10 ? '0' : '') + n; }
+        function day0(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
+        function label(t) {
+            var d = new Date(t), n = new Date(), hm = pad(d.getHours()) + ':' + pad(d.getMinutes()), days = Math.round((day0(n) - day0(d)) / 864e5);
+            if (days <= 0) return hm;
+            if (days < 7) return (d.getDay() === 0 ? 'CN' : 'TH ' + (d.getDay() + 1)) + ' LÚC ' + hm;
+            return d.getDate() + ' THG ' + (d.getMonth() + 1) + (d.getFullYear() !== n.getFullYear() ? ', ' + d.getFullYear() : '') + ' LÚC ' + hm;
+        }
+        function prep(ms, start, me, target) {
+            var R = { sep: {}, first: {}, last: {}, heads: {}, mine: -1, seenMine: false }, i;
+            for (i = start; i < ms.length; i++) {
+                var m = ms[i], p = i > start ? ms[i - 1] : null;
+                if (!p || m.time - p.time > GAP || day0(new Date(m.time)) !== day0(new Date(p.time))) R.sep[i] = label(m.time);
+                var join = !!p && !R.sep[i] && p.from === m.from && !!p.bot === !!m.bot && !p.auto && !m.auto && (m.time - p.time) <= JOIN;
+                R.first[i] = !join; if (join) R.last[i - 1] = false; R.last[i] = true;
+            }
+            var rd = {};
+            for (i = start; i < ms.length; i++) {
+                var x = ms[i];
+                if (target === 'general') { (x.readBy || []).forEach(function (u) { if (u && u !== me) rd[u] = i; }); if (x.from && x.from !== me && !x.bot) rd[x.from] = i; }
+                else if (x.from === target) rd[target] = i;
+                else if (x.from === me && x.read) rd[target] = i;
+            }
+            Object.keys(rd).forEach(function (u) { var k = rd[u]; if (ms[k] && ms[k].from !== u) (R.heads[k] = R.heads[k] || []).push(u); });
+            for (i = ms.length - 1; i >= start; i--) if (ms[i].from === me && !ms[i].revoked) { R.mine = i; break; }
+            if (R.mine >= 0) for (i = R.mine; i < ms.length; i++) if ((R.heads[i] || []).length) { R.seenMine = true; break; }
+            return R;
+        }
+        // Chạm vào tin: hiện / ẩn giờ gửi + nút thao tác
+        document.addEventListener('click', function (e) {
+            var b = e.target.closest && e.target.closest('#chat-history-ui .msg-bubble'); if (!b) return;
+            if (e.target.closest('a, img, button, .qd-mention, video')) return;
+            var row = b.closest('.msg-row'); if (!row) return;
+            var on = !row.classList.contains('show-meta');
+            Array.prototype.forEach.call(document.querySelectorAll('#chat-history-ui .msg-row.show-meta'), function (r) { r.classList.remove('show-meta'); });
+            if (on) row.classList.add('show-meta');
+        });
+        return { prep: prep, label: label };
     })();
     </script>
 

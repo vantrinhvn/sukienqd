@@ -202,3 +202,114 @@ html[data-qd-ui="admin"]:is(#qdui, *) .nav-item.active::before { background: var
 
 /* Thẻ: không nhấc lên khi rê (bảng điều khiển nhiều thẻ, nhấc lên gây rung khi lướt chuột) */
 html[data-qd-ui="admin"]:is(#qdui, *) .card:hover { transform: none !important; }
+
+/* =====================================================================
+   5. Trò chuyện kiểu Messenger (tối): nền xanh than, bong bóng người khác xám xanh, bong bóng của mình xám sáng,
+   tin liên tiếp nối góc, mốc thời gian ở giữa, ảnh nhỏ "đã xem", ô nhập dạng viên thuốc. Áp cho mọi giao diện.
+   P = html:is(#qdui, *):is(#qdui, *) #view-chat (độ ưu tiên đủ cao để thắng các lớp chat cũ)
+   ===================================================================== */
+html:is(#qdui, *):is(#qdui, *) #view-chat {
+    --mg-bg1: #1f2e3e; --mg-bg2: #0f1821; --mg-bar: rgba(20, 31, 43, .94); --mg-them: #3a4757; --mg-me: #e4e6eb; --mg-me-ink: #050505;
+    --mg-ink: #e4e6eb; --mg-sub: #b0b3b8; --mg-line: rgba(255, 255, 255, .08); --mg-acc: #4aa3ff;
+}
+html:is(#qdui, *):is(#qdui, *):is(#qdui, *):is(#qdui, *) #view-chat .chat-module {
+    background: linear-gradient(180deg, var(--mg-bg1), var(--mg-bg2)) !important; border: 1px solid rgba(255, 255, 255, .07) !important;
+    box-shadow: 0 18px 40px -20px rgba(0, 0, 0, .7) !important; color: var(--mg-ink) !important; outline: none !important;
+}
+html:is(#qdui, *):is(#qdui, *) #view-chat :is(.chat-sidebar, .contact-list, .chat-main, .chat-active-state, .chat-history, .chat-empty-state, .chat-search-wrap) {
+    background: transparent !important; border-color: var(--mg-line) !important; box-shadow: none !important;
+}
+html:is(#qdui, *):is(#qdui, *) #view-chat :is(h2, h3, h4) { color: #fff !important; text-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-empty-state p { color: var(--mg-sub) !important; }
+
+/* Danh sách đoạn chat */
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-search-wrap h3 { font-size: 24px !important; font-weight: 800 !important; letter-spacing: -.01em; }
+html:is(#qdui, *):is(#qdui, *) #view-chat #inp-search-contact { background: rgba(255, 255, 255, .09) !important; border: 0 !important; color: var(--mg-ink) !important; border-radius: 999px !important; box-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat #inp-search-contact::placeholder { color: var(--mg-sub) !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-search-wrap .fa-search { color: var(--mg-sub) !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .contact-card { background: transparent !important; border: 0 !important; border-radius: 12px !important; box-shadow: none !important; padding: 8px 10px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .contact-card:hover, html:is(#qdui, *):is(#qdui, *) #view-chat .contact-card.active { background: rgba(255, 255, 255, .07) !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .contact-card .avatar-circle { width: 54px !important; height: 54px !important; min-width: 54px !important; font-size: 20px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .contact-card :is(.qd-ct-nm, .qd-ct-top) { color: #fff !important; font-size: 15.5px !important; font-weight: 700 !important; text-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .contact-card :is(.qd-ct-sub, .qd-ct-prev, .text-muted) { color: var(--mg-sub) !important; font-weight: 500 !important; font-size: 13.5px !important; text-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .qd-ct-head { color: var(--mg-sub) !important; text-shadow: none !important; font-size: 12px !important; letter-spacing: .04em; }
+
+/* Đầu khung chat: biểu tượng phẳng như Messenger */
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-header { background: var(--mg-bar) !important; border-bottom: 1px solid var(--mg-line) !important; box-shadow: none !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-header #active-name { color: #fff !important; font-size: 17px !important; font-weight: 700 !important; text-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-header #active-status { color: var(--mg-sub) !important; font-weight: 500 !important; text-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-header :is(.btn-icon, .btn-mobile-back) {
+    background: transparent !important; border: 0 !important; box-shadow: none !important; color: var(--mg-ink) !important; width: 40px !important; height: 40px !important; min-width: 40px; font-size: 19px !important;
+}
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-header :is(.btn-icon, .btn-mobile-back) i { color: inherit !important; filter: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-header .gc-hb .gc-n { box-shadow: 0 0 0 2px #16212d !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-header #active-avt { box-shadow: none !important; border: 0 !important; }
+
+/* Tin nhắn */
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-history { padding: 6px 10px 14px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-sep { text-align: center; color: var(--mg-sub); font-size: 12px; font-weight: 600; letter-spacing: .03em; margin: 18px 0 10px; text-shadow: none; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg { margin: 0 !important; padding: 0 !important; display: flex !important; flex-direction: column; align-items: flex-start; max-width: 100% !important; width: 100%; animation: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.me { align-items: flex-end; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.g-first { margin-top: 10px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-sep + .msg-row.mg.g-first { margin-top: 0 !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg:not(.g-first) { margin-top: 2px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-line { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.me .mg-line { flex-direction: row-reverse; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-line .msg-avt { width: 28px !important; height: 28px !important; min-width: 28px !important; font-size: 12px !important; margin: 0 !important; align-self: flex-end; box-shadow: none !important; border: 0 !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-line .msg-avt.sp { visibility: hidden; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg .msg-bubble-container { position: relative; max-width: min(76vw, 520px); min-width: 0; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg .msg-bubble {
+    padding: 8px 12px !important; font-size: 15.5px !important; line-height: 1.38 !important; font-weight: 400 !important; border: 0 !important; box-shadow: none !important;
+    border-radius: 18px !important; text-shadow: none !important; word-break: break-word; overflow-wrap: anywhere;
+}
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg .msg-bubble * { text-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.them .msg-bubble { background: var(--mg-them) !important; color: var(--mg-ink) !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.me .msg-bubble { background: var(--mg-me) !important; color: var(--mg-me-ink) !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.them:not(.g-first) .msg-bubble { border-top-left-radius: 5px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.them:not(.g-last) .msg-bubble { border-bottom-left-radius: 5px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.me:not(.g-first) .msg-bubble { border-top-right-radius: 5px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.me:not(.g-last) .msg-bubble { border-bottom-right-radius: 5px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg .msg-bubble a { color: inherit !important; text-decoration: underline; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg .msg-bubble img { border: 0 !important; border-radius: 14px !important; margin-top: 2px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.me .qd-mention { color: #0a5bd8 !important; background: rgba(10, 91, 216, .1) !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.them .qd-mention { color: #9fd0ff !important; background: rgba(159, 208, 255, .14) !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.at-me .msg-bubble { box-shadow: 0 0 0 2px #ffd54a !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg :is(.qd-at-tag, .qd-auto-tag) { margin-bottom: 4px; }
+/* Tên người gửi (Kênh Chung) ở trên tin đầu */
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-name { margin: 0 0 3px 48px; max-width: calc(100% - 60px); }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-name .msg-sender { color: var(--mg-sub) !important; font-size: 12.5px !important; font-weight: 600 !important; margin: 0 !important; text-shadow: none !important; }
+/* Thả tim: viên nhỏ đè góc dưới bong bóng */
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg .heart-reaction {
+    position: absolute; bottom: -12px; right: 6px; left: auto !important; top: auto; background: var(--mg-them) !important; color: #fff !important; border: 2px solid #16212d !important;
+    border-radius: 999px !important; padding: 0 6px !important; font-size: 11.5px !important; line-height: 18px; box-shadow: none !important; z-index: 1;
+}
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.has-heart { margin-bottom: 12px !important; }
+/* Giờ gửi + nút thao tác: chạm vào tin mới hiện (máy tính: rê chuột) */
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg .mg-meta { display: none; font-size: 11.5px !important; color: var(--mg-sub) !important; margin: 4px 4px 0 !important; font-weight: 500 !important; text-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.has-avt .mg-meta { margin-left: 40px !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.show-meta .mg-meta { display: block; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg .mg-meta :is(span, i) { color: var(--mg-sub) !important; text-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-acts { display: none; align-items: center; gap: 2px; align-self: center; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg.show-meta .mg-acts { display: inline-flex; }
+@media (hover: hover) { html:is(#qdui, *):is(#qdui, *) #view-chat .msg-row.mg:hover .mg-acts { display: inline-flex; } }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-acts .btn-heart-action { opacity: .9 !important; color: var(--mg-sub) !important; font-size: 15px !important; padding: 6px !important; margin: 0 !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-acts .btn-heart-action.on { color: #ff5c7a !important; }
+/* Ảnh nhỏ "đã xem" / "Đã gửi" */
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-seen { display: flex; justify-content: flex-end; align-self: stretch; gap: 3px; margin: 4px 2px 2px; cursor: pointer; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-seen .msg-avt { width: 16px !important; height: 16px !important; min-width: 16px !important; font-size: 8px !important; border: 0 !important; box-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-seen .mg-more { font-size: 10.5px; color: var(--mg-sub); font-weight: 700; line-height: 16px; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .mg-sent { align-self: flex-end; font-size: 11.5px; color: var(--mg-sub); margin: 3px 2px 0; text-shadow: none; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .qd-older button { background: rgba(255, 255, 255, .08) !important; color: var(--mg-ink) !important; border: 0 !important; box-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-history > .text-center { color: var(--mg-sub) !important; }
+
+/* Ô nhập: viên thuốc tối, nút gửi phẳng */
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper { background: var(--mg-bar) !important; border-top: 1px solid var(--mg-line) !important; box-shadow: none !important; gap: 6px; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper > div { background: rgba(255, 255, 255, .09) !important; border: 0 !important; border-radius: 22px !important; box-shadow: none !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat #inp-chat-msg { color: var(--mg-ink) !important; font-weight: 400 !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat #inp-chat-msg::placeholder { color: var(--mg-sub) !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper :is(.btn-icon, .qd-at-btn) { color: var(--mg-ink) !important; background: transparent !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper > .btn-primary {
+    width: 42px !important; height: 42px !important; background: transparent !important; box-shadow: none !important; border: 0 !important; color: var(--mg-acc) !important; font-size: 21px !important; animation: none !important;
+}
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper > .btn-primary i { color: inherit !important; }
+html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper > .btn-primary::after, html:is(#qdui, *):is(#qdui, *) #view-chat .chat-input-wrapper > .btn-primary::before { display: none !important; }
