@@ -1,0 +1,204 @@
+/* =====================================================================
+   QĐ TLH — Giao diện 2027 "Sơn mài khảm vàng" (dùng chung mọi trang)
+   ---------------------------------------------------------------------
+   Giữ nhận diện Tết đỏ – vàng, làm tinh tế hơn:
+   - Màu: sơn đỏ (--ts-lq1 → --ts-lq3, theo màu chủ đề Đỏ / Đào / Chưng), vàng lá #f2b705 làm đường viền mảnh,
+     vàng sáng #ffd54a cho số liệu, giấy dó #fff6dc cho khung.
+   - Chữ: Plus Jakarta Sans (lưu sẵn trong vendor/). Tiêu đề 800, chữ thường 500; bỏ bóng đen dưới mọi dòng chữ.
+   - Điểm nhấn duy nhất: các ô trang chủ như hộp sơn mài — viền vàng 1px + một đường "khảm" vàng mảnh bên trong.
+     Mọi thứ khác yên tĩnh: nhãn trạng thái phẳng, bóng đổ mềm, không nhấp nháy lặp vô cớ.
+   - Chuyển động chỉ khi người dùng thao tác: bấm thì lún nhẹ, đổi mục thì trượt nhẹ; giảm chuyển động / máy yếu thì tắt.
+   Độ ưu tiên: file nạp trong <head> nhưng phải thắng các lớp CSS cũ đặt sau trong trang, nên bộ chọn dùng
+   :is(#qdui,*) (không khớp gì thêm, chỉ tăng độ ưu tiên). Phần 2 chỉ áp cho trang thành viên (html[data-qd-ui="member"]).
+   ===================================================================== */
+
+:root { --qu-ease: cubic-bezier(.2, .8, .2, 1); --qu-gold-hair: rgba(242, 183, 5, .85); --qu-inlay: rgba(255, 213, 74, .32); }
+
+/* ---------- 1. Mọi trang: chạm gọn, bấm có phản hồi, tiêu điểm bàn phím rõ ---------- */
+html { -webkit-tap-highlight-color: transparent; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+html:is(#qdui, *) :is(button, a, [role="button"], [onclick], label, summary) { touch-action: manipulation; }
+html:is(#qdui, *) :is(button, a, [role="button"], input, select, textarea, [tabindex]):focus-visible { outline: 2px solid #ffd54a !important; outline-offset: 2px !important; }
+
+html:is(#qdui, *) :is(.wheel-tab, .btn, .btn-icon, .m-nav-item, .contact-card, .hero-point-pill, .qu-press):active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(.97) !important; transition: transform 70ms ease-out !important;
+}
+
+/* Xuống dòng đẹp: tiêu đề cân đối, đoạn văn không để 1 chữ lẻ loi ở dòng cuối */
+html:is(#qdui, *) :is(h1, h2, h3, h4, .wheel-msg, .lixi-msg, .wheel-title, .lixi-title) { text-wrap: balance; }
+html:is(#qdui, *) :is(p, li, small) { text-wrap: pretty; }
+
+/* Đổi mục: trượt lên nhẹ, nhanh (thay hiệu ứng cũ 0,4 giây) */
+@keyframes quViewIn { from { opacity: 0; transform: translate3d(0, 8px, 0); } to { opacity: 1; transform: none; } }
+html:is(#qdui, *) .view-section.active { animation: quViewIn .24s var(--qu-ease) both !important; }
+
+/* Hộp thoại: mở bằng thu phóng nhẹ */
+html:is(#qdui, *) .modal-overlay .modal-box { transition: transform .22s var(--qu-ease), opacity .18s ease !important; }
+
+/* Danh sách dài: chỉ vẽ phần đang nhìn thấy */
+html:is(#qdui, *) .contact-card { content-visibility: auto; contain-intrinsic-size: auto 82px; }
+
+@media (prefers-reduced-motion: reduce) {
+    html:is(#qdui, *) .view-section.active { animation: none !important; opacity: 1 !important; transform: none !important; }
+    html:is(#qdui, *) *, html:is(#qdui, *) *::before, html:is(#qdui, *) *::after { scroll-behavior: auto !important; }
+}
+html[data-gfx="low"]:is(#qdui, *) .view-section.active { animation: none !important; opacity: 1 !important; transform: none !important; }
+
+/* =====================================================================
+   2. Trang thành viên — giao diện Tết
+   ===================================================================== */
+
+/* 2a. Chữ: bỏ bóng đen phủ mọi dòng (nguyên nhân chữ nhòe, nặng); tiêu đề giữ bóng mảnh */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(p, span, label, td, th, small, li, b, strong, em, a, div) { text-shadow: none !important; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body p:not([class*="font-"]):not([style*="font-weight"]) { font-weight: 500 !important; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(h1, h2, h3) { text-shadow: 0 1px 0 rgba(70, 0, 0, .35) !important; letter-spacing: -.01em; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(h1, h2, h3) span { text-shadow: inherit !important; }
+
+/* 2b. Ô trang chủ = hộp sơn mài khảm vàng */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(.bento-hero, .lixi-card, .wheel-tab) {
+    border: 1px solid var(--qu-gold-hair) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 18px 30px -22px rgba(90, 6, 0, .85), 0 3px 8px -4px rgba(90, 6, 0, .35) !important;
+    outline: 1px solid var(--qu-inlay); outline-offset: -7px;
+}
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .bento-hero { border-radius: 26px !important; outline-offset: -8px; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .wheel-tab:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 20px 32px -20px rgba(90, 6, 0, .9), 0 0 0 3px rgba(255, 213, 74, .22) !important; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(.wheel-tab, .lixi-card):focus-visible { outline: 2px solid #ffd54a !important; outline-offset: 2px !important; }
+
+/* Tiêu đề ô: chữ thường (không viết hoa toàn bộ), vàng, gọn */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(.wheel-tab .wheel-title, .lixi-card .lixi-title) {
+    text-transform: none !important; letter-spacing: 0 !important; font-weight: 800 !important; font-size: 14.5px !important; line-height: 1.25;
+    color: var(--ts-gold, #ffd54a) !important;
+}
+@media (max-width: 767px) { html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body #view-dashboard .wheel-tab .wheel-title { font-size: 13.5px !important; } }
+
+/* Nhãn trạng thái: phẳng, nền sơn tối, không viền dày */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(.wheel-tab .wheel-badge, .lixi-badge) {
+    background: rgba(45, 0, 4, .34) !important; border: 1px solid rgba(255, 213, 74, .22) !important; box-shadow: none !important;
+    color: #ffe9a8 !important; font-weight: 700 !important; font-size: 11.5px !important; letter-spacing: 0; padding: 3px 10px !important;
+}
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .wheel-tab.reg-tab[data-state="open"] .wheel-badge { background: rgba(22, 120, 60, .45) !important; border-color: rgba(134, 239, 172, .55) !important; color: #eafff1 !important; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(.wheel-tab[data-state="locked"] .wheel-badge, .lixi-card[data-state="closed"] .lixi-badge) { color: #ffc9c9 !important; border-color: rgba(255, 140, 140, .4) !important; }
+
+/* Dòng hướng dẫn cuối ô */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(.wheel-tab .wheel-msg, .lixi-card .lixi-msg) { color: #fff1c9 !important; font-weight: 600 !important; font-size: 12.5px !important; opacity: .92; }
+
+/* Thẻ chào */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .bento-hero h1 > i.fa-fire { display: none !important; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .bento-hero p { font-weight: 500 !important; color: #ffeec2 !important; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .bento-hero :is(.hero-point-pill, .hero-clock) {
+    background: rgba(45, 0, 4, .32) !important; border: 1px solid rgba(255, 213, 74, .45) !important; border-radius: 14px !important;
+}
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .bento-hero #live-clock { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .bento-hero .hero-video-wrap { border-width: 1px !important; box-shadow: 0 10px 22px -12px rgba(0, 0, 0, .6) !important; }
+
+/* 2c. Khối nội dung khác (Trò chuyện, Điểm danh, Bản tin, Giải đấu): viền mảnh, bóng mềm */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(.card, .chat-module, #view-news > .flex:first-child, #view-tournament > .qdb-head, .rps2-top, #view-videos .vid-head) {
+    border-width: 1px !important; border-color: var(--qu-gold-hair) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 18px 32px -22px rgba(90, 6, 0, .8) !important;
+}
+
+/* 2d. Thanh trên: nút tròn viền mảnh */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .top-navbar .btn-icon { border-width: 1px !important; box-shadow: 0 6px 12px -8px rgba(120, 20, 0, .7) !important; }
+
+/* 2e. Nút chính: hết nhấp nháy lặp (chỉ động khi bấm), viền mảnh */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .btn-primary { animation: none !important; border-width: 1px !important; border-color: rgba(255, 255, 255, .7) !important; }
+
+/* 2f. Ô nhập: viền mảnh, sáng lên khi gõ */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .form-control { border-width: 1px !important; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .form-control:focus { box-shadow: 0 0 0 3px rgba(255, 213, 74, .3) !important; }
+
+/* 2g. Màn đăng nhập */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .auth-box { border-width: 1px !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 30px 60px -30px rgba(90, 6, 0, .9) !important; outline: 1px solid var(--qu-inlay); outline-offset: -8px; }
+
+/* 2h. Hộp thoại */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .modal-box { border-width: 1px !important; }
+
+/* 2i. Thanh dưới: mục vừa chọn bật lên nhẹ (cho thấy đã chuyển mục) */
+@keyframes quNavPop { 0% { transform: translateY(6px) scale(.82); } 60% { transform: translateY(-2px) scale(1.04); } 100% { transform: none; } }
+@media (max-width: 1023px) {
+    html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .mobile-nav .m-nav-item.active .mn-ico { animation: quNavPop .32s var(--qu-ease) both; }
+}
+html[data-gfx="low"]:is(#qdui, *) body .mobile-nav .m-nav-item.active .mn-ico { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { html:is(#qdui, *) body .mobile-nav .m-nav-item.active .mn-ico { animation: none !important; } }
+
+/* 2j. Trò chuyện: tên kênh đọc rõ trên nền đỏ */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .contact-card .qd-ct-nm.qd-kc { color: var(--ts-gold, #ffd54a) !important; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body .contact-card { border-width: 1px !important; }
+
+/* 2k. Trạng thái trống: biểu tượng trên, chữ dưới, giãn dòng vừa phải */
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(#att-history-list, #news-container, #tournament-display-area) > .text-center { line-height: 1.55 !important; }
+html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(#att-history-list, #news-container, #tournament-display-area) > .text-center > i.block { display: block !important; margin: 0 auto 12px !important; }
+
+/* 2l. Máy cảm ứng: không "nhấc" thẻ khi rê (tránh thẻ bị kẹt trạng thái nổi sau khi chạm) */
+@media (hover: none) {
+    html[data-theme="tet"][data-qd-ui="member"]:is(#qdui, *):is(#qdui, *) body :is(.wheel-tab, .lixi-card, .bento-hero):hover { transform: none !important; }
+}
+
+/* =====================================================================
+   3. Trò chơi (Ném Còn, Vòng Quay, Rút Lì Xì, Quay Số) + trang phụ
+   Chế độ nhẹ (html.qd-lite — máy yếu / đo thấy giật / chọn "Tiết kiệm"): tắt trang trí chạy lặp,
+   giữ nguyên hiệu ứng của chính trò chơi (quay, mở bao, ném).
+   ===================================================================== */
+html.qd-lite:is(#qdui, *) .petal { display: none !important; }
+html.qd-lite:is(#qdui, *) :is(.lantern, .medallion .halo, .medallion .ring, .medallion .bulb, .lixi:not(.opened) .lixi-seal, .result-env, .decor-left, .decor-right, .decor-flower, .spin-counter.glow, .hint .fing) { animation: none !important; }
+html.qd-lite:is(#qdui, *) :is(.medallion .ring, .medallion .face, .btn-roll, .lixi:not(.opened) .lixi-seal, .spin-counter.glow)::after { animation: none !important; }
+html.qd-lite:is(#qdui, *) .decor-flower:nth-child(2n) { display: none !important; }
+/* Bóng đổ lớn làm chậm khi cuộn trên máy yếu */
+html.qd-lite:is(#qdui, *) :is(.card, .modal-content, .modal-box, .result-card) { box-shadow: 0 6px 14px -8px rgba(0, 0, 0, .5) !important; }
+
+/* Cổng sự kiện (index): tên đội không bị nút đè trên màn hẹp */
+html:is(#qdui, *) .topbar .topbar-actions { flex-shrink: 0; }
+html:is(#qdui, *) .topbar .brand { flex: 1 1 auto; min-width: 0; }
+html:is(#qdui, *) .topbar .brand-text > * { overflow: hidden; text-overflow: ellipsis; }
+
+/* Quân Sư AI: ô chủ đề trên điện thoại — biểu tượng trên, chữ dưới để chữ có đủ chiều rộng */
+@media (max-width: 519px) {
+    html:is(#qdui, *) .grid .gbtn { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 5px; padding: 10px 12px 11px; font-size: 13.5px; line-height: 1.3; }
+    html:is(#qdui, *) .grid .gbtn span { font-size: 19px; line-height: 1; }
+}
+
+/* =====================================================================
+   4. Admin — "Sơn then": nền sơn đen ấm thay cho tím xanh mặc định; nút chính màu vàng lá;
+   thẻ chào là hộp sơn đỏ khảm vàng (cùng họ với trang thành viên). Màu báo đỏ / xanh / cam giữ nguyên ý nghĩa.
+   ===================================================================== */
+html[data-qd-ui="admin"] {
+    --brand-primary: #e3ae3f; --brand-primary-hover: #f0c05a; --brand-primary-active: #c9952b;
+    --brand-primary-soft: rgba(227, 174, 63, .14); --brand-glow: rgba(227, 174, 63, .28);
+    --qa-on-primary: #2a1405; --qa-lq1: #b81d27; --qa-lq2: #7d0c15; --qa-gold: #e3ae3f;
+}
+html[data-qd-ui="admin"][data-theme="dark"] {
+    --bg-body: #120d0c; --bg-surface: #1a1312; --bg-elevated: #231a18; --bg-card: #2b201d;
+    --bg-hover: #382a26; --text-main: #f7f0ea; --text-muted: #b5a397; --border-normal: #31241f; --border-strong: #45342d;
+    --shadow-md: 0 6px 14px -8px rgba(0, 0, 0, .7); --shadow-lg: 0 22px 40px -18px rgba(0, 0, 0, .85);
+}
+html[data-qd-ui="admin"][data-theme="light"] {
+    --brand-primary: #9a5f0c; --brand-primary-hover: #7f4e09; --brand-primary-active: #6a4107;
+    --brand-primary-soft: rgba(154, 95, 12, .12); --brand-glow: rgba(154, 95, 12, .22); --qa-on-primary: #fff;
+    --bg-body: #fbf6ee; --bg-surface: #fffdf9; --bg-elevated: #f6eee2; --bg-card: #ffffff; --bg-hover: #efe3d2;
+    --text-main: #2a1612; --text-muted: #7a6152; --border-normal: #eadccb; --border-strong: #dccab5;
+}
+/* Nút / ô nổi dùng màu chính: chữ tối trên vàng lá */
+html[data-qd-ui="admin"]:is(#qdui, *) :is(.btn-primary, .qk-tabs button.on) { color: var(--qa-on-primary) !important; box-shadow: 0 6px 16px -8px var(--brand-glow) !important; }
+html[data-qd-ui="admin"]:is(#qdui, *) :is(.btn-icon:hover, .vsh-filt button.on, .qdb-a-seg button.on, .po-tab.active, .po-mode button.on, .sec-tabs button.on, [style*="color: white"][style*="background: var(--brand-primary)"]) { color: var(--qa-on-primary) !important; }
+html[data-qd-ui="admin"]:is(#qdui, *) :is(.sb-logo, .auth-logo, .hdr-brand) { color: var(--qa-gold) !important; background: linear-gradient(150deg, var(--qa-lq1), var(--qa-lq2)) !important; box-shadow: inset 0 0 0 1px rgba(227, 174, 63, .7), 0 8px 18px -8px rgba(184, 29, 39, .7) !important; }
+html[data-qd-ui="admin"]:is(#qdui, *) .avatar { background: linear-gradient(150deg, var(--qa-lq1), var(--qa-lq2)) !important; color: #ffe3a3 !important; }
+html[data-qd-ui="admin"]:is(#qdui, *) #qk-fab { background: linear-gradient(150deg, var(--qa-lq1), var(--qa-lq2)) !important; color: var(--qa-gold) !important; box-shadow: inset 0 0 0 1px rgba(227, 174, 63, .7), 0 12px 26px -8px rgba(120, 10, 16, .7) !important; }
+
+/* Thẻ chào trên Tổng quan: hộp sơn đỏ khảm vàng */
+html[data-qd-ui="admin"]:is(#qdui, *) .dash-hero {
+    background: radial-gradient(110% 150% at 100% 0%, rgba(227, 174, 63, .26), transparent 55%), linear-gradient(140deg, #6e0a13 0%, #9c1520 55%, #bb2a30 100%) !important;
+    border: 1px solid rgba(227, 174, 63, .8); outline: 1px solid rgba(255, 213, 74, .28); outline-offset: -8px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 22px 40px -22px rgba(110, 10, 19, .9) !important;
+}
+html[data-qd-ui="admin"]:is(#qdui, *) .dash-hero .btn, html[data-qd-ui="admin"]:is(#qdui, *) .dash-hero a.btn { background: rgba(40, 0, 4, .28) !important; border-color: rgba(255, 213, 74, .35) !important; color: #fff3d6 !important; }
+html[data-qd-ui="admin"]:is(#qdui, *) .dash-hero .btn:hover { background: rgba(255, 213, 74, .16) !important; }
+
+/* Trang đăng nhập Admin */
+html[data-qd-ui="admin"]:is(#qdui, *) #auth-gate { background: radial-gradient(70% 55% at 0% 0%, rgba(184, 29, 39, .28), transparent 60%), radial-gradient(60% 50% at 100% 100%, rgba(227, 174, 63, .14), transparent 60%), var(--bg-body) !important; }
+html[data-qd-ui="admin"]:is(#qdui, *) .auth-box { outline: 1px solid rgba(227, 174, 63, .18); outline-offset: -8px; }
+
+/* Thanh bên: mục đang chọn có vạch vàng lá */
+html[data-qd-ui="admin"]:is(#qdui, *) .nav-item.active { background: var(--brand-primary-soft) !important; }
+html[data-qd-ui="admin"]:is(#qdui, *) .nav-item.active::before { background: var(--brand-primary) !important; }
+
+/* Thẻ: không nhấc lên khi rê (bảng điều khiển nhiều thẻ, nhấc lên gây rung khi lướt chuột) */
+html[data-qd-ui="admin"]:is(#qdui, *) .card:hover { transform: none !important; }

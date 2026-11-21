@@ -1,10 +1,10 @@
 /* QD Elite Service Worker
    - Bấm thông báo: mở / focus lại web và vào đúng phòng chat
    - Hẹn giờ hiện thông báo theo yêu cầu của trang (nút Test 5s)
-   - Bộ nhớ đệm: thư viện CDN (Font Awesome, Firebase SDK, Google Fonts) + ảnh lưu sẵn -> mở lại trang gần như tức thì
+   - Bộ nhớ đệm: phông chữ + biểu tượng (vendor/), thư viện CDN + ảnh lưu sẵn -> mở lại trang gần như tức thì
    - Trang HTML: luôn lấy bản mới nhất từ mạng, chỉ dùng bản lưu khi mất mạng
    - Không đụng tới: Firestore / API (dữ liệu thời gian thực), nhạc / video (yêu cầu theo đoạn), kiểm tra mạng (cache: no-store) */
-const VERSION = 'qd-smooth-v1';
+const VERSION = 'qd-smooth-v2';
 const STATIC_CACHE = VERSION + '-static';
 const PAGE_CACHE = VERSION + '-pages';
 
@@ -53,6 +53,18 @@ self.addEventListener('fetch', (event) => {
                 throw e;
             }
         })());
+        return;
+    }
+
+    // Phông chữ + biểu tượng lưu trong web (vendor/): lấy từ bộ nhớ đệm, không có mới tải -> mở trang không phải chờ tải chữ
+    if (url.pathname.indexOf('/vendor/') >= 0) {
+        event.respondWith(caches.open(STATIC_CACHE).then(async (cache) => {
+            const hit = await cache.match(req, { ignoreSearch: true });
+            if (hit) return hit;
+            const res = await fetch(req);
+            if (res && res.ok) cache.put(req, res.clone());
+            return res;
+        }));
         return;
     }
 
