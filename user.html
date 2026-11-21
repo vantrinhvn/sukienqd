@@ -10717,7 +10717,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=7"><\/script>');
+        document.write('<script src="qd-db.js?v=8"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -12953,6 +12953,7 @@ html.qd-lite .qd-fx { display: none !important; }
             if (c === 'aborted' || c === 'failed-precondition') return 'Đông người thao tác cùng lúc — đợi vài giây rồi thử lại.';
             return 'Lỗi kết nối máy chủ, vui lòng thử lại. (Mã: ' + c + ')';
         };
+        window.qdCode = (e) => (e && /^(failed-precondition|not-found|invalid-argument|permission-denied|unauthenticated)$/.test(e.code || '') && /^[A-Z_]+$/.test(e.message || '')) ? e.message : e;   // lỗi luật từ máy chủ (lệnh act) -> mã ngắn
         window.qdTemp = (e) => /aborted|failed-precondition|unavailable|deadline-exceeded|internal|cancelled/.test(String((e && e.code) || ''));
 
         /** MODULE CỬA HÀNG ĐIỂM (TÍCH HỢP FETCH GIÁ TỪ ADMIN) */
@@ -13114,46 +13115,12 @@ html.qd-lite .qd-fx { display: none !important; }
                 if (!me || !S.currentDocId) return window.Utils.toast('Phiên đăng nhập không hợp lệ.', 'error');
                 qty = Math.max(1, Math.min(20, parseInt(qty) || 1));
                 this.busy = id; this.render();
-                const FV = firebase.firestore.FieldValue, key = this.dayKey();
-                const accRef = db.collection("accounts").doc(S.currentDocId), cfgRef = db.collection("settings").doc("point_shop_config");
-                const stRef = db.collection("point_shop_stock").doc("counts"), dRef = db.collection("point_shop_daily").doc(me + '_' + key);
                 let got = null;
-                // NHANH: đọc mọi thứ CÙNG LÚC (1 lượt hỏi máy chủ thay vì 4 lượt nối nhau).
-                // Kho chung (point_shop_stock) nhiều người cùng ghi -> chỉ đọc khi gói có giới hạn số lượng và sắp hết,
-                // còn lại cộng thẳng (increment) -> không tranh chấp, không phải chờ thử lại.
-                const tx = (exact) => db.runTransaction(async (t) => {
-                        got = null;
-                        const loc = this.items.find(i => i.id === id);
-                        const needSt = exact || !loc || (loc.stock != null && loc.stock - ((this.counts || {})[id] || 0) <= qty + 3);
-                        const [acc, c, st, dd] = await Promise.all([t.get(accRef), t.get(cfgRef), needSt ? t.get(stRef) : null, t.get(dRef)]);
-                        const cfg = c.exists ? c.data() : {};
-                        if (cfg.isEnabled === false) throw 'CLOSED';
-                        const x = this.norm(cfg).find(i => i.id === id);
-                        if (!x || !x.active) throw 'GONE';
-                        const cost = x.cost * qty, pts = (acc.exists && acc.data().points) || 0;
-                        if (pts < cost) throw 'POINTS';
-                        if (x.stock != null && !st) throw 'EXACT';
-                        const sold = st ? (((st.exists && st.data().counts) || {})[id] || 0) : 0;
-                        if (x.stock != null && sold + qty > x.stock) throw 'STOCK';
-                        const used = ((dd.exists && dd.data().counts) || {})[id] || 0;
-                        if (x.dailyLimit != null && used + qty > x.dailyLimit) throw 'DAILY';
-                        const upd = { points: FV.increment(-cost) };
-                        if (x.type !== 'gift') upd[x.type] = FV.increment(x.amount * qty);
-                        t.update(accRef, upd);
-                        t.set(stRef, { counts: { [id]: FV.increment(qty) } }, { merge: true });
-                        t.set(dRef, { user: me, date: key, counts: { [id]: FV.increment(qty) } }, { merge: true });
-                        const what = x.type === 'gift' ? `${x.name}${qty > 1 ? ' ×' + qty : ''}` : `${x.amount * qty} ${x.type === 'spins' ? 'Lượt Vòng Quay' : x.type === 'conThrows' ? 'Lượt Ném Còn' : 'Lượt Rút Lì Xì'}`;
-                        t.set(db.collection("point_history").doc(), { user: me, action: "exchange", detail: `Đổi ${cost} điểm lấy ${what}`, pointsChanged: -cost, itemId: id, itemType: x.type, qty: qty, timestamp: Date.now() });
-                        if (x.type === 'gift') t.set(db.collection("shop_orders").doc(), { user: me, itemId: id, itemName: x.name, icon: x.icon, qty: qty, cost: cost, status: 'pending', time: Date.now() });
-                        got = { x, cost, what, qty, newPoints: pts - cost };
-                    });
                 try {
-                    const go = (n, exact) => tx(exact).catch(e => {
-                        if (e === 'EXACT') return go(n, true);
-                        if (n < 3 && window.qdTemp(e)) return new Promise(r => setTimeout(r, 400 + Math.random() * 700 * (n + 1))).then(() => go(n + 1, true));   // đông người / mạng chập chờn -> thử lại
-                        throw e;
-                    });
-                    await go(0, false);
+                    // Máy chủ tự kiểm tra cấu hình / số dư / kho / giới hạn ngày rồi trừ điểm + cộng lượt (thành viên không tự cộng trừ được)
+                    const r = await window.QDdb.act('shop.buy', { id: id, qty: qty });
+                    const loc = this.items.find(i => i.id === id) || {};
+                    got = { x: Object.assign({}, loc, r.x), cost: r.cost, what: r.what, qty: r.qty, newPoints: r.newPoints };
                     this.busy = false;
                     this.applyLocal(got);   // trừ điểm ngay trên màn hình
                     this.qty[id] = 1;
@@ -13165,7 +13132,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         <div class="ps2-pop-btns">${isGift ? `<button class="no" onclick="window.PointShop.closePop(); window.PointShop.setTab('orders')">Xem đơn quà</button>` : ''}<button class="yes" onclick="window.PointShop.closePop()">Tiếp tục đổi</button></div>`);
                     window.Utils.toast(`🎉 Đổi thành công ${got.what}! −${this.fmt(got.cost)} điểm`, "success");
                 } catch (error) {
-                    let msg = { CLOSED: 'Trạm Quy Đổi vừa đóng cửa.', GONE: 'Vật phẩm này không còn bán.', POINTS: 'Số dư điểm không đủ.', STOCK: 'Vật phẩm đã hết hàng.', DAILY: 'Bạn đã đạt giới hạn đổi vật phẩm này hôm nay.' }[error];
+                    let msg = { CLOSED: 'Trạm Quy Đổi vừa đóng cửa.', GONE: 'Vật phẩm này không còn bán.', POINTS: 'Số dư điểm không đủ.', STOCK: 'Vật phẩm đã hết hàng.', DAILY: 'Bạn đã đạt giới hạn đổi vật phẩm này hôm nay.', BLOCKED: 'Tài khoản đang bị khóa.', LOGIN: 'Phiên đăng nhập hết hạn, hãy đăng nhập lại.' }[window.qdCode(error)];
                     if (!msg) { console.error(error); msg = window.qdErr('shop', error); }
                     this.busy = false;
                     this.pop('err', `<div class="ps2-pop-ico">😢</div><h3>Đổi quà chưa thành công</h3><div class="ps2-pop-item">${msg || 'Lỗi kết nối máy chủ, vui lòng thử lại.'}</div>
@@ -14759,52 +14726,20 @@ html.qd-lite .qd-fx { display: none !important; }
                 const now = Date.now(), today = G.dayKey(now);
                 let recv = targetUser;
                 try {
-                    // NHANH: tìm người nhận (thường lấy ngay trong bộ nhớ vì danh bạ đang nghe trực tiếp) song song với đọc số dư
-                    const targetP = db.collection("accounts").where("user", "==", targetUser).get();
-                    targetP.catch(() => {});
-
-                    await db.runTransaction(async (transaction) => {
-                        const myRef = db.collection("accounts").doc(State.currentDocId);
-                        const cfgRef = db.collection("settings").doc("transfer_config");
-                        // Đọc lại cấu hình trong giao dịch: Admin vừa đóng thì không tặng được nữa
-                        const [myDoc, cfgDoc, targetSnap] = await Promise.all([transaction.get(myRef), transaction.get(cfgRef), targetP]);
-                        const cfg = G.norm(cfgDoc.exists ? cfgDoc.data() : null);
-                        if (G.state(cfg, now) !== 'open') throw new Error("CLOSED");
-                        if (!cfg.types[type]) throw new Error("TYPE_OFF");
-                        if (cfg.max > 0 && amount > cfg.max) throw new Error("OVER_MAX");
-                        if (targetSnap.empty) throw new Error("NO_TARGET");
-                        const tDoc = targetSnap.docs[0];
-                        if (tDoc.id === State.currentDocId) throw new Error("SELF");
-                        recv = tDoc.data().user || targetUser;
-                        const targetRef = db.collection("accounts").doc(tDoc.id);
-
-                        const myData = myDoc.data() || {};
-                        const used = myData.giftDay === today ? (Number(myData.giftCount) || 0) : 0;
-                        if (cfg.daily > 0 && used >= cfg.daily) throw new Error("DAILY");
-                        if ((Number(myData[type]) || 0) < amount) throw new Error("INSUFFICIENT_FUNDS");
-
-                        transaction.update(myRef, {
-                            [type]: firebase.firestore.FieldValue.increment(-amount),
-                            giftDay: today, giftCount: used + 1
-                        });
-                        transaction.update(targetRef, {
-                            [type]: firebase.firestore.FieldValue.increment(amount)
-                        });
-                        transaction.set(db.collection("transfer_history").doc(), {
-                            from: State.currentUser, to: recv, type: type, amount: amount, timestamp: now, day: today
-                        });
-                    });
+                    // Máy chủ tự kiểm tra cấu hình / người nhận / giới hạn ngày / số dư rồi chuyển lượt (thành viên không tự cộng được)
+                    const r = await window.QDdb.act('gift.turns', { to: targetUser, type: type, amount: amount });
+                    recv = r.recv || targetUser;
 
                     Utils.toast(`Giao dịch thành công! Đã tặng ${amount} ${T.short} cho ${recv}`, "success");
                     document.getElementById('transfer-target').value = '';
                     document.getElementById('transfer-amount').value = '';
                     G.who();
                     G.hist.unshift({ from: State.currentUser, to: recv, type, amount, timestamp: now });
-                    G.used += 1; G.bal[type] = Math.max(0, G.bal[type] - amount);
+                    G.used = r.used || (G.used + 1); G.bal[type] = r.left != null ? r.left : Math.max(0, G.bal[type] - amount);
                     G.render(); G.renderHist();
 
                 } catch (error) {
-                    const m = error && error.message;
+                    const m = window.qdCode(error);
                     if (m === "NO_TARGET") Utils.toast("Tài khoản người nhận không tồn tại!", "error");
                     else if (m === "SELF") Utils.toast("Bạn không thể tự chuyển quà cho chính mình!", "error");
                     else if (m === "INSUFFICIENT_FUNDS") Utils.toast("Số dư của bạn không đủ để thực hiện!", "error");
@@ -14812,6 +14747,8 @@ html.qd-lite .qd-fx { display: none !important; }
                     else if (m === "TYPE_OFF") Utils.toast("Loại quà này vừa bị tắt, vui lòng chọn loại khác.", "warning");
                     else if (m === "OVER_MAX") Utils.toast(`Vượt mức tối đa mỗi lần tặng.`, "warning");
                     else if (m === "DAILY") Utils.toast("Bạn đã hết lượt tặng hôm nay.", "warning");
+                    else if (m === "BLOCKED") Utils.toast("Tài khoản đang bị khóa.", "error");
+                    else if (m === "LOGIN") Utils.toast("Phiên đăng nhập hết hạn, hãy đăng nhập lại.", "error");
                     else { console.error(error); Utils.toast("Lỗi hệ thống khi thực hiện chuyển quà.", "error"); }
                     // Cấu hình trên máy đã cũ (Admin vừa đổi): đọc lại để hộp tặng quà hiện đúng
                     if (["CLOSED", "TYPE_OFF", "OVER_MAX", "DAILY"].indexOf(m) >= 0) db.collection("settings").doc("transfer_config").get().then(d => { G.cfg = G.norm(d.exists ? d.data() : null); G.render(); }).catch(() => {});
@@ -25093,26 +25030,9 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
             if (!me || !S.currentDocId || CO.busy) return;
             CO.busy = true; render();
             pop('', '<div class="co2-spin"></div><h3>Đang xử lý...</h3>');
-            var FV = firebase.firestore.FieldValue, now = Date.now(), got = null;
-            var accRef = db.collection('accounts').doc(S.currentDocId), cfgRef = db.collection('settings').doc('point_cashout');
-            var dRef = db.collection('point_cashout_daily').doc(me + '_' + day()), bRef = db.collection('bank_info').doc(me), oRef = db.collection('point_cashout').doc();
-            db.runTransaction(function (t) {
-                return Promise.all([t.get(accRef), t.get(cfgRef), t.get(dRef), t.get(bRef)]).then(function (r) {
-                    var acc = r[0], c = norm(r[1].exists ? r[1].data() : {}), dd = r[2], bk = r[3].exists ? r[3].data() : null;
-                    if (!c.on) throw 'CLOSED';
-                    if (c.tiers.indexOf(a) < 0) throw 'TIER';
-                    if (!bk || !bk.accNo) throw 'BANK';
-                    var n = Math.round(a * c.per1000 / 1000), have = (acc.exists && +acc.data().points) || 0;
-                    if (have < n) throw 'POINTS';
-                    var used = (dd.exists && +dd.data().amount) || 0;
-                    if (c.daily && used + a > c.daily) throw 'DAILY';
-                    t.update(accRef, { points: FV.increment(-n) });
-                    t.set(dRef, { user: me, date: day(), amount: FV.increment(a), count: FV.increment(1) }, { merge: true });
-                    t.set(oRef, { user: me, points: n, amount: a, result: fmt(a) + ' VNĐ · Đổi ' + fmt(n) + ' điểm lì xì', timestamp: now, status: 'pending',
-                        bank: { bin: bk.bin || '', bank: bk.bank || '', accNo: bk.accNo || '', accName: bk.accName || '' } });
-                    t.set(db.collection('point_history').doc(), { user: me, action: 'cashout', detail: 'Đổi ' + fmt(n) + ' điểm lì xì lấy ' + vnd(a) + ' tiền mặt', pointsChanged: -n, cashoutId: oRef.id, amount: a, timestamp: now });
-                    got = { a: a, n: n, left: have - n };
-                });
+            var got = null;
+            // Máy chủ tự kiểm tra mốc / tài khoản nhận tiền / số dư / hạn mức ngày rồi trừ điểm + tạo đơn chờ chuyển khoản
+            window.QDdb.act('cashout', { amount: a }).then(function (r) { got = { a: r.a, n: r.n, left: r.left };
             }).then(function () {
                 CO.busy = false;
                 S.availablePoints = got.left;
@@ -25125,7 +25045,7 @@ html[data-theme="tet"] .chat-module { box-shadow: 0 18px 40px -16px rgba(120, 10
                 render();
             }).catch(function (e) {
                 CO.busy = false;
-                var msg = { CLOSED: 'Đổi điểm ra tiền vừa tạm đóng.', TIER: 'Mốc đổi này không còn áp dụng.', BANK: 'Bạn cần khai tài khoản nhận tiền trước.', POINTS: 'Số dư điểm không đủ.', DAILY: 'Bạn đã đạt hạn mức đổi trong hôm nay.' }[e];
+                var msg = { CLOSED: 'Đổi điểm ra tiền vừa tạm đóng.', TIER: 'Mốc đổi này không còn áp dụng.', BANK: 'Bạn cần khai tài khoản nhận tiền trước.', POINTS: 'Số dư điểm không đủ.', DAILY: 'Bạn đã đạt hạn mức đổi trong hôm nay.', BLOCKED: 'Tài khoản đang bị khóa.', LOGIN: 'Phiên đăng nhập hết hạn, hãy đăng nhập lại.' }[window.qdCode(e)];
                 if (!msg) { console.error(e); msg = window.qdErr ? window.qdErr('cashout', e) : ''; }
                 pop('', '<div class="co2-pop-ico">😢</div><h3>Đổi điểm chưa thành công</h3><div class="co2-pop-rows"><div><span>' + (msg || 'Lỗi kết nối máy chủ, vui lòng thử lại.') + '</span></div></div>'
                     + '<p style="font-size:12px;color:#fecaca;margin:-4px 0 12px;">Bạn chưa bị trừ điểm.</p><div class="co2-pop-btns"><button class="yes" onclick="window.Cashout.closePop()">Đã hiểu</button></div>');

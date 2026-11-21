@@ -430,7 +430,7 @@ html.qd-lite .qd-fx { display: none !important; }
             ['qd_backend', 'qd_be_force'].forEach(function (x) { localStorage.removeItem(x); }); sessionStorage.removeItem('qd_be_force');
             if (localStorage.getItem('qd_be') !== 'vps') { ['qd_sess', 'qd_current_username', 'qd_admin_sess', 'qd_tok'].forEach(function (x) { localStorage.removeItem(x); }); localStorage.setItem('qd_be', 'vps'); }   // máy còn phiên Firebase cũ -> đăng nhập lại 1 lần
         } catch (e) {}
-        document.write('<script src="qd-db.js?v=7"><\/script>');
+        document.write('<script src="qd-db.js?v=8"><\/script>');
     })();
     </script>
     <script id="qd-fast-js">
@@ -1751,41 +1751,15 @@ html.qd-lite .qd-fx { display: none !important; }
             },
             buy: function (id, qty) {
                 if (!S.docId || Shop.busy) return;
-                var accRef = db.collection('accounts').doc(S.docId), cfgRef = db.collection('settings').doc('point_shop_config');
-                var stRef = db.collection('point_shop_stock').doc('counts'), key = dayKey(), dRef = db.collection('point_shop_daily').doc(ME + '_' + key);
                 Shop.busy = id; Shop.confirm = null; Shop.render();
-                // NHANH: kho chung (point_shop_stock) nhiều người cùng ghi -> chỉ đọc khi gói có giới hạn số lượng và sắp hết,
-                // còn lại cộng thẳng (increment) -> không tranh chấp, không phải chờ SDK thử lại (~1 giây mỗi lần)
-                var run = function (exact) { return db.runTransaction(function (t) {
-                    var loc = Shop.items(Shop.cfg || {}).filter(function (i) { return i.id === id; })[0];
-                    var needSt = exact || !loc || (loc.stock != null && loc.stock - ((Shop.counts || {})[id] || 0) <= qty + 3);
-                    return Promise.all([t.get(accRef), t.get(cfgRef), needSt ? t.get(stRef) : null, t.get(dRef)]).then(function (g) {
-                        var cfg = g[1].exists ? g[1].data() : {};
-                        if (cfg.isEnabled === false) throw { code: 'CLOSED' };
-                        var x = Shop.items(cfg).filter(function (i) { return i.id === id; })[0];
-                        if (!x || !x.active) throw { code: 'GONE' };
-                        if (!g[0].exists) throw { code: 'NOACC' };
-                        var cost = x.cost * qty, pts = Number(g[0].data().points) || 0;
-                        if (pts < cost) throw { code: 'POINTS' };
-                        if (x.stock != null && !g[2]) throw { code: 'EXACT' };
-                        var sold = g[2] ? (((g[2].exists && g[2].data().counts) || {})[id] || 0) : 0, used = ((g[3].exists && g[3].data().counts) || {})[id] || 0;
-                        if (x.stock != null && sold + qty > x.stock) throw { code: 'STOCK' };
-                        if (x.dailyLimit != null && used + qty > x.dailyLimit) throw { code: 'DAILY' };
-                        var o = {}; o[id] = FV.increment(qty);
-                        t.update(accRef, { points: FV.increment(-cost), conThrows: FV.increment(x.amount * qty) });
-                        t.set(stRef, { counts: o }, { merge: true });
-                        t.set(dRef, { user: ME, date: key, counts: o }, { merge: true });
-                        t.set(db.collection('point_history').doc(), { user: ME, action: 'exchange', detail: 'Đổi ' + cost + ' điểm lấy ' + (x.amount * qty) + ' Lượt Ném Còn', pointsChanged: -cost, itemId: id, itemType: 'conThrows', qty: qty, timestamp: Date.now() });
-                        return { add: x.amount * qty, cost: cost, pts: pts - cost };
-                    });
-                }); };
-                run(false).catch(function (e) { if (e && e.code === 'EXACT') return run(true); throw e; }).then(function (r) {
+                // Máy chủ tự kiểm tra cấu hình / số dư / kho / giới hạn ngày rồi trừ điểm + cộng lượt ném (thành viên không tự cộng trừ được)
+                window.QDdb.act('shop.buy', { src: 'con', id: id, qty: qty }).then(function (g) { return { add: g.x.amount * g.qty, cost: g.cost, pts: g.newPoints }; }).then(function (r) {
                     S.points = r.pts; if (!S.busy) S.turns = (S.turns || 0) + r.add;
                     Shop.counts[id] = (Shop.counts[id] || 0) + qty; Shop.daily[id] = (Shop.daily[id] || 0) + qty; Shop.qty[id] = 1;
                     sfx('free'); toast('🎉 Đã đổi ' + r.cost.toLocaleString('vi-VN') + ' điểm lấy ' + r.add + ' lượt ném!', 'ok');
                     var c = $('chip-turns'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
                 }).catch(function (e) {
-                    var c = e && e.code, M = { CLOSED: 'Trạm Quy Đổi vừa đóng cửa.', GONE: 'Gói này không còn bán.', POINTS: 'Số dư điểm không đủ.', STOCK: 'Gói này đã hết hàng.', DAILY: 'Bạn đã đạt giới hạn đổi gói này hôm nay.', NOACC: 'Không tìm thấy tài khoản.' };
+                    var c = e && (/^[A-Z_]+$/.test(e.message || '') ? e.message : e.code), M = { CLOSED: 'Trạm Quy Đổi vừa đóng cửa.', GONE: 'Gói này không còn bán.', POINTS: 'Số dư điểm không đủ.', STOCK: 'Gói này đã hết hàng.', DAILY: 'Bạn đã đạt giới hạn đổi gói này hôm nay.', NOACC: 'Không tìm thấy tài khoản.' };
                     toast(M[c] || ('Không đổi được' + (c ? ' (' + c + ')' : '') + ', bạn chưa bị trừ điểm.'), 'err'); if (!M[c]) console.warn('ConShop', e);
                 }).then(function () { Shop.busy = false; ui(); Shop.render(); });
             }

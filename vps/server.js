@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-10';
+const VER = 'qd-vps-11';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -163,6 +163,8 @@ function view(conn, c, d) {
 }
 // Luật ghi cho thành viên (Ban Quản Trị không bị giới hạn)
 const SETTINGS_OPEN = new Set(['ai_config']);   // cài đặt thành viên được ghi
+// Chỉ máy chủ (lệnh act) hoặc Ban Quản Trị được ghi: thành viên tự ghi = tự tạo đơn rút tiền / đơn quà / tặng lượt không trừ gì
+const SERVER_ONLY = new Set(['point_cashout', 'point_cashout_daily', 'shop_orders', 'point_shop_stock', 'point_shop_daily', 'transfer_history']);
 function topKeys(w) { return Object.keys(w.data || {}).map(k => k.split('.')[0]); }
 /* Ban Quản Trị: 3 bậc
    - Chủ hệ thống (owner: true, đặt bằng lệnh "qd admin" trên VPS hoặc tự nhận khi hệ thống chưa có chủ): không ai trên web hạ quyền / khóa / xóa / đổi mật khẩu được.
@@ -216,6 +218,7 @@ function checkWrites(conn, writes) {
   for (const w of writes) {
     const { col: c, id } = splitPath(w.path), cur = (COLS.get(c) || new Map()).get(id);
     if (c === 'settings' && !SETTINGS_OPEN.has(id)) throw err('permission-denied', 'Chỉ Ban Quản Trị được sửa cài đặt hệ thống');
+    if (SERVER_ONLY.has(c)) throw err('permission-denied', 'Thao tác này do máy chủ xử lý — tải lại trang rồi thử lại');
     if (c === 'accounts') {
       if (w.op === 'delete') throw err('permission-denied', 'Chỉ Ban Quản Trị được xóa tài khoản');
       if (!cur && w.op === 'set') throw err('permission-denied', 'Tài khoản mới do Ban Quản Trị duyệt tạo');
@@ -574,6 +577,14 @@ function onText(conn, txt) {
       }
       case 'unsub': { for (const s of SUBS) if (s.conn === conn && s.sid === m.sid) SUBS.delete(s); return send(conn, { re: m.r, ok: true }); }
       case 'admin': return admin(conn, m).then(data => send(conn, { re: m.r, ok: true, data }), fail);
+      case 'act': {   // trò chơi / đổi điểm: máy chủ tự tính và ghi (thành viên không tự cộng trừ được)
+        const k = m.cid ? 'act:' + (conn.u || '') + ':' + m.cid : '';
+        if (k && DONE.has(k)) return send(conn, Object.assign({ re: m.r }, DONE.get(k)));
+        let out; try { out = { ok: true, data: act(conn, String(m.fn || ''), m.a || {}) }; }
+        catch (e) { out = { code: e.code || 'internal', message: String(e.message || e).slice(0, 300) }; if (!e.code) console.error('[act]', m.fn, e); }
+        if (k) { DONE.set(k, out); if (DONE.size > 20000) DONE.delete(DONE.keys().next().value); }
+        return send(conn, Object.assign({ re: m.r }, out));
+      }
       default: throw err('invalid-argument', 'Lệnh lạ: ' + m.op);
     }
   } catch (e) { fail(e); }
@@ -823,6 +834,154 @@ function linkTick() {
   try { commit([{ op: 'set', path: 'settings/push_server', data: { by: 'vps', ver: VER, lastRun: now, ok: true, err: '', links, linkUsers: users.slice(0, 2000), hook: '', hookAuto: '' }, merge: true }], null, { local: true }); } catch (e) {}
 }
 setInterval(linkTick, 10000); setTimeout(linkTick, 3000);
+
+/* ==================================================================================================
+   ĐIỂM TÍNH TRÊN MÁY CHỦ (đợt 1): đổi quà Trạm Quy Đổi · đổi điểm ra tiền mặt · tặng lượt cho người khác.
+   Trang thành viên chỉ gửi "muốn làm gì" (QDdb.act); máy chủ đọc cấu hình + số dư hiện tại, kiểm tra luật, rồi ghi tất cả
+   trong 1 lần (Node chạy 1 luồng -> không ai chen ngang, không thể trừ / cộng 2 lần).
+   Lỗi trả về mã ngắn (POINTS, DAILY, STOCK...) để trang hiện đúng câu như trước.
+   ================================================================================================== */
+const ACT_LOCAL = { local: true, u: '', role: '' };
+const actInc = n => ({ $fv: 'inc', n });
+function actId() { return crypto.randomBytes(15).toString('base64').replace(/[^A-Za-z0-9]/g, '').slice(0, 20).padEnd(20, 'q'); }
+function vnDate(t) { const d = new Date((t || Date.now()) + 7 * 3600e3), p = x => String(x).padStart(2, '0'); return { y: d.getUTCFullYear(), m: p(d.getUTCMonth() + 1), d: p(d.getUTCDate()) }; }
+const dayDash = t => { const x = vnDate(t); return x.y + '-' + x.m + '-' + x.d; };   // 2026-11-21 (Trạm Quy Đổi, tặng lượt)
+const dayFlat = t => { const x = vnDate(t); return '' + x.y + x.m + x.d; };          // 20261121 (đổi điểm ra tiền)
+const fmtVN = n => Number(n || 0).toLocaleString('vi-VN');
+const pint = (v, d) => { v = parseInt(v, 10); return isNaN(v) ? d : v; };
+function actMe(conn) {
+  if (!conn.u) throw err('unauthenticated', 'LOGIN');
+  const a = findAccount(conn.u);
+  if (!a) throw err('unauthenticated', 'LOGIN');
+  if (a.d.isBlocked === true) throw err('permission-denied', 'BLOCKED');
+  return a;
+}
+function setting(id) { const x = getDoc('settings/' + id); return x ? x.d || {} : null; }
+
+// ---- Trạm Quy Đổi (giống PointShop.norm trên trang: chỉ bán lượt rút lì xì + lượt ném còn) ----
+const SHOP_DEF = [
+  { id: 'tk1', icon: '🧧', name: '1 Lượt rút lì xì', type: 'tickets', amount: 1, cost: 50, stock: null, dailyLimit: null, active: true },
+  { id: 'tk5', icon: '🧧', name: 'Combo 5 lượt rút lì xì', type: 'tickets', amount: 5, cost: 220, stock: null, dailyLimit: 2, active: true },
+  { id: 'tk10', icon: '🧧', name: 'Combo 10 lượt rút lì xì', type: 'tickets', amount: 10, cost: 400, stock: null, dailyLimit: 1, active: true }
+];
+function shopNorm(cfg) {
+  cfg = cfg || {};
+  let list = Array.isArray(cfg.items) && cfg.items.length ? cfg.items : null;
+  if (!list) list = SHOP_DEF.map(x => Object.assign({}, x, x.id === 'tk1' && cfg.ticketCost != null ? { cost: cfg.ticketCost } : {}));
+  return list.filter(x => ['tickets', 'conThrows'].indexOf(x.type || 'tickets') >= 0).map((x, i) => ({
+    id: x.id || ('i' + i), icon: x.icon || (x.type === 'conThrows' ? '🎯' : '🧧'), name: String(x.name || ''), type: x.type || 'tickets',
+    amount: Math.max(1, parseInt(x.amount) || 1), cost: Math.max(0, parseInt(x.cost) || 0),
+    stock: x.stock == null || x.stock === '' ? null : Math.max(0, parseInt(x.stock) || 0),
+    dailyLimit: x.dailyLimit == null || x.dailyLimit === '' ? null : Math.max(0, parseInt(x.dailyLimit) || 0),
+    active: x.active !== false
+  }));
+}
+// Quầy đổi lượt ném trong trang Ném Còn (game.html): chỉ gói conThrows, không có thì dùng 3 gói mặc định của Ném Còn
+const CON_DEF = [
+  { id: 'nc_def1', icon: '🎯', name: '1 Lượt ném còn', type: 'conThrows', amount: 1, cost: 25, stock: null, dailyLimit: null, active: true },
+  { id: 'nc_def5', icon: '🎯', name: 'Combo 5 lượt ném còn', type: 'conThrows', amount: 5, cost: 110, stock: null, dailyLimit: null, active: true },
+  { id: 'nc_def10', icon: '🎯', name: 'Combo 10 lượt ném còn', type: 'conThrows', amount: 10, cost: 200, stock: null, dailyLimit: null, active: true }
+];
+function conShopNorm(cfg) {
+  const n = v => v == null || v === '' ? null : Math.max(0, parseInt(v, 10) || 0);
+  const list = (Array.isArray((cfg || {}).items) ? cfg.items : []).filter(x => x && x.type === 'conThrows').map((x, i) => ({
+    id: x.id || ('c' + i), icon: x.icon || '🎯', name: String(x.name || 'Lượt ném còn'), type: 'conThrows', amount: Math.max(1, parseInt(x.amount, 10) || 1),
+    cost: Math.max(0, parseInt(x.cost, 10) || 0), stock: n(x.stock), dailyLimit: n(x.dailyLimit), active: x.active !== false }));
+  return list.length ? list : CON_DEF.map(x => Object.assign({}, x));
+}
+function actShopBuy(conn, a) {
+  const me = actMe(conn), u = me.d.user, cfg = setting('point_shop_config') || {}, con = a.src === 'con';
+  if (cfg.isEnabled === false) throw err('failed-precondition', 'CLOSED');
+  if (con && (setting('con_config') || {}).shopEnabled === false) throw err('failed-precondition', 'CLOSED');
+  const qty = Math.max(1, Math.min(20, pint(a.qty, 1))), x = (con ? conShopNorm(cfg) : shopNorm(cfg)).find(i => i.id === String(a.id || ''));
+  if (!x || !x.active) throw err('failed-precondition', 'GONE');
+  const cost = x.cost * qty, pts = +me.d.points || 0;
+  if (pts < cost) throw err('failed-precondition', 'POINTS');
+  const st = getDoc('point_shop_stock/counts'), sold = ((st && st.d && st.d.counts) || {})[x.id] || 0;
+  if (x.stock != null && sold + qty > x.stock) throw err('failed-precondition', 'STOCK');
+  const key = dayDash(), dd = getDoc('point_shop_daily/' + u + '_' + key), used = ((dd && dd.d && dd.d.counts) || {})[x.id] || 0;
+  if (x.dailyLimit != null && used + qty > x.dailyLimit) throw err('failed-precondition', 'DAILY');
+  const now = Date.now(), upd = { points: actInc(-cost) };
+  if (x.type !== 'gift') upd[x.type] = actInc(x.amount * qty);
+  const what = x.type === 'gift' ? x.name + (qty > 1 ? ' ×' + qty : '') : (x.amount * qty) + ' ' + (x.type === 'spins' ? 'Lượt Vòng Quay' : x.type === 'conThrows' ? 'Lượt Ném Còn' : 'Lượt Rút Lì Xì');
+  const W = [
+    { op: 'update', path: 'accounts/' + me.id, data: upd },
+    { op: 'set', path: 'point_shop_stock/counts', merge: true, data: { counts: { [x.id]: actInc(qty) } } },
+    { op: 'set', path: 'point_shop_daily/' + u + '_' + key, merge: true, data: { user: u, date: key, counts: { [x.id]: actInc(qty) } } },
+    { op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'exchange', detail: 'Đổi ' + cost + ' điểm lấy ' + what, pointsChanged: -cost, itemId: x.id, itemType: x.type, qty, timestamp: now, by: 'server' } }
+  ];
+  if (x.type === 'gift') W.push({ op: 'set', path: 'shop_orders/' + actId(), data: { user: u, itemId: x.id, itemName: x.name, icon: x.icon, qty, cost, status: 'pending', time: now } });
+  commit(W, null, ACT_LOCAL);
+  const after = findAccount(u).d;
+  return { x: { id: x.id, type: x.type, amount: x.amount, name: x.name, icon: x.icon }, cost, what, qty, newPoints: +after.points || 0, turns: x.type === 'gift' ? null : +after[x.type] || 0 };
+}
+
+// ---- Đổi điểm lì xì ra tiền mặt (giống Cashout.norm trên trang) ----
+const CO_DEF = { per1000: 1000, tiers: [10000, 20000, 50000, 100000] };
+function cashoutNorm(c) {
+  c = c || {};
+  const tiers = (Array.isArray(c.tiers) ? c.tiers : CO_DEF.tiers).map(x => Math.round(+x)).filter(x => x >= 1000).sort((a, b) => a - b);
+  return { on: c.isEnabled !== false, per1000: Math.max(1, Math.round(+c.per1000 || CO_DEF.per1000)), tiers: tiers.length ? tiers : CO_DEF.tiers.slice(), daily: Math.max(0, Math.round(+c.dailyLimit || 0)) };
+}
+function actCashout(conn, a) {
+  const me = actMe(conn), u = me.d.user, c = cashoutNorm(setting('point_cashout')), amt = Math.round(+a.amount || 0);
+  if (!c.on) throw err('failed-precondition', 'CLOSED');
+  if (c.tiers.indexOf(amt) < 0) throw err('failed-precondition', 'TIER');
+  const bkx = getDoc('bank_info/' + u), bk = bkx && bkx.d;
+  if (!bk || !bk.accNo) throw err('failed-precondition', 'BANK');
+  const n = Math.round(amt * c.per1000 / 1000), have = +me.d.points || 0;
+  if (have < n) throw err('failed-precondition', 'POINTS');
+  const key = dayFlat(), dd = getDoc('point_cashout_daily/' + u + '_' + key), usedAmt = (dd && dd.d && +dd.d.amount) || 0;
+  if (c.daily && usedAmt + amt > c.daily) throw err('failed-precondition', 'DAILY');
+  const now = Date.now(), oid = actId();
+  commit([
+    { op: 'update', path: 'accounts/' + me.id, data: { points: actInc(-n) } },
+    { op: 'set', path: 'point_cashout_daily/' + u + '_' + key, merge: true, data: { user: u, date: key, amount: actInc(amt), count: actInc(1) } },
+    { op: 'set', path: 'point_cashout/' + oid, data: { user: u, points: n, amount: amt, result: fmtVN(amt) + ' VNĐ · Đổi ' + fmtVN(n) + ' điểm lì xì', timestamp: now, status: 'pending',
+      bank: { bin: bk.bin || '', bank: bk.bank || '', accNo: bk.accNo || '', accName: bk.accName || '' } } },
+    { op: 'set', path: 'point_history/' + actId(), data: { user: u, action: 'cashout', detail: 'Đổi ' + fmtVN(n) + ' điểm lì xì lấy ' + fmtVN(amt) + 'đ tiền mặt', pointsChanged: -n, cashoutId: oid, amount: amt, timestamp: now, by: 'server' } }
+  ], null, ACT_LOCAL);
+  console.log('[act] @' + u + ' đổi ' + n + ' điểm lấy ' + amt + 'đ (đơn ' + oid + ')');
+  return { a: amt, n, left: +findAccount(u).d.points || 0, id: oid };
+}
+
+// ---- Tặng lượt (vòng quay / rút lì xì / ném còn) cho người khác (giống GiftUI.norm / state trên trang) ----
+const GIFT_TYPES = ['spins', 'tickets', 'conThrows'];
+function giftNorm(c) {
+  c = c || {};
+  const t = c.types && typeof c.types === 'object' ? c.types : null, types = {}, ms = v => { v = Number(v); return isFinite(v) && v > 0 ? Math.floor(v) : 0; };
+  GIFT_TYPES.forEach(k => { types[k] = t ? !!(t[k] && t[k].on === true) : k !== 'conThrows'; });
+  const lim = (v, hi) => Math.min(hi, Math.max(0, pint(v, 0)));
+  return { on: c.isEnabled === true, types, max: lim(c.maxPerTransfer, 1e6), daily: lim(c.dailyLimit, 1000), from: ms(c.from), to: ms(c.to) };
+}
+function actGiftTurns(conn, a) {
+  const me = actMe(conn), u = me.d.user, c = giftNorm(setting('transfer_config')), now = Date.now();
+  if (!c.on || (c.from && now < c.from) || (c.to && now >= c.to) || !GIFT_TYPES.some(k => c.types[k])) throw err('failed-precondition', 'CLOSED');
+  const type = String(a.type || ''), amount = pint(a.amount, 0), to = String(a.to || '').trim();
+  if (GIFT_TYPES.indexOf(type) < 0 || !c.types[type]) throw err('failed-precondition', 'TYPE_OFF');
+  if (!(amount > 0)) throw err('invalid-argument', 'AMOUNT');
+  if (c.max > 0 && amount > c.max) throw err('failed-precondition', 'OVER_MAX');
+  const tg = findAccount(to);
+  if (!tg) throw err('not-found', 'NO_TARGET');
+  if (tg.id === me.id) throw err('failed-precondition', 'SELF');
+  const today = dayDash(now), used = me.d.giftDay === today ? (+me.d.giftCount || 0) : 0;
+  if (c.daily > 0 && used >= c.daily) throw err('failed-precondition', 'DAILY');
+  if ((+me.d[type] || 0) < amount) throw err('failed-precondition', 'INSUFFICIENT_FUNDS');
+  commit([
+    { op: 'update', path: 'accounts/' + me.id, data: { [type]: actInc(-amount), giftDay: today, giftCount: used + 1 } },
+    { op: 'update', path: 'accounts/' + tg.id, data: { [type]: actInc(amount) } },
+    { op: 'set', path: 'transfer_history/' + actId(), data: { from: u, to: tg.d.user, type, amount, timestamp: now, day: today } }
+  ], null, ACT_LOCAL);
+  return { recv: tg.d.user, used: used + 1, left: +findAccount(u).d[type] || 0 };
+}
+
+const ACTS = { 'shop.buy': actShopBuy, 'cashout': actCashout, 'gift.turns': actGiftTurns };
+function act(conn, fn, a) {
+  const f = ACTS[fn];
+  if (!f) throw err('invalid-argument', 'Lệnh lạ: ' + fn);
+  STAT.w++;
+  return f(conn, a || {});
+}
 
 /* ---------------------------------- HTTP ---------------------------------- */
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Expose-Headers': 'Content-Disposition' };

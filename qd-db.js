@@ -306,6 +306,8 @@
         token: function () { return tok(); },
         who: function () { return { u: AUTH.u, role: AUTH.role }; },
         admin: function (fn, args) { return req(Object.assign({ op: 'admin', fn: fn }, args || {})).then(function (m) { return m.data; }); },
+        /* Trò chơi / đổi điểm do máy chủ tính (thành viên không tự cộng trừ điểm). Lỗi: e.message = mã ngắn (POINTS, DAILY...) */
+        act: function (fn, args) { return req({ op: 'act', fn: fn, a: args || {}, cid: cid() }).then(function (m) { return m.data; }); },
         ping: function () { var t = performance.now(); return req({ op: 'hello' }).then(function () { return Math.round(performance.now() - t); }); }
     };
 })();
