@@ -9975,6 +9975,15 @@ html.qd-lite .qd-fx { display: none !important; }
                         </div>
                         <button class="btn btn-info w-full" id="notif-test-btn" style="padding: 12px 20px; font-size: 13px;" onclick="window.Chat.testNotification()">Test (5s)</button>
                     </div>
+                    <div id="qd-snd-test" style="margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-strong);">
+                        <div class="font-bold" style="margin-bottom: 6px;">🔊 Nghe thử tiếng báo</div>
+                        <div class="text-sm text-muted" style="margin-bottom: 10px; line-height: 1.5;">Tin nhắn kêu <b>"bóp-bóp"</b> ngắn, cuộc gọi đến kêu chuông điện thoại <b>"reng reng"</b>. Bấm để nghe đúng tiếng trên máy này.</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <button type="button" class="btn btn-outline" style="padding: 11px 10px; font-size: 13px;" onclick="window.QDSnd && QDSnd.test('msg', this)"><i class="fa-solid fa-comment-dots"></i> Tin nhắn</button>
+                            <button type="button" class="btn btn-outline" style="padding: 11px 10px; font-size: 13px;" onclick="window.QDSnd && QDSnd.test('ring', this)"><i class="fa-solid fa-phone-volume"></i> Cuộc gọi</button>
+                        </div>
+                        <div class="text-sm font-bold" id="qd-snd-st" style="margin-top: 8px;"></div>
+                    </div>
                     <div id="qd-callready-set" style="display: none; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-strong);">
                         <div class="font-bold" style="margin-bottom: 6px;">📞 Nhận cuộc gọi khi tắt app</div>
                         <div class="text-sm text-muted" style="margin-bottom: 10px; line-height: 1.5;">Bật đủ các mục dưới để điện thoại đổ chuông như cuộc gọi thường kể cả khi đã thoát / vuốt tắt app.</div>
@@ -11691,7 +11700,7 @@ html.qd-lite .qd-fx { display: none !important; }
         window.Sound = {
             ctx: null,
             rewardAudio: new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'),
-            msgAudio: new Audio('media/qd-msg.mp3'),   // tiếng tin nhắn mộc cầm "tóc-tinh" (giống thông báo trên app)
+            msgAudio: new Audio('media/qd-msg.mp3?v=2'),   // tiếng tin nhắn "bóp-bóp" ngắn (giống thông báo trên app) — khác chuông cuộc gọi "reng reng"
             initCtx: () => {
                 if (!window.Sound.ctx) window.Sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 if (window.Sound.ctx.state === 'suspended') window.Sound.ctx.resume();
@@ -26273,6 +26282,30 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
     })();
     </script>
     <script src="qd-gcall.js?v=1" defer></script>
+    <script id="qd-snd-js">
+    /* Nghe thử tiếng tin nhắn / chuông cuộc gọi (Cài đặt). App Android: phát đúng tiếng của app (bản có previewSound);
+       app bản cũ chưa có tiếng mới -> nói rõ cần cập nhật app và mở kiểm tra bản mới. */
+    window.QDSnd = (function () {
+        var Q = window.QDNative || null, au = {}, stopT = 0;
+        function st(t, cls) { var e = document.getElementById('qd-snd-st'); if (e) { e.textContent = t || ''; e.className = 'text-sm font-bold ' + (cls || 'text-muted'); } }
+        function web(kind) {
+            var src = kind === 'ring' ? 'media/qd-ring.mp3?v=3' : 'media/qd-msg.mp3?v=2';
+            try { var a = au[kind] = au[kind] || new Audio(src); a.currentTime = 0; var p = a.play(); if (p && p.catch) p.catch(function () {}); if (kind === 'ring') { clearTimeout(stopT); stopT = setTimeout(function () { try { a.pause(); } catch (e) {} }, 4500); } } catch (e) {}
+        }
+        function newApp() { return !!(Q && typeof Q.previewSound === 'function'); }
+        function test(kind) {
+            if (Q && !newApp()) {   // app bản cũ: tiếng của app vẫn là tiếng cũ
+                if (kind === 'ring' && typeof Q.ringStart === 'function') { try { Q.ringStart(); clearTimeout(stopT); stopT = setTimeout(function () { try { Q.ringStop(); } catch (e) {} }, 4500); } catch (e) {} }
+                else web(kind);
+                st('⚠️ App trên máy này là bản cũ (' + (function () { try { return 'v' + Q.appVersion(); } catch (e) { return '?'; } })() + ') — chuông cuộc gọi và tiếng tin nhắn khi thoát app vẫn là tiếng cũ. Thoát hẳn app rồi mở lại, bấm "Cập nhật" khi app hỏi.', 'text-warning');
+                return;
+            }
+            if (newApp()) { try { Q.previewSound(kind); } catch (e) {} st(kind === 'ring' ? '📞 Đang phát chuông cuộc gọi (4 giây). Máy để Rung / Im lặng thì chỉ rung / không kêu.' : '💬 Tiếng tin nhắn. Máy để Rung / Im lặng thì chỉ rung / không kêu.'); return; }
+            web(kind); st(kind === 'ring' ? '📞 Chuông cuộc gọi (4 giây).' : '💬 Tiếng tin nhắn.');
+        }
+        return { test: test, newApp: newApp };
+    })();
+    </script>
 <style id="qd-balance">
     /* ===== Cân đối giao diện chung (nút Hỗ trợ gọn, không che nội dung) ===== */
     @media (max-width: 768px) {
