@@ -22,8 +22,25 @@ jobs:
       - name: Lấy mã nguồn
         uses: actions/checkout@v5
 
+      # Sửa file JS / CSS mà quên đổi ?v= trong trang: tự đóng dấu lại (?v=<mã băm>) để trình duyệt + app không dùng bản cũ
+      - name: Đóng dấu phiên bản JS / CSS
+        id: stamp
+        run: |
+          python3 .github/scripts/stamp.py
+          if git diff --quiet; then echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -qam "Web: đóng dấu phiên bản JS / CSS (${GITHUB_SHA::7})"
+          for i in 1 2 3; do
+            if git pull --rebase -q origin main && git push -q origin HEAD:main; then
+              echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Không đẩy được bản đóng dấu"; exit 1
+
       - name: Tạo app-update.json
-        run: python3 .github/scripts/app-update.py "$GITHUB_SHA" "$GITHUB_RUN_NUMBER"
+        run: python3 .github/scripts/app-update.py "${{ steps.stamp.outputs.sha }}" "$GITHUB_RUN_NUMBER"
 
       - name: Lưu app-update.json vào kho
         run: |

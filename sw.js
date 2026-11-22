@@ -2,11 +2,13 @@
    - Bấm thông báo: mở / focus lại web và vào đúng phòng chat
    - Hẹn giờ hiện thông báo theo yêu cầu của trang (nút Test 5s)
    - Bộ nhớ đệm: phông chữ + biểu tượng (vendor/), thư viện CDN + ảnh lưu sẵn -> mở lại trang gần như tức thì
+   - Mã trang (JS / CSS có ?v=<mã băm>, vd u/07-app-core.js?v=...): lưu lâu dài, đổi nội dung thì ?v= đổi -> tự tải bản mới
    - Trang HTML: luôn lấy bản mới nhất từ mạng, chỉ dùng bản lưu khi mất mạng
    - Không đụng tới: Firestore / API (dữ liệu thời gian thực), nhạc / video (yêu cầu theo đoạn), kiểm tra mạng (cache: no-store) */
 const VERSION = 'qd-smooth-v2';
 const STATIC_CACHE = VERSION + '-static';
 const PAGE_CACHE = VERSION + '-pages';
+const CODE_CACHE = VERSION + '-code';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -39,6 +41,22 @@ self.addEventListener('fetch', (event) => {
         return;
     }
     if (url.origin !== self.location.origin) return;
+
+    // Mã trang có dấu phiên bản (?v=...): lấy từ bộ nhớ đệm, không có mới tải; mỗi file chỉ giữ bản mới nhất
+    if ((req.destination === 'script' || req.destination === 'style') && url.searchParams.has('v')) {
+        event.respondWith(caches.open(CODE_CACHE).then(async (cache) => {
+            const hit = await cache.match(req);
+            if (hit) return hit;
+            const res = await fetch(req);
+            if (res && res.ok && res.type === 'basic') {
+                event.waitUntil(cache.put(req, res.clone()).then(() => cache.keys()).then(ks => Promise.all(ks.map(k => {
+                    try { const u = new URL(k.url); if (u.pathname === url.pathname && u.search !== url.search) return cache.delete(k); } catch (e) {}
+                }))).catch(() => {}));
+            }
+            return res;
+        }));
+        return;
+    }
 
     // Trang HTML: mạng trước, mất mạng thì dùng bản đã lưu
     if (req.mode === 'navigate') {
