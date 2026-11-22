@@ -471,7 +471,7 @@
            ===================================================================== */
         var C = {
             task: function () { var t = L.cfg.task_config || {}; return { login: num(t.loginReward, 10), att: num(t.attendanceReward, 20) }; },
-            gcall: function () { var c = L.cfg.gcall_config || {}, n = function (v, d, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? d : Math.max(lo, Math.min(hi, v)); }; return { on: c.isEnabled !== false, general: c.general !== false, max: n(c.max, 8, 2, 8), vmax: n(c.videoMax, 4, 0, 4) }; },
+            gcall: function () { var c = L.cfg.gcall_config || {}, n = function (v, d, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? d : Math.max(lo, Math.min(hi, v)); }; return { on: c.isEnabled !== false, general: c.general !== false, max: n(c.max, 8, 2, 8), vmax: n(c.videoMax, 4, 0, 4), screen: c.screen !== false }; },
             devRule: function () { var sc = L.cfg.security_config || {}, r = sc.rules || {}, m = sc.isEnabled !== false, A = r.oneDevice || {}, B = r.oneAccount || {};
                 return { A: m && A.on === true, An: A.n == null ? 3 : +A.n, Ah: A.h || 24, B: m && B.on === true, Bn: B.n == null ? 2 : +B.n, Bd: B.days == null ? 30 : +B.days }; },
             att: function () { var a = L.cfg.attendance || {}; return { start: a.start || '09:00', end: a.end || '10:00', anti: a.antiProxyEnabled !== false && (L.cfg.security_config || {}).isEnabled !== false }; },
@@ -1050,7 +1050,7 @@
               acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }, { t: '👥 Gọi nhóm', ask: 'gcall' }, { t: '🔔 Thông báo & app', ask: 'notif' }] },
 
             { id: 'gcall', icon: '👥', title: 'Gọi nhóm (nhiều người)',
-              keys: ['goi nhom', 'call nhom', 'goi nhieu nguoi', 'phong goi', 'hop nhom', 'goi tap the', 'goi chung', 'video nhom', 'voice nhom', 'phong voice', 'nhom goi'],
+              keys: ['goi nhom', 'call nhom', 'goi nhieu nguoi', 'phong goi', 'hop nhom', 'goi tap the', 'goi chung', 'video nhom', 'voice nhom', 'phong voice', 'nhom goi', 'chia se man hinh', 'share man hinh', 'man hinh', 'trinh chieu', 'share screen'],
               ans: function () {
                   var g = C.gcall();
                   if (!g.on) return P('Hiện Ban Quản Trị đang <b>tắt</b> gọi nhóm. Bạn vẫn gọi riêng 1-1 được trong phòng chat riêng.');
@@ -1058,6 +1058,7 @@
                           g.general ? '🔊 <b>Phòng gọi Kênh Chung</b>: ai muốn thì bấm <b>Vào phòng</b>, không đổ chuông ai. Có người trong phòng thì Kênh Chung hiện dải xanh "… người đang nói chuyện" — chạm <b>Vào</b> để tham gia.' : '',
                           '📞 <b>Chọn người để gọi</b>: chọn vài người (thoại hoặc có hình), điện thoại họ <b>đổ chuông</b> như cuộc gọi thường — kể cả khi đã thoát app. Đang gọi vẫn bấm <b>Mời thêm</b> được.',
                           g.vmax >= 2 ? '🎥 Bật hình được khi cuộc gọi có <b>≤ ' + g.vmax + ' người</b>; đông hơn thì hình tự tắt cho mượt (các máy nối thẳng với nhau, nhiều hình làm máy nóng và tốn mạng).' : '🎥 Gọi nhóm hiện chỉ có tiếng (BQT chưa cho bật hình).',
+                          g.screen ? '🖥️ <b>Chia sẻ màn hình kèm tiếng</b>: dùng <b>máy tính</b> (Chrome / Edge) → trong cuộc gọi bấm <b>Màn hình</b> → chọn tab / cửa sổ / cả màn hình → nhớ bật <b>Chia sẻ âm thanh</b> để mọi người nghe được tiếng. Mỗi lúc 1 người chia sẻ. Điện thoại và app <b>xem + nghe</b> được (chạm vào màn hình chia sẻ để phóng to), nhưng Android chưa cho chia sẻ màn hình từ trang web / app.' : '',
                           'Trong cuộc gọi: tắt / bật micro, loa ngoài, thu nhỏ để vừa gọi vừa dùng app (chạm dải xanh trên cùng để mở lại), <b>Rời</b> để thoát. Ai đang nói thì khung người đó sáng viền vàng.'].filter(Boolean));
               },
               acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }, { t: '📞 Gọi 1-1', ask: 'calls' }] },

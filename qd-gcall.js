@@ -17,7 +17,7 @@
 window.QDGroupCall = (function () {
     'use strict';
     var d = document, W = window, Q = W.QDNative || null;
-    var CFG = { on: true, general: true, max: 8, vmax: 4 };
+    var CFG = { on: true, general: true, max: 8, vmax: 4, screen: true };
     var PING_MS = 15000, STALE_MS = 45000, RING_MS = 45000, CONN_MS = 25000;
     var ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }, { urls: 'stun:stun.cloudflare.com:3478' },
         { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }];
@@ -84,6 +84,14 @@ window.QDGroupCall = (function () {
 #qd-gcall .gc-t video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;display:none}\
 #qd-gcall .gc-t.vid video{display:block}\
 #qd-gcall .gc-t.me video{transform:scaleX(-1)}\
+#qd-gcall .gc-t.scr video{transform:none;object-fit:contain;background:#000}\
+#qd-gcall .gc-t.scr{border-color:rgba(74,163,255,.55);cursor:zoom-in}\
+#qd-gcall .gc-t.scr .gc-zoom{display:block}\
+#qd-gcall .gc-zoom{display:none;position:absolute;top:8px;right:8px;font-size:11.5px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);border-radius:999px;padding:3px 9px;z-index:2}\
+#qd-gcall .gc-t:fullscreen{border-radius:0;border:0;background:#000;cursor:zoom-out}\
+#qd-gcall .gc-t:fullscreen .gc-zoom{display:none}\
+#qd-gcall .gc-t.big{position:fixed;inset:0;z-index:5;border-radius:0;border:0;background:#000;cursor:zoom-out}\
+#qd-gcall .gc-b.sharing i{background:#4aa3ff;border-color:#9fd0ff;color:#fff}\
 #qd-gcall .gc-t .gc-av{width:min(34%,96px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:clamp(20px,6vw,34px);font-weight:800;color:#fff;background:linear-gradient(150deg,#b81d27,#7d0c15);border:2px solid rgba(255,213,74,.6);overflow:hidden}\
 #qd-gcall .gc-t .gc-av img{width:100%;height:100%;object-fit:cover}\
 #qd-gcall .gc-t.vid .gc-av{display:none}\
@@ -162,6 +170,7 @@ window.QDGroupCall = (function () {
             + '<div class="gc-bar">'
             + '<button type="button" class="gc-b" data-k="mic"><i class="fa-solid fa-microphone"></i><span>Micro</span></button>'
             + '<button type="button" class="gc-b" data-k="cam"><i class="fa-solid fa-video"></i><span>Bật hình</span></button>'
+            + '<button type="button" class="gc-b" data-k="share" hidden><i class="fa-solid fa-display"></i><span>Màn hình</span></button>'
             + '<button type="button" class="gc-b" data-k="flip" hidden><i class="fa-solid fa-camera-rotate"></i><span>Đổi cam</span></button>'
             + '<button type="button" class="gc-b" data-k="spk" hidden><i class="fa-solid fa-volume-high"></i><span>Loa ngoài</span></button>'
             + '<button type="button" class="gc-b" data-k="add"><i class="fa-solid fa-user-plus"></i><span>Mời thêm</span></button>'
@@ -169,6 +178,7 @@ window.QDGroupCall = (function () {
         d.body.appendChild(o);
         o.querySelector('.gc-bar').addEventListener('click', function (e) { var b = e.target.closest('.gc-b'); if (!b || b.disabled) return; act(b.dataset.k); });
         o.querySelector('[data-k="min"]').addEventListener('click', function () { minimize(true); });
+        o.querySelector('#gc-grid').addEventListener('click', function (e) { var t = e.target.closest('.gc-t'); if (t && (t.classList.contains('scr') || t.classList.contains('big') || d.fullscreenElement === t)) zoom(t); });
         var pill = d.createElement('div'); pill.id = 'gc-pill'; pill.setAttribute('role', 'button'); pill.innerHTML = '<i class="fa-solid fa-users"></i><span id="gc-pill-t">Gọi nhóm</span>';
         pill.addEventListener('click', function () { minimize(false); }); d.body.appendChild(pill);
         var inc = d.createElement('div'); inc.id = 'gc-in'; inc.setAttribute('role', 'alertdialog');
@@ -191,7 +201,8 @@ window.QDGroupCall = (function () {
     function loadCfg() {
         db().collection('settings').doc('gcall_config').onSnapshot(function (x) {
             var c = x.exists ? x.data() : {}, n = function (v, def, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? def : Math.max(lo, Math.min(hi, v)); };
-            CFG = { on: c.isEnabled !== false, general: c.general !== false, max: n(c.max, 8, 2, 8), vmax: n(c.videoMax, 4, 0, 4) };
+            CFG = { on: c.isEnabled !== false, general: c.general !== false, max: n(c.max, 8, 2, 8), vmax: n(c.videoMax, 4, 0, 4), screen: c.screen !== false };
+            if (!CFG.screen && G && G.share) { stopShare(); toast('Ban Quản Trị vừa tắt chia sẻ màn hình.', 'warning'); }
             paintEntry(); if (G) paintAll();
         }, function () {});
         db().collection('settings').doc('call_config').onSnapshot(function (x) { var c = x.exists ? x.data() : {}; cfgIce = Array.isArray(c.iceServers) && c.iceServers.length ? c.iceServers : null; }, function () {});
@@ -304,7 +315,7 @@ window.QDGroupCall = (function () {
                 if (G !== g0) { stm.getTracks().forEach(function (t) { t.stop(); }); return; }
                 G.local = stm; G.cam = !!stm.getVideoTracks().length;
                 if (Q && Q.callMode) try { Q.callMode(true, G.speaker); } catch (e) {}
-                var mine = { at: gen, ping: gen, mic: true, cam: G.cam, name: (W.State && State.fullName) || me() }, data = { members: {}, status: 'live', updatedAt: gen };
+                var mine = { at: gen, ping: gen, mic: true, cam: G.cam, screen: false, name: (W.State && State.fullName) || me() }, data = { members: {}, status: 'live', updatedAt: gen };
                 data.members[me()] = mine;
                 if (!c || c.status === 'ended') { data.room = G.room; data.type = G.type; data.created = gen; data.host = me(); data.hostName = mine.name; if (c && c.status === 'ended') data.members = Object.assign({}, data.members); }
                 return db().collection('gcalls').doc(id).set(data, { merge: true }).then(function () {
@@ -320,7 +331,7 @@ window.QDGroupCall = (function () {
         }).catch(function (e) { if (G !== g0) return; if (e && /NotAllowed|NotFound|NotReadable|Security/.test(e.name || '')) mediaErr(e); else toast('Chưa vào được cuộc gọi nhóm, thử lại sau.', 'error'); cleanup(); });
     }
     function ping() {
-        if (!G) return; var up = { members: {}, updatedAt: Date.now() }; up.members[me()] = { ping: Date.now(), mic: G.mic, cam: G.cam };
+        if (!G) return; var up = { members: {}, updatedAt: Date.now() }; up.members[me()] = { ping: Date.now(), mic: G.mic, cam: G.cam, screen: !!G.share };
         db().collection('gcalls').doc(G.id).set(up, { merge: true }).catch(function () {});
     }
     function leave(silent) {
@@ -339,6 +350,9 @@ window.QDGroupCall = (function () {
             clearInterval(g.pingT); clearInterval(g.tickT); clearInterval(g.vadT);
             g.unsub.forEach(function (f) { try { f(); } catch (e) {} });
             Object.keys(g.peers).forEach(function (u) { closePeer(g, u); });
+            try { g.share && g.share.st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+            try { if (g.mix) { g.mix.track.stop(); g.mix.ctx.close(); } } catch (e) {}
+            try { if (d.fullscreenElement) d.exitFullscreen(); } catch (e) {}
             try { g.local && g.local.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
             if (Q && Q.callMode) try { Q.callMode(false, false); } catch (e) {}
         }
@@ -401,7 +415,7 @@ window.QDGroupCall = (function () {
         if (p.side === 'off' && p.tries <= 3) { var gen = p.gen; setTimeout(function () { if (G && G.peers[u] === p) offer(u, gen, true); }, 1500 * p.tries); }
     }
     function addLocal(pc, p) {
-        var a = G.local && G.local.getAudioTracks()[0], v = G.cam && G.local && G.local.getVideoTracks()[0];
+        var a = outAudio(), v = outVideo();
         if (p.side === 'off') {
             p.ta = pc.addTransceiver(a || 'audio', { direction: 'sendrecv', streams: G.local ? [G.local] : [] });
             p.tv = pc.addTransceiver(v || 'video', { direction: 'sendrecv', streams: G.local ? [G.local] : [] });
@@ -483,7 +497,11 @@ window.QDGroupCall = (function () {
     function tune(pc) {
         try { pc.getSenders().forEach(function (sd) {
             if (!sd.track || sd.track.kind !== 'video' || !sd.getParameters) return; var p = sd.getParameters(); if (!p.encodings || !p.encodings.length) return;
-            p.encodings[0].maxBitrate = 600000; p.encodings[0].maxFramerate = 24; sd.setParameters(p).catch(function () {});
+            var scr = !!(G && G.share && sd.track === G.share.vt), n = Math.max(1, G ? Object.keys(G.peers).length : 1);
+            p.encodings[0].maxBitrate = scr ? Math.max(350000, Math.min(2500000, Math.round(4000000 / n))) : 600000;   // màn hình: chia băng thông tải lên cho số người xem
+            p.encodings[0].maxFramerate = scr ? 15 : 24;
+            if (scr) p.degradationPreference = 'maintain-resolution';   // mạng yếu: giảm số khung hình, giữ chữ rõ
+            sd.setParameters(p).catch(function () {});
         }); } catch (e) {}
     }
 
@@ -516,15 +534,22 @@ window.QDGroupCall = (function () {
         var ppl = liveList(G.members); if (ppl.indexOf(me()) < 0) ppl.unshift(me());
         var n = ppl.length, cols = n <= 1 ? 1 : n <= 4 ? 2 : (W.innerWidth > 900 ? 4 : 2);
         if (n === 2 && W.innerHeight > W.innerWidth) cols = 1;
+        var sh = sharer();
+        if (sh) {   // có người chia sẻ màn hình: ô màn hình to ở trên, người khác hàng nhỏ bên dưới
+            ppl = [sh].concat(ppl.filter(function (u) { return u !== sh; }));
+            var others = n - 1; cols = Math.max(1, Math.min(others, W.innerWidth > 900 ? 4 : 3));
+            var rows = others ? Math.ceil(others / cols) : 0;
+            grid.style.gridTemplateRows = 'minmax(0,' + (rows ? (rows > 1 ? 3 : 4) : 1) + 'fr)' + (rows ? ' repeat(' + rows + ',minmax(0,1fr))' : '');
+        } else grid.style.gridTemplateRows = '';
         grid.style.setProperty('--gc-c', cols);
         var keep = {};
         ppl.forEach(function (u) {
             keep[safe(u)] = 1; var t = $('gc-t-' + safe(u));
-            if (!t) { t = d.createElement('div'); t.className = 'gc-t' + (u === me() ? ' me' : ''); t.id = 'gc-t-' + safe(u); t.innerHTML = '<video autoplay playsinline muted></video><div class="gc-av"></div><span class="gc-st"></span><div class="gc-nm"><i class="fa-solid fa-microphone-slash" hidden></i><span></span></div>'; grid.appendChild(t); }
+            if (!t) { t = d.createElement('div'); t.className = 'gc-t' + (u === me() ? ' me' : ''); t.id = 'gc-t-' + safe(u); t.innerHTML = '<video autoplay playsinline muted></video><div class="gc-av"></div><span class="gc-st"></span><span class="gc-zoom">⛶ Chạm để phóng to</span><div class="gc-nm"><i class="fa-solid fa-microphone-slash" hidden></i><span></span></div>'; grid.appendChild(t); }
             paintTile(u);
         });
         Array.prototype.forEach.call(grid.children, function (t) { if (!keep[t.id.replace(/^gc-t-/, '')]) t.remove(); });
-        ppl.forEach(function (u) { grid.appendChild($('gc-t-' + safe(u))); });   // giữ đúng thứ tự
+        ppl.forEach(function (u) { var t = $('gc-t-' + safe(u)); t.style.gridColumn = u === sh ? '1 / -1' : ''; if (u !== sh) t.classList.remove('big'); grid.appendChild(t); });   // giữ đúng thứ tự
         var pend = Object.keys(G.inv);
         $('gc-pend').innerHTML = pend.map(function (u) { return '<span>📞 Đang gọi ' + esc(nameOf(u)) + '…</span>'; }).join('');
         paintTop(); paintBar();
@@ -532,13 +557,15 @@ window.QDGroupCall = (function () {
     function paintTile(u) {
         if (!G) return; var t = $('gc-t-' + safe(u)); if (!t) return;
         var mine = u === me(), m = G.members[u] || {}, p = G.peers[u], v = t.querySelector('video');
-        var stream = mine ? G.local : p && p.ms, vt = stream && stream.getVideoTracks()[0];
-        var camOn = mine ? G.cam : m.cam === true && !!vt && !vt.muted;
+        var scr = mine ? !!G.share : m.screen === true;
+        var stream = mine ? (G.share ? G.share.st : G.local) : p && p.ms, vt = stream && stream.getVideoTracks()[0];
+        var camOn = mine ? (G.cam || !!G.share) : (m.cam === true || scr) && !!vt && !vt.muted;
+        t.classList.toggle('scr', !!scr);
         if (camOn && v.srcObject !== stream) { v.srcObject = stream; var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
         if (!camOn && v.srcObject) v.srcObject = null;
         t.classList.toggle('vid', !!camOn);
         var av = t.querySelector('.gc-av'), html = avatar(u); if (av.__h !== html) { av.innerHTML = html; av.__h = html; }
-        t.querySelector('.gc-nm span').textContent = mine ? 'Bạn' : nameOf(u);
+        t.querySelector('.gc-nm span').textContent = (mine ? 'Bạn' : nameOf(u)) + (scr ? (mine ? ' đang chia sẻ màn hình' : ' · đang chia sẻ màn hình') : '');
         t.querySelector('.gc-nm i').hidden = (mine ? G.mic : m.mic !== false);
         var s = mine ? '' : !p ? 'Đang chờ…' : /connected|completed/.test(p.state || '') ? '' : p.state === 'failed' ? 'Mất kết nối' : 'Đang kết nối…';
         t.querySelector('.gc-st').textContent = s;
@@ -556,6 +583,11 @@ window.QDGroupCall = (function () {
         cam.querySelector('span').textContent = G.cam ? 'Tắt hình' : ok ? 'Bật hình' : 'Hình (≤ ' + CFG.vmax + ' người)';
         cam.hidden = CFG.vmax < 2;
         b('flip').hidden = !G.cam || (G.cams || 1) < 2;
+        var sb = b('share'), other = sharer(); other = other && other !== me() ? other : '';
+        sb.hidden = !CFG.screen || !canShare(); sb.disabled = !!other && !G.share; sb.classList.toggle('sharing', !!G.share);
+        sb.querySelector('i').className = 'fa-solid ' + (G.share ? 'fa-rectangle-xmark' : 'fa-display');
+        sb.querySelector('span').textContent = G.share ? 'Dừng chia sẻ' : 'Màn hình'; sb.title = other ? nameOf(other) + ' đang chia sẻ màn hình' : G.share ? '' : 'Chia sẻ màn hình (kèm tiếng)';
+        cam.disabled = cam.disabled || !!G.share;
         var spk = b('spk'); spk.hidden = !(Q && Q.callMode); spk.classList.toggle('off', !G.speaker); spk.querySelector('span').textContent = G.speaker ? 'Loa ngoài' : 'Loa trong';
         b('add').disabled = liveList(G.members).length + Object.keys(G.inv).length >= CFG.max;
     }
@@ -570,11 +602,74 @@ window.QDGroupCall = (function () {
         if (k === 'flip') return flip();
         if (k === 'spk') { G.speaker = !G.speaker; try { Q.callMode(true, G.speaker); } catch (e) {} return paintBar(); }
         if (k === 'add') return openSheet('pick');
+        if (k === 'share') return G.share ? stopShare() : startShare();
     }
+
+    /* ---------- chia sẻ màn hình (kèm tiếng) ----------
+       Máy tính (Chrome / Edge / Firefox): chọn tab / cửa sổ / cả màn hình; tick "Chia sẻ âm thanh" để người khác nghe được tiếng.
+       Hình màn hình đi vào chỗ của camera (không phải nối lại); tiếng màn hình trộn chung với micro thành 1 đường tiếng.
+       Điện thoại (app / trình duyệt Android) chưa chia sẻ được (Android không cho trang web quay màn hình) nhưng XEM được. */
+    function canShare() { return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); }
+    function sharer() {
+        if (!G) return ''; if (G.share) return me();
+        var ppl = liveList(G.members); for (var i = 0; i < ppl.length; i++) if (ppl[i] !== me() && G.members[ppl[i]].screen === true) return ppl[i];
+        return '';
+    }
+    function outAudio() { return G.mix ? G.mix.track : (G.local && G.local.getAudioTracks()[0]) || null; }
+    function outVideo() { return G.share ? G.share.vt : (G.cam && G.local && G.local.getVideoTracks()[0]) || null; }
+    function setAudio(track) { if (!track) return; Object.keys(G.peers).forEach(function (u) { var p = G.peers[u]; if (p.ta) try { p.ta.sender.replaceTrack(track); } catch (e) {} }); }
+    function mixStart(at) {
+        try {
+            var ctx = new (W.AudioContext || W.webkitAudioContext)(), dest = ctx.createMediaStreamDestination(), mic = G.local && G.local.getAudioTracks()[0];
+            if (mic) ctx.createMediaStreamSource(new MediaStream([mic])).connect(dest);
+            ctx.createMediaStreamSource(new MediaStream([at])).connect(dest);
+            if (ctx.state === 'suspended') ctx.resume();
+            G.mix = { ctx: ctx, track: dest.stream.getAudioTracks()[0] };
+        } catch (e) { G.mix = null; }
+    }
+    function mixStop() { if (G && G.mix) { try { G.mix.track.stop(); G.mix.ctx.close(); } catch (e) {} G.mix = null; } }
+    function startShare() {
+        if (!G) return;
+        if (!CFG.screen) return toast('Ban Quản Trị đang tắt chia sẻ màn hình.', 'warning');
+        if (!canShare()) return toast('Chia sẻ màn hình cần máy tính (Chrome / Edge). Điện thoại vẫn xem được màn hình người khác chia sẻ.', 'info');
+        var s0 = sharer(); if (s0 && s0 !== me()) return toast(nameOf(s0) + ' đang chia sẻ màn hình.', 'warning');
+        var g0 = G;
+        navigator.mediaDevices.getDisplayMedia({
+            video: { frameRate: { ideal: 15, max: 30 }, width: { max: 1920 }, height: { max: 1080 } },
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, restrictOwnAudio: true },   // restrictOwnAudio: chia sẻ cả màn hình thì bỏ tiếng của chính cuộc gọi (không vọng lại tiếng người khác)
+            systemAudio: 'include', selfBrowserSurface: 'exclude', surfaceSwitching: 'include', monitorTypeSurfaces: 'include'
+        }).then(function (st) {
+            if (G !== g0) { st.getTracks().forEach(function (t) { t.stop(); }); return; }
+            var vt = st.getVideoTracks()[0], at = st.getAudioTracks()[0] || null;
+            try { vt.contentHint = 'detail'; } catch (e) {}
+            if (G.cam) camOff();
+            G.share = { st: st, vt: vt, at: at };
+            vt.addEventListener('ended', function () { if (G && G.share && G.share.vt === vt) stopShare(); });   // bấm "Dừng chia sẻ" trên thanh của trình duyệt
+            if (at) mixStart(at);
+            setVideo(vt); setAudio(outAudio()); ping(); paintAll(); nativeInfo();
+            toast(at ? '🖥️ Đang chia sẻ màn hình kèm tiếng.' : '🖥️ Đang chia sẻ màn hình (chưa có tiếng — lần sau tick "Chia sẻ âm thanh" khi chọn).', 'success');
+        }).catch(function (e) { if (e && (e.name === 'NotAllowedError' || e.name === 'AbortError')) return; toast('Không chia sẻ được màn hình.', 'error'); });
+    }
+    function stopShare() {
+        if (!G || !G.share) return; var sh = G.share; G.share = null;
+        try { sh.st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+        mixStop(); setVideo(null); setAudio(outAudio()); ping(); paintAll(); nativeInfo();
+        try { if (d.fullscreenElement) d.exitFullscreen(); } catch (e) {}
+    }
+    /* chạm vào ô màn hình: phóng to cả màn hình (điện thoại: xoay ngang cho dễ xem) */
+    function zoom(t) {
+        if (d.fullscreenElement) { d.exitFullscreen().catch(function () {}); return; }
+        if (t.classList.contains('big')) { t.classList.remove('big'); return; }
+        var go = t.requestFullscreen ? t.requestFullscreen() : null;
+        if (go && go.then) go.then(function () { try { screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(function () {}); } catch (e) {} }, function () { t.classList.add('big'); });
+        else t.classList.add('big');
+    }
+    d.addEventListener('fullscreenchange', function () { if (!d.fullscreenElement) try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} });
     function setVideo(track) {
         Object.keys(G.peers).forEach(function (u) { var p = G.peers[u]; if (p.tv) try { p.tv.sender.replaceTrack(track || null); } catch (e) {} if (track) tune(p.pc); });
     }
     function camOn() {
+        if (G.share) return toast('Đang chia sẻ màn hình — dừng chia sẻ rồi mới bật camera.', 'warning');
         if (!camAllowed()) return toast('Chỉ bật hình được khi cuộc gọi có từ ' + CFG.vmax + ' người trở xuống.', 'warning');
         navigator.mediaDevices.getUserMedia({ video: { facingMode: G.facing || 'user', width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 24, max: 24 } } }).then(function (s) {
             if (!G) { s.getTracks().forEach(function (t) { t.stop(); }); return; }
@@ -585,7 +680,7 @@ window.QDGroupCall = (function () {
     }
     function camOff() {
         if (!G) return; G.local.getVideoTracks().forEach(function (x) { x.stop(); G.local.removeTrack(x); });
-        G.cam = false; setVideo(null); ping(); paintAll(); nativeInfo();
+        G.cam = false; setVideo(G.share ? G.share.vt : null); ping(); paintAll(); nativeInfo();
     }
     function flip() { if (!G || !G.cam) return; G.facing = G.facing === 'environment' ? 'user' : 'environment'; camOff(); camOn(); }
 

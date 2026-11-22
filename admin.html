@@ -3933,6 +3933,7 @@ html.qd-lite .qd-fx { display: none !important; }
                         <p class="text-muted text-sm mt-2 mb-3">Thành viên gọi thoại / có hình cùng lúc nhiều người: <b>phòng gọi Kênh Chung</b> (ai muốn thì vào, không đổ chuông) và <b>chọn người để gọi</b> (máy người được mời đổ chuông). Các máy nối thẳng với nhau, không tốn tài nguyên máy chủ.</p>
                         <div class="gca-grid">
                             <label class="gca-opt"><input type="checkbox" id="gca-general" onchange="QDGCallAdmin.save()"> Phòng gọi Kênh Chung</label>
+                            <label class="gca-opt" title="Chỉ chia sẻ được từ máy tính (Chrome / Edge); điện thoại và app vẫn xem + nghe được"><input type="checkbox" id="gca-screen" onchange="QDGCallAdmin.save()"> Chia sẻ màn hình (kèm tiếng)</label>
                             <div class="form-group m-0"><label class="form-label">Tối đa (người)</label><input id="gca-max" class="form-control" type="number" min="2" max="8" step="1" value="8" onchange="QDGCallAdmin.save()"></div>
                             <div class="form-group m-0"><label class="form-label">Bật hình khi ≤ (người, 0 = không cho)</label><input id="gca-vmax" class="form-control" type="number" min="0" max="4" step="1" value="4" onchange="QDGCallAdmin.save()"></div>
                         </div>
@@ -16339,16 +16340,16 @@ window.QDXlsx = (function () {
     </script>
     <script id="qcall-admin-js">
     /* Máy chủ trung chuyển cuộc gọi (TURN) -> settings/call_config.iceServers (trang thành viên đọc trực tiếp) */
-    /* Gọi nhóm: settings/gcall_config { isEnabled, general, max, videoMax } + cuộc gọi nhóm đang diễn ra (gcalls) */
+    /* Gọi nhóm: settings/gcall_config { isEnabled, general, screen, max, videoMax } + cuộc gọi nhóm đang diễn ra (gcalls) */
     window.QDGCallAdmin = (function () {
         var $ = function (id) { return document.getElementById(id); }, started = false, CFG = {};
         function fs() { return firebase.firestore(); }
         function toast(m, k) { try { Utils.toast(m, k); } catch (e) {} }
         function esc(x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
         function n(v, d, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? d : Math.max(lo, Math.min(hi, v)); }
-        function paint() { $('gca-on').checked = CFG.isEnabled !== false; $('gca-general').checked = CFG.general !== false; $('gca-max').value = n(CFG.max, 8, 2, 8); $('gca-vmax').value = n(CFG.videoMax, 4, 0, 4); }
+        function paint() { $('gca-on').checked = CFG.isEnabled !== false; $('gca-general').checked = CFG.general !== false; $('gca-screen').checked = CFG.screen !== false; $('gca-max').value = n(CFG.max, 8, 2, 8); $('gca-vmax').value = n(CFG.videoMax, 4, 0, 4); }
         function save() {
-            var c = { isEnabled: $('gca-on').checked, general: $('gca-general').checked, max: n($('gca-max').value, 8, 2, 8), videoMax: n($('gca-vmax').value, 4, 0, 4), updatedAt: Date.now() };
+            var c = { isEnabled: $('gca-on').checked, general: $('gca-general').checked, screen: $('gca-screen').checked, max: n($('gca-max').value, 8, 2, 8), videoMax: n($('gca-vmax').value, 4, 0, 4), updatedAt: Date.now() };
             fs().collection('settings').doc('gcall_config').set(c, { merge: true }).then(function () { toast('Đã lưu cài đặt gọi nhóm', 'success'); }, function (e) { toast('Không lưu được: ' + (e.message || e), 'error'); });
         }
         function fmtAgo(t) { var m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 1 ? 'vừa bắt đầu' : m < 60 ? m + ' phút' : Math.floor(m / 60) + ' giờ ' + (m % 60) + ' phút'; }
