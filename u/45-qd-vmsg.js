@@ -90,6 +90,14 @@
                     '</div>' +
                 '</div>';
             while (box.firstChild) d.body.appendChild(box.firstChild);
+            // Mở trình phát / phòng quay -> tạm tắt nhạc nền (QDHush, dùng chung với cuộc gọi + video chia sẻ); đóng (kể cả bằng nút Quay lại) -> nhạc phát lại
+            [['qvm-player', 'vmsg'], ['qvm-studio', 'vmsg-rec']].forEach(function (x) {
+                var ov = $(x[0]);
+                new MutationObserver(function () {
+                    var on = ov.classList.contains('active'); if (on === !!ov.__qh) return; ov.__qh = on; hush(x[1], on);
+                    if (!on && x[0] === 'qvm-player') { var v = $('qvm-pv'); try { v.pause(); } catch (e) {} }
+                }).observe(ov, { attributes: true, attributeFilter: ['class'] });
+            });
             $('qvm-file').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) usePicked(f); });
             d.addEventListener('click', function (e) {
                 var m = $('qvm-menu'); if (!m || m.hidden) return;
@@ -99,6 +107,7 @@
             [rv, pv].forEach(function (v) { v.addEventListener('loadedmetadata', function () { fixDur(v); }); });
             pv.addEventListener('error', function () { if (pv.getAttribute('src')) { $('qvm-gone').hidden = false; pv.hidden = true; } });
         }
+        function hush(k, on) { try { if (W.QDHush) W.QDHush[on ? 'on' : 'off'](k); } catch (e) {} }
         function fixDur(v) {   // video ghi bằng Chrome (webm) không ghi thời lượng -> tua tới cuối 1 lần để trình duyệt tự tính
             if (v.duration !== Infinity || v.__fx) return; v.__fx = 1;
             var back = function () { v.removeEventListener('timeupdate', back); v.currentTime = 0; };
@@ -111,6 +120,7 @@
         }
         function open() {
             build(); var o = $('qvm-studio');
+            if (!o.__qh) { o.__qh = true; hush('vmsg-rec', true); }   // nhạc nền không lọt vào video đang quay
             if (W.UI && W.UI.openModal) W.UI.openModal('qvm-studio'); else { o.style.display = 'flex'; o.classList.add('active'); }
         }
         function info(t) { var p = $('qvm-info'); if (p) p.innerHTML = t || ''; }
@@ -401,6 +411,7 @@
             build(); var v = $('qvm-pv'), u = urlOf(p);
             $('qvm-gone').hidden = true; v.hidden = false; v.__fx = 0;
             $('qvm-open').href = u;
+            $('qvm-player').__qh = true; hush('vmsg', true);
             v.src = u;
             if (W.UI && W.UI.openModal) W.UI.openModal('qvm-player'); else { $('qvm-player').style.display = 'flex'; $('qvm-player').classList.add('active'); }
             var pr = v.play(); if (pr && pr.catch) pr.catch(function () {});
