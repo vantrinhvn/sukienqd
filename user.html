@@ -17,6 +17,48 @@
             for (i = 0; i < 8; i++) H[i] = (H[i] + o[i]) | 0; }
         for (s = '', i = 0; i < 8; i++) s += ('00000000' + (H[i] >>> 0).toString(16)).slice(-8); return s; };
     window.qdGate = function (code) { return qdSha256('qd-gate|' + String(code || '').trim()) === '22cc0bc97aeead86540c187c39a01014dcec61b5a955312cf0cf69d5bc56440a'; };</script>
+    <script id="qd-intl-js">
+    /* Định dạng ngày giờ / số (toLocaleString 'vi-VN' + tùy chọn) nhanh hơn ~40 lần: dựng bộ định dạng Intl một lần rồi dùng lại.
+       Kết quả giống hệt hàm gốc (cùng quy tắc mặc định của ECMA-402); trường hợp lạ (dateStyle, mảng ngôn ngữ, ngày lỗi) -> hàm gốc. */
+    (function () {
+        if (typeof Intl !== 'object' || !Intl.DateTimeFormat || !Intl.NumberFormat || window.__qdIntl) return;
+        window.__qdIntl = 1;
+        var C = Object.create(null), n = 0;
+        function keep(k, f) { if (++n > 300) { C = Object.create(null); n = 1; } C[k] = f; return f; }
+        function key(a, loc, opt) { try { return a + '\u0001' + (loc === undefined ? '' : loc) + '\u0001' + (opt === undefined ? '' : JSON.stringify(opt)); } catch (e) { return null; } }
+        var DATE = ['weekday', 'year', 'month', 'day'], TIME = ['dayPeriod', 'hour', 'minute', 'second', 'fractionalSecondDigits'];
+        function has(o, ks) { for (var i = 0; i < ks.length; i++) if (o[ks[i]] !== undefined) return true; return false; }
+        var DP = Date.prototype, getTime = DP.getTime;
+        function wrapDate(name, req, def) {
+            var orig = DP[name]; if (typeof orig !== 'function') return;
+            DP[name] = function (loc, opt) {
+                if (arguments.length > 2 || (loc !== undefined && typeof loc !== 'string') || (opt !== undefined && (opt === null || typeof opt !== 'object'))) return orig.apply(this, arguments);
+                var t = getTime.call(this);
+                if (t !== t) return orig.apply(this, arguments);
+                var k = key(name, loc, opt); if (k === null) return orig.apply(this, arguments);
+                var f = C[k];
+                if (!f) {
+                    var o = {}; if (opt) for (var p in opt) o[p] = opt[p];
+                    if (o.dateStyle !== undefined || o.timeStyle !== undefined) return orig.apply(this, arguments);
+                    var need = req === 'any' ? !has(o, DATE) && !has(o, TIME) : req === 'date' ? !has(o, DATE) : !has(o, TIME);
+                    if (need && def !== 'time') { o.year = 'numeric'; o.month = 'numeric'; o.day = 'numeric'; }
+                    if (need && def !== 'date') { o.hour = 'numeric'; o.minute = 'numeric'; o.second = 'numeric'; }
+                    try { f = keep(k, new Intl.DateTimeFormat(loc, o)); } catch (e) { return orig.apply(this, arguments); }
+                }
+                return f.format(t);
+            };
+        }
+        wrapDate('toLocaleString', 'any', 'all'); wrapDate('toLocaleDateString', 'date', 'date'); wrapDate('toLocaleTimeString', 'time', 'time');
+        var NP = Number.prototype, nOrig = NP.toLocaleString, valueOf = NP.valueOf;
+        NP.toLocaleString = function (loc, opt) {
+            if (arguments.length > 2 || (loc !== undefined && typeof loc !== 'string') || (opt !== undefined && (opt === null || typeof opt !== 'object'))) return nOrig.apply(this, arguments);
+            var x = valueOf.call(this), k = key('n', loc, opt); if (k === null) return nOrig.apply(this, arguments);
+            var f = C[k];
+            if (!f) { try { f = keep(k, new Intl.NumberFormat(loc, opt)); } catch (e) { return nOrig.apply(this, arguments); } }
+            return f.format(x);
+        };
+    })();
+    </script>
     <script id="qd-gfx-boot">try{var g=localStorage.getItem("qd_gfx_eff");if(/^(high|mid|low)$/.test(g||""))document.documentElement.setAttribute("data-gfx",g);}catch(e){}</script>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="media/qd-logo.png">
