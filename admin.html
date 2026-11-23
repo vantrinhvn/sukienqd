@@ -80,7 +80,7 @@
 
     <!-- Giao diện + mã của trang Admin nằm trong thư mục a/: admin.css và các file NN-ten.js (NN = thứ tự chạy);
          vài file dùng chung với trang thành viên nằm trong u/. Sửa xong chạy: python3 .github/scripts/stamp.py -->
-    <link rel="stylesheet" href="a/admin.css?v=95c07f7d">
+    <link rel="stylesheet" href="a/admin.css?v=18c4f3e2">
 
     <!-- QD ADMIN LAYOUT 2.1: thanh bên (máy tính) + thanh dưới & menu (điện thoại) -->
 
@@ -2841,6 +2841,28 @@
                             <p class="text-muted">Dán link YouTube hoặc TikTok — thành viên xem ngay ở thẻ 🎬 Video. Thành viên cũng tự chia sẻ được (tối đa 3 video/ngày), mọi lượt đều ghi ở Lịch sử chia sẻ bên dưới.</p>
                         </div>
                     </div>
+                    <div class="card mb-6" id="vma-card" style="padding: 20px 24px;">
+                        <div class="flex justify-between items-center flex-wrap gap-3">
+                            <h3 class="text-lg m-0 flex items-center gap-2"><i class="fa-solid fa-film" style="color: #ef4444;"></i> Tin nhắn video (trong chat)</h3>
+                            <label class="switch" title="Bật / tắt gửi video trong chat"><input type="checkbox" id="vma-on" onchange="QDVMsgAdmin.save()"><span class="slider"></span></label>
+                        </div>
+                        <p class="text-muted text-sm mt-2 mb-4">Thành viên bấm nút <b>🎬</b> trong khung chat để <b>quay video</b> ngay hoặc <b>chọn video có sẵn</b> trong máy. Video nặng quá mức cho phép được tự nén lại trên máy người gửi. Video lưu trên máy chủ VPS và tự xóa khi quá hạn hoặc khi vượt tổng dung lượng (xóa video cũ nhất trước).</p>
+                        <div class="vma-grid">
+                            <div class="form-group m-0"><label class="form-label" for="vma-who">Ai được gửi</label><select id="vma-who" class="form-control" onchange="QDVMsgAdmin.save()"><option value="all">Tất cả thành viên</option><option value="staff">Chỉ Ban Quản Trị</option></select></div>
+                            <label class="gca-opt vma-opt"><input type="checkbox" id="vma-general" onchange="QDVMsgAdmin.save()"> Cho gửi trong Kênh Chung</label>
+                            <div class="form-group m-0"><label class="form-label" for="vma-maxMB">Dung lượng tối đa mỗi video (MB)</label><input id="vma-maxMB" class="form-control" type="number" min="1" max="200" step="1" value="30"></div>
+                            <div class="form-group m-0"><label class="form-label" for="vma-maxSec">Thời lượng tối đa (giây)</label><input id="vma-maxSec" class="form-control" type="number" min="5" max="600" step="5" value="120"></div>
+                            <div class="form-group m-0"><label class="form-label" for="vma-perDay">Số video mỗi người / ngày (0 = không giới hạn)</label><input id="vma-perDay" class="form-control" type="number" min="0" max="500" step="1" value="20"></div>
+                            <div class="form-group m-0"><label class="form-label" for="vma-keepDays">Tự xóa video sau (ngày, 0 = giữ mãi)</label><input id="vma-keepDays" class="form-control" type="number" min="0" max="3650" step="1" value="30"></div>
+                            <div class="form-group m-0"><label class="form-label" for="vma-quotaGB">Tổng dung lượng tối đa trên máy chủ (GB)</label><input id="vma-quotaGB" class="form-control" type="number" min="0.1" max="2000" step="0.5" value="5"></div>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px;">
+                            <button type="button" class="btn btn-primary" onclick="QDVMsgAdmin.save(true)"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>
+                            <button type="button" class="btn btn-outline" onclick="QDVMsgAdmin.stats()"><i class="fa-solid fa-rotate"></i> Làm mới số liệu</button>
+                            <button type="button" class="btn btn-outline" style="color: var(--color-danger); border-color: var(--color-danger);" onclick="QDVMsgAdmin.clear()"><i class="fa-solid fa-trash-can"></i> Xóa tất cả video</button>
+                        </div>
+                        <div class="vma-use" id="vma-use"><span class="text-muted">Đang tải số liệu…</span></div>
+                    </div>
                     <div class="vsh-grid">
                         <div class="card" id="vsh-form-card" style="padding: 20px 24px;">
                             <h3 class="text-lg m-0 mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-plus" style="color: #ef4444;"></i> <span id="vsh-form-h">Thêm video</span></h3>
@@ -3796,5 +3818,6 @@
     <script id="qdv-dash-js" src="a/36-qdv-dash.js?v=16cc5b8a"></script>
     <script id="qd-roles-js" src="a/37-qd-roles.js?v=7c8234d0"></script>
     <script id="qvps-js" src="a/38-qvps.js?v=4db2f61b"></script>
+    <script id="vma-js" src="a/39-vmsg-admin.js?v=638a5412"></script>
 </body>
 </html>

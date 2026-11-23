@@ -184,10 +184,10 @@
 
     <!-- Giao diện + mã của trang thành viên nằm trong thư mục u/: user.css và các file NN-ten.js (NN = thứ tự chạy).
          Sửa file trong u/ xong chạy: python3 .github/scripts/stamp.py  (đổi ?v= để trình duyệt / app lấy bản mới) -->
-    <link rel="stylesheet" href="u/user.css?v=1d1bb1b6">
+    <link rel="stylesheet" href="u/user.css?v=317fa7b0">
 
     <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
-    <script id="qd-smooth-js" src="u/01-qd-smooth.js?v=8c3dd5af"></script>
+    <script id="qd-smooth-js" src="u/01-qd-smooth.js?v=19d8ae87"></script>
     <!-- ===== KÉO BÚA BAO: giao diện Tết ===== -->
 </head>
 <body>
@@ -1058,6 +1058,9 @@
                                         <button class="btn-icon" style="background: transparent; border: none; font-size: 18px; color: var(--text-muted); box-shadow: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 2px;" onclick="document.getElementById('chat-img-upload').click()" title="Gửi ảnh đính kèm">
                                             <i class="fa-solid fa-image"></i>
                                         </button>
+                                        <button class="btn-icon qvm-btn" id="chat-vid-btn" type="button" onclick="window.QDVMsg && QDVMsg.menu()" title="Gửi video" aria-label="Gửi video">
+                                            <i class="fa-solid fa-film"></i>
+                                        </button>
                                         <textarea id="inp-chat-msg" style="flex: 1; border: none; background: transparent; padding: 12px 14px; font-size: 16px !important; color: var(--text-main); outline: none; resize: none; overflow-y: auto; max-height: 120px; min-height: 44px; line-height: 1.4; box-sizing: border-box; font-family: inherit;" rows="1" placeholder="Soạn tin nhắn..." onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); window.Chat.sendMsg(); }" oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px';" onblur="setTimeout(() => { window.scrollTo(0,0); document.body.scrollTop = 0; document.documentElement.scrollTop = 0; if(window.visualViewport){ document.body.style.height = `${window.visualViewport.height}px`; } }, 50)" autocomplete="off"></textarea>
                                     </div>
                                     <button class="btn-primary" style="border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; padding: 0; box-shadow: 0 4px 15px var(--brand-glow);" onclick="window.Chat.sendMsg()">
@@ -1294,7 +1297,7 @@
 
 
     <script src="u/06-lucky-schedule.js?v=80361552"></script>
-    <script src="u/07-app-core.js?v=7f4a4f68"></script>
+    <script src="u/07-app-core.js?v=c9838833"></script>
 
     <script>
         // TET FLOWER ANIMATION
@@ -1501,7 +1504,7 @@
          rồi đo FPS thật: rớt khung -> hạ 1 mức; mượt lâu -> nâng lại (không vượt mức máy chịu được).
          Cân bằng: bỏ kính mờ (blur), bớt nửa hoa rơi. Tiết kiệm: tắt hoa rơi / pháo / hiệu ứng lặp, bỏ bóng đổ, video không tự chạy.
          Ghép với QD Smooth có sẵn (html.qd-lite = Tiết kiệm). -->
-    <script id="qd-gfx-js" src="u/33-qd-gfx.js?v=623491f7"></script>
+    <script id="qd-gfx-js" src="u/33-qd-gfx.js?v=bbea5fed"></script>
 
     <!-- ===== QD DANH BẠ: nút đỏ đếm tin chưa đọc kiểu Zalo / Messenger + nhãn nhóm Ban quản lý / Thành viên ===== -->
 
@@ -1749,6 +1752,7 @@
     <script id="qd-call-js" src="u/43-qd-call.js?v=a4ec63ca"></script>
     <script src="qd-gcall.js?v=73f8a43a" defer></script>
     <script id="qd-snd-js" src="u/44-qd-snd.js?v=9e689f00"></script>
+    <script id="qd-vmsg-js" src="u/45-qd-vmsg.js?v=0b4f4bb9"></script>
 </body>
 
 </html>

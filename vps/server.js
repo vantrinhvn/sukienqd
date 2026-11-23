@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-18';
+const VER = 'qd-vps-19';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -154,7 +154,8 @@ function authConn(conn, u) { conn.u = u; conn.role = roleOf(u); return conn.role
 // Dữ liệu gửi ra: thành viên không thấy mật khẩu
 const HIDE = { accounts: ['pass'], pending_users: ['pass', 'password'] };
 function view(conn, c, d) {
-  if ((c === 'acc_sessions' || c === 'acc_devices') && !isStaff(conn)) return {};   // phiên / thiết bị: chỉ Ban Quản Trị xem
+  if ((c === 'acc_sessions' || c === 'acc_devices') && !isStaff(conn)) return {};
+  if (c === 'media' && !isStaff(conn)) return d && d.u === conn.u ? d : {};   // video trong tin nhắn: thành viên chỉ thấy của mình   // phiên / thiết bị: chỉ Ban Quản Trị xem
   if (c === 'push_broadcast' && d && d.kind === 'vps_alert' && !isStaff(conn) && d.target !== conn.u) return { kind: d.kind, target: d.target, status: d.status, createdAt: d.createdAt };
   if (c === 'rps_rooms' && d && d.status === 'playing') {
     const o = Object.assign({}, d), u = conn.u || '';
@@ -177,7 +178,7 @@ const SETTINGS_OPEN = new Set([]);   // cài đặt thành viên được ghi (k
 const SERVER_ONLY = new Set(['point_cashout', 'point_cashout_daily', 'shop_orders', 'point_shop_stock', 'point_shop_daily', 'transfer_history',
   'lixi_history', 'lixi_daily', 'spin_history', 'wheel_stock', 'wheel_questions', 'tranhthuong_history', 'tranhthuong_stock', 'lucky_numbers', 'lucky_number_history', 'lucky_rewards',
   'attendance', 'invite_history', 'gifts', 'gift_claims', 'tournament_rewards', 'con_stats', 'con_history', 'rps_rooms', 'rps_history', 'point_history', 'video_share_log',
-  'acc_sessions', 'acc_devices']);
+  'acc_sessions', 'acc_devices', 'media']);
 /* Đợt 4: trường trong tài khoản chỉ máy chủ (lệnh act) / Ban Quản Trị được đổi -> thành viên không tự cộng điểm, lượt, mở khóa, đổi tên... */
 const ACC_LOCK = new Set(['points', 'spins', 'tickets', 'conThrows', 'conStreak', 'conFreeDate', 'lixiDate', 'lixiAmount', 'lixiCount', 'lixiTotal', 'lastLoginRewardDate',
   'giftDay', 'giftCount', 'hasUsedInvite', 'invitedBy', 'invitedAt', 'inviteCount', 'inviteRewardCount', 'inviteCode', 'isBlocked', 'lockedAt', 'lockReason', 'unlockedAt', 'unlockRequestedAt',
@@ -1767,6 +1768,143 @@ function actVideoRemove(conn, a) {
 
 
 /* ==================================================================================================
+   TIN NHẮN VIDEO (Admin > Chia sẻ video > Tin nhắn video, settings/video_msg)
+   - Thành viên quay / chọn video trong khung chat -> POST /api/media/video (kèm mã đăng nhập) -> lưu DATA/media/<mã>.<đuôi>
+     Tin nhắn chỉ giữ đường dẫn m/<mã>.<đuôi> + ảnh xem trước nhỏ. Mã 24 ký tự ngẫu nhiên: chỉ người có tin nhắn mới mở được.
+   - Máy chủ kiểm tra: tính năng bật, ai được gửi, Kênh Chung, dung lượng, số video / ngày, ổ đĩa còn trống, đúng tệp video (mp4 / webm / mov)
+   - Quá số ngày giữ hoặc vượt tổng dung lượng: xóa video cũ nhất (tin nhắn hiện "Video đã hết hạn")
+   ================================================================================================== */
+const MEDIA = path.join(DATA, 'media'); try { fs.mkdirSync(MEDIA, { recursive: true }); } catch (e) {}
+const VM_DEF = { on: true, who: 'all', general: true, maxMB: 30, maxSec: 120, perDay: 20, keepDays: 30, quotaGB: 5 };
+const VM_TYPE = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime' };
+function vmNum(v, lo, hi, def) { v = +v; return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : def; }
+function vmCfg() {
+  const s = setting('video_msg') || {};
+  return { on: s.on !== false, who: s.who === 'staff' ? 'staff' : 'all', general: s.general !== false,
+    maxMB: vmNum(s.maxMB, 1, 200, VM_DEF.maxMB), maxSec: Math.round(vmNum(s.maxSec, 5, 600, VM_DEF.maxSec)), perDay: Math.round(vmNum(s.perDay, 0, 500, VM_DEF.perDay)),
+    keepDays: Math.round(vmNum(s.keepDays, 0, 3650, VM_DEF.keepDays)), quotaGB: vmNum(s.quotaGB, 0.1, 2000, VM_DEF.quotaGB) };
+}
+function vmSniff(b) {   // nhận dạng tệp theo vài byte đầu, không tin phần đuôi / loại tệp trình duyệt báo
+  if (b.length >= 12 && b.toString('latin1', 4, 8) === 'ftyp') return b.toString('latin1', 8, 12) === 'qt  ' ? 'mov' : 'mp4';
+  if (b.length >= 4 && b.readUInt32BE(0) === 0x1A45DFA3) return 'webm';
+  return '';
+}
+function vmDiskFree() { try { const st = fs.statfsSync(DATA); return st.bavail * st.bsize; } catch (e) { return Infinity; } }
+function vmGate(conn, room, len) {   // kiểm tra trước khi nhận tệp (dùng cho cả lệnh hỏi trước media.check và lúc tải lên)
+  const me = actMe(conn), cfg = vmCfg(), staff = isStaff(conn), user = me.d.user, now = Date.now();
+  if (!cfg.on) throw err('failed-precondition', 'OFF');
+  if (cfg.who === 'staff' && !staff) throw err('permission-denied', 'STAFF');
+  if (!/^[\w.@-]{1,160}$/.test(room)) throw err('invalid-argument', 'ROOM');
+  if (room === 'general_room' && !cfg.general && !staff) throw err('permission-denied', 'GENERAL');
+  const max = Math.round(cfg.maxMB * 1048576);
+  if (len > max) throw err('failed-precondition', 'SIZE', { maxMB: cfg.maxMB });
+  let n = 0;
+  if (!staff && cfg.perDay > 0) {
+    const mm = COLS.get('media'), t0 = vDayStart(now);
+    if (mm) for (const [, x] of mm) if (x.d && x.d.u === user && (+x.d.at || 0) >= t0) n++;
+    if (n >= cfg.perDay) throw err('failed-precondition', 'DAY', { perDay: cfg.perDay });
+  }
+  if (vmDiskFree() - Math.max(len, 1) < 512 * 1048576) throw err('resource-exhausted', 'DISK');
+  return { user, cfg, max, now, left: cfg.perDay > 0 && !staff ? cfg.perDay - n : -1 };
+}
+async function vmUpload(req, res, u) {
+  const t = (String(req.headers.authorization || '').match(/^Bearer\s+(.+)$/) || [])[1] || '', o = verify(t);
+  if (!o || sessionBad(o)) throw err('unauthenticated', 'LOGIN');
+  const conn = { u: '', role: '' }; authConn(conn, o.u);
+  const room = String(u.searchParams.get('room') || ''), G = vmGate(conn, room, +req.headers['content-length'] || 0), { user, cfg, max, now } = G;
+  const id = crypto.randomBytes(12).toString('hex'), tmp = path.join(MEDIA, id + '.part');
+  let size = 0, head = Buffer.alloc(0);
+  try {
+    await new Promise((ok, no) => {
+      const ws = fs.createWriteStream(tmp); let done = false;
+      const fail = e => { if (done) return; done = true; try { req.unpipe(ws); } catch (x) {} ws.destroy(); no(e); };
+      req.on('data', ch => {
+        size += ch.length; if (head.length < 16) head = Buffer.concat([head, ch.subarray(0, 16 - head.length)]);
+        if (size > max) { fail(err('failed-precondition', 'SIZE', { maxMB: cfg.maxMB })); req.resume(); }
+      });
+      req.on('aborted', () => fail(err('aborted', 'ABORTED')));
+      req.on('error', fail); ws.on('error', fail);
+      ws.on('finish', () => { if (!done) { done = true; ok(); } });
+      req.pipe(ws);
+    });
+    const ext = vmSniff(head);
+    if (!ext || size < 512) throw err('invalid-argument', 'TYPE');
+    const name = id + '.' + ext; fs.renameSync(tmp, path.join(MEDIA, name));
+    const n = k => Math.max(0, Math.min(100000, Math.round(+u.searchParams.get(k) || 0)));
+    commit([{ op: 'set', path: 'media/' + id, data: { u: user, at: now, size, ext, kind: 'video', room, dur: n('dur'), w: n('w'), h: n('h') } }], null, ACT_LOCAL);
+    setTimeout(vmSweep, 50);
+    return json(res, 200, { ok: true, id, p: 'm/' + name, size, ext });
+  } finally { try { fs.unlinkSync(tmp); } catch (e) {} }
+}
+function vmServe(req, res, name) {   // phát video: hỗ trợ tua (Range) — iPhone bắt buộc
+  const f = path.join(MEDIA, name); let st;
+  try { st = fs.statSync(f); } catch (e) { res.writeHead(404, Object.assign({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }, CORS)); return res.end('Video đã hết hạn hoặc đã bị xóa'); }
+  const total = st.size, H = Object.assign({ 'Content-Type': VM_TYPE[name.split('.').pop()] || 'application/octet-stream', 'Accept-Ranges': 'bytes',
+    'Cache-Control': 'public, max-age=31536000, immutable', 'Last-Modified': st.mtime.toUTCString() }, CORS);
+  const m = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range || '').trim());
+  if (m && (m[1] || m[2])) {
+    let a, b;
+    if (m[1]) { a = +m[1]; b = m[2] ? Math.min(+m[2], total - 1) : total - 1; } else { a = Math.max(0, total - +m[2]); b = total - 1; }
+    if (a > b || a >= total) { res.writeHead(416, Object.assign({ 'Content-Range': 'bytes */' + total }, CORS)); return res.end(); }
+    res.writeHead(206, Object.assign(H, { 'Content-Range': 'bytes ' + a + '-' + b + '/' + total, 'Content-Length': b - a + 1 }));
+    if (req.method === 'HEAD') return res.end();
+    return fs.createReadStream(f, { start: a, end: b }).on('error', () => res.destroy()).pipe(res);
+  }
+  res.writeHead(200, Object.assign(H, { 'Content-Length': total }));
+  if (req.method === 'HEAD') return res.end();
+  fs.createReadStream(f).on('error', () => res.destroy()).pipe(res);
+}
+function vmDelete(ids) {
+  ids = ids.filter(id => /^[0-9a-f]{24}$/.test(id)); if (!ids.length) return 0;
+  const W = [];
+  for (const id of ids) {
+    const x = getDoc('media/' + id), ext = x && x.d && VM_TYPE[x.d.ext] ? x.d.ext : null;
+    for (const e of ext ? [ext] : Object.keys(VM_TYPE)) try { fs.unlinkSync(path.join(MEDIA, id + '.' + e)); } catch (er) {}
+    if (x) W.push({ op: 'delete', path: 'media/' + id });
+  }
+  for (let i = 0; i < W.length; i += 400) commit(W.slice(i, i + 400), null, ACT_LOCAL);
+  return W.length;
+}
+function vmList() { const mm = COLS.get('media'), a = []; if (mm) for (const [id, x] of mm) a.push({ id, d: x.d || {} }); return a.sort((p, q) => (+p.d.at || 0) - (+q.d.at || 0)); }
+function vmSweep() {
+  try {
+    const cfg = vmCfg(), now = Date.now(), list = vmList(), del = new Set();
+    let total = 0; list.forEach(x => total += +x.d.size || 0);
+    if (cfg.keepDays > 0) for (const x of list) if (now - (+x.d.at || 0) > cfg.keepDays * 864e5) { del.add(x.id); total -= +x.d.size || 0; }
+    const quota = cfg.quotaGB * 1073741824;
+    for (const x of list) { if (total <= quota) break; if (!del.has(x.id)) { del.add(x.id); total -= +x.d.size || 0; } }
+    if (del.size) { vmDelete([...del]); console.log('[qd] tin nhắn video: đã xóa ' + del.size + ' video cũ'); }
+    for (const f of fs.readdirSync(MEDIA)) {   // tệp tải dở / không còn trong danh sách
+      const fp = path.join(MEDIA, f), m = /^([0-9a-f]{24})\.(part|mp4|webm|mov)$/.exec(f); let st; try { st = fs.statSync(fp); } catch (e) { continue; }
+      if (now - st.mtimeMs < 3600e3) continue;
+      if (!m || m[2] === 'part' || !getDoc('media/' + m[1])) try { fs.unlinkSync(fp); } catch (e) {}
+    }
+  } catch (e) { console.error('[qd] dọn video lỗi', e.message); }
+}
+setInterval(vmSweep, 3600e3); setTimeout(vmSweep, 25000);
+function actMediaCheck(conn, a) { const G = vmGate(conn, String(a.room || ''), Math.max(0, +a.size || 0)); return { ok: true, left: G.left, cfg: G.cfg }; }
+function actMediaDel(conn, a) {   // người gửi thu hồi tin / Ban Quản Trị xóa
+  const id = String(a.id || ''), x = getDoc('media/' + id);
+  if (!x) return { ok: true, gone: true };
+  if (!isStaff(conn) && !(conn.u && x.d && x.d.u === conn.u)) throw err('permission-denied', 'OWNER');
+  vmDelete([id]); return { ok: true };
+}
+function actMediaStats(conn) {
+  if (!isStaff(conn)) throw err('permission-denied', 'STAFF');
+  const list = vmList(), t0 = vDayStart(Date.now()), by = {};
+  let bytes = 0, today = 0;
+  for (const x of list) { bytes += +x.d.size || 0; if ((+x.d.at || 0) >= t0) today++; const k = x.d.u || '?'; by[k] = (by[k] || 0) + 1; }
+  const top = Object.entries(by).sort((p, q) => q[1] - p[1]).slice(0, 5).map(([u, n]) => ({ u, n }));
+  let disk = null; try { const st = fs.statfsSync(DATA); disk = { total: st.blocks * st.bsize, free: st.bavail * st.bsize }; } catch (e) {}
+  return { count: list.length, bytes, today, oldest: list.length ? list[0].d.at : 0, top, disk, cfg: vmCfg() };
+}
+function actMediaClear(conn, a) {
+  if (!isAdmin(conn)) throw err('permission-denied', 'ADMIN');
+  if (a.confirm !== 'XOA') throw err('invalid-argument', 'CONFIRM');
+  return { ok: true, n: vmDelete(vmList().map(x => x.id)) };
+}
+
+/* ==================================================================================================
    CHỐNG DÙNG NHIỀU THIẾT BỊ (Admin > Chống gian lận > Máy chủ chặn khi đăng nhập; mặc định TẮT)
    - 1 tài khoản – 1 thiết bị (rules.oneDevice {on, n, h}): đăng nhập ở thiết bị mới -> thiết bị cũ bị đăng xuất ngay
      (mã xác thực cũ hết hiệu lực). Đang dùng ở máy kia mà vẫn đăng nhập máy mới = 1 lần vi phạm; đủ n lần trong h giờ -> tự khóa (n = 0: không khóa).
@@ -1862,7 +2000,8 @@ function secDevices() {   // cho Admin: thiết bị bị nhiều tài khoản c
 const ACTS = { 'shop.buy': actShopBuy, 'cashout': actCashout, 'gift.turns': actGiftTurns,
   'lixi.pick': actLixi, 'wheel.claim': actWheelClaim, 'wheel.spin': actWheelSpin, 'tranh.open': actTranh, 'lucky.pick': actLuckyPick,
   'task.login': actTaskLogin, 'att.check': actAttend, 'invite.use': actInvite, 'gift.claim': actGiftClaim, 'con.wind': actConWind, 'con.free': actConFree, 'con.throw': actConThrow,
-  'rps.find': actRpsFind, 'rps.ping': actRpsPing, 'rps.move': actRpsMove, 'rps.leave': actRpsLeave, 'acc.unlockReq': actUnlockReq, 'acc.unlock': actUnlock, 'video.share': actVideoShare, 'video.remove': actVideoRemove };
+  'rps.find': actRpsFind, 'rps.ping': actRpsPing, 'rps.move': actRpsMove, 'rps.leave': actRpsLeave, 'acc.unlockReq': actUnlockReq, 'acc.unlock': actUnlock, 'video.share': actVideoShare, 'video.remove': actVideoRemove,
+  'media.check': actMediaCheck, 'media.del': actMediaDel, 'media.stats': actMediaStats, 'media.clear': actMediaClear };
 function act(conn, fn, a) {
   const f = ACTS[fn];
   if (!f) throw err('invalid-argument', 'Lệnh lạ: ' + fn);
@@ -1889,6 +2028,9 @@ const server = http.createServer(async (req, res) => {
       let n = 0; for (const m of COLS.values()) n += m.size;
       return json(res, 200, { ok: true, ver: VER, docs: n, cols: COLS.size, conns: CONNS.size, subs: SUBS.size, uptime: Math.round(process.uptime()) });
     }
+    const vm = /^\/m\/([0-9a-f]{24}\.(?:mp4|webm|mov))$/.exec(u.pathname);
+    if (vm && (req.method === 'GET' || req.method === 'HEAD')) return vmServe(req, res, vm[1]);
+    if (u.pathname === '/api/media/video' && req.method === 'POST') return await vmUpload(req, res, u);
     const c = httpConn(req, u);
     if (u.pathname === '/api/commit' && req.method === 'POST') { const m = JSON.parse(await body(req, 1 << 20) || '{}'); if (!c.local && m.token) { const o = verify(m.token); if (o && !sessionBad(o)) authConn(c, o.u); } const r = commit(m.writes || [], m.pre || null, c); return json(res, 200, { ok: true, v: r.v }); }
     if (u.pathname === '/api/get' && req.method === 'GET') { if (!isAdmin(c)) throw err('permission-denied', 'Chỉ Admin'); const x = getDoc(u.searchParams.get('path')); return json(res, 200, { ok: true, exists: !!x, d: x ? x.d : null, v: x ? x.v : 0 }); }

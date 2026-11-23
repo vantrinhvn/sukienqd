@@ -385,7 +385,7 @@
            1. DỮ LIỆU TRỰC TIẾP (chỉ đọc)
            ===================================================================== */
         var DOCS = ['lixi_config', 'wheel_config', 'tranhthuong_config', 'point_shop_config', 'rps_config', 'con_config', 'attendance',
-            'attendance_reward_items', 'gcall_config', 'task_config', 'invite_config', 'transfer_config', 'security_config', 'account_config', 'registration_config', 'lucky_live', 'maintenance', 'ai_config',
+            'attendance_reward_items', 'gcall_config', 'video_msg', 'task_config', 'invite_config', 'transfer_config', 'security_config', 'account_config', 'registration_config', 'lucky_live', 'maintenance', 'ai_config',
             'point_cashout', 'lucky_reward_config', 'tournament_prize', 'call_guard', 'payout_config', 'video_share'];
         var L = { cfg: {}, got: {}, stock: {}, acc: null, accId: null, accLoaded: false, att: null, lucky: undefined, fb: false, online: false, role: 'user', gifts: null, gotGift: {}, staff: {} };
         var db = null;
@@ -472,6 +472,7 @@
         var C = {
             task: function () { var t = L.cfg.task_config || {}; return { login: num(t.loginReward, 10), att: num(t.attendanceReward, 20) }; },
             gcall: function () { var c = L.cfg.gcall_config || {}, n = function (v, d, lo, hi) { v = parseInt(v, 10); return isNaN(v) ? d : Math.max(lo, Math.min(hi, v)); }; return { on: c.isEnabled !== false, general: c.general !== false, max: n(c.max, 8, 2, 8), vmax: n(c.videoMax, 4, 0, 4), screen: c.screen !== false }; },
+            vmsg: function () { var c = L.cfg.video_msg || {}, n = function (v, d) { v = +v; return isFinite(v) && v > 0 ? v : d; }; return { on: c.on !== false, staff: c.who === 'staff', general: c.general !== false, mb: n(c.maxMB, 30), sec: n(c.maxSec, 120), day: c.perDay == null || c.perDay === '' ? 20 : +c.perDay, keep: c.keepDays == null || c.keepDays === '' ? 30 : +c.keepDays }; },
             devRule: function () { var sc = L.cfg.security_config || {}, r = sc.rules || {}, m = sc.isEnabled !== false, A = r.oneDevice || {}, B = r.oneAccount || {};
                 return { A: m && A.on === true, An: A.n == null ? 3 : +A.n, Ah: A.h || 24, B: m && B.on === true, Bn: B.n == null ? 2 : +B.n, Bd: B.days == null ? 30 : +B.days }; },
             att: function () { var a = L.cfg.attendance || {}; return { start: a.start || '09:00', end: a.end || '10:00', anti: a.antiProxyEnabled !== false && (L.cfg.security_config || {}).isEnabled !== false }; },
@@ -1062,6 +1063,20 @@
                           'Trong cuộc gọi: tắt / bật micro, loa ngoài, thu nhỏ để vừa gọi vừa dùng app (chạm dải xanh trên cùng để mở lại), <b>Rời</b> để thoát. Ai đang nói thì khung người đó sáng viền vàng.'].filter(Boolean));
               },
               acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }, { t: '📞 Gọi 1-1', ask: 'calls' }] },
+
+            { id: 'vmsg', icon: '📹', title: 'Gửi video trong tin nhắn',
+              keys: ['gui video', 'tin nhan video', 'quay video', 'gui clip', 'video chat', 'nhan video', 'xem video tin nhan', 'video qua nang', 'nen video', 'video het han', 'gui phim'],
+              ans: function () {
+                  var v = C.vmsg(), fm = function (s) { s = Math.round(s); return s >= 60 ? Math.floor(s / 60) + ' phút' + (s % 60 ? ' ' + s % 60 + ' giây' : '') : s + ' giây'; };
+                  if (!v.on) return P('Hiện Ban Quản Trị đang <b>tắt</b> gửi video trong tin nhắn. Bạn vẫn gửi ảnh được bằng nút 🖼️.');
+                  return UL([(v.staff ? 'Hiện chỉ <b>Ban Quản Trị</b> được gửi video. ' : '') + 'Mở cuộc trò chuyện → bấm nút <b>🎬</b> cạnh nút gửi ảnh → chọn <b>Quay video</b> (quay ngay, tối đa ' + fm(v.sec) + ') hoặc <b>Chọn video có sẵn</b> trong máy.',
+                          'Xem lại trước khi gửi; quay chưa ưng thì bấm <b>Quay lại</b>. Mỗi video tối đa <b>' + v.mb + ' MB</b> — video nặng hơn sẽ được <b>tự nén lại</b> ngay trên máy (giữ màn hình mở trong lúc nén).',
+                          v.day > 0 ? 'Mỗi người gửi tối đa <b>' + v.day + ' video / ngày</b>.' : 'Không giới hạn số video mỗi ngày.',
+                          v.general ? 'Gửi được cả trong chat riêng và <b>Kênh Chung</b>.' : 'Kênh Chung hiện <b>không</b> cho gửi video — chỉ gửi trong chat riêng.',
+                          'Bấm vào video trong chat để xem toàn màn hình (tua được, có nút tải về). ' + (v.keep > 0 ? 'Video tự xóa sau <b>' + v.keep + ' ngày</b> — khi đó tin nhắn hiện "Video đã hết hạn".' : ''),
+                          'Thu hồi tin nhắn video thì video bị xóa luôn trên máy chủ.']);
+              },
+              acts: [{ t: '💬 Mở Trò chuyện', do: 'chat' }] },
 
             { id: 'videos', icon: '🎬', title: 'Video chia sẻ',
               keys: ['video', 'chia se video', 'youtube', 'tiktok', 'dang video', 'xem video', 'muc video', 'gui video', 'go video'],

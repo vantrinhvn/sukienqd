@@ -112,7 +112,7 @@
         if (!vio) return;
         var vs = root.getElementsByTagName ? root.getElementsByTagName('video') : [];
         for (var j = 0; j < vs.length; j++) {
-            var v = vs[j]; if (v.__qdW || !v.muted && !v.hasAttribute('muted') || (v.closest && v.closest('#qd-call, #qd-gcall'))) continue;   // khung gọi video / gọi nhóm: không tự dừng
+            var v = vs[j]; if (v.__qdW || !v.muted && !v.hasAttribute('muted') || (v.closest && v.closest('#qd-call, #qd-gcall, #qvm-studio'))) continue;   // khung gọi video / gọi nhóm: không tự dừng
             v.__qdW = true; vio.observe(v);
             v.addEventListener('play', function () { var me = this; if (me.__qdVis === false) setTimeout(function () { if (me.__qdVis === false && !me.paused) { me.__qdAuto = true; me.pause(); } }, 0); });
         }

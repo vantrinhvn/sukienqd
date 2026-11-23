@@ -936,7 +936,8 @@
                         let revokeBtn = (isM && !m.revoked) ? `<i class="fa-solid fa-rotate-left btn-heart-action" style="color: var(--color-danger); opacity: 0.7;" onclick="window.Chat.revokeMsg('${m.id}')" title="Thu hồi tin nhắn"></i>` : '';
 
                         let imgHtml = m.imageUrl ? `<img src="${m.imageUrl}" style="max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; border: 1px solid var(--border-strong);" onclick="window.Chat.viewImage(this.src)" title="Nhấn để phóng to">` : '';
-                        let safeText = m.text ? (window.QDMention ? window.QDMention.html(m) : m.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")) : '';
+                        if (!imgHtml && m.video && window.QDVMsg) imgHtml = window.QDVMsg.html(m);   // tin nhắn video: ảnh xem trước + nút phát
+                        let safeText = m.text && !(m.video && window.QDVMsg && window.QDVMsg.isLabel(m.text)) ? (window.QDMention ? window.QDMention.html(m) : m.text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")) : '';
                         const atMe = !isM && !m.revoked && window.QDMention && window.QDMention.forMe(m);
                         let textHtml = safeText ? `<div>${safeText}</div>` : '';
                         
@@ -1021,8 +1022,9 @@
                 document.getElementById('confirm-desc').innerText = "Tin nhắn này sẽ bị xóa với mọi người và không thể hoàn tác. Bạn chắc chắn chứ?";
                 document.getElementById('btn-confirm-action').onclick = () => {
                     window.UI.closeModal('modal-confirm');
-                    db.collection("private_chat").doc(msgId).update({ revoked: true, text: "Tin nhắn đã bị thu hồi", imageUrl: null })
-                      .then(() => Utils.toast("Đã thu hồi tin nhắn", "success"))
+                    const vEl = document.querySelector('[data-mid="' + msgId + '"] .qvm-msg'), vp = vEl && vEl.getAttribute('data-p');   // tin có video: xóa luôn video trên máy chủ
+                    db.collection("private_chat").doc(msgId).update({ revoked: true, text: "Tin nhắn đã bị thu hồi", imageUrl: null, video: null })
+                      .then(() => { Utils.toast("Đã thu hồi tin nhắn", "success"); if (vp && window.QDVMsg) window.QDVMsg.drop(vp); })
                       .catch(e => Utils.toast("Lỗi thu hồi tin nhắn", "error"));
                 };
                 window.UI.openModal('modal-confirm');

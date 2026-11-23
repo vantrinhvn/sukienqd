@@ -3938,3 +3938,64 @@ html[data-theme="tet"] .qcr-row { background: #fffaf0; color: #3a0d0d; border-co
     html[data-theme="tet"] .modal-overlay .form-control:disabled { opacity: .55; }
     html[data-theme="tet"] #inp-search-contact { border-radius: 999px !important; }
     html[data-theme="tet"] #view-chat .fa-search { color: #b45309 !important; z-index: 1; }
+
+/* ===== TIN NHẮN VIDEO (u/45-qd-vmsg.js) ===== */
+#chat-vid-btn { background: transparent !important; border: none !important; font-size: 17px; color: var(--text-muted); box-shadow: none !important; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin: 0 0 2px -6px; padding: 0; }
+#chat-vid-btn[hidden] { display: none !important; }
+#chat-vid-btn:hover { color: var(--text-main); }
+.qvm-menu { position: fixed; z-index: 1000002; min-width: 210px; padding: 6px; border-radius: 14px; background: var(--bg-card, #1c1917); border: 1px solid var(--border-strong, rgba(255,255,255,.12)); box-shadow: 0 14px 40px rgba(0,0,0,.35); display: flex; flex-direction: column; gap: 2px; }
+.qvm-menu[hidden] { display: none !important; }
+.qvm-menu button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--text-main); font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
+.qvm-menu button i { width: 20px; text-align: center; color: var(--brand-primary, #ef4444); font-size: 16px; }
+.qvm-menu button:hover, .qvm-menu button:focus-visible { background: var(--bg-hover, rgba(127,127,127,.12)); outline: none; }
+.qvm-menu button[hidden] { display: none; }
+
+/* ô video trong khung chat */
+.qvm-msg { position: relative; display: block; width: min(210px, 58vw); max-height: 340px; margin-top: 5px; border-radius: 14px; overflow: hidden; background: #0c0a09; cursor: pointer; border: 1px solid var(--border-strong, rgba(255,255,255,.1)); -webkit-tap-highlight-color: transparent; }
+.qvm-msg.wide { width: min(270px, 68vw); }
+.qvm-msg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.qvm-msg .qvm-noimg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 34px; color: rgba(255,255,255,.18); }
+.qvm-msg .qvm-pb { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(0,0,0,.5); border: 2px solid rgba(255,255,255,.85); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; padding-left: 3px; backdrop-filter: blur(2px); transition: transform .15s ease; }
+.qvm-msg:hover .qvm-pb, .qvm-msg:focus-visible .qvm-pb { transform: scale(1.08); }
+.qvm-msg:active .qvm-pb { transform: scale(.94); }
+.qvm-msg .qvm-dur { position: absolute; right: 8px; bottom: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* phòng quay / xem lại / trình phát */
+.modal-overlay.qvm-ov { z-index: 1000001 !important; background: #000 !important; padding: 0 !important; align-items: stretch !important; justify-content: stretch !important; backdrop-filter: none !important; }
+.qvm-st, .qvm-pl { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; color: #fff; }
+.qvm-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.qvm-stage video, .qvm-pl video { width: 100%; height: 100%; object-fit: contain; background: #000; display: block; }
+.qvm-stage video.mirror { transform: scaleX(-1); }
+.qvm-st #qvm-cam, .qvm-st #qvm-rev, .qvm-st .qvm-work, .qvm-st .qvm-acts { display: none; }
+#qvm-studio[data-m="cam"] .qvm-st #qvm-cam, #qvm-studio[data-m="rev"] .qvm-st #qvm-rev { display: block; }
+#qvm-studio[data-m="work"] .qvm-st .qvm-work { display: flex; }
+#qvm-studio[data-m="cam"] #qvm-a-cam, #qvm-studio[data-m="rev"] #qvm-a-rev, #qvm-studio[data-m="work"] #qvm-a-work { display: flex; }
+.qvm-top { position: absolute; left: 0; right: 0; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: max(12px, env(safe-area-inset-top)) 14px 24px; background: linear-gradient(rgba(0,0,0,.55), transparent); pointer-events: none; }
+.qvm-top > * { pointer-events: auto; }
+.qvm-ic { width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; }
+.qvm-ic:hover, .qvm-ic:focus-visible { background: rgba(255,255,255,.26); outline: none; }
+.qvm-ic[hidden] { visibility: hidden; display: flex; }
+.qvm-time { font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; letter-spacing: .02em; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.qvm-bot { position: relative; z-index: 2; padding: 12px 16px max(18px, env(safe-area-inset-bottom)); background: #000; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.qvm-info { margin: 0; min-height: 20px; max-width: 520px; text-align: center; font-size: 13.5px; line-height: 1.5; color: rgba(255,255,255,.82); }
+.qvm-info b { color: #fff; }
+.qvm-info .qvm-bad { color: #fca5a5; }
+.qvm-acts { align-items: center; justify-content: center; gap: 12px; width: 100%; max-width: 420px; }
+.qvm-acts .btn { flex: 1; justify-content: center; padding: 12px 16px; border-radius: 999px; }
+.qvm-acts .btn-outline { color: #fff !important; border-color: rgba(255,255,255,.35) !important; background: transparent !important; }
+.qvm-acts .btn:disabled { opacity: .45; cursor: not-allowed; }
+.qvm-shot { width: 74px; height: 74px; border-radius: 50%; border: 4px solid #fff; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.qvm-shot span { width: 56px; height: 56px; border-radius: 50%; background: #ef4444; transition: all .2s ease; }
+.qvm-shot.on span { width: 28px; height: 28px; border-radius: 7px; }
+.qvm-shot:focus-visible { outline: 3px solid #fbbf24; outline-offset: 3px; }
+.qvm-work { position: absolute; inset: 0; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; }
+.qvm-work > i { font-size: 38px; color: rgba(255,255,255,.5); }
+.qvm-work b { font-size: 17px; }
+.qvm-work small { color: rgba(255,255,255,.65); font-size: 13px; }
+.qvm-bar { width: min(320px, 80vw); height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); overflow: hidden; }
+.qvm-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #f59e0b, #ef4444); transition: width .25s ease; }
+.qvm-pl video[hidden] { display: none; }
+.qvm-gone { margin: auto; padding: 24px; text-align: center; color: rgba(255,255,255,.8); font-size: 15px; }
+.qvm-gone[hidden] { display: none; }
+.qvm-gone i { display: block; font-size: 34px; margin-bottom: 10px; color: rgba(255,255,255,.45); }
+@media (prefers-reduced-motion: reduce) { .qvm-shot span, .qvm-bar i, .qvm-msg .qvm-pb { transition: none; } }

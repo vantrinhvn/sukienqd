@@ -42,7 +42,7 @@
         /* ---------- Video tự chạy: Tiết kiệm / mạng chậm thì không tự phát ---------- */
         function videos() {
             Array.prototype.forEach.call(d.querySelectorAll('video[autoplay], video[muted], video.hero-video'), function (v) {
-                if (v.__qdIntro || (v.closest && v.closest('#qd-call, #qd-gcall'))) return;   // video giới thiệu (Admin bật) + cuộc gọi luôn được phát
+                if (v.__qdIntro || (v.closest && v.closest('#qd-call, #qd-gcall, #qvm-studio'))) return;   // video giới thiệu (Admin bật) + cuộc gọi + quay video tin nhắn luôn được phát
                 if (level === 'low') { if (!v.paused) { v.__qgPaused = true; try { v.pause(); } catch (e) {} } v.preload = 'none'; }
                 else if (v.__qgPaused) { v.__qgPaused = false; try { var p = v.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
             });
@@ -133,7 +133,7 @@
         setTimeout(monitor, 4000);
         var wasOpen = false;   // mở Cài đặt -> đo FPS nhanh hơn để hiện số trực tiếp (chỉ kiểm tra khi trang có khung chọn)
         setInterval(function () { if (d.hidden || !d.querySelector('[data-qd-gfx-panel]')) return; var o = panelOpen(); if (o && !wasOpen) { draw(); monitor(); } wasOpen = o; }, 1500);
-        d.addEventListener('play', function (e) { var v = e.target; if (level === 'low' && v && v.tagName === 'VIDEO' && !v.__qdIntro && !(v.closest && v.closest('#qd-call, #qd-gcall')) && (v.muted || v.classList.contains('hero-video'))) { v.__qgPaused = true; try { v.pause(); } catch (er) {} } }, true);
+        d.addEventListener('play', function (e) { var v = e.target; if (level === 'low' && v && v.tagName === 'VIDEO' && !v.__qdIntro && !(v.closest && v.closest('#qd-call, #qd-gcall, #qvm-studio')) && (v.muted || v.classList.contains('hero-video'))) { v.__qgPaused = true; try { v.pause(); } catch (er) {} } }, true);
 
         return { set: set, level: function () { return level; }, choice: function () { return choice; }, on: function (f) { subs.push(f); }, popover: popover, draw: draw };
     })();
