@@ -2263,3 +2263,10 @@ tbody tr.qd-more .qd-more-btn { padding: 7px 14px; font-size: 13px; }
 .iv-pv a:first-child img { width: 96px; aspect-ratio: 9 / 16; object-fit: cover; }
 .iv-pv a:last-child img { width: 192px; aspect-ratio: 16 / 9; object-fit: cover; }
 .iv-pv a:hover img, .iv-pv a:focus-visible img { outline: 2px solid #f59e0b; outline-offset: 2px; }
+
+/* ===== Cài đặt Hệ thống: tài khoản Quản lý (manager) chỉ thấy phần cơ bản (Hiển thị + Mức đồ họa) ===== */
+.mgr-only { display: none; }
+html.role-manager .mgr-only { display: flex; }
+html.role-manager #modal-settings .adm-only { display: none !important; }
+.mgr-note { gap: 10px; align-items: flex-start; margin: 0 0 8px; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; color: var(--text-muted); background: var(--bg-elevated); border: 1px dashed var(--border-strong); }
+.mgr-note i { color: var(--brand-primary); margin-top: 3px; }

@@ -198,6 +198,7 @@
                             State.currentUser = u;
                             State.currentUserRole = userRole;
                             State.currentUserPerms = userData.permissions || ['dashboard', 'attendance', 'registration'];
+                            document.documentElement.classList.toggle('role-manager', userRole === 'manager');
                             localStorage.setItem('qd_current_username', u); // Đồng bộ với user.html
                             // Phiên Ban Quản Trị (riêng) + phiên thành viên cho các trang mở từ Admin; hết phiên / bị đá -> thoát ở mọi trang
                             if (window.QDSession) QDSession.start({ u: u, id: snap.docs[0].id, role: userRole, kickAt: userData.kickAt });
@@ -1244,6 +1245,7 @@ const QVis = {
                             
                             State.currentUserRole = myRole;
                             State.currentUserPerms = myPerms;
+                            document.documentElement.classList.toggle('role-manager', myRole === 'manager');   // Quản lý: Cài đặt Hệ thống chỉ còn phần cơ bản
 
                             // 1. NẾU BỊ GIÁNG CẤP XUỐNG USER HOẶC BỊ KHÓA
                             if (myRole === 'user' || myData.isBlocked) {
