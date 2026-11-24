@@ -2586,7 +2586,7 @@ html.qd-lite .qd-fx { display: none !important; }
                 build(); html.classList.add('qd-intro-on'); music(true); box.classList.toggle('land', land);
                 if (cur !== src) {
                     var same = cur && cur.replace('-ngang', '') === src.replace('-ngang', ''), t0 = same ? vid.currentTime : 0, mu = vid.muted;
-                    cur = src; vid.poster = 'media/gioi-thieu-poster' + (land ? '-ngang' : '') + '.jpg'; vid.src = src;
+                    cur = src; vid.poster = 'media/gioi-thieu-poster' + (land ? '-ngang' : '') + '.jpg?v=2'; vid.src = src;
                     if (same) {   // xoay màn hình / đổi cỡ cửa sổ: phát tiếp đúng chỗ
                         vid.addEventListener('loadedmetadata', function f() { vid.removeEventListener('loadedmetadata', f); try { vid.currentTime = t0; } catch (e) {} }, { once: true });
                         vid.muted = mu; vid.play().catch(function () { vid.muted = true; vid.play().catch(function () {}); ui(); });
