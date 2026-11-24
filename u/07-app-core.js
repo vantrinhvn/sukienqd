@@ -210,13 +210,13 @@
                     const taskP = db.collection("settings").doc("task_config").get(); taskP.catch(() => {});
                     const introP = db.collection("settings").doc("intro_video").get().catch(() => null);
                     const snap = await db.collection("accounts").where("user", "==", u).where("pass", "==", p).get();
-                    // Đang chiếu VIDEO GIỚI THIỆU (Admin bật) -> không cho đăng nhập mới, kể cả tự đăng nhập / ghi nhớ mật khẩu / lúc trang chưa kịp hiện video.
+                    // Đang hiện POSTER GIỚI THIỆU (Admin bật) -> không cho đăng nhập mới, kể cả tự đăng nhập / ghi nhớ mật khẩu / lúc trang chưa kịp hiện poster.
                     // Chỉ Admin (vai trò admin) hoặc tab đã nhập mã "Admin vào test" mới vào được.
                     const iv = await introP; let bypass = false; try { bypass = sessionStorage.getItem('qd_intro_bypass') === '1'; } catch (e) {}
                     if (iv && iv.exists && iv.data().isEnabled === true && !bypass && !(!snap.empty && snap.docs[0].data().role === 'admin')) {
-                        Utils.toast("🎬 Hệ thống đang chiếu video giới thiệu — tạm dừng đăng nhập. Vui lòng quay lại sau!", "warning");
+                        Utils.toast("🖼️ Hệ thống chưa mở cửa — đang hiện poster giới thiệu, tạm dừng đăng nhập. Vui lòng quay lại sau!", "warning");
                         b.innerHTML = `Đăng nhập <i class="fa-solid fa-arrow-right ml-2"></i>`; b.disabled = false;
-                        try { window.QDIntro && window.QDIntro.on(iv.data().video); } catch (e) {}
+                        try { window.QDIntro && window.QDIntro.on(); } catch (e) {}
                         return;
                     }
                     if(snap.empty) { 

@@ -80,7 +80,7 @@
 
     <!-- Giao diện + mã của trang Admin nằm trong thư mục a/: admin.css và các file NN-ten.js (NN = thứ tự chạy);
          vài file dùng chung với trang thành viên nằm trong u/. Sửa xong chạy: python3 .github/scripts/stamp.py -->
-    <link rel="stylesheet" href="a/admin.css?v=18c4f3e2">
+    <link rel="stylesheet" href="a/admin.css?v=dc031c84">
 
     <!-- QD ADMIN LAYOUT 2.1: thanh bên (máy tính) + thanh dưới & menu (điện thoại) -->
 
@@ -384,11 +384,11 @@
                 <div class="flex justify-between items-center mb-3" style="gap: 12px;">
                     <div class="flex items-center gap-3" style="flex: 1; min-width: 0;">
                         <div class="flex-center rounded-full" style="width: 36px; height: 36px; background: rgba(245,158,11,0.2); color: #f59e0b; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <i class="fa-solid fa-film text-lg"></i>
+                            <i class="fa-solid fa-image text-lg"></i>
                         </div>
                         <div style="min-width: 0;">
-                            <label class="form-label m-0" style="font-size: 15px; color: #f59e0b;">Quản lý video giới thiệu</label>
-                            <span class="text-xs text-muted">Bật: chỉ phát video, ẩn Đăng nhập / Đăng ký</span>
+                            <label class="form-label m-0" style="font-size: 15px; color: #f59e0b;">Quản lý poster giới thiệu</label>
+                            <span class="text-xs text-muted">Bật: chỉ hiện poster, ẩn Đăng nhập / Đăng ký</span>
                         </div>
                     </div>
                     <label class="switch" style="flex-shrink: 0;">
@@ -396,15 +396,11 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <p class="text-xs text-muted" style="margin: 0 0 14px; line-height: 1.5;">Áp dụng cho trang chủ và màn hình đăng nhập (cả trong app). Ai đã đăng nhập vẫn dùng bình thường. Điện thoại xem bản dọc, máy tính tự xem bản ngang.</p>
-                <div class="form-group mb-3">
-                    <label class="form-label text-xs">Video phát trên trang chủ</label>
-                    <select id="cfg-iv-video" class="form-control" onchange="QDIntroAdmin.pick(this.value)">
-                        <option value="phonk">Tết Phonk (nhạc phonk sôi động)</option>
-                        <option value="hungtrang">Trống Hội Xuân (nhạc hùng tráng)</option>
-                    </select>
+                <p class="text-xs text-muted" style="margin: 0 0 14px; line-height: 1.5;">Áp dụng cho trang chủ và màn hình đăng nhập (cả trong app). Ai đã đăng nhập vẫn dùng bình thường. Điện thoại xem poster dọc, máy tính tự xem poster ngang. Admin vào test: chạm 5 lần vào góc trên bên trái poster rồi nhập mã quản trị.</p>
+                <div class="iv-pv">
+                    <a href="media/gioi-thieu-poster.jpg?v=2" target="_blank" rel="noopener" title="Xem poster dọc"><img src="media/gioi-thieu-poster.jpg?v=2" alt="Poster dọc (điện thoại)" loading="lazy"><span>Điện thoại</span></a>
+                    <a href="media/gioi-thieu-poster-ngang.jpg?v=2" target="_blank" rel="noopener" title="Xem poster ngang"><img src="media/gioi-thieu-poster-ngang.jpg?v=2" alt="Poster ngang (máy tính)" loading="lazy"><span>Máy tính</span></a>
                 </div>
-                <video id="cfg-iv-preview" controls playsinline preload="none" poster="media/gioi-thieu-poster.jpg?v=2" style="display: block; width: 100%; max-width: 220px; aspect-ratio: 9 / 16; margin: 0 auto 10px; border-radius: 12px; background: #000;"></video>
                 <div id="cfg-iv-status" class="text-xs text-muted" style="text-align: center;"></div>
             </div>
 
@@ -3757,8 +3753,8 @@
          data-qd-ver="short" -> 1 dòng nhỏ · data-qd-ver="full" -> bảng chi tiết (mã phiên bản, lúc cập nhật, nội dung, app) -->
     <script id="qd-ver-js" src="u/36-qd-ver.js?v=d857534b"></script>
 
-    <!-- ===== QUẢN LÝ VIDEO GIỚI THIỆU (settings/intro_video) — trang chủ nghe tài liệu này để bật / tắt video ===== -->
-    <script src="a/27-intro-admin.js?v=4afe5b72"></script>
+    <!-- ===== QUẢN LÝ POSTER GIỚI THIỆU (settings/intro_video) — trang chủ nghe tài liệu này để bật / tắt poster ===== -->
+    <script src="a/27-intro-admin.js?v=42f626af"></script>
 
     <!-- ===== NHẠC NỀN REMIX (settings/music_config.remix) — các trang nghe tài liệu này để đổi 8 bài sang bản remix ===== -->
     <script src="a/28-remix-admin.js?v=22db9d37"></script>
