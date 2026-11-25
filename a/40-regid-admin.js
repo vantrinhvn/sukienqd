@@ -44,13 +44,15 @@
             if (!a) return '';
             if (!a.ok) return '🤖 Chưa tra được hồ sơ — duyệt tay';
             var who = a.nick ? '“' + a.nick + '”' : 'Nhân vật';
+            if (a.split) return '⚠️ Các dịch vụ báo khác nhau: ' + (a.say || []).map(function (o) { return o.h.split('.')[0] + (o.g === cfgOf(CFG).guildId ? ' đúng' : ' khác') + ' quân đoàn'; }).join(', ') + ' — kiểm tra trong game rồi duyệt tay';
+            if (a.suggest && a.inGuild && a.nameOk !== false && !a.dup) return '🤖 Gợi ý: ' + who + ' đang ở đúng quân đoàn' + (a.guildName ? ' ' + a.guildName : '') + ' — kiểm tra rồi bấm Phê duyệt';
             if (a.inGuild && a.nameOk === false) return '⚠️ Trong game ID này tên ' + who + ', khác tên khai — kiểm tra rồi duyệt tay';
             if (a.inGuild) return '🤖 ' + who + ' đang ở đúng quân đoàn' + (a.guildName ? ' ' + a.guildName : '') + (a.dup ? ' · ⚠️ ID trùng đơn khác, duyệt tay' : '');
             return '🤖 ' + who + (a.guildId ? ' đang ở quân đoàn khác: ' + (a.guildName || a.guildId) : ' chưa vào quân đoàn nào');
         }
         R.autoLine = function (x) {
             var a = x && x.autoCheck; if (!a) return '';
-            return '<small class="rga-auto-line' + (!a.ok ? ' err' : a.inGuild && a.nameOk !== false ? ' ok' : ' no') + '" title="' + E(a.ok ? '' : (a.err || '')) + '">' + E(autoText(a)) + (a.ok && a.src ? '<i>Tra lúc ' + E(when(a.at)) + ' qua ' + E(a.src) + '</i>' : '') + '</small>';
+            return '<small class="rga-auto-line' + (!a.ok ? ' err' : a.inGuild && a.nameOk !== false && !a.split ? ' ok' : ' no') + '" title="' + E(a.ok ? '' : (a.err || '')) + '">' + E(autoText(a)) + (a.ok && a.src ? '<i>Tra lúc ' + E(when(a.at)) + ' · ' + (a.n || 1) + ' dịch vụ: ' + E(a.src) + '</i>' : '') + '</small>';
         };
         function errMsg(e) {
             var m = String(e && (e.message || e.code) || e || '');
@@ -135,26 +137,27 @@
             'https://freefireapis.lat/GetPlayer?uid={uid}&region={region}', 'https://gst-info.vercel.app/player-info?region={region}&uid={uid}'];
         var KNOWN = DEF_URLS.concat(['https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}', 'https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}', 'https://freefireinfo-zy9l.onrender.com/api/v1/player-profile?uid={uid}&server={region}']);   // mặc định cũ: tự thay bằng danh sách mới
         var CFG = null, STATE = null, dirty = false, started = false;
-        function cfgOf(c) { c = c || {}; return { on: c.on !== false, guildId: String(c.guildId == null ? '1011610530' : c.guildId), region: c.region || 'VN', everyMin: +c.everyMin || 30, urls: Array.isArray(c.urls) && c.urls.length && !c.urls.every(function (u) { return KNOWN.indexOf(u) >= 0; }) ? c.urls : DEF_URLS }; }
+        function cfgOf(c) { c = c || {}; return { mode: c.mode === 'suggest' ? 'suggest' : 'auto', on: c.on !== false, guildId: String(c.guildId == null ? '1011610530' : c.guildId), region: c.region || 'VN', everyMin: +c.everyMin || 30, urls: Array.isArray(c.urls) && c.urls.length && !c.urls.every(function (u) { return KNOWN.indexOf(u) >= 0; }) ? c.urls : DEF_URLS }; }
         function fill() {
             var c = cfgOf(CFG);
             $('rga-on').checked = c.on; $('rga-on-txt').textContent = c.on ? 'Đang bật' : 'Đang tắt';
             $('rga-auto').classList.toggle('off', !c.on);
-            if (!dirty) { $('rga-guild').value = c.guildId; $('rga-region').value = c.region; $('rga-every').value = c.everyMin; $('rga-urls').value = c.urls.join('\n'); }
+            if (!dirty) { $('rga-mode').value = c.mode; $('rga-guild').value = c.guildId; $('rga-region').value = c.region; $('rga-every').value = c.everyMin; $('rga-urls').value = c.urls.join('\n'); }
             paintState();
         }
         function paintState() {
             var c = cfgOf(CFG), el = $('rga-state'), t = STATE;
             if (!c.on) { el.className = 'rga-state off'; el.textContent = 'Đang tắt — đơn mới chờ Quản lý duyệt tay.'; return; }
-            if (!t || !t.lastRun) { el.className = 'rga-state'; el.textContent = 'Chưa quét lần nào. Máy chủ tự tra đơn mới và quét lại mỗi ' + c.everyMin + ' phút.'; return; }
+            var md = c.mode === 'suggest' ? 'Chế độ chỉ gợi ý. ' : '';
+            if (!t || !t.lastRun) { el.className = 'rga-state'; el.textContent = md + 'Chưa quét lần nào. Máy chủ tự tra đơn mới và quét lại mỗi ' + c.everyMin + ' phút.'; return; }
             el.className = 'rga-state' + (t.errs && !t.ok ? ' err' : '');
-            el.textContent = 'Quét lúc ' + when(t.lastRun) + ': tra ' + (t.n || 0) + ' đơn · tự xác thực ' + (t.approved || 0) + ' · chưa vào ' + (t.notIn || 0) + (t.errs ? ' · không tra được ' + t.errs : '') + (t.left ? ' · còn ' + t.left + ' đơn lần sau' : '');
+            el.textContent = md + 'Quét lúc ' + when(t.lastRun) + ': tra ' + (t.n || 0) + ' đơn · tự xác thực ' + (t.approved || 0) + ' · chưa vào ' + (t.notIn || 0) + (t.errs ? ' · không tra được ' + t.errs : '') + (t.left ? ' · còn ' + t.left + ' đơn lần sau' : '');
             el.title = t.err || '';
         }
         function form() {
             var g = String($('rga-guild').value || '').replace(/\D/g, ''), ev = Math.min(1440, Math.max(5, Math.round(+$('rga-every').value || 30)));
             var urls = String($('rga-urls').value || '').split(/\n+/).map(function (u) { return u.trim(); }).filter(Boolean);
-            return { guildId: g, region: $('rga-region').value || 'VN', everyMin: ev, urls: urls };
+            return { mode: $('rga-mode').value === 'suggest' ? 'suggest' : 'auto', guildId: g, region: $('rga-region').value || 'VN', everyMin: ev, urls: urls };
         }
         function save(extra) {
             var f = Object.assign(form(), extra || {});
@@ -167,9 +170,10 @@
             return fs().collection('regid_auto').doc('cfg').set(f, { merge: true }).then(function () { dirty = false; });
         }
         function verdict(r) {
-            if (!r.ok) return '<div class="rga-v err">❌ Không tra được ID này. Kiểm tra lại ID / máy chủ, hoặc dịch vụ tra cứu đang lỗi.</div>';
-            var b = r.best, nm = E(b.nick || '—');
-            if (r.inGuild) return '<div class="rga-v ok">✅ <b>' + nm + '</b> đang ở đúng Quân Đoàn ' + E(b.guildName ? b.guildName + ' · ' : '') + E(r.guildId) + '. Đơn có tên khai khớp tên này sẽ được tự xác thực.</div>';
+            if (!r.ok) return '<div class="rga-v err">❌ Không dịch vụ nào tra được ID này. Kiểm tra lại ID / máy chủ, hoặc các dịch vụ tra cứu đang lỗi.</div>';
+            var b = r.best, nm = E(b.nick || '—'), n = r.n || 1;
+            if (r.split) return '<div class="rga-v no">⚠️ Các dịch vụ báo khác nhau về quân đoàn của <b>' + nm + '</b> (xem từng dịch vụ bên dưới). Hệ thống sẽ KHÔNG tự xác thực, chờ Quản lý duyệt tay.</div>';
+            if (r.inGuild) return '<div class="rga-v ok">✅ Cả ' + n + ' dịch vụ tra được đều báo <b>' + nm + '</b> đang ở Quân Đoàn ' + E(b.guildName ? b.guildName + ' · ' : '') + E(r.guildId) + '. Đơn có tên khai khớp tên này sẽ được ' + ($('rga-mode').value === 'suggest' ? 'gợi ý để Quản lý duyệt' : 'tự xác thực') + '.</div>';
             if (b.guildId) return '<div class="rga-v no">⚠️ <b>' + nm + '</b> đang ở quân đoàn khác: ' + E(b.guildName || '') + ' (ID ' + E(b.guildId) + '), không phải ' + E(r.guildId) + '.</div>';
             return '<div class="rga-v no">⚠️ <b>' + nm + '</b> chưa vào quân đoàn nào (hoặc dịch vụ không trả về quân đoàn).</div>';
         }
@@ -180,7 +184,7 @@
             b.disabled = true;
             QDdb.admin('regTest', { uid: uid, guildId: f.guildId, region: f.region, urls: f.urls.length ? f.urls : null }).then(function (r) {
                 out.innerHTML = verdict(r) + '<ul class="rga-tries">' + (r.tries || []).map(function (t) {
-                    return '<li class="' + (t.ok ? 'ok' : 'err') + '"><b>' + E(t.host) + '</b> ' + (t.ok ? '✓ tên “' + E(t.nick) + '”' + (t.guildId ? ', quân đoàn ' + E(t.guildName || '') + ' (' + E(t.guildId) + ')' : ', không có quân đoàn') : '✗ ' + E(t.err || 'lỗi')) + (t.ms != null ? ' <small>' + t.ms + ' ms</small>' : '')
+                    return '<li class="' + (t.ok ? 'ok' : 'err') + '"><b>' + E(t.host) + '</b> ' + (t.ok ? '✓ tên “' + E(t.nick) + '”' + (t.guildId ? ', quân đoàn ' + E(t.guildName || '') + ' (' + E(t.guildId) + ')' + (t.guildId === r.guildId ? ' ✅' : ' ⚠️ khác') : ', không có quân đoàn') : '✗ ' + E(t.err || 'lỗi')) + (t.ms != null ? ' <small>' + t.ms + ' ms' + (t.cache ? ' · bộ nhớ đệm: ' + E(t.cache) : '') + '</small>' : '')
                         + (t.raw ? '<details><summary>Dữ liệu trả về</summary><pre>' + E(t.raw) + '</pre></details>' : '') + '</li>';
                 }).join('') + '</ul>';
             }, function (e) { out.innerHTML = '<div class="rga-v err">❌ ' + E(errMsg(e)) + '</div>'; }).then(function () { b.disabled = false; });
@@ -189,7 +193,7 @@
             if (started || !$('rga-auto') || !window.firebase || !firebase.apps || !firebase.apps.length) return; started = true;
             fs().collection('regid_auto').doc('cfg').onSnapshot(function (x) { CFG = x.exists ? x.data() : null; fill(); }, function () {});
             fs().collection('regid_auto').doc('state').onSnapshot(function (x) { STATE = x.exists ? x.data() : null; paintState(); }, function () {});
-            ['rga-guild', 'rga-region', 'rga-every', 'rga-urls'].forEach(function (k) { $(k).addEventListener('input', function () { dirty = true; }); });
+            ['rga-guild', 'rga-region', 'rga-every', 'rga-urls', 'rga-mode'].forEach(function (k) { $(k).addEventListener('input', function () { dirty = true; }); $(k).addEventListener('change', function () { dirty = true; }); });
             $('rga-on').addEventListener('change', function () {
                 var on = this.checked; $('rga-on-txt').textContent = on ? 'Đang bật' : 'Đang tắt';
                 save({ on: on }).then(function () { toast(on ? 'Đã bật tự kiểm tra quân đoàn' : 'Đã tắt tự kiểm tra — đơn mới chờ duyệt tay', on ? 'success' : 'info'); }, function (e) { $('rga-on').checked = !on; fill(); toast(errMsg(e), 'error'); });

@@ -80,7 +80,7 @@
 
     <!-- Giao diện + mã của trang Admin nằm trong thư mục a/: admin.css và các file NN-ten.js (NN = thứ tự chạy);
          vài file dùng chung với trang thành viên nằm trong u/. Sửa xong chạy: python3 .github/scripts/stamp.py -->
-    <link rel="stylesheet" href="a/admin.css?v=020545e7">
+    <link rel="stylesheet" href="a/admin.css?v=0f7df2ea">
 
     <!-- QD ADMIN LAYOUT 2.1: thanh bên (máy tính) + thanh dưới & menu (điện thoại) -->
 
@@ -1202,6 +1202,9 @@
                             <label class="form-label">Máy chủ<select id="rga-region" class="form-control"><option value="VN">Việt Nam (VN)</option><option value="SG">Singapore (SG)</option><option value="TH">Thái Lan (TH)</option><option value="ID">Indonesia (ID)</option><option value="IND">Ấn Độ (IND)</option><option value="BR">Brazil (BR)</option></select></label>
                             <label class="form-label">Tra lại mỗi (phút)<input id="rga-every" type="number" min="5" max="1440" step="5" class="form-control"></label>
                         </div>
+                        <label class="form-label rga-mode">Khi mọi dịch vụ tra đều thấy đúng quân đoàn và đúng tên
+                            <select id="rga-mode" class="form-control"><option value="auto">Tự xác thực luôn</option><option value="suggest">Chỉ gợi ý — Quản lý bấm Phê duyệt</option></select>
+                        </label>
                         <details class="rga-adv">
                             <summary>Dịch vụ tra cứu (nâng cao)</summary>
                             <p class="text-xs text-muted">Mỗi dòng 1 địa chỉ, có <code>{uid}</code> và <code>{region}</code> (hoặc <code>{region_lc}</code> = chữ thường); thử lần lượt từ trên xuống, dịch vụ đầu tiên trả về hồ sơ sẽ được dùng. Đây là các dịch vụ không chính thức, không thuộc Garena, có thể ngừng chạy bất cứ lúc nào. Để trống = dùng mặc định.</p>
@@ -3856,6 +3859,6 @@
     <script id="qd-roles-js" src="a/37-qd-roles.js?v=7c8234d0"></script>
     <script id="qvps-js" src="a/38-qvps.js?v=4db2f61b"></script>
     <script id="vma-js" src="a/39-vmsg-admin.js?v=638a5412"></script>
-    <script id="rga-js" src="a/40-regid-admin.js?v=fde599e3"></script>
+    <script id="rga-js" src="a/40-regid-admin.js?v=552b38bc"></script>
 </body>
 </html>
