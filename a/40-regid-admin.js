@@ -130,9 +130,10 @@
         };
 
         /* ---------- Thẻ "Hệ thống tự kiểm tra quân đoàn" ---------- */
-        var DEF_URLS = ['https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}', 'https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}'];
+        var DEF_URLS = ['https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}', 'https://gst-info.vercel.app/player-info?region={region}&uid={uid}', 'https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}'];
+        var OLD_URLS = 'https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}|https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}';
         var CFG = null, STATE = null, dirty = false, started = false;
-        function cfgOf(c) { c = c || {}; return { on: c.on !== false, guildId: String(c.guildId == null ? '1011610530' : c.guildId), region: c.region || 'VN', everyMin: +c.everyMin || 30, urls: Array.isArray(c.urls) && c.urls.length ? c.urls : DEF_URLS }; }
+        function cfgOf(c) { c = c || {}; return { on: c.on !== false, guildId: String(c.guildId == null ? '1011610530' : c.guildId), region: c.region || 'VN', everyMin: +c.everyMin || 30, urls: Array.isArray(c.urls) && c.urls.length && c.urls.join('|') !== OLD_URLS ? c.urls : DEF_URLS }; }
         function fill() {
             var c = cfgOf(CFG);
             $('rga-on').checked = c.on; $('rga-on-txt').textContent = c.on ? 'Đang bật' : 'Đang tắt';

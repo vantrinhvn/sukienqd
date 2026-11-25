@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-22';
+const VER = 'qd-vps-23';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -2074,14 +2074,16 @@ function secDevices() {   // cho Admin: thiết bị bị nhiều tài khoản c
      - có hồ sơ nhưng chưa vào / ở quân đoàn khác -> "Chưa vào quân đoàn" + báo; tự tra lại mỗi everyMin phút
      - không tra được (dịch vụ lỗi / không thấy hồ sơ) -> giữ nguyên, chờ Quản lý duyệt tay
    Cấu hình: regid_auto/cfg { on, guildId, region, everyMin, urls[] (mẫu có {uid} {region}) } · kết quả quét: regid_auto/state */
-const FF_URLS = ['https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}', 'https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}'];
+const FF_URLS = ['https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}', 'https://gst-info.vercel.app/player-info?region={region}&uid={uid}', 'https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}'];
+const FF_URLS_OLD = 'https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}|https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}';   // danh sách mặc định cũ (đã lưu) -> dùng danh sách mới
 const FF_DEF = { on: true, guildId: '1011610530', region: 'VN', everyMin: 30 };
 const FF_TIMEOUT = +process.env.QD_FF_TIMEOUT || 15000, FF_GAP = process.env.QD_FF_GAP != null ? +process.env.QD_FF_GAP : 2500, FF_MAX = 40;
 function ffCfg(o) {
   const d = Object.assign({}, FF_DEF, ((getDoc('regid_auto/cfg') || {}).d) || {}, o || {});
   const urls = (Array.isArray(d.urls) ? d.urls : []).map(u => String(u || '').trim()).filter(u => /^https?:\/\/\S+$/.test(u) && u.includes('{uid}')).slice(0, 5);
+  const list = urls.length && urls.join('|') !== FF_URLS_OLD ? urls : FF_URLS;
   return { on: d.on !== false, guildId: String(d.guildId || '').replace(/\D/g, '').slice(0, 20), region: (String(d.region || 'VN').toUpperCase().replace(/[^A-Z]/g, '') || 'VN').slice(0, 4),
-    everyMin: Math.min(1440, Math.max(5, +d.everyMin || 30)), urls: urls.length ? urls : FF_URLS };
+    everyMin: Math.min(1440, Math.max(5, +d.everyMin || 30)), urls: list };
 }
 function ffParse(j) {   // đọc hồ sơ người chơi từ JSON bất kỳ dịch vụ nào: basicInfo/AccountInfo... + clanBasicInfo/GuildInfo/guild...
   const o = { nick: '', acc: '', region: '', gid: '', gname: '' };
@@ -2106,6 +2108,16 @@ function ffParse(j) {   // đọc hồ sơ người chơi từ JSON bất kỳ d
   o.found = !!o.nick;   // có tên nhân vật mới tính là hồ sơ (dịch vụ báo lỗi thường chỉ lặp lại uid)
   return o;
 }
+function ffWhy(st, txt, j) {   // lỗi dịch vụ: nói rõ "dịch vụ đã ngừng" hay "không thấy ID" (đọc nội dung trả về)
+  const msg = j && typeof j === 'object' ? String(j.message || j.error || j.msg || j.detail || j.status || '').slice(0, 120) : '';
+  const t = String(txt || '');
+  if (/DEPLOYMENT_NOT_FOUND|deployment could not be found|DEPLOYMENT_DISABLED|DEPLOYMENT_PAUSED/i.test(t)) return 'Dịch vụ đã bị gỡ / tạm dừng (' + st + ')';
+  if (st === 404 && !j && /<html|not found/i.test(t)) return 'Dịch vụ không còn chạy (404)';
+  if (st === 404 && msg) return 'Không thấy ID (404: ' + msg + ')';
+  if (st === 429) return 'Dịch vụ đang giới hạn lượt tra (429), thử lại sau';
+  if (st >= 500) return 'Dịch vụ đang lỗi (' + st + (msg ? ': ' + msg : '') + ')';
+  return 'Dịch vụ báo lỗi ' + st + (msg ? ': ' + msg : t ? ': ' + t.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) : '');
+}
 const FF_LOCAL_OK = process.env.QD_FF_ALLOW_LOCAL === '1';   // chỉ dùng khi chạy thử
 function ffHostBad(h) {   // không cho gọi vào chính máy chủ / mạng nội bộ (địa chỉ do Ban Quản Trị nhập)
   if (FF_LOCAL_OK) return false;
@@ -2127,7 +2139,7 @@ async function ffLookup(uid, cfg) {
   if (hit && Date.now() - hit.at < 120e3) return hit.r;
   const tries = [];
   for (const t of cfg.urls) {
-    const url = t.replace(/\{uid\}/g, encodeURIComponent(uid)).replace(/\{region\}/g, encodeURIComponent(cfg.region));
+    const url = t.replace(/\{uid\}/g, encodeURIComponent(uid)).replace(/\{region\}/g, encodeURIComponent(cfg.region)).replace(/\{region_lc\}/g, encodeURIComponent(cfg.region.toLowerCase()));
     let host = ''; try { host = new URL(url).host; } catch (e) { tries.push({ host: t.slice(0, 50), ok: false, err: 'Địa chỉ sai' }); continue; }
     const t0 = Date.now(), ac = new AbortController(), tm = setTimeout(() => ac.abort(), FF_TIMEOUT);
     try {
@@ -2136,7 +2148,7 @@ async function ffLookup(uid, cfg) {
       let j = null; try { j = JSON.parse(txt); } catch (e) {}
       const p = j && typeof j === 'object' ? ffParse(j) : null;
       const x = { host, ms: Date.now() - t0, status: r.status, ok: false, nick: p ? p.nick : '', acc: p ? p.acc : '', region: p ? p.region : '', guildId: p ? p.gid : '', guildName: p ? p.gname : '', raw: txt.slice(0, 500) };
-      if (!r.ok) x.err = 'Dịch vụ báo lỗi ' + r.status;
+      if (!r.ok) x.err = ffWhy(r.status, txt, j);
       else if (!j) x.err = 'Trả về không phải dữ liệu JSON';
       else if (!p.found) x.err = 'Không thấy hồ sơ người chơi (ID sai hoặc khác máy chủ ' + cfg.region + ')';
       else if (p.acc && p.acc !== String(uid)) x.err = 'Hồ sơ trả về không đúng ID ' + uid;
