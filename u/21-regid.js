@@ -55,6 +55,7 @@
                 var ac = m.autoCheck && m.autoCheck.ok ? m.autoCheck : null, esc = function (t) { return String(t || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
                 var seen = ac && !ac.inGuild ? (ac.guildId ? 'Hệ thống thấy nhân vật <b>' + esc(ac.nick || m.name) + '</b> đang ở quân đoàn <b>' + esc(ac.guildName || ac.guildId) + '</b>. ' : 'Hệ thống thấy nhân vật <b>' + esc(ac.nick || m.name) + '</b> chưa vào quân đoàn nào. ') : '';
                 if (nt) nt.innerHTML = k === 'no' ? seen + 'Hãy <b>xin vào Quân Đoàn</b> trong Free Fire bằng đúng nhân vật này. Vào xong, hệ thống sẽ kiểm tra lại và xác thực.'
+                    : k === 'wait' && ac && ac.inGuild && ac.nameOk === false ? 'Trong game, ID này đang mang tên <b>' + esc(ac.nick) + '</b>, khác tên bạn khai. Ban Quản Trị sẽ kiểm tra rồi duyệt. Khai nhầm? Nhờ BQT <b>"Cho phép nộp lại"</b>.'
                     : k === 'wait' ? 'Hệ thống sẽ kiểm tra bạn đã ở trong <b>Quân Đoàn Free Fire</b> chưa rồi mới xác thực ID. Cần sửa thông tin? Nhờ BQT <b>"Cho phép nộp lại"</b>.'
                     : 'Cần sửa thông tin? Liên hệ Ban Quản Trị để được <b>"Cho phép nộp lại"</b>.';
                 $('reg-done-name').textContent = m.name || '---';

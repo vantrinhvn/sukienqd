@@ -44,12 +44,13 @@
             if (!a) return '';
             if (!a.ok) return '🤖 Chưa tra được hồ sơ — duyệt tay';
             var who = a.nick ? '“' + a.nick + '”' : 'Nhân vật';
+            if (a.inGuild && a.nameOk === false) return '⚠️ Trong game ID này tên ' + who + ', khác tên khai — kiểm tra rồi duyệt tay';
             if (a.inGuild) return '🤖 ' + who + ' đang ở đúng quân đoàn' + (a.guildName ? ' ' + a.guildName : '') + (a.dup ? ' · ⚠️ ID trùng đơn khác, duyệt tay' : '');
             return '🤖 ' + who + (a.guildId ? ' đang ở quân đoàn khác: ' + (a.guildName || a.guildId) : ' chưa vào quân đoàn nào');
         }
         R.autoLine = function (x) {
             var a = x && x.autoCheck; if (!a) return '';
-            return '<small class="rga-auto-line' + (!a.ok ? ' err' : a.inGuild ? ' ok' : ' no') + '" title="' + E((a.ok ? 'Tra qua ' + (a.src || '') : (a.err || '')) + ' · ' + when(a.at)) + '">' + E(autoText(a)) + '</small>';
+            return '<small class="rga-auto-line' + (!a.ok ? ' err' : a.inGuild && a.nameOk !== false ? ' ok' : ' no') + '" title="' + E(a.ok ? '' : (a.err || '')) + '">' + E(autoText(a)) + (a.ok && a.src ? '<i>Tra lúc ' + E(when(a.at)) + ' qua ' + E(a.src) + '</i>' : '') + '</small>';
         };
         function errMsg(e) {
             var m = String(e && (e.message || e.code) || e || '');
@@ -131,8 +132,8 @@
 
         /* ---------- Thẻ "Hệ thống tự kiểm tra quân đoàn" ---------- */
         var DEF_URLS = ['https://free-fire-info-ob55.vercel.app/player-info?uid={uid}&region={region}', 'https://bancheck-seven.vercel.app/api/player?uid={uid}&region={region}',
-            'https://freefireapis.lat/GetPlayer?uid={uid}&region={region}', 'https://gst-info.vercel.app/player-info?region={region}&uid={uid}', 'https://freefireinfo-zy9l.onrender.com/api/v1/player-profile?uid={uid}&server={region}'];
-        var KNOWN = DEF_URLS.concat(['https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}', 'https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}']);   // mặc định cũ: tự thay bằng danh sách mới
+            'https://freefireapis.lat/GetPlayer?uid={uid}&region={region}', 'https://gst-info.vercel.app/player-info?region={region}&uid={uid}'];
+        var KNOWN = DEF_URLS.concat(['https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}', 'https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}', 'https://freefireinfo-zy9l.onrender.com/api/v1/player-profile?uid={uid}&server={region}']);   // mặc định cũ: tự thay bằng danh sách mới
         var CFG = null, STATE = null, dirty = false, started = false;
         function cfgOf(c) { c = c || {}; return { on: c.on !== false, guildId: String(c.guildId == null ? '1011610530' : c.guildId), region: c.region || 'VN', everyMin: +c.everyMin || 30, urls: Array.isArray(c.urls) && c.urls.length && !c.urls.every(function (u) { return KNOWN.indexOf(u) >= 0; }) ? c.urls : DEF_URLS }; }
         function fill() {
@@ -168,7 +169,7 @@
         function verdict(r) {
             if (!r.ok) return '<div class="rga-v err">❌ Không tra được ID này. Kiểm tra lại ID / máy chủ, hoặc dịch vụ tra cứu đang lỗi.</div>';
             var b = r.best, nm = E(b.nick || '—');
-            if (r.inGuild) return '<div class="rga-v ok">✅ <b>' + nm + '</b> đang ở đúng Quân Đoàn ' + E(b.guildName ? b.guildName + ' · ' : '') + E(r.guildId) + ' — sẽ được tự xác thực.</div>';
+            if (r.inGuild) return '<div class="rga-v ok">✅ <b>' + nm + '</b> đang ở đúng Quân Đoàn ' + E(b.guildName ? b.guildName + ' · ' : '') + E(r.guildId) + '. Đơn có tên khai khớp tên này sẽ được tự xác thực.</div>';
             if (b.guildId) return '<div class="rga-v no">⚠️ <b>' + nm + '</b> đang ở quân đoàn khác: ' + E(b.guildName || '') + ' (ID ' + E(b.guildId) + '), không phải ' + E(r.guildId) + '.</div>';
             return '<div class="rga-v no">⚠️ <b>' + nm + '</b> chưa vào quân đoàn nào (hoặc dịch vụ không trả về quân đoàn).</div>';
         }
