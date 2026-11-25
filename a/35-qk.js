@@ -78,6 +78,7 @@
             var pend = +(($('pending-count') || {}).textContent || 0) || 0;
             return [
                 { k: 'locked', v: 'accounts', e: '🔒', t: 'Tài khoản bị khóa', s: LOCK.length ? idle + ' quá giờ' + (req ? ' · ' + req + ' xin mở' : '') : 'Không có ai bị khóa', n: LOCK.length, tone: '#f59e0b', act: function () { openDrawer(idle ? 'idle' : 'all'); } },
+                (function () { var c = $('rga-count'), n = c && c.style.display !== 'none' ? +c.textContent || 0 : 0; return { k: 'regid', v: 'registration', e: '🆔', t: 'Duyệt ID game', s: n ? n + ' đơn chờ duyệt' : 'Không có đơn chờ', n: n, tone: '#eab308', act: function () { go('registration', 'rga-tabs'); } }; })(),
                 { k: 'reg', v: 'registration', e: '⏰', t: 'Thời gian đăng ký', s: regText(), tone: '#eab308', act: function () { go('registration', 'cfg-reg-toggle'); } },
                 { k: 'blocks', v: 'calls', e: '🚫', t: 'Thành viên chặn nhau', s: N.blocks ? N.blocks + ' lượt chặn' : 'Không ai chặn ai', n: N.blocks, tone: '#ef4444', act: function () { go('calls', 'qbl-card'); } },
                 { k: 'cban', v: 'calls', e: '📵', t: 'Đang bị khóa gọi', s: CBAN.length ? CBAN.length + ' thành viên' : 'Không có', n: CBAN.length, tone: '#a855f7', act: function () { openDrawer('call'); } },

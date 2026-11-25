@@ -1641,39 +1641,48 @@ const QVis = {
                     document.getElementById('stat-regs').innerText = snap.size;
                     const tbody = document.getElementById('tb-reg-list'); 
                     tbody.innerHTML = ""; State.regCache = [];
-                    
                     const selectTour = document.getElementById('tour-participant-select');
-                    let optionsHtml = `<option value="">-- Chọn một tài khoản --</option>`;
 
                     if(snap.empty) { 
-                        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-8">Không có đơn đăng ký ID Game mới nào.</td></tr>`; 
+                        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-8">Chưa có đơn đăng ký ID Game nào.</td></tr>`; 
                         if(selectTour) selectTour.innerHTML = `<option value="">-- Chưa có dữ liệu đăng ký --</option>`;
+                        if (window.RegApprove) RegApprove.sync(snap);
                         return; 
                     }
-
-                    snap.forEach(doc => {
-                        const d = doc.data(); State.regCache.push(d);
+                    // Chờ duyệt / chưa vào quân đoàn lên trước, đã xác thực xuống sau
+                    const RANK = { approved: 2, not_in_guild: 1 }, rows = [];
+                    snap.forEach(doc => { const d = doc.data(); State.regCache.push(d); rows.push({ id: doc.id, d }); });
+                    rows.sort((x, y) => (RANK[x.d.status] || 0) - (RANK[y.d.status] || 0));
+                    let optionsHtml = `<option value="">-- Chọn một tài khoản đã xác thực --</option>`, nOk = 0;
+                    rows.forEach(({ id, d }) => {
+                        const st = d.status === 'approved' ? 'approved' : d.status === 'not_in_guild' ? 'not_in_guild' : 'pending';
+                        if (st === 'approved') { nOk++; optionsHtml += `<option value="${qdH(d.submitter)}" data-gameid="${qdH(d.gameId)}" data-ingame="${qdH(d.name)}">[${qdH(d.submitter)}] - ID: ${qdH(d.gameId)} (${qdH(d.name)})</option>`; }
                         const timeStr = new Date(d.timestamp).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
-                        
+                        const by = st === 'approved' ? (d.approvedBy || '') : (d.checkedBy || ''), at = st === 'approved' ? d.approvedAt : d.checkedAt;
+                        const badge = st === 'approved' ? `<span class="rga-st ok"><i class="fa-solid fa-circle-check"></i> Đã xác thực</span>`
+                            : st === 'not_in_guild' ? `<span class="rga-st no"><i class="fa-solid fa-user-xmark"></i> Chưa vào quân đoàn</span>`
+                            : `<span class="rga-st wait"><i class="fa-solid fa-hourglass-half"></i> Chờ duyệt</span>`;
+                        const who = st !== 'pending' && by ? `<small class="rga-by">${qdH(by)}${at ? ' · ' + new Date(at).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'}) : ''}</small>` : '';
                         tbody.insertAdjacentHTML('beforeend', `
-                        <tr>
+                        <tr class="rga-row" data-st="${st}">
                             <td>
                                 <span class="font-bold text-main">${qdH(d.name)}</span><br>
                                 <span class="text-xs text-muted"><i class="fa-solid fa-user text-primary mr-1"></i>${qdH(d.submitter)}</span>
                             </td>
                             <td style="font-family: var(--font-family-mono); font-size: 16px; color: var(--color-warning); font-weight: 700; letter-spacing: 1.5px;">${qdH(d.gameId)}</td>
                             <td class="text-muted text-sm">${timeStr}</td>
-                            <td class="text-right">
-                                <button class="btn btn-warning" style="padding: 8px 12px; font-size: 12px; margin-right: 5px;" onclick="AdminActions.allowReregister('${doc.id}', '${qdJ(d.submitter)}')">
+                            <td>${badge}${who}</td>
+                            <td class="text-right" style="white-space: nowrap;">
+                                ${st !== 'approved' ? `<button class="btn btn-success rga-go" style="padding: 8px 12px; font-size: 12px; margin-right: 5px;" onclick="RegApprove.open('${qdJ(id)}')"><i class="fa-solid fa-user-check mr-1"></i> ${st === 'not_in_guild' ? 'Duyệt lại' : 'Phê duyệt'}</button>` : ''}
+                                <button class="btn btn-warning" style="padding: 8px 12px; font-size: 12px;" onclick="AdminActions.allowReregister('${qdJ(id)}', '${qdJ(d.submitter)}')">
                                     <i class="fa-solid fa-rotate-left mr-1"></i> Cho Phép Nộp Lại
                                 </button>
                             </td>
                         </tr>`);
-
-                        optionsHtml += `<option value="${qdH(d.submitter)}" data-gameid="${qdH(d.gameId)}" data-ingame="${qdH(d.name)}">[${qdH(d.submitter)}] - ID: ${qdH(d.gameId)} (${qdH(d.name)})</option>`;
                     });
-
-                    if(selectTour) selectTour.innerHTML = optionsHtml;
+                    tbody.insertAdjacentHTML('beforeend', `<tr class="rga-empty"><td colspan="5" class="text-center text-muted py-8">Không có đơn nào ở mục này.</td></tr>`);
+                    if (window.RegApprove) RegApprove.sync(snap);   // đếm theo trạng thái + bộ lọc + số chờ duyệt ở menu
+                    if(selectTour) selectTour.innerHTML = nOk ? optionsHtml : `<option value="">-- Chưa có ID nào được xác thực --</option>`;
                 });
 
                 qdSlow(db.collection("tournament").orderBy("timestamp", "desc"), 500).onSnapshot(snap => {

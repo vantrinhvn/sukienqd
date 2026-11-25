@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-20';
+const VER = 'qd-vps-21';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -241,6 +241,7 @@ function checkWrites(conn, writes) {
     if (!conn.u && !UNAUTH_OK.has(c)) { deny('unauthenticated', 'Phiên đăng nhập đã hết, vui lòng đăng nhập lại', w); continue; }
     if (c === 'settings' && !SETTINGS_OPEN.has(id)) throw err('permission-denied', 'Chỉ Ban Quản Trị được sửa cài đặt hệ thống');
     if (SERVER_ONLY.has(c)) throw err('permission-denied', 'Thao tác này do máy chủ xử lý — tải lại trang rồi thử lại');
+    if (c === 'users') { regRule(conn, w, cur); continue; }
     if (c === 'gcalls') { gcallRule(conn, w, cur); continue; }
     if (c === 'gcall_sig') { sigRule(conn, w, cur); continue; }
     if (c === 'accounts') {
@@ -263,6 +264,18 @@ function checkWrites(conn, writes) {
       }
     }
   }
+}
+/* Đăng ký ID game (users): thành viên chỉ gửi được 1 đơn của chính mình, ở trạng thái chờ duyệt.
+   Phê duyệt (status: approved = đã vào quân đoàn FF) / báo chưa vào quân đoàn chỉ Ban Quản Trị làm; thành viên không tự sửa / xóa đơn. */
+const REG_KEYS = new Set(['name', 'gameId', 'submitter', 'timestamp']);
+function regRule(conn, w, cur) {
+  if (w.op === 'delete') return deny('permission-denied', 'Muốn sửa đơn, hãy nhờ Ban Quản Trị "Cho phép nộp lại"', w);
+  if (cur || w.op !== 'set' || w.merge) return deny('permission-denied', 'Đơn đã gửi không tự sửa được — liên hệ Ban Quản Trị', w);
+  const d = w.data || {};
+  if (d.submitter !== conn.u) return deny('permission-denied', 'Chỉ gửi được đơn của chính mình', w);
+  if (Object.keys(d).some(k => !REG_KEYS.has(k))) return deny('permission-denied', 'Đơn chỉ gồm tên nhân vật và ID game — việc xác thực do Ban Quản Trị làm', w);
+  if (typeof d.name !== 'string' || !d.name.trim() || d.name.length > 60 || !/^\d{3,20}$/.test(String(d.gameId || ''))) return deny('invalid-argument', 'Tên nhân vật hoặc ID game không hợp lệ', w);
+  for (const [, x] of COLS.get('users') || new Map()) if (x.d && x.d.submitter === conn.u) return deny('already-exists', 'Bạn đã nộp đơn định danh rồi', w);
 }
 /* Gọi nhóm: thành viên chỉ đổi được phần của mình trong danh sách người gọi; phần người khác chỉ được gỡ khi họ đã mất kết nối */
 function gcallRule(conn, w, cur) {

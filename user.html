@@ -184,7 +184,7 @@
 
     <!-- Giao diện + mã của trang thành viên nằm trong thư mục u/: user.css và các file NN-ten.js (NN = thứ tự chạy).
          Sửa file trong u/ xong chạy: python3 .github/scripts/stamp.py  (đổi ?v= để trình duyệt / app lấy bản mới) -->
-    <link rel="stylesheet" href="u/user.css?v=34cb4eb7">
+    <link rel="stylesheet" href="u/user.css?v=726afa06">
 
     <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
     <script id="qd-smooth-js" src="u/01-qd-smooth.js?v=19d8ae87"></script>
@@ -401,12 +401,13 @@
             <div class="reg-status" id="reg-status" data-s="load"><i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra trạng thái...</div>
 
             <div class="reg-done" id="reg-done" hidden>
-                <div class="reg-done-badge"><i class="fa-solid fa-circle-check"></i> Đã gửi đơn đăng ký</div>
+                <div class="reg-done-badge" id="reg-done-badge" data-s="wait"><i class="fa-solid fa-hourglass-half"></i> Đang chờ Ban Quản Trị xác thực</div>
                 <div class="reg-done-row"><span>Tên nhân vật</span><b id="reg-done-name">---</b></div>
                 <div class="reg-done-row"><span>ID Game</span><b id="reg-done-id" class="reg-done-id">---</b></div>
                 <div class="reg-done-row"><span>Thời gian gửi</span><b id="reg-done-time">---</b></div>
+                <div class="reg-done-row"><span>Xác thực</span><b id="reg-done-verify" class="wait">---</b></div>
                 <div class="reg-done-row"><span>Giải đấu</span><b id="reg-done-tour">---</b></div>
-                <p class="reg-done-note">Cần sửa thông tin? Liên hệ Ban Quản Trị để được <b>"Cho phép nộp lại"</b>.</p>
+                <p class="reg-done-note" id="reg-done-note">Cần sửa thông tin? Liên hệ Ban Quản Trị để được <b>"Cho phép nộp lại"</b>.</p>
                 <button type="button" class="btn btn-outline w-full" onclick="window.UI.closeModal('modal-registration')">Đóng</button>
             </div>
 
@@ -1297,7 +1298,7 @@
 
 
     <script src="u/06-lucky-schedule.js?v=80361552"></script>
-    <script src="u/07-app-core.js?v=826f456b"></script>
+    <script src="u/07-app-core.js?v=47dbf455"></script>
 
     <script>
         // TET FLOWER ANIMATION
@@ -1426,7 +1427,7 @@
     <script id="tour-prize-core-js" src="u/19-tour-prize-core.js?v=9752d511"></script>
     <script id="tour-prize-user-js" src="u/20-tour-prize-user.js?v=6f433bec"></script>
     <!-- ===== ĐĂNG KÝ ID GAME: thẻ trang chủ + menu + nút Giải Đấu, trạng thái mở/đóng/hạn chót, xem đơn đã gửi ===== -->
-    <script id="regid-js" src="u/21-regid.js?v=02954ef9"></script>
+    <script id="regid-js" src="u/21-regid.js?v=d7f51a87"></script>
     <!-- ===== QD TẾT SÁNG: giao diện user nền Tết vàng sáng (nen-tet-ngang.jpg / nen-tet-doc.jpg) =====
          Khung (thanh trên, menu bên, thanh dưới) = giấy kem; khối nội dung = sơn mài đỏ viền vàng.
          Đặt cuối trang để thắng mọi lớp CSS cũ. Theo màu chủ đề: Đỏ Lì Xì / Hoa Đào / Bánh Chưng. -->

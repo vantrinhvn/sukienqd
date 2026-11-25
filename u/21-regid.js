@@ -1,7 +1,8 @@
     /* Đăng ký ID Game (trang user)
        - Mở từ: thẻ "Đăng Ký ID Game" trang chủ, menu bên, nút trong tab Giải Đấu
        - Trạng thái theo settings/registration_config do Admin chỉnh (Danh sách Đăng ký > Cấu hình Đóng/Mở): đang mở / hạn chót / đã đóng / hết hạn
-       - Đã gửi đơn (collection "users", submitter = tài khoản) -> hiện đơn đã gửi thay cho biểu mẫu; Admin "Cho phép nộp lại" -> tự hiện lại biểu mẫu */
+       - Đã gửi đơn (collection "users", submitter = tài khoản) -> hiện đơn đã gửi thay cho biểu mẫu; Admin "Cho phép nộp lại" -> tự hiện lại biểu mẫu
+       - Xác thực: đơn mới "Chờ duyệt"; Quản lý phê duyệt khi đã thấy thành viên trong Quân Đoàn FF (status approved) / báo chưa vào (not_in_guild) */
     (function () {
         'use strict';
         if (window.RegID) return;
@@ -27,14 +28,16 @@
         function fmtDL(dl) { var x = new Date(dl); return x.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ngày ' + x.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
         function inTour() { var l = (window.State && window.State.tournamentData) || []; for (var i = 0; i < l.length; i++) if (l[i].username === R.user) return true; return false; }
 
+        function stOf(m) { return !m ? '' : m.status === 'approved' ? 'ok' : m.status === 'not_in_guild' ? 'no' : 'wait'; }
+        var ST = { ok: ['fa-circle-check', 'ID đã được xác thực'], wait: ['fa-hourglass-half', 'Đang chờ Ban Quản Trị xác thực'], no: ['fa-user-xmark', 'Chưa thấy bạn trong Quân Đoàn'] };
         R.paint = function () {
-            var L = lockInfo(), m = R.mine, done = !!m, locked = L.s === 'closed' || L.s === 'expired';
+            var L = lockInfo(), m = R.mine, done = !!m, locked = L.s === 'closed' || L.s === 'expired', sk = stOf(m);
             // thẻ trang chủ
             var tab = $('reg-tab');
             if (tab) {
-                tab.setAttribute('data-state', done ? 'done' : locked ? 'locked' : 'open');
-                $('reg-tab-sub').textContent = done ? 'Đã đăng ký ✓' : L.s === 'load' ? 'Đang tải...' : L.s === 'closed' ? 'Đã đóng' : L.s === 'expired' ? 'Hết hạn' : L.dl ? 'Còn ' + left(L.dl - Date.now()) : 'Đang mở';
-                $('reg-tab-go').textContent = done ? 'Xem đơn đã gửi ›' : locked ? 'Đăng ký đang tạm đóng' : 'Chạm để khai báo ID ›';
+                tab.setAttribute('data-state', done ? (sk === 'ok' ? 'done' : 'wait') : locked ? 'locked' : 'open');
+                $('reg-tab-sub').textContent = done ? (sk === 'ok' ? 'Đã xác thực ✓' : sk === 'no' ? 'Chưa vào quân đoàn' : 'Chờ xác thực') : L.s === 'load' ? 'Đang tải...' : L.s === 'closed' ? 'Đã đóng' : L.s === 'expired' ? 'Hết hạn' : L.dl ? 'Còn ' + left(L.dl - Date.now()) : 'Đang mở';
+                $('reg-tab-go').textContent = done ? (sk === 'no' ? 'Vào quân đoàn rồi chờ duyệt lại ›' : 'Xem đơn đã gửi ›') : locked ? 'Đăng ký đang tạm đóng' : 'Chạm để khai báo ID ›';
                 $('reg-tab-id').textContent = done ? 'ID ' + (m.gameId || '') : 'ID ••••••';
             }
             var bt = $('btn-reg-open-txt'); if (bt) bt.textContent = done ? 'ID Game Của Tôi' : 'Đăng Ký ID Game';
@@ -42,9 +45,16 @@
             var st = $('reg-status'); if (!st) return;
             $('reg-done').hidden = !done; $('reg-form').hidden = done;
             $('reg-title').textContent = done ? 'ID Game Của Bạn' : 'Đăng Ký ID Game';
-            $('reg-sub').textContent = done ? 'Ban Quản Trị đã nhận đơn khai báo của bạn.' : 'Mỗi tài khoản chỉ được phép đăng ký 1 lần duy nhất.';
+            $('reg-sub').textContent = !done ? 'Mỗi tài khoản chỉ được phép đăng ký 1 lần duy nhất.' : stOf(m) === 'ok' ? 'Ban Quản Trị đã xác nhận bạn trong Quân Đoàn.'
+                : stOf(m) === 'no' ? 'Ban Quản Trị chưa thấy bạn trong Quân Đoàn Free Fire.' : 'Ban Quản Trị đã nhận đơn, đang kiểm tra bạn đã vào Quân Đoàn chưa.';
             if (done) {
                 st.hidden = true;
+                var k = stOf(m), bd = $('reg-done-badge'), vf = $('reg-done-verify'), nt = $('reg-done-note');
+                if (bd) { bd.setAttribute('data-s', k); bd.innerHTML = '<i class="fa-solid ' + ST[k][0] + '"></i> ' + ST[k][1]; }
+                if (vf) { vf.className = k === 'ok' ? 'ok' : k === 'no' ? 'no' : 'wait'; vf.textContent = k === 'ok' ? 'Đã xác thực' + (m.approvedAt ? ' · ' + new Date(m.approvedAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '') : k === 'no' ? 'Chưa vào quân đoàn' : 'Chờ duyệt'; }
+                if (nt) nt.innerHTML = k === 'no' ? 'Hãy <b>xin vào Quân Đoàn</b> trong Free Fire bằng đúng nhân vật này. Ban Quản Trị sẽ kiểm tra và duyệt lại.'
+                    : k === 'wait' ? 'Ban Quản Trị sẽ kiểm tra bạn đã ở trong <b>Quân Đoàn Free Fire</b> chưa rồi mới xác thực ID. Cần sửa thông tin? Nhờ BQT <b>"Cho phép nộp lại"</b>.'
+                    : 'Cần sửa thông tin? Liên hệ Ban Quản Trị để được <b>"Cho phép nộp lại"</b>.';
                 $('reg-done-name').textContent = m.name || '---';
                 $('reg-done-id').textContent = m.gameId || '---';
                 $('reg-done-time').textContent = m.timestamp ? new Date(m.timestamp).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) : '---';
@@ -66,7 +76,11 @@
             R.user = u; R.mine = undefined;
             if (!u) return R.paint();
             R.unsub = d.collection('users').where('submitter', '==', u).onSnapshot(function (s) {
-                R.mine = s.empty ? null : s.docs[0].data(); R.paint();
+                var was = R.mine; R.mine = s.empty ? null : s.docs[0].data(); R.paint();
+                if (was && R.mine && was.status !== R.mine.status && window.Utils && Utils.toast) {   // BQT vừa duyệt khi đang mở trang
+                    if (R.mine.status === 'approved') Utils.toast('✅ ID game của bạn đã được Ban Quản Trị xác thực!', 'success');
+                    else if (R.mine.status === 'not_in_guild') Utils.toast('Ban Quản Trị chưa thấy bạn trong Quân Đoàn — hãy xin vào quân đoàn trong Free Fire.', 'warning');
+                }
             }, function () { R.mine = null; R.paint(); });
         }
         R.open = function () {

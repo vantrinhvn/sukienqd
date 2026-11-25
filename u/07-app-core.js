@@ -2579,6 +2579,7 @@
                 
                 if(!n || !id) return Utils.toast("Cảnh báo: Bạn bỏ trống trường dữ liệu bắt buộc!", "warning"); 
                 if(!/^\d+$/.test(id)) { idEl.value=""; return Utils.toast("Vi phạm bảo mật: ID Định danh chỉ được phép là SỐ.", "error"); }
+                if(id.length < 3 || id.length > 20) return Utils.toast("ID game không hợp lệ, hãy kiểm tra lại (chỉ gồm số).", "error");
                 
                 if (window.AppCore._regBusy) return;
                 // NHANH: trạng thái đóng/mở + đơn đã gửi đều đang nghe trực tiếp (RegID) -> kiểm tra ngay trên máy, không hỏi lại máy chủ
@@ -2598,10 +2599,10 @@
                     if (mine) return Utils.toast("Bạn đã nộp đơn định danh rồi!", "error");
                     // Ghi đơn: màn hình đổi sang "Đã đăng ký ✓" ngay lập tức (bản ghi hiện tức thì trên máy), máy chủ xác nhận song song
                     const ref = db.collection("users").doc();
-                    const saved = ref.set({ name: n, gameId: id, submitter: State.currentUser, timestamp: Date.now() });
+                    const saved = ref.set({ name: n.slice(0, 60), gameId: id, submitter: State.currentUser, timestamp: Date.now() });
                     nEl.value = ""; idEl.value = ""; window.UI.closeModal('modal-registration');
-                    Utils.toast("Mã hóa thành công! Đơn yêu cầu đã đến Server BQT.", "success");
-                    saved.catch(err => { console.error(err); nEl.value = n; idEl.value = id; Utils.toast("Lỗi mạng. Đơn bị từ chối, vui lòng gửi lại.", "error"); });
+                    Utils.toast("Đã gửi đơn! Chờ Ban Quản Trị xác nhận bạn đã vào Quân Đoàn.", "success");
+                    saved.catch(err => { console.error(err); nEl.value = n; idEl.value = id; Utils.toast(err && err.code === 'permission-denied' || err && err.code === 'already-exists' || err && err.code === 'invalid-argument' ? (err.message || "Đơn bị từ chối.") : "Lỗi mạng. Đơn bị từ chối, vui lòng gửi lại.", "error"); });
                 } catch (err) {
                     Utils.toast("Lỗi hệ thống khi kiểm tra thông tin định danh.", "error");
                 } finally { window.AppCore._regBusy = false; }

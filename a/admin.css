@@ -2283,3 +2283,45 @@ html.role-manager #modal-settings .adm-only { display: none !important; }
 .wipe-bar i.run { width: 35% !important; animation: wipeRun 1.1s ease-in-out infinite alternate; }
 @keyframes wipeRun { from { transform: translateX(-10%); } to { transform: translateX(200%); } }
 @media (prefers-reduced-motion: reduce) { .wipe-bar i.run { animation: none; width: 100% !important; opacity: .6; } }
+
+        /* ===== Phê duyệt đơn Đăng ký ID game ===== */
+        .rga-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .rga-help { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted); max-width: 760px; }
+        .rga-help b { color: var(--text-main); }
+        .rga-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+        .rga-tabs button { font: inherit; font-size: 13px; font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px; }
+        .rga-tabs button b { min-width: 20px; padding: 0 6px; border-radius: 999px; background: var(--bg-elevated); color: var(--text-main); font-size: 11.5px; line-height: 20px; text-align: center; }
+        .rga-tabs button.on { color: var(--text-main); border-color: var(--color-warning); background: rgba(245, 158, 11, .12); }
+        .rga-tabs button:focus-visible { outline: 2px solid var(--color-warning); outline-offset: 2px; }
+        #tb-reg-list[data-f="pending"] tr.rga-row:not([data-st="pending"]),
+        #tb-reg-list[data-f="not_in_guild"] tr.rga-row:not([data-st="not_in_guild"]),
+        #tb-reg-list[data-f="approved"] tr.rga-row:not([data-st="approved"]),
+        #tb-reg-list .rga-empty[hidden] { display: none !important; }
+        .rga-st { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+        .rga-st.wait { color: #f59e0b; background: rgba(245, 158, 11, .12); border: 1px solid rgba(245, 158, 11, .35); }
+        .rga-st.ok { color: #22c55e; background: rgba(34, 197, 94, .12); border: 1px solid rgba(34, 197, 94, .35); }
+        .rga-st.no { color: #f87171; background: rgba(239, 68, 68, .12); border: 1px solid rgba(239, 68, 68, .35); }
+        .rga-by { display: block; margin-top: 4px; font-size: 11.5px; color: var(--text-muted); }
+        tr.rga-row[data-st="pending"] td:first-child { box-shadow: inset 3px 0 0 #f59e0b; }
+        .rga-box { position: relative; width: min(460px, 100%); text-align: left; }
+        .rga-box .qa-ic, .rga-box h3 { text-align: center; }
+        .rga-x { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .rga-x:hover { color: var(--text-main); }
+        .rga-x:focus-visible, .rga-copy:focus-visible, .rga-btns button:focus-visible { outline: 2px solid var(--brand-primary, #6366f1); outline-offset: 2px; }
+        .rga-card { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px; border-radius: 14px; background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+        .rga-av { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #fff; background: linear-gradient(135deg, #f59e0b, #b45309); }
+        .rga-mid { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .rga-mid b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rga-mid small { font-size: 12px; color: var(--text-muted); }
+        .rga-id { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px 12px; border-radius: 14px; border: 1px dashed rgba(245, 158, 11, .5); background: rgba(245, 158, 11, .06); }
+        .rga-id span { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+        .rga-id b { flex: 1; min-width: 0; font-family: var(--font-family-mono, monospace); font-size: 18px; letter-spacing: 2px; color: var(--color-warning); overflow-wrap: anywhere; }
+        .rga-copy { flex: 0 0 auto; font: inherit; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-main); }
+        .rga-prev { margin-top: 10px; font-size: 12.5px; color: #f87171; }
+        .rga-q { margin-top: 16px; padding: 14px; border-radius: 14px; background: rgba(99, 102, 241, .08); border: 1px solid rgba(99, 102, 241, .3); display: flex; flex-direction: column; gap: 6px; }
+        .rga-q b { font-size: 15.5px; line-height: 1.4; color: var(--text-main); }
+        .rga-q small { font-size: 12.5px; line-height: 1.45; color: var(--text-muted); }
+        .rga-btns .no { color: #fbbf24; border-color: rgba(245, 158, 11, .45); }
+        .rga-box[data-tone=info] .rga-btns .ok { background: #16a34a; }
+        .rga-btns button:disabled { opacity: .6; cursor: progress; }
+        @media (max-width: 480px) { .rga-btns { flex-direction: column-reverse; } }

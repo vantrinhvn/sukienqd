@@ -80,7 +80,7 @@
 
     <!-- Giao diện + mã của trang Admin nằm trong thư mục a/: admin.css và các file NN-ten.js (NN = thứ tự chạy);
          vài file dùng chung với trang thành viên nằm trong u/. Sửa xong chạy: python3 .github/scripts/stamp.py -->
-    <link rel="stylesheet" href="a/admin.css?v=dc25eb58">
+    <link rel="stylesheet" href="a/admin.css?v=f1a8c110">
 
     <!-- QD ADMIN LAYOUT 2.1: thanh bên (máy tính) + thanh dưới & menu (điện thoại) -->
 
@@ -171,7 +171,7 @@
                 <select id="tour-participant-select" class="form-control" style="cursor: pointer; appearance: auto;">
                     <option value="">-- Đang tải danh sách... --</option>
                 </select>
-                <p class="text-xs text-muted mt-2">Dữ liệu được lấy tự động từ các đơn khai báo ID Game.</p>
+                <p class="text-xs text-muted mt-2">Chỉ hiện thành viên đã được <b>xác thực ID</b> (Quản lý đã phê duyệt: đã vào Quân Đoàn FF).</p>
             </div>
             <div class="flex gap-4">
                 <button class="btn btn-outline w-full" onclick="UI.closeModal('modal-add-participant')">Đóng</button>
@@ -672,7 +672,7 @@
                     <button type="button" title="Quản trị tài khoản" class="nav-item" onclick="UI.navigate('accounts', this)" style="--tone: #94a3b8;"><i class="fa-solid fa-users-gear"></i><span>Quản trị tài khoản</span></button>
                     <button type="button" title="Chống gian lận" class="nav-item" onclick="UI.navigate('security', this)" style="--tone: #dc2626;"><i class="fa-solid fa-shield-halved"></i><span>Chống gian lận</span><span class="nav-badge js-sec-badge" style="display:none">0</span></button>
                     <button type="button" title="Điểm danh" class="nav-item" onclick="UI.navigate('attendance', this)" style="--tone: var(--color-success);"><i class="fa-solid fa-calendar-check"></i><span>Điểm danh</span></button>
-                    <button type="button" title="Đăng ký ID game" class="nav-item" onclick="UI.navigate('registration', this)" style="--tone: var(--color-warning);"><i class="fa-solid fa-file-signature"></i><span>Đăng ký ID game</span></button>
+                    <button type="button" title="Đăng ký ID game" class="nav-item" onclick="UI.navigate('registration', this)" style="--tone: var(--color-warning);"><i class="fa-solid fa-file-signature"></i><span>Đăng ký ID game</span><span class="nav-badge" id="rga-count" style="display: none;">0</span></button>
                 </div>
                 <div class="nav-group">
                     <p class="nav-label">Sự kiện Tết</p>
@@ -1189,8 +1189,15 @@
                     </div>
 
                     <div class="card p-0 overflow-hidden">
-                        <div class="card-header bg-warning-bg m-0 p-6" style="background: var(--color-warning-bg); border-bottom: 1px solid rgba(245, 158, 11, 0.2);">
-                            <h3 class="card-title text-lg m-0 text-warning"><i class="fa-solid fa-id-badge"></i> Đơn ID Game Chờ Xử Lý</h3>
+                        <div class="card-header rga-head bg-warning-bg m-0 p-6" style="background: var(--color-warning-bg); border-bottom: 1px solid rgba(245, 158, 11, 0.2);">
+                            <h3 class="card-title text-lg m-0 text-warning"><i class="fa-solid fa-id-badge"></i> Đơn ID Game</h3>
+                            <p class="rga-help">Mỗi đơn cần Quản lý bấm <b>Phê duyệt</b> và xác nhận thành viên <b>đã vào Quân Đoàn trong Free Fire</b> thì ID mới được hệ thống xác thực (mới thêm được vào giải đấu).</p>
+                            <div class="rga-tabs" id="rga-tabs" role="tablist" aria-label="Lọc đơn theo trạng thái">
+                                <button type="button" data-f="all" class="on">Tất cả <b>0</b></button>
+                                <button type="button" data-f="pending">⏳ Chờ duyệt <b>0</b></button>
+                                <button type="button" data-f="not_in_guild">🚫 Chưa vào quân đoàn <b>0</b></button>
+                                <button type="button" data-f="approved">✅ Đã xác thực <b>0</b></button>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="w-full">
@@ -1199,11 +1206,12 @@
                                         <th>Tên Nhân vật (Ingame)</th>
                                         <th>Mã ID Game (Chỉ Số)</th>
                                         <th>Thời gian nộp</th>
+                                        <th>Xác thực</th>
                                         <th class="text-right">Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tb-reg-list">
-                                    <tr><td colspan="4" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
+                                    <tr><td colspan="5" class="text-center text-muted py-8"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -3589,7 +3597,7 @@
     <script id="qd-lucky-reward" src="u/05-qd-lucky-reward.js?v=cdc417a0"></script>
 
     <script src="u/06-lucky-schedule.js?v=80361552"></script>
-    <script src="a/04-app-core.js?v=41529f4c"></script>
+    <script src="a/04-app-core.js?v=c4bbed9b"></script>
     <script id="qd-admin-layout-js" src="a/05-qd-admin-layout.js?v=b0c7d3ad"></script>
     <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
     <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>
@@ -3722,7 +3730,7 @@
          - Xem trước: số liệu tóm tắt, biểu đồ theo ngày, xếp hạng thành viên, phân bổ, 6 dòng đầu
          - Tải: Excel (.xls có tiêu đề, tóm tắt, bảng màu) · CSV (dữ liệu thô) · In / Lưu PDF (trang báo cáo A4)
          - Quản lý chỉ thấy nguồn thuộc mục được cấp quyền -->
-    <script id="qd-report-js" src="a/18-qd-report.js?v=8ebd33be"></script>
+    <script id="qd-report-js" src="a/18-qd-report.js?v=05d277bc"></script>
     <!-- ===== QD GUIDE: tạo file "Cẩm nang Tân Binh" giới thiệu hệ thống cho người mới =====
          QDGuide.open()  - mở từ: Tổng quan (nút nhanh + thẻ "Hướng dẫn tân binh"), trang Phê duyệt tài khoản
          - Số liệu đọc TRỰC TIẾP từ settings/* (giờ điểm danh, thưởng, giá Trạm Quy Đổi, giờ Kéo Búa Bao...) lúc tạo file
@@ -3812,10 +3820,11 @@
             <div class="qk-list" id="qk-list"></div>
         </div>
     </div>
-    <script id="qk-js" src="a/35-qk.js?v=f0919ad8"></script>
+    <script id="qk-js" src="a/35-qk.js?v=234b721c"></script>
     <script id="qdv-dash-js" src="a/36-qdv-dash.js?v=16cc5b8a"></script>
     <script id="qd-roles-js" src="a/37-qd-roles.js?v=7c8234d0"></script>
     <script id="qvps-js" src="a/38-qvps.js?v=4db2f61b"></script>
     <script id="vma-js" src="a/39-vmsg-admin.js?v=638a5412"></script>
+    <script id="rga-js" src="a/40-regid-admin.js?v=c5492021"></script>
 </body>
 </html>
