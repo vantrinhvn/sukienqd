@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-19';
+const VER = 'qd-vps-20';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -687,6 +687,53 @@ function dropCollection(c) {
   console.log(`[qd] đã xóa bộ sưu tập ${c} (${n} tài liệu)`);
   return n;
 }
+/* ---------------------------------- XÓA TẤT CẢ DỮ LIỆU (Admin > Cài đặt Hệ thống > Xóa tất cả dữ liệu) ----------------------------------
+   Giữ lại: tài khoản Quản trị (vai trò admin, Chủ hệ thống, người đang thao tác) + phiên đăng nhập / thiết bị của họ.
+            Tùy chọn: giữ cả tài khoản Quản lý; giữ cấu hình hệ thống (settings: giải thưởng, lịch mở, bảo trì...).
+   Xóa: MỌI bộ sưu tập còn lại (kể cả bộ sưu tập mới thêm sau này) + tệp video tin nhắn trên ổ đĩa.
+   Luôn sao lưu toàn bộ trước khi xóa -> khôi phục được ở Máy chủ VPS > Sao lưu. Thành viên đang mở trang bị đăng xuất. */
+function wipePlan(conn, o) {
+  const keepMgr = o.keepManagers === true, keepCfg = o.keepSettings !== false, keepIds = new Set(), keepUsers = new Set(), kept = [];
+  const accs = COLS.get('accounts');
+  if (accs) for (const [id, x] of accs) {
+    const d = x.d || {};
+    if (d.role === 'admin' || d.owner === true || (keepMgr && d.role === 'manager') || (conn.u && d.user === conn.u)) {
+      keepIds.add(id); if (d.user) keepUsers.add(d.user); kept.push({ u: d.user || id, role: d.owner === true ? 'owner' : d.role || 'user' });
+    }
+  }
+  const plan = []; let total = 0;
+  for (const [c, mm] of COLS) {
+    if (c === 'settings' && keepCfg) continue;
+    let ids;
+    if (c === 'accounts') ids = [...mm.keys()].filter(id => !keepIds.has(id));
+    else if (c === 'acc_sessions') ids = [...mm.keys()].filter(id => !keepUsers.has(id) && !keepUsers.has((mm.get(id).d || {}).user));
+    else if (c === 'acc_devices') ids = [...mm.keys()].filter(id => !keepUsers.has((mm.get(id).d || {}).user));
+    else ids = [...mm.keys()];
+    if (ids.length) { plan.push({ col: c, ids, all: ids.length === mm.size }); total += ids.length; }
+  }
+  let files = 0; try { files = fs.readdirSync(MEDIA).length; } catch (e) {}
+  return { plan, total, kept, keepCfg, keepMgr, files };
+}
+async function wipeAll(conn, m) {
+  const P = wipePlan(conn, m);
+  const sum = { total: P.total, cols: P.plan.map(p => ({ col: p.col, n: p.ids.length })).sort((a, b) => b.n - a.n), kept: P.kept, keepSettings: P.keepCfg, keepManagers: P.keepMgr, files: P.files };
+  if (m.dry) return sum;
+  if (String(m.confirm || '') !== 'XOA TAT CA') throw err('invalid-argument', 'Gõ đúng XOA TAT CA để xác nhận');
+  if (!P.kept.some(k => k.role === 'admin' || k.role === 'owner')) throw err('failed-precondition', 'Không còn tài khoản Quản trị nào để giữ lại — dừng xóa');
+  const backup = await makeBackup('truoc-xoa-tat-ca'), keepU = new Set(P.kept.map(k => k.u));
+  let n = 0;
+  for (const p of P.plan) {
+    if (p.col === 'media') { try { for (const f of fs.readdirSync(MEDIA)) try { fs.unlinkSync(path.join(MEDIA, f)); } catch (e) {} } catch (e) {} }
+    if (p.all) { n += dropCollection(p.col); continue; }
+    for (let i = 0; i < p.ids.length; i += 500) commit(p.ids.slice(i, i + 500).map(id => ({ op: 'delete', path: p.col + '/' + id })), null, ACT_LOCAL);
+    n += p.ids.length;
+  }
+  const at = Date.now();
+  commit([{ op: 'set', path: 'admin_logs/wipe_' + at, data: { type: 'wipe', action: 'delete_all', user: '(hệ thống)', by: conn.u || '(VPS)', count: n, kept: [...keepU], keepSettings: P.keepCfg, keepManagers: P.keepMgr, backup, timestamp: at } }], null, ACT_LOCAL);
+  let kicked = 0; for (const u of new Set([...CONNS].map(c => c.u).filter(Boolean))) if (!keepU.has(u)) kicked += kickUser(u, null, 'admin');
+  console.log('[qd] XÓA TẤT CẢ DỮ LIỆU bởi @' + (conn.u || 'VPS') + ': ' + n + ' tài liệu, giữ ' + [...keepU].join(', ') + ' — bản sao lưu ' + backup);
+  return Object.assign(sum, { n, backup, kicked });
+}
 async function selfUpdate() {
   const r = await fetch(SRC_URL + '?t=' + Date.now()); if (!r.ok) throw err('unavailable', 'Không tải được bản mới (' + r.status + ')');
   const txt = await r.text(), next = path.join(__dirname, 'server.next.js');
@@ -717,6 +764,7 @@ async function admin(conn, m) {
     case 'dropCol': { if (!m.col || m.confirm !== m.col) throw err('invalid-argument', 'Gõ đúng tên bộ sưu tập để xác nhận'); const bk = await makeBackup('truoc-xoa-' + m.col); return { n: dropCollection(m.col), backup: bk }; }
     case 'backups': return listBackups();
     case 'backup': return { name: await makeBackup('tay') };
+    case 'wipe': return wipeAll(conn, m);   // xóa tất cả dữ liệu, chỉ giữ tài khoản Quản trị (m.dry = chỉ đếm)
     case 'delBackup': { if (!safeName(m.name)) throw err('invalid-argument', 'Tên tệp sai'); fs.unlinkSync(path.join(BK, m.name)); return { ok: true }; }
     case 'restore': { if (!safeName(m.name)) throw err('invalid-argument', 'Tên tệp sai'); return restoreFrom(path.join(BK, m.name), m.mode); }
     case 'logs': return m.prev ? tailFile(PREVLOG, +m.n || 200) : LOGS.slice(-(+m.n || 200));

@@ -2270,3 +2270,16 @@ html.role-manager .mgr-only { display: flex; }
 html.role-manager #modal-settings .adm-only { display: none !important; }
 .mgr-note { gap: 10px; align-items: flex-start; margin: 0 0 8px; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; color: var(--text-muted); background: var(--bg-elevated); border: 1px dashed var(--border-strong); }
 .mgr-note i { color: var(--brand-primary); margin-top: 3px; }
+
+/* ===== Xóa tất cả dữ liệu (máy chủ làm): tài khoản được giữ + thanh chạy ===== */
+.wipe-total small { display: block; font-size: 12.5px; margin-top: 2px; }
+.wipe-keep { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; background: rgba(16, 185, 129, .08); border: 1px solid rgba(16, 185, 129, .35); }
+.wipe-keep > b { width: 100%; color: var(--color-success, #10b981); }
+.wipe-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 13px; background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+.wipe-chip i { color: var(--color-success, #10b981); }
+.wipe-chip small { font-weight: 600; color: var(--text-muted); }
+.wipe-opt { margin-bottom: 8px; }
+.wipe-opt small { display: block; margin-top: 2px; }
+.wipe-bar i.run { width: 35% !important; animation: wipeRun 1.1s ease-in-out infinite alternate; }
+@keyframes wipeRun { from { transform: translateX(-10%); } to { transform: translateX(200%); } }
+@media (prefers-reduced-motion: reduce) { .wipe-bar i.run { animation: none; width: 100% !important; opacity: .6; } }
