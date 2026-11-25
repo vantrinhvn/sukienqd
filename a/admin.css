@@ -2325,3 +2325,41 @@ html.role-manager #modal-settings .adm-only { display: none !important; }
         .rga-box[data-tone=info] .rga-btns .ok { background: #16a34a; }
         .rga-btns button:disabled { opacity: .6; cursor: progress; }
         @media (max-width: 480px) { .rga-btns { flex-direction: column-reverse; } }
+        /* Hệ thống tự kiểm tra quân đoàn */
+        .rga-auto { border-left: 4px solid #22c55e; padding: 24px; }
+        .rga-auto.off { border-left-color: var(--border-strong); }
+        .rga-auto-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .rga-auto-top > div { max-width: 640px; }
+        .rga-auto-top p b { color: var(--text-main); }
+        .rga-sw { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+        .rga-auto-grid { display: grid; grid-template-columns: minmax(160px, 1.3fr) minmax(150px, 1fr) minmax(120px, .8fr); gap: 14px; margin-top: 18px; }
+        .rga-auto-grid .form-label { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+        .rga-auto-grid input.form-control { font-family: var(--font-family-mono, monospace); }
+        .rga-adv { margin-top: 14px; }
+        .rga-adv summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-muted); }
+        .rga-adv p { margin: 8px 0; line-height: 1.5; }
+        .rga-adv textarea { font-family: var(--font-family-mono, monospace); font-size: 12px; resize: vertical; }
+        .rga-auto-act { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+        .rga-state { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; }
+        .rga-state.err { color: #f87171; } .rga-state.off { color: #fbbf24; }
+        .rga-test { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border-strong); }
+        .rga-test-row { display: flex; gap: 10px; max-width: 520px; }
+        .rga-test-row .form-control { flex: 1; min-width: 0; font-family: var(--font-family-mono, monospace); letter-spacing: 1px; }
+        .rga-tout { margin-top: 12px; }
+        .rga-v { padding: 12px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+        .rga-v.ok { border-color: rgba(34, 197, 94, .45); background: rgba(34, 197, 94, .08); }
+        .rga-v.no { border-color: rgba(245, 158, 11, .45); background: rgba(245, 158, 11, .08); }
+        .rga-v.err { border-color: rgba(239, 68, 68, .45); background: rgba(239, 68, 68, .08); }
+        .rga-tries { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+        .rga-tries li { padding: 8px 10px; border-radius: 10px; background: var(--bg-base); border: 1px solid var(--border-subtle, var(--border-strong)); overflow-wrap: anywhere; }
+        .rga-tries li.ok b { color: #22c55e; } .rga-tries li.err b { color: #f87171; }
+        .rga-tries small { color: var(--text-muted); }
+        .rga-tries details { margin-top: 6px; } .rga-tries summary { cursor: pointer; color: var(--text-muted); }
+        .rga-tries pre { margin: 6px 0 0; max-height: 160px; overflow: auto; white-space: pre-wrap; font-size: 11px; color: var(--text-muted); }
+        .rga-auto-line { display: block; margin-top: 4px; font-size: 11.5px; line-height: 1.4; max-width: 280px; }
+        .rga-auto-line.ok { color: #4ade80; } .rga-auto-line.no { color: #fbbf24; } .rga-auto-line.err { color: var(--text-muted); }
+        .rga-autobox { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding: 9px 12px; border-radius: 12px; font-size: 12.5px; line-height: 1.45; color: var(--text-muted); background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+        .rga-autobox small { opacity: .8; }
+        .rga-recheck { flex: 0 0 auto; font: inherit; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-main); }
+        .rga-recheck:focus-visible { outline: 2px solid var(--brand-primary, #6366f1); outline-offset: 2px; }
+        @media (max-width: 720px) { .rga-auto-grid { grid-template-columns: 1fr 1fr; } .rga-auto-grid .form-label:first-child { grid-column: 1 / -1; } .rga-auto { padding: 18px; } }

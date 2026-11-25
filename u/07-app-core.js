@@ -2601,7 +2601,7 @@
                     const ref = db.collection("users").doc();
                     const saved = ref.set({ name: n.slice(0, 60), gameId: id, submitter: State.currentUser, timestamp: Date.now() });
                     nEl.value = ""; idEl.value = ""; window.UI.closeModal('modal-registration');
-                    Utils.toast("Đã gửi đơn! Chờ Ban Quản Trị xác nhận bạn đã vào Quân Đoàn.", "success");
+                    Utils.toast("Đã gửi đơn! Hệ thống đang kiểm tra bạn đã vào Quân Đoàn chưa.", "success");
                     saved.catch(err => { console.error(err); nEl.value = n; idEl.value = id; Utils.toast(err && err.code === 'permission-denied' || err && err.code === 'already-exists' || err && err.code === 'invalid-argument' ? (err.message || "Đơn bị từ chối.") : "Lỗi mạng. Đơn bị từ chối, vui lòng gửi lại.", "error"); });
                 } catch (err) {
                     Utils.toast("Lỗi hệ thống khi kiểm tra thông tin định danh.", "error");

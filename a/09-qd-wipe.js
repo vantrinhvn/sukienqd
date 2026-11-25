@@ -22,7 +22,7 @@
             wheel_stock: 'Kho giải vòng quay', tranhthuong_stock: 'Kho giải tranh thưởng', point_shop_stock: 'Kho đổi quà', point_shop_daily: 'Đổi quà hằng ngày', shop_orders: 'Đơn đổi quà',
             gifts: 'Quà tặng', gift_claims: 'Nhận quà', invite_history: 'Lịch sử mời bạn', transfer_history: 'Lịch sử chuyển điểm', point_cashout: 'Rút điểm', point_cashout_daily: 'Rút điểm hằng ngày',
             wheel_questions: 'Câu hỏi vòng quay', wheel_question_keys: 'Đáp án vòng quay', ai_unanswered: 'Câu hỏi Quân Sư chưa trả lời', video_share_log: 'Video chia sẻ',
-            security_flags: 'Cảnh báo gian lận', push_broadcast: 'Thông báo đã gửi', admin_logs: 'Nhật ký quản trị', settings: 'Cấu hình hệ thống'
+            security_flags: 'Cảnh báo gian lận', push_broadcast: 'Thông báo đã gửi', admin_logs: 'Nhật ký quản trị', settings: 'Cấu hình hệ thống', regid_auto: 'Cấu hình tự kiểm tra quân đoàn'
         };
         var ROLE = { owner: 'Chủ hệ thống', admin: 'Quản trị', manager: 'Quản lý' };
         var W = window.Wipe = { step: 0, keepManagers: false, keepSettings: true, scan: null, busy: false };

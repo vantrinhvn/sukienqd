@@ -80,7 +80,7 @@
 
     <!-- Giao diện + mã của trang Admin nằm trong thư mục a/: admin.css và các file NN-ten.js (NN = thứ tự chạy);
          vài file dùng chung với trang thành viên nằm trong u/. Sửa xong chạy: python3 .github/scripts/stamp.py -->
-    <link rel="stylesheet" href="a/admin.css?v=f1a8c110">
+    <link rel="stylesheet" href="a/admin.css?v=078a4bd2">
 
     <!-- QD ADMIN LAYOUT 2.1: thanh bên (máy tính) + thanh dưới & menu (điện thoại) -->
 
@@ -1188,10 +1188,41 @@
                         </div>
                     </div>
 
+                    <!-- Hệ thống tự kiểm tra quân đoàn Free Fire (a/40-regid-admin.js) -->
+                    <div class="card mb-8 rga-auto" id="rga-auto">
+                        <div class="rga-auto-top">
+                            <div>
+                                <h3 class="text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-robot text-warning"></i> Hệ thống tự kiểm tra quân đoàn</h3>
+                                <p class="text-muted text-sm">Thành viên gửi ID, máy chủ tự tra hồ sơ Free Fire của ID đó. Đang ở đúng Quân Đoàn thì <b>tự xác thực</b>; chưa vào thì báo thành viên và tự tra lại định kỳ. Tra không được thì đơn chờ Quản lý duyệt tay.</p>
+                            </div>
+                            <label class="rga-sw"><span id="rga-on-txt">Đang tải…</span><span class="switch"><input type="checkbox" id="rga-on" aria-label="Bật hệ thống tự kiểm tra quân đoàn"><span class="slider"></span></span></label>
+                        </div>
+                        <div class="rga-auto-grid">
+                            <label class="form-label">ID Quân Đoàn<input id="rga-guild" class="form-control" inputmode="numeric" autocomplete="off" placeholder="VD: 1011610530"></label>
+                            <label class="form-label">Máy chủ<select id="rga-region" class="form-control"><option value="VN">Việt Nam (VN)</option><option value="SG">Singapore (SG)</option><option value="TH">Thái Lan (TH)</option><option value="ID">Indonesia (ID)</option><option value="IND">Ấn Độ (IND)</option><option value="BR">Brazil (BR)</option></select></label>
+                            <label class="form-label">Tra lại mỗi (phút)<input id="rga-every" type="number" min="5" max="1440" step="5" class="form-control"></label>
+                        </div>
+                        <details class="rga-adv">
+                            <summary>Dịch vụ tra cứu (nâng cao)</summary>
+                            <p class="text-xs text-muted">Mỗi dòng 1 địa chỉ, có <code>{uid}</code> và <code>{region}</code>; thử lần lượt từ trên xuống, dịch vụ đầu tiên trả về hồ sơ sẽ được dùng. Đây là các dịch vụ không chính thức, không thuộc Garena, có thể ngừng chạy bất cứ lúc nào. Để trống = dùng mặc định.</p>
+                            <textarea id="rga-urls" class="form-control" rows="3" spellcheck="false"></textarea>
+                        </details>
+                        <div class="rga-auto-act">
+                            <button type="button" class="btn btn-warning" id="rga-save"><i class="fa-solid fa-save mr-2"></i> Lưu</button>
+                            <button type="button" class="btn btn-outline" id="rga-sweep"><i class="fa-solid fa-rotate mr-2"></i> Kiểm tra các đơn chờ ngay</button>
+                            <span class="rga-state" id="rga-state" role="status"></span>
+                        </div>
+                        <div class="rga-test">
+                            <label class="form-label" for="rga-tuid">Thử tra 1 ID game</label>
+                            <div class="rga-test-row"><input id="rga-tuid" class="form-control" inputmode="numeric" autocomplete="off" placeholder="VD: 2131951324"><button type="button" class="btn btn-primary" id="rga-tgo"><i class="fa-solid fa-magnifying-glass mr-2"></i> Thử tra</button></div>
+                            <div id="rga-tout" class="rga-tout" hidden aria-live="polite"></div>
+                        </div>
+                    </div>
+
                     <div class="card p-0 overflow-hidden">
                         <div class="card-header rga-head bg-warning-bg m-0 p-6" style="background: var(--color-warning-bg); border-bottom: 1px solid rgba(245, 158, 11, 0.2);">
                             <h3 class="card-title text-lg m-0 text-warning"><i class="fa-solid fa-id-badge"></i> Đơn ID Game</h3>
-                            <p class="rga-help">Mỗi đơn cần Quản lý bấm <b>Phê duyệt</b> và xác nhận thành viên <b>đã vào Quân Đoàn trong Free Fire</b> thì ID mới được hệ thống xác thực (mới thêm được vào giải đấu).</p>
+                            <p class="rga-help">ID chỉ được xác thực (mới thêm được vào giải đấu) khi thành viên <b>đã ở trong Quân Đoàn Free Fire</b>: hệ thống tự tra, hoặc Quản lý bấm <b>Phê duyệt</b> và xác nhận.</p>
                             <div class="rga-tabs" id="rga-tabs" role="tablist" aria-label="Lọc đơn theo trạng thái">
                                 <button type="button" data-f="all" class="on">Tất cả <b>0</b></button>
                                 <button type="button" data-f="pending">⏳ Chờ duyệt <b>0</b></button>
@@ -3597,7 +3628,7 @@
     <script id="qd-lucky-reward" src="u/05-qd-lucky-reward.js?v=cdc417a0"></script>
 
     <script src="u/06-lucky-schedule.js?v=80361552"></script>
-    <script src="a/04-app-core.js?v=c4bbed9b"></script>
+    <script src="a/04-app-core.js?v=b3710aad"></script>
     <script id="qd-admin-layout-js" src="a/05-qd-admin-layout.js?v=b0c7d3ad"></script>
     <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
     <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>
@@ -3703,7 +3734,7 @@
             <div class="wipe-btns" id="wipe-btns"></div>
         </div>
     </div>
-    <script id="qd-wipe-js" src="a/09-qd-wipe.js?v=b1f289bf"></script>
+    <script id="qd-wipe-js" src="a/09-qd-wipe.js?v=acfce5a3"></script>
     <script id="qd-help-js" src="a/10-qd-help.js?v=5be96c30"></script>
     <script id="invite-admin-js" src="a/11-invite-admin.js?v=5977e721"></script>
     <div class="modal-overlay" id="modal-payout-qr">
@@ -3825,6 +3856,6 @@
     <script id="qd-roles-js" src="a/37-qd-roles.js?v=7c8234d0"></script>
     <script id="qvps-js" src="a/38-qvps.js?v=4db2f61b"></script>
     <script id="vma-js" src="a/39-vmsg-admin.js?v=638a5412"></script>
-    <script id="rga-js" src="a/40-regid-admin.js?v=c5492021"></script>
+    <script id="rga-js" src="a/40-regid-admin.js?v=78188e92"></script>
 </body>
 </html>

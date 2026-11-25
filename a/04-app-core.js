@@ -1671,7 +1671,7 @@ const QVis = {
                             </td>
                             <td style="font-family: var(--font-family-mono); font-size: 16px; color: var(--color-warning); font-weight: 700; letter-spacing: 1.5px;">${qdH(d.gameId)}</td>
                             <td class="text-muted text-sm">${timeStr}</td>
-                            <td>${badge}${who}</td>
+                            <td>${badge}${who}${window.RegApprove && RegApprove.autoLine ? RegApprove.autoLine(d) : ''}</td>
                             <td class="text-right" style="white-space: nowrap;">
                                 ${st !== 'approved' ? `<button class="btn btn-success rga-go" style="padding: 8px 12px; font-size: 12px; margin-right: 5px;" onclick="RegApprove.open('${qdJ(id)}')"><i class="fa-solid fa-user-check mr-1"></i> ${st === 'not_in_guild' ? 'Duyệt lại' : 'Phê duyệt'}</button>` : ''}
                                 <button class="btn btn-warning" style="padding: 8px 12px; font-size: 12px;" onclick="AdminActions.allowReregister('${qdJ(id)}', '${qdJ(d.submitter)}')">

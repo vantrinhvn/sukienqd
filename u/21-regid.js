@@ -29,7 +29,7 @@
         function inTour() { var l = (window.State && window.State.tournamentData) || []; for (var i = 0; i < l.length; i++) if (l[i].username === R.user) return true; return false; }
 
         function stOf(m) { return !m ? '' : m.status === 'approved' ? 'ok' : m.status === 'not_in_guild' ? 'no' : 'wait'; }
-        var ST = { ok: ['fa-circle-check', 'ID đã được xác thực'], wait: ['fa-hourglass-half', 'Đang chờ Ban Quản Trị xác thực'], no: ['fa-user-xmark', 'Chưa thấy bạn trong Quân Đoàn'] };
+        var ST = { ok: ['fa-circle-check', 'ID đã được xác thực'], wait: ['fa-hourglass-half', 'Đang chờ xác thực'], no: ['fa-user-xmark', 'Chưa thấy bạn trong Quân Đoàn'] };
         R.paint = function () {
             var L = lockInfo(), m = R.mine, done = !!m, locked = L.s === 'closed' || L.s === 'expired', sk = stOf(m);
             // thẻ trang chủ
@@ -45,15 +45,17 @@
             var st = $('reg-status'); if (!st) return;
             $('reg-done').hidden = !done; $('reg-form').hidden = done;
             $('reg-title').textContent = done ? 'ID Game Của Bạn' : 'Đăng Ký ID Game';
-            $('reg-sub').textContent = !done ? 'Mỗi tài khoản chỉ được phép đăng ký 1 lần duy nhất.' : stOf(m) === 'ok' ? 'Ban Quản Trị đã xác nhận bạn trong Quân Đoàn.'
-                : stOf(m) === 'no' ? 'Ban Quản Trị chưa thấy bạn trong Quân Đoàn Free Fire.' : 'Ban Quản Trị đã nhận đơn, đang kiểm tra bạn đã vào Quân Đoàn chưa.';
+            $('reg-sub').textContent = !done ? 'Mỗi tài khoản chỉ được phép đăng ký 1 lần duy nhất.' : stOf(m) === 'ok' ? 'Đã xác nhận bạn trong Quân Đoàn.'
+                : stOf(m) === 'no' ? 'Chưa thấy bạn trong Quân Đoàn Free Fire.' : 'Đã nhận đơn, đang kiểm tra bạn đã vào Quân Đoàn chưa.';
             if (done) {
                 st.hidden = true;
                 var k = stOf(m), bd = $('reg-done-badge'), vf = $('reg-done-verify'), nt = $('reg-done-note');
                 if (bd) { bd.setAttribute('data-s', k); bd.innerHTML = '<i class="fa-solid ' + ST[k][0] + '"></i> ' + ST[k][1]; }
                 if (vf) { vf.className = k === 'ok' ? 'ok' : k === 'no' ? 'no' : 'wait'; vf.textContent = k === 'ok' ? 'Đã xác thực' + (m.approvedAt ? ' · ' + new Date(m.approvedAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '') : k === 'no' ? 'Chưa vào quân đoàn' : 'Chờ duyệt'; }
-                if (nt) nt.innerHTML = k === 'no' ? 'Hãy <b>xin vào Quân Đoàn</b> trong Free Fire bằng đúng nhân vật này. Ban Quản Trị sẽ kiểm tra và duyệt lại.'
-                    : k === 'wait' ? 'Ban Quản Trị sẽ kiểm tra bạn đã ở trong <b>Quân Đoàn Free Fire</b> chưa rồi mới xác thực ID. Cần sửa thông tin? Nhờ BQT <b>"Cho phép nộp lại"</b>.'
+                var ac = m.autoCheck && m.autoCheck.ok ? m.autoCheck : null, esc = function (t) { return String(t || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+                var seen = ac && !ac.inGuild ? (ac.guildId ? 'Hệ thống thấy nhân vật <b>' + esc(ac.nick || m.name) + '</b> đang ở quân đoàn <b>' + esc(ac.guildName || ac.guildId) + '</b>. ' : 'Hệ thống thấy nhân vật <b>' + esc(ac.nick || m.name) + '</b> chưa vào quân đoàn nào. ') : '';
+                if (nt) nt.innerHTML = k === 'no' ? seen + 'Hãy <b>xin vào Quân Đoàn</b> trong Free Fire bằng đúng nhân vật này. Vào xong, hệ thống sẽ kiểm tra lại và xác thực.'
+                    : k === 'wait' ? 'Hệ thống sẽ kiểm tra bạn đã ở trong <b>Quân Đoàn Free Fire</b> chưa rồi mới xác thực ID. Cần sửa thông tin? Nhờ BQT <b>"Cho phép nộp lại"</b>.'
                     : 'Cần sửa thông tin? Liên hệ Ban Quản Trị để được <b>"Cho phép nộp lại"</b>.';
                 $('reg-done-name').textContent = m.name || '---';
                 $('reg-done-id').textContent = m.gameId || '---';
@@ -78,8 +80,8 @@
             R.unsub = d.collection('users').where('submitter', '==', u).onSnapshot(function (s) {
                 var was = R.mine; R.mine = s.empty ? null : s.docs[0].data(); R.paint();
                 if (was && R.mine && was.status !== R.mine.status && window.Utils && Utils.toast) {   // BQT vừa duyệt khi đang mở trang
-                    if (R.mine.status === 'approved') Utils.toast('✅ ID game của bạn đã được Ban Quản Trị xác thực!', 'success');
-                    else if (R.mine.status === 'not_in_guild') Utils.toast('Ban Quản Trị chưa thấy bạn trong Quân Đoàn — hãy xin vào quân đoàn trong Free Fire.', 'warning');
+                    if (R.mine.status === 'approved') Utils.toast('✅ ID game của bạn đã được xác thực!', 'success');
+                    else if (R.mine.status === 'not_in_guild') Utils.toast('Chưa thấy bạn trong Quân Đoàn — hãy xin vào quân đoàn trong Free Fire.', 'warning');
                 }
             }, function () { R.mine = null; R.paint(); });
         }

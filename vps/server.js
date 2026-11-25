@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-21';
+const VER = 'qd-vps-22';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -155,6 +155,7 @@ function authConn(conn, u) { conn.u = u; conn.role = roleOf(u); return conn.role
 const HIDE = { accounts: ['pass'], pending_users: ['pass', 'password'] };
 function view(conn, c, d) {
   if ((c === 'acc_sessions' || c === 'acc_devices') && !isStaff(conn)) return {};
+  if (c === 'regid_auto' && !isStaff(conn)) return {};   // cấu hình tự kiểm tra quân đoàn (có thể chứa mã dịch vụ): chỉ Ban Quản Trị
   if (c === 'media' && !isStaff(conn)) return d && d.u === conn.u ? d : {};   // video trong tin nhắn: thành viên chỉ thấy của mình   // phiên / thiết bị: chỉ Ban Quản Trị xem
   if (c === 'push_broadcast' && d && d.kind === 'vps_alert' && !isStaff(conn) && d.target !== conn.u) return { kind: d.kind, target: d.target, status: d.status, createdAt: d.createdAt };
   if (c === 'rps_rooms' && d && d.status === 'playing') {
@@ -178,7 +179,7 @@ const SETTINGS_OPEN = new Set([]);   // cài đặt thành viên được ghi (k
 const SERVER_ONLY = new Set(['point_cashout', 'point_cashout_daily', 'shop_orders', 'point_shop_stock', 'point_shop_daily', 'transfer_history',
   'lixi_history', 'lixi_daily', 'spin_history', 'wheel_stock', 'wheel_questions', 'tranhthuong_history', 'tranhthuong_stock', 'lucky_numbers', 'lucky_number_history', 'lucky_rewards',
   'attendance', 'invite_history', 'gifts', 'gift_claims', 'tournament_rewards', 'con_stats', 'con_history', 'rps_rooms', 'rps_history', 'point_history', 'video_share_log',
-  'acc_sessions', 'acc_devices', 'media']);
+  'acc_sessions', 'acc_devices', 'media', 'regid_auto']);
 /* Đợt 4: trường trong tài khoản chỉ máy chủ (lệnh act) / Ban Quản Trị được đổi -> thành viên không tự cộng điểm, lượt, mở khóa, đổi tên... */
 const ACC_LOCK = new Set(['points', 'spins', 'tickets', 'conThrows', 'conStreak', 'conFreeDate', 'lixiDate', 'lixiAmount', 'lixiCount', 'lixiTotal', 'lastLoginRewardDate',
   'giftDay', 'giftCount', 'hasUsedInvite', 'invitedBy', 'invitedAt', 'inviteCount', 'inviteRewardCount', 'inviteCode', 'isBlocked', 'lockedAt', 'lockReason', 'unlockedAt', 'unlockRequestedAt',
@@ -275,7 +276,10 @@ function regRule(conn, w, cur) {
   if (d.submitter !== conn.u) return deny('permission-denied', 'Chỉ gửi được đơn của chính mình', w);
   if (Object.keys(d).some(k => !REG_KEYS.has(k))) return deny('permission-denied', 'Đơn chỉ gồm tên nhân vật và ID game — việc xác thực do Ban Quản Trị làm', w);
   if (typeof d.name !== 'string' || !d.name.trim() || d.name.length > 60 || !/^\d{3,20}$/.test(String(d.gameId || ''))) return deny('invalid-argument', 'Tên nhân vật hoặc ID game không hợp lệ', w);
-  for (const [, x] of COLS.get('users') || new Map()) if (x.d && x.d.submitter === conn.u) return deny('already-exists', 'Bạn đã nộp đơn định danh rồi', w);
+  for (const [, x] of COLS.get('users') || new Map()) {
+    if (x.d && x.d.submitter === conn.u) return deny('already-exists', 'Bạn đã nộp đơn định danh rồi', w);
+    if (x.d && String(x.d.gameId) === String(d.gameId)) return deny('already-exists', 'ID game này đã được tài khoản khác đăng ký. Nếu đúng là ID của bạn, hãy báo Ban Quản Trị', w);
+  }
 }
 /* Gọi nhóm: thành viên chỉ đổi được phần của mình trong danh sách người gọi; phần người khác chỉ được gỡ khi họ đã mất kết nối */
 function gcallRule(conn, w, cur) {
@@ -385,6 +389,7 @@ function commit(writes, pre, conn) {
   STAT.w += writes.length;
   notify(changed);
   for (const c of changed) if (c.col === 'push_broadcast' && !c.del) setTimeout(() => broadcastDone(c.id), 4000);
+  for (const c of changed) if (c.col === 'users' && !c.del) { try { ffSoon(c.id); } catch (e) {} }   // đơn ID game mới -> tự tra quân đoàn
   return { v: SEQ };
 }
 /* Thông báo Admin soạn (push_broadcast): app Android đang kết nối (dịch vụ QDLink) tự nhận và hiện.
@@ -716,7 +721,7 @@ function wipePlan(conn, o) {
   }
   const plan = []; let total = 0;
   for (const [c, mm] of COLS) {
-    if (c === 'settings' && keepCfg) continue;
+    if ((c === 'settings' || c === 'regid_auto') && keepCfg) continue;
     let ids;
     if (c === 'accounts') ids = [...mm.keys()].filter(id => !keepIds.has(id));
     else if (c === 'acc_sessions') ids = [...mm.keys()].filter(id => !keepUsers.has(id) && !keepUsers.has((mm.get(id).d || {}).user));
@@ -762,6 +767,10 @@ async function selfUpdate() {
 /* ---------------------------------- XỬ LÝ YÊU CẦU QUA WEBSOCKET ---------------------------------- */
 const RATE = 600, DONE = new Map();
 async function admin(conn, m) {
+  if (m.fn === 'regTest' || m.fn === 'regCheck' || m.fn === 'regSweep') {   // tự kiểm tra quân đoàn: Quản lý cũng dùng được
+    if (!isStaff(conn)) throw err('permission-denied', 'Chỉ Ban Quản Trị dùng được');
+    return regAdmin(conn, m);
+  }
   if (!isAdmin(conn)) throw err('permission-denied', 'Chỉ Admin dùng được chức năng quản trị máy chủ');
   switch (m.fn) {
     case 'stats': return stats(m.since);
@@ -2056,6 +2065,173 @@ function secDevices() {   // cho Admin: thiết bị bị nhiều tài khoản c
   if (sm) for (const [id, x] of sm) { const d = x.d || {}, k = (d.kicks || []).filter(t => now - t < cfg.A.h * 3600e3); if (k.length || (live[id] && live[id].size > 1)) sess.push({ user: id, dev: d.dev || '', at: d.at || 0, kicks: k.length, lastKick: k.length ? k[k.length - 1] : 0, live: live[id] ? live[id].size : 0, ua: d.ua || '', ip: d.ip || '' }); }
   devs.sort((a, b) => Math.max(b.deniedAt, b.last) - Math.max(a.deniedAt, a.last)); sess.sort((a, b) => b.lastKick - a.lastKick || b.at - a.at);
   return { cfg: { A: cfg.A, B: cfg.B }, devs: devs.slice(0, 300), sess: sess.slice(0, 300), total: { devs: dm ? dm.size : 0, sess: sm ? sm.size : 0 } };
+}
+
+/* ---------------------------------- TỰ KIỂM TRA QUÂN ĐOÀN FREE FIRE ----------------------------------
+   Đơn Đăng ký ID game: máy chủ tra hồ sơ công khai của ID qua dịch vụ tra cứu (không chính thức, không thuộc Garena),
+   đọc mã quân đoàn trong hồ sơ:
+     - đúng Quân Đoàn đã cài -> tự xác thực (approvedBy "Hệ thống") + báo thành viên
+     - có hồ sơ nhưng chưa vào / ở quân đoàn khác -> "Chưa vào quân đoàn" + báo; tự tra lại mỗi everyMin phút
+     - không tra được (dịch vụ lỗi / không thấy hồ sơ) -> giữ nguyên, chờ Quản lý duyệt tay
+   Cấu hình: regid_auto/cfg { on, guildId, region, everyMin, urls[] (mẫu có {uid} {region}) } · kết quả quét: regid_auto/state */
+const FF_URLS = ['https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}', 'https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}'];
+const FF_DEF = { on: true, guildId: '1011610530', region: 'VN', everyMin: 30 };
+const FF_TIMEOUT = +process.env.QD_FF_TIMEOUT || 15000, FF_GAP = process.env.QD_FF_GAP != null ? +process.env.QD_FF_GAP : 2500, FF_MAX = 40;
+function ffCfg(o) {
+  const d = Object.assign({}, FF_DEF, ((getDoc('regid_auto/cfg') || {}).d) || {}, o || {});
+  const urls = (Array.isArray(d.urls) ? d.urls : []).map(u => String(u || '').trim()).filter(u => /^https?:\/\/\S+$/.test(u) && u.includes('{uid}')).slice(0, 5);
+  return { on: d.on !== false, guildId: String(d.guildId || '').replace(/\D/g, '').slice(0, 20), region: (String(d.region || 'VN').toUpperCase().replace(/[^A-Z]/g, '') || 'VN').slice(0, 4),
+    everyMin: Math.min(1440, Math.max(5, +d.everyMin || 30)), urls: urls.length ? urls : FF_URLS };
+}
+function ffParse(j) {   // đọc hồ sơ người chơi từ JSON bất kỳ dịch vụ nào: basicInfo/AccountInfo... + clanBasicInfo/GuildInfo/guild...
+  const o = { nick: '', acc: '', region: '', gid: '', gname: '' };
+  (function walk(x, p, depth) {
+    if (!x || typeof x !== 'object' || depth > 6) return;
+    for (const k of Object.keys(x)) {
+      const v = x[k], kl = k.toLowerCase().replace(/[^a-z]/g, ''), path = p + kl + '.';
+      if (v && typeof v === 'object') { walk(v, path, depth + 1); continue; }
+      if (v == null || v === '') continue;
+      const sv = String(v).trim();
+      if (/clan|guild/.test(p) || /^(clan|guild)/.test(kl)) {
+        if (/captain|leader|owner/.test(p)) continue;
+        if (!o.gid && /^(clan|guild)?id$/.test(kl) && /^\d{3,20}$/.test(sv)) o.gid = sv;
+        else if (!o.gname && /^(clan|guild)?name$/.test(kl)) o.gname = sv.slice(0, 60);
+      } else if (!/captain|leader|friend|social/.test(p)) {
+        if (!o.nick && (/^(nickname|accountname|nick|playername)$/.test(kl) || (kl === 'name' && /basic|account|player|profile/.test(p)))) o.nick = sv.slice(0, 60);
+        else if (!o.acc && /^(accountid|uid|playerid)$/.test(kl) && /^\d{3,20}$/.test(sv)) o.acc = sv;
+        else if (!o.region && /^(region|accountregion|server)$/.test(kl)) o.region = sv.slice(0, 8);
+      }
+    }
+  })(j, '', 0);
+  o.found = !!o.nick;   // có tên nhân vật mới tính là hồ sơ (dịch vụ báo lỗi thường chỉ lặp lại uid)
+  return o;
+}
+const FF_LOCAL_OK = process.env.QD_FF_ALLOW_LOCAL === '1';   // chỉ dùng khi chạy thử
+function ffHostBad(h) {   // không cho gọi vào chính máy chủ / mạng nội bộ (địa chỉ do Ban Quản Trị nhập)
+  if (FF_LOCAL_OK) return false;
+  h = String(h || '').toLowerCase().replace(/^\[|\]$/g, '');
+  return !h || h === 'localhost' || /\.(local|internal|localhost)$/.test(h) || /^(127\.|10\.|0\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.)/.test(h) || h === '::1' || /^(fc|fd|fe80)/.test(h) || h === '::' || /^\d+$/.test(h);
+}
+async function ffGet(url, signal) {   // tự theo chuyển hướng (tối đa 3 lần), lần nào cũng kiểm tra địa chỉ
+  for (let i = 0; i < 4; i++) {
+    const u = new URL(url); if (!/^https?:$/.test(u.protocol) || ffHostBad(u.hostname)) throw new Error('Địa chỉ không được phép: ' + u.hostname);
+    const r = await fetch(url, { signal, redirect: 'manual', headers: { 'User-Agent': 'Mozilla/5.0 (QD Elite server)', Accept: 'application/json' } });
+    if (r.status >= 300 && r.status < 400 && r.headers.get('location')) { url = new URL(r.headers.get('location'), url).href; continue; }
+    return r;
+  }
+  throw new Error('Chuyển hướng quá nhiều lần');
+}
+const FFC = new Map();   // nhớ kết quả tra 2 phút (bấm Thử tra / quét liền nhau không gọi lại dịch vụ)
+async function ffLookup(uid, cfg) {
+  const key = cfg.region + ':' + uid + ':' + cfg.urls.join('|'), hit = FFC.get(key);
+  if (hit && Date.now() - hit.at < 120e3) return hit.r;
+  const tries = [];
+  for (const t of cfg.urls) {
+    const url = t.replace(/\{uid\}/g, encodeURIComponent(uid)).replace(/\{region\}/g, encodeURIComponent(cfg.region));
+    let host = ''; try { host = new URL(url).host; } catch (e) { tries.push({ host: t.slice(0, 50), ok: false, err: 'Địa chỉ sai' }); continue; }
+    const t0 = Date.now(), ac = new AbortController(), tm = setTimeout(() => ac.abort(), FF_TIMEOUT);
+    try {
+      const r = await ffGet(url, ac.signal);
+      const txt = (await r.text()).slice(0, 400000);
+      let j = null; try { j = JSON.parse(txt); } catch (e) {}
+      const p = j && typeof j === 'object' ? ffParse(j) : null;
+      const x = { host, ms: Date.now() - t0, status: r.status, ok: false, nick: p ? p.nick : '', acc: p ? p.acc : '', region: p ? p.region : '', guildId: p ? p.gid : '', guildName: p ? p.gname : '', raw: txt.slice(0, 500) };
+      if (!r.ok) x.err = 'Dịch vụ báo lỗi ' + r.status;
+      else if (!j) x.err = 'Trả về không phải dữ liệu JSON';
+      else if (!p.found) x.err = 'Không thấy hồ sơ người chơi (ID sai hoặc khác máy chủ ' + cfg.region + ')';
+      else if (p.acc && p.acc !== String(uid)) x.err = 'Hồ sơ trả về không đúng ID ' + uid;
+      else x.ok = true;
+      tries.push(x);
+      if (x.ok) { const out = { ok: true, best: x, tries }; FFC.set(key, { at: Date.now(), r: out }); if (FFC.size > 500) FFC.delete(FFC.keys().next().value); return out; }
+    } catch (e) { tries.push({ host, ms: Date.now() - t0, ok: false, err: e && e.name === 'AbortError' ? 'Quá ' + Math.round(FF_TIMEOUT / 1000) + ' giây không trả lời' : /không được phép|Chuyển hướng/.test(String(e && e.message)) ? e.message : 'Không kết nối được: ' + String(e && (e.cause && e.cause.code || e.message) || e).slice(0, 100) }); }
+    finally { clearTimeout(tm); }
+  }
+  return { ok: false, tries };
+}
+function ffPush(u, title, body, now) { return { op: 'set', path: 'push_broadcast/' + actId(), data: { title, body, image: '', target: u, status: 'pending', createdAt: now, by: 'vps' } }; }
+const FF_RUN = new Set();
+async function regCheck(id) {
+  if (FF_RUN.has(id)) return { skip: 'busy' };
+  const x0 = getDoc('users/' + id); if (!x0 || !x0.d) return { skip: 'gone' };
+  if (x0.d.status === 'approved') return { skip: 'approved', status: 'approved' };
+  const cfg = ffCfg(), uid = String(x0.d.gameId || '');
+  if (!cfg.guildId) return { skip: 'noguild' };
+  if (!/^\d{3,20}$/.test(uid)) return { skip: 'badid' };
+  FF_RUN.add(id);
+  try {
+    const r = await ffLookup(uid, cfg), now = Date.now(), x = getDoc('users/' + id);
+    if (!x || !x.d || x.d.status === 'approved') return { skip: 'changed' };   // trong lúc tra: đã có người duyệt / xóa đơn
+    if (!r.ok) {
+      const e = r.tries.map(t => t.host + ': ' + t.err).join(' · ').slice(0, 300) || 'Chưa có dịch vụ tra cứu';
+      commit([{ op: 'update', path: 'users/' + id, data: { autoCheck: { at: now, ok: false, err: e } } }], null, ACT_LOCAL);
+      return { ok: false, err: e, tries: r.tries };
+    }
+    const b = r.best, inG = b.guildId === cfg.guildId, d = x.d, u = d.submitter || '';
+    let dup = false; for (const [oid, y] of COLS.get('users') || new Map()) if (oid !== id && y.d && String(y.d.gameId) === uid) { dup = true; break; }
+    const ac = { at: now, ok: true, src: b.host, nick: b.nick, guildId: b.guildId, guildName: b.guildName, inGuild: inG };
+    if (dup) ac.dup = true;
+    const up = { autoCheck: ac }, W = [];
+    if (inG && !dup) {
+      Object.assign(up, { status: 'approved', inGuild: true, approvedBy: 'Hệ thống', approvedAt: now, checkedBy: 'Hệ thống', checkedAt: now });
+      if (u) W.push(ffPush(u, '✅ ID game đã được xác thực', 'Hệ thống đã thấy ' + (b.nick || d.name || 'bạn') + ' trong Quân Đoàn' + (b.guildName ? ' ' + b.guildName : '') + '. ID ' + uid + ' đã được xác thực.', now));
+      W.push({ op: 'set', path: 'admin_logs/' + actId(), data: { type: 'regid', action: 'auto_approve', user: u, gameId: uid, name: d.name || '', nick: b.nick, guildId: b.guildId, by: 'Hệ thống', timestamp: now } });
+    } else if (!inG && d.status !== 'not_in_guild') {
+      Object.assign(up, { status: 'not_in_guild', inGuild: false, checkedBy: 'Hệ thống', checkedAt: now });
+      if (u) W.push(ffPush(u, '⏳ Chưa thấy bạn trong Quân Đoàn', (b.guildId ? 'Nhân vật ' + (b.nick || uid) + ' đang ở quân đoàn ' + (b.guildName || b.guildId) + '. ' : 'Nhân vật ' + (b.nick || uid) + ' chưa vào quân đoàn nào. ')
+        + 'Hãy xin vào Quân Đoàn ' + cfg.guildId + ' trong Free Fire, hệ thống sẽ tự kiểm tra lại và xác thực.', now));
+    }
+    W.unshift({ op: 'update', path: 'users/' + id, data: up });
+    commit(W, null, ACT_LOCAL);
+    return { ok: true, inGuild: inG, dup, nick: b.nick, guildId: b.guildId, guildName: b.guildName, src: b.host, status: up.status || d.status || 'pending' };
+  } finally { FF_RUN.delete(id); }
+}
+const FF_SOON = new Set();
+function ffSoon(id) {   // đơn vừa gửi (chưa tra lần nào) -> tra sau 3 giây
+  const x = getDoc('users/' + id); if (!x || !x.d || x.d.status === 'approved' || x.d.autoCheck || FF_SOON.has(id)) return;
+  if (!ffCfg().on) return;
+  FF_SOON.add(id); setTimeout(() => { FF_SOON.delete(id); regCheck(id).catch(e => console.error('[quân đoàn] tra lỗi', e)); }, +process.env.QD_FF_SOON || 3000);
+}
+let ffBusy = false;
+async function ffSweep(force) {
+  const cfg = ffCfg(); if (ffBusy || (!cfg.on && !force) || !cfg.guildId) return { skip: true, busy: ffBusy };
+  const now = Date.now(), due = [];
+  for (const [id, x] of COLS.get('users') || new Map()) {
+    const d = x.d || {}; if (d.status === 'approved') continue;
+    const last = +(d.autoCheck && d.autoCheck.at) || 0;
+    if (force || now - last >= cfg.everyMin * 60e3 - 30e3) due.push({ id, last });
+  }
+  due.sort((a, b) => a.last - b.last);
+  const list = due.slice(0, FF_MAX), sum = { n: 0, ok: 0, approved: 0, notIn: 0, errs: 0, left: due.length - list.length, err: '' };
+  ffBusy = true;
+  try {
+    for (let i = 0; i < list.length; i++) {
+      if (i && FF_GAP) await new Promise(r => setTimeout(r, FF_GAP));   // giãn cách, không dội dịch vụ tra cứu
+      const r = await regCheck(list[i].id).catch(e => ({ ok: false, err: String(e && e.message || e) }));
+      if (r.skip) continue;
+      sum.n++; if (r.ok) sum.ok++; else { sum.errs++; sum.err = r.err || sum.err; }
+      if (r.status === 'approved') sum.approved++; else if (r.status === 'not_in_guild') sum.notIn++;
+    }
+  } finally { ffBusy = false; }
+  try { commit([{ op: 'set', path: 'regid_auto/state', data: Object.assign({ lastRun: Date.now(), force: !!force }, sum, { err: String(sum.err).slice(0, 300) }) }], null, ACT_LOCAL); } catch (e) {}
+  return sum;
+}
+setInterval(() => { ffSweep(false).catch(e => console.error('[quân đoàn] quét lỗi', e)); }, +process.env.QD_FF_TICK || 5 * 60e3);
+setTimeout(() => { ffSweep(false).catch(() => {}); }, 45000);
+async function regAdmin(conn, m) {
+  if (m.fn === 'regTest') {   // Thử tra 1 ID (dùng cấu hình đang nhập, chưa cần lưu)
+    const uid = String(m.uid || '').replace(/\D/g, ''); if (!/^\d{3,20}$/.test(uid)) throw err('invalid-argument', 'Nhập ID game (chỉ gồm số)');
+    const o = {}; if (m.guildId != null) o.guildId = m.guildId; if (m.region) o.region = m.region; if (Array.isArray(m.urls)) o.urls = m.urls;
+    const cfg = ffCfg(o); FFC.clear();
+    const r = await ffLookup(uid, cfg);
+    return { ok: r.ok, guildId: cfg.guildId, region: cfg.region, inGuild: !!(r.ok && r.best.guildId === cfg.guildId), best: r.best || null, tries: r.tries };
+  }
+  if (m.fn === 'regCheck') { const id = String(m.id || ''); if (!getDoc('users/' + id)) throw err('not-found', 'Không có đơn này'); FFC.clear(); return regCheck(id); }
+  if (m.fn === 'regSweep') {
+    if (ffBusy) return { started: false, busy: true };
+    let due = 0; for (const [, x] of COLS.get('users') || new Map()) if (x.d && x.d.status !== 'approved') due++;
+    FFC.clear(); ffSweep(true).catch(e => console.error('[quân đoàn] quét lỗi', e));
+    return { started: true, due: Math.min(due, FF_MAX) };
+  }
 }
 
 const ACTS = { 'shop.buy': actShopBuy, 'cashout': actCashout, 'gift.turns': actGiftTurns,
