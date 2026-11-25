@@ -184,7 +184,7 @@
 
     <!-- Giao diện + mã của trang thành viên nằm trong thư mục u/: user.css và các file NN-ten.js (NN = thứ tự chạy).
          Sửa file trong u/ xong chạy: python3 .github/scripts/stamp.py  (đổi ?v= để trình duyệt / app lấy bản mới) -->
-    <link rel="stylesheet" href="u/user.css?v=726afa06">
+    <link rel="stylesheet" href="u/user.css?v=067e7002">
 
     <!-- QD SMOOTH: tối ưu mượt mà dùng chung -->
     <script id="qd-smooth-js" src="u/01-qd-smooth.js?v=19d8ae87"></script>
@@ -391,6 +391,17 @@
         </div>
     </div>
 
+
+    <!-- Hộp Thông báo: thông báo hệ thống / Ban Quản Trị gửi cho thành viên (u/46-qd-notice.js) -->
+    <div class="modal-overlay" id="modal-notice">
+        <div class="modal-box qn-box" role="dialog" aria-modal="true" aria-labelledby="qn-title">
+            <button class="modal-close-btn" onclick="window.UI.closeModal('modal-notice')" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="qn-h" id="qn-title"><i class="fa-solid fa-bell"></i> Thông báo</h2>
+            <p class="qn-sub">Thông báo của hệ thống và Ban Quản Trị gửi cho bạn trong 30 ngày gần đây.</p>
+            <div class="qn-tabs" id="qn-tabs" role="tablist" aria-label="Lọc thông báo"><button type="button" data-f="all" class="on" role="tab">Tất cả</button><button type="button" data-f="me" role="tab">Gửi riêng tôi</button></div>
+            <ul class="qn-list" id="qn-list"></ul>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="modal-registration">
         <div class="modal-box text-center">
@@ -872,6 +883,7 @@
                 <div class="hidden-mobile ts-greet"><span aria-hidden="true">🏮</span> Chúc Mừng Năm Mới <span>· Xuân Đinh Mùi 2027</span></div> 
                 <div class="flex items-center gap-3">
                     <button class="btn-icon hidden-desktop" id="nav-profile-btn" style="color: var(--brand-primary); border-color: var(--brand-primary-soft); background: var(--brand-primary-soft);" onclick="window.UI.openModal('modal-profile')" aria-label="Hồ sơ"><i class="fa-solid fa-user"></i></button>
+                    <button type="button" class="btn-icon qn-bell" id="qn-bell" onclick="window.QDNotice && window.QDNotice.open()" aria-label="Thông báo"><i class="fa-solid fa-bell"></i><span class="qn-dot" id="qn-dot" hidden>0</span></button>
                     <button class="btn-icon" onclick="window.UI.openModal('modal-settings')"><i class="fa-solid fa-gear"></i></button>
                     <button class="btn-icon" style="color: var(--color-danger); border-color: var(--color-danger-bg); background: var(--color-danger-bg);" onclick="window.UI.openModal('modal-logout')"><i class="fa-solid fa-power-off"></i></button>
                 </div>
@@ -1754,6 +1766,7 @@
     <script src="qd-gcall.js?v=73f8a43a" defer></script>
     <script id="qd-snd-js" src="u/44-qd-snd.js?v=9e689f00"></script>
     <script id="qd-vmsg-js" src="u/45-qd-vmsg.js?v=a4f19815"></script>
+    <script id="qd-notice-js" src="u/46-qd-notice.js?v=c0674eed"></script>
 </body>
 
 </html>

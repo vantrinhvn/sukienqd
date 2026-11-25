@@ -62,7 +62,7 @@
 
         /* ---------- Hộp phê duyệt ---------- */
         function notify(u, title, body) {
-            return fs().collection('push_broadcast').add({ title: title, body: body, image: '', target: u, status: 'pending', createdAt: Date.now(), by: me() }).catch(function () {});
+            return fs().collection('push_broadcast').add({ title: title, body: body, image: '', target: u, status: 'pending', createdAt: Date.now(), by: me(), kind: 'regid', act: 'regid' }).catch(function () {});
         }
         function log(action, x) {
             return fs().collection('admin_logs').add({ type: 'regid', action: action, user: x.submitter || '', gameId: x.gameId || '', name: x.name || '', by: me(), timestamp: Date.now() }).catch(function () {});
@@ -137,13 +137,13 @@
             'https://freefireapis.lat/GetPlayer?uid={uid}&region={region}', 'https://gst-info.vercel.app/player-info?region={region}&uid={uid}'];
         var KNOWN = DEF_URLS.concat(['https://ffdvinh09-info.vercel.app/player-info?region={region}&uid={uid}', 'https://free-ff-api-src-5plp.onrender.com/api/v1/account?region={region}&uid={uid}', 'https://freefireinfo-zy9l.onrender.com/api/v1/player-profile?uid={uid}&server={region}']);   // mặc định cũ: tự thay bằng danh sách mới
         var CFG = null, STATE = null, dirty = false, started = false;
-        function cfgOf(c) { c = c || {}; return { mode: c.mode === 'suggest' ? 'suggest' : 'auto', on: c.on !== false, guildId: String(c.guildId == null ? '1011610530' : c.guildId), region: c.region || 'VN', everyMin: +c.everyMin || 30, urls: Array.isArray(c.urls) && c.urls.length && !c.urls.every(function (u) { return KNOWN.indexOf(u) >= 0; }) ? c.urls : DEF_URLS }; }
+        function cfgOf(c) { c = c || {}; return { dailyMax: Math.max(0, Math.floor(+c.dailyMax || 0)), mode: c.mode === 'suggest' ? 'suggest' : 'auto', on: c.on !== false, guildId: String(c.guildId == null ? '1011610530' : c.guildId), region: c.region || 'VN', everyMin: +c.everyMin || 30, urls: Array.isArray(c.urls) && c.urls.length && !c.urls.every(function (u) { return KNOWN.indexOf(u) >= 0; }) ? c.urls : DEF_URLS }; }
         function fill() {
             var c = cfgOf(CFG);
             $('rga-on').checked = c.on; $('rga-on-txt').textContent = c.on ? 'Đang bật' : 'Đang tắt';
             $('rga-auto').classList.toggle('off', !c.on);
-            if (!dirty) { $('rga-mode').value = c.mode; $('rga-guild').value = c.guildId; $('rga-region').value = c.region; $('rga-every').value = c.everyMin; $('rga-urls').value = c.urls.join('\n'); }
-            paintState();
+            if (!dirty) { $('rga-max').value = c.dailyMax || ''; $('rga-mode').value = c.mode; $('rga-guild').value = c.guildId; $('rga-region').value = c.region; $('rga-every').value = c.everyMin; $('rga-urls').value = c.urls.join('\n'); }
+            paintState(); paintUsage();
         }
         function paintState() {
             var c = cfgOf(CFG), el = $('rga-state'), t = STATE;
@@ -157,7 +157,7 @@
         function form() {
             var g = String($('rga-guild').value || '').replace(/\D/g, ''), ev = Math.min(1440, Math.max(5, Math.round(+$('rga-every').value || 30)));
             var urls = String($('rga-urls').value || '').split(/\n+/).map(function (u) { return u.trim(); }).filter(Boolean);
-            return { mode: $('rga-mode').value === 'suggest' ? 'suggest' : 'auto', guildId: g, region: $('rga-region').value || 'VN', everyMin: ev, urls: urls };
+            return { dailyMax: Math.max(0, Math.floor(+$('rga-max').value || 0)), mode: $('rga-mode').value === 'suggest' ? 'suggest' : 'auto', guildId: g, region: $('rga-region').value || 'VN', everyMin: ev, urls: urls };
         }
         function save(extra) {
             var f = Object.assign(form(), extra || {});
@@ -170,6 +170,7 @@
             return fs().collection('regid_auto').doc('cfg').set(f, { merge: true }).then(function () { dirty = false; });
         }
         function verdict(r) {
+            if (!r.ok && (r.tries || []).length && r.tries.every(function (t) { return t.limit; })) return '<div class="rga-v err">⛔ Đã hết lượt tra hôm nay (giới hạn ' + E($('rga-max').value || '') + ' lượt/dịch vụ). Chờ sang ngày mới, hoặc nâng giới hạn nếu gói của bạn cho phép.</div>';
             if (!r.ok) return '<div class="rga-v err">❌ Không dịch vụ nào tra được ID này. Kiểm tra lại ID / máy chủ, hoặc các dịch vụ tra cứu đang lỗi.</div>';
             var b = r.best, nm = E(b.nick || '—'), n = r.n || 1;
             if (r.split) return '<div class="rga-v no">⚠️ Các dịch vụ báo khác nhau về quân đoàn của <b>' + nm + '</b> (xem từng dịch vụ bên dưới). Hệ thống sẽ KHÔNG tự xác thực, chờ Quản lý duyệt tay.</div>';
@@ -182,18 +183,47 @@
             if (!uid) { toast('Nhập ID game để thử', 'warning'); $('rga-tuid').focus(); return; }
             var f = form(); out.hidden = false; out.innerHTML = '<div class="rga-v"><i class="fa-solid fa-spinner fa-spin"></i> Máy chủ đang tra ID ' + E(uid) + '…</div>';
             b.disabled = true;
-            QDdb.admin('regTest', { uid: uid, guildId: f.guildId, region: f.region, urls: f.urls.length ? f.urls : null }).then(function (r) {
+            QDdb.admin('regTest', { uid: uid, guildId: f.guildId, region: f.region, urls: f.urls.length ? f.urls : null, dailyMax: f.dailyMax }).then(function (r) {
                 out.innerHTML = verdict(r) + '<ul class="rga-tries">' + (r.tries || []).map(function (t) {
                     return '<li class="' + (t.ok ? 'ok' : 'err') + '"><b>' + E(t.host) + '</b> ' + (t.ok ? '✓ tên “' + E(t.nick) + '”' + (t.guildId ? ', quân đoàn ' + E(t.guildName || '') + ' (' + E(t.guildId) + ')' + (t.guildId === r.guildId ? ' ✅' : ' ⚠️ khác') : ', không có quân đoàn') : '✗ ' + E(t.err || 'lỗi')) + (t.ms != null ? ' <small>' + t.ms + ' ms' + (t.cache ? ' · bộ nhớ đệm: ' + E(t.cache) : '') + '</small>' : '')
                         + (t.raw ? '<details><summary>Dữ liệu trả về</summary><pre>' + E(t.raw) + '</pre></details>' : '') + '</li>';
                 }).join('') + '</ul>';
             }, function (e) { out.innerHTML = '<div class="rga-v err">❌ ' + E(errMsg(e)) + '</div>'; }).then(function () { b.disabled = false; });
         }
+        /* ---------- Kiểm kê lượt tra ID game ---------- */
+        var USAGE = {}, LOG = [];
+        var KIND = { auto: 'Đơn mới', sweep: 'Quét định kỳ', now: 'Kiểm tra ngay', test: 'Thử tra', recheck: 'Tra lại' };
+        function dayKey(off) { return new Date(Date.now() + 7 * 3600e3 - (off || 0) * 864e5).toISOString().slice(0, 10); }
+        function paintUsage() {
+            var el = $('rga-today'), dl = $('rga-days'); if (!el) return;
+            var c = cfgOf(CFG), d = USAGE[dayKey()] || { n: 0, hosts: {}, kinds: {} }, hs = Object.keys(d.hosts || {}).map(function (k) { return d.hosts[k]; }).sort(function (a, b) { return b.n - a.n; });
+            el.innerHTML = '<div class="rga-use-sum"><b>' + (d.n || 0) + '</b> lượt gọi dịch vụ hôm nay' + (Object.keys(d.kinds || {}).length ? ' <small>(' + Object.keys(d.kinds).map(function (k) { return (KIND[k] || k) + ' ' + d.kinds[k]; }).join(' · ') + ' lần tra)</small>' : '') + '</div>'
+                + (hs.length ? hs.map(function (h) {
+                    var pct = c.dailyMax ? Math.min(100, Math.round(h.n / c.dailyMax * 100)) : 0, full = c.dailyMax && h.n >= c.dailyMax;
+                    return '<div class="rga-use-row' + (full ? ' full' : '') + '"><span class="h">' + E(h.host) + '</span><span class="n">' + h.n + (c.dailyMax ? '/' + c.dailyMax : '') + ' lượt</span><small>✓ ' + (h.ok || 0) + ' · ✗ ' + (h.fail || 0) + (full ? ' · hết lượt, chờ sang ngày' : '') + '</small>'
+                        + (c.dailyMax ? '<i style="--p:' + pct + '%"></i>' : '') + '</div>';
+                }).join('') : '<div class="rga-use-empty">Hôm nay chưa tra lần nào.</div>');
+            var rows = []; for (var i = 1; i <= 6; i++) { var x = USAGE[dayKey(i)]; if (x && x.n) rows.push('<span>' + dayKey(i).slice(8, 10) + '/' + dayKey(i).slice(5, 7) + ': <b>' + x.n + '</b></span>'); }
+            dl.innerHTML = rows.length ? 'Các ngày trước: ' + rows.join('') : '';
+        }
+        var VERD = { 'in': ['ok', '✅ Đúng quân đoàn'], out: ['no', '⚠️ Không ở quân đoàn'], split: ['no', '⚠️ Dịch vụ báo khác nhau'], fail: ['err', '❌ Không tra được'] };
+        function paintLog() {
+            var el = $('rga-log'); if (!el) return;
+            $('rga-log-n').textContent = LOG.length ? '(' + LOG.length + ')' : '';
+            el.innerHTML = LOG.length ? LOG.map(function (x) {
+                var v = VERD[x.verdict] || VERD.fail;
+                return '<li class="' + v[0] + '"><div><b>' + E(x.uid) + '</b>' + (x.nick ? ' “' + E(x.nick) + '”' : '') + ' <span class="k">' + E(KIND[x.kind] || x.kind || '') + (x.by && x.by !== 'Hệ thống' ? ' · ' + E(x.by) : '') + '</span></div>'
+                    + '<div class="v">' + v[1] + ' <small>' + E(when(x.at)) + '</small></div>'
+                    + '<small class="s">' + (x.res || []).map(function (r) { return E(String(r.h || '').split('.')[0]) + (r.ok ? ' ✓' : ' ✗'); }).join(' · ') + '</small></li>';
+            }).join('') : '<li class="rga-use-empty">Chưa có lần tra nào.</li>';
+        }
         function startAuto() {
             if (started || !$('rga-auto') || !window.firebase || !firebase.apps || !firebase.apps.length) return; started = true;
             fs().collection('regid_auto').doc('cfg').onSnapshot(function (x) { CFG = x.exists ? x.data() : null; fill(); }, function () {});
             fs().collection('regid_auto').doc('state').onSnapshot(function (x) { STATE = x.exists ? x.data() : null; paintState(); }, function () {});
-            ['rga-guild', 'rga-region', 'rga-every', 'rga-urls', 'rga-mode'].forEach(function (k) { $(k).addEventListener('input', function () { dirty = true; }); $(k).addEventListener('change', function () { dirty = true; }); });
+            fs().collection('regid_auto').doc('usage').onSnapshot(function (x) { USAGE = x.exists ? (x.data() || {}).days || {} : {}; paintUsage(); }, function () {});
+            fs().collection('regid_log').orderBy('at', 'desc').limit(40).onSnapshot(function (q) { LOG = []; q.forEach(function (x) { LOG.push(x.data()); }); paintLog(); }, function () {});
+            ['rga-guild', 'rga-region', 'rga-every', 'rga-urls', 'rga-mode', 'rga-max'].forEach(function (k) { $(k).addEventListener('input', function () { dirty = true; }); $(k).addEventListener('change', function () { dirty = true; }); });
             $('rga-on').addEventListener('change', function () {
                 var on = this.checked; $('rga-on-txt').textContent = on ? 'Đang bật' : 'Đang tắt';
                 save({ on: on }).then(function () { toast(on ? 'Đã bật tự kiểm tra quân đoàn' : 'Đã tắt tự kiểm tra — đơn mới chờ duyệt tay', on ? 'success' : 'info'); }, function (e) { $('rga-on').checked = !on; fill(); toast(errMsg(e), 'error'); });

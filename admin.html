@@ -80,7 +80,7 @@
 
     <!-- Giao diện + mã của trang Admin nằm trong thư mục a/: admin.css và các file NN-ten.js (NN = thứ tự chạy);
          vài file dùng chung với trang thành viên nằm trong u/. Sửa xong chạy: python3 .github/scripts/stamp.py -->
-    <link rel="stylesheet" href="a/admin.css?v=0f7df2ea">
+    <link rel="stylesheet" href="a/admin.css?v=8ce5e30b">
 
     <!-- QD ADMIN LAYOUT 2.1: thanh bên (máy tính) + thanh dưới & menu (điện thoại) -->
 
@@ -1219,6 +1219,16 @@
                             <label class="form-label" for="rga-tuid">Thử tra 1 ID game</label>
                             <div class="rga-test-row"><input id="rga-tuid" class="form-control" inputmode="numeric" autocomplete="off" placeholder="VD: 2131951324"><button type="button" class="btn btn-primary" id="rga-tgo"><i class="fa-solid fa-magnifying-glass mr-2"></i> Thử tra</button></div>
                             <div id="rga-tout" class="rga-tout" hidden aria-live="polite"></div>
+                        </div>
+                        <div class="rga-use" id="rga-use">
+                            <div class="rga-use-top">
+                                <h4>📊 Kiểm kê lượt tra ID game</h4>
+                                <label class="form-label rga-max">Giới hạn mỗi dịch vụ / ngày<input id="rga-max" type="number" min="0" step="1" class="form-control" placeholder="0 = không giới hạn"></label>
+                            </div>
+                            <p class="text-xs text-muted">Dịch vụ có gói miễn phí giới hạn lượt (vd HL Gaming 25 lượt/ngày): đặt giới hạn ở đây rồi bấm Lưu. Chạm giới hạn thì hệ thống tạm ngừng gọi dịch vụ đó tới hết ngày, đơn chờ Quản lý duyệt tay.</p>
+                            <div id="rga-today"></div>
+                            <div class="rga-days" id="rga-days"></div>
+                            <details class="rga-logbox" open><summary>Nhật ký tra gần đây <span id="rga-log-n"></span></summary><ul class="rga-log" id="rga-log"></ul></details>
                         </div>
                     </div>
 
@@ -3737,7 +3747,7 @@
             <div class="wipe-btns" id="wipe-btns"></div>
         </div>
     </div>
-    <script id="qd-wipe-js" src="a/09-qd-wipe.js?v=acfce5a3"></script>
+    <script id="qd-wipe-js" src="a/09-qd-wipe.js?v=14dd1b32"></script>
     <script id="qd-help-js" src="a/10-qd-help.js?v=5be96c30"></script>
     <script id="invite-admin-js" src="a/11-invite-admin.js?v=5977e721"></script>
     <div class="modal-overlay" id="modal-payout-qr">
@@ -3859,6 +3869,6 @@
     <script id="qd-roles-js" src="a/37-qd-roles.js?v=7c8234d0"></script>
     <script id="qvps-js" src="a/38-qvps.js?v=4db2f61b"></script>
     <script id="vma-js" src="a/39-vmsg-admin.js?v=638a5412"></script>
-    <script id="rga-js" src="a/40-regid-admin.js?v=552b38bc"></script>
+    <script id="rga-js" src="a/40-regid-admin.js?v=d8cc4731"></script>
 </body>
 </html>
