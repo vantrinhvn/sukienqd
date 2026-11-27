@@ -80,7 +80,7 @@
 
     <!-- Giao diện + mã của trang Admin nằm trong thư mục a/: admin.css và các file NN-ten.js (NN = thứ tự chạy);
          vài file dùng chung với trang thành viên nằm trong u/. Sửa xong chạy: python3 .github/scripts/stamp.py -->
-    <link rel="stylesheet" href="a/admin.css?v=8ce5e30b">
+    <link rel="stylesheet" href="a/admin.css?v=fe5d1767">
 
     <!-- QD ADMIN LAYOUT 2.1: thanh bên (máy tính) + thanh dưới & menu (điện thoại) -->
 
@@ -1114,7 +1114,7 @@
                                         <span class="font-bold text-main"><i class="fa-solid fa-gift text-warning mr-1"></i> Vật phẩm thưởng mỗi lần điểm danh</span>
                                         <span class="text-muted text-xs">Công tắc từng món: bật / tắt là lưu ngay</span>
                                     </div>
-                                    <p class="text-muted text-xs m-0 mb-1">⏰ Mỗi món có hẹn giờ riêng (để trống = không giới hạn). Ngoài giờ của món nào thì món đó không phát. Lúc điểm danh mà <b>không có món nào đang phát</b> (công tắc tổng tắt / các món tắt / ngoài giờ) thì <b>chỉ ghi nhận điểm danh</b>, không có thưởng.</p>
+                                    <p class="text-muted text-xs m-0 mb-1">⏰ Mỗi món có <b>giờ phát mỗi ngày</b> riêng (giờ Việt Nam, để trống = phát suốt giờ điểm danh), <b>tự lặp lại mỗi ngày mới</b>. Ngoài giờ của món nào thì món đó không phát. Lúc điểm danh mà <b>không có món nào đang phát</b> (công tắc tổng tắt / các món tắt / ngoài giờ) thì <b>chỉ ghi nhận điểm danh</b>, không có thưởng.</p>
                                     <div id="att-items"></div>
                                     <p class="text-sm m-0 mt-2" id="att-items-warn"></p>
                                 </div>
@@ -3641,7 +3641,7 @@
     <script id="qd-lucky-reward" src="u/05-qd-lucky-reward.js?v=cdc417a0"></script>
 
     <script src="u/06-lucky-schedule.js?v=80361552"></script>
-    <script src="a/04-app-core.js?v=b3710aad"></script>
+    <script src="a/04-app-core.js?v=7b41ec73"></script>
     <script id="qd-admin-layout-js" src="a/05-qd-admin-layout.js?v=b0c7d3ad"></script>
     <!-- ===== BÁO MẤT KẾT NỐI INTERNET (dùng chung mọi trang) ===== -->
     <div id="qd-net" class="qd-net" role="alert" aria-live="assertive" hidden>
@@ -3760,8 +3760,8 @@
     <script id="payout-admin-js" src="a/13-payout-admin.js?v=d9c5a351"></script>
     <script id="lucky-reward-admin-js" src="a/14-lucky-reward-admin.js?v=76e2bf60"></script>
     <script id="gift-admin-js" src="a/15-gift-admin.js?v=54bbba98"></script>
-    <!-- ===== HẸN GIỜ THƯỞNG VẬT PHẨM ĐIỂM DANH (settings/attendance_reward_items.from / .to, ms, 0 = không giới hạn) ===== -->
-    <script id="att-sched-js" src="a/16-att-sched.js?v=c9ecc267"></script>
+    <!-- ===== GIỜ PHÁT MỖI NGÀY CỦA THƯỞNG VẬT PHẨM ĐIỂM DANH (settings/attendance_reward_items.items[k].ds / .de = 'HH:MM', lặp lại mỗi ngày) ===== -->
+    <script id="att-sched-js" src="a/16-att-sched.js?v=486aeb4a"></script>
     <!-- ===== QD GIỜ 24H: mọi ô chọn giờ / ngày giờ trong Admin dùng chế độ 24 giờ (00 - 23), không còn SA / CH =====
          - Ô giờ gốc (input time / datetime-local) vẫn giữ nguyên, chỉ ẩn đi: code cũ đọc / ghi .value như trước
          - Hiện thay bằng: [ngày] + chọn Giờ (00-23) + chọn Phút (00-59); tự cập nhật khi code gán giá trị mới
@@ -3781,7 +3781,7 @@
          - Chỉnh: tiêu đề, lời chào, liên hệ BQT, link nhóm, địa chỉ web, màu chủ đề, chọn mục
          - Xuất: file HTML (1 file, mở trên điện thoại, gửi qua Zalo / Messenger) · In / Lưu PDF (A4) · Sao chép tin nhắn ngắn
          - Thiết lập lưu ở settings/guide_config -->
-    <script id="qd-guide-js" src="a/19-qd-guide.js?v=a111eacd"></script>
+    <script id="qd-guide-js" src="a/19-qd-guide.js?v=ae9902d9"></script>
     <script id="sec-admin-js" src="a/20-sec-admin.js?v=d38234bf"></script>
     <!-- ===== QD REPORT BOT: bộ máy Bot Báo Cáo (khối dùng chung bot.html · admin.html · user.html) =====
          Cấu hình: settings/report_bot (Admin > Bot báo cáo hoặc trang bot.html). Lịch sử gửi: bot_reports/{YYYY-MM-DD_HHMM}.

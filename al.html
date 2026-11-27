@@ -486,6 +486,14 @@
                 Object.keys(U).forEach(function (k) {
                     var x = it ? (it[k] || {}) : (k === 'tickets' ? { on: num(r.tickets, 0) > 0, n: num(r.tickets, 0) } : {});
                     var n = num(x.n, 0); if (!sw || x.on !== true || n <= 0) return;
+                    if (typeof x.ds === 'string' || typeof x.de === 'string') {                       // giờ phát mỗi ngày (giờ VN), lặp lại mỗi ngày
+                        var HM = /^([01]\d|2[0-3]):[0-5]\d$/, ds = HM.test(x.ds || '') ? x.ds : '', de = HM.test(x.de || '') ? x.de : '';
+                        var vd = new Date(now + 7 * 3600e3), cm = vd.getUTCHours() * 60 + vd.getUTCMinutes(), mn = function (v) { var p = v.split(':'); return +p[0] * 60 + +p[1]; };
+                        var a = ds ? mn(ds) : 0, b = de ? mn(de) : 1440, inNow = !ds && !de || a === b || (a < b ? cm >= a && cm < b : cm >= a || cm < b);
+                        S[k] = { n: n, wait: !inNow, from: ds ? ds + ' (mỗi ngày)' : '', to: de ? de + ' (mỗi ngày)' : '' };
+                        if (inNow) g[k] = n;
+                        return;
+                    }
                     var from = num(x.from !== undefined ? x.from : r.from, 0), to = num(x.to !== undefined ? x.to : r.to, 0);
                     if (to && now >= to) return;                                                  // món đã hết giờ
                     S[k] = { n: n, wait: !!(from && now < from), from: from ? hm(from) : '', to: to ? hm(to) : '' };

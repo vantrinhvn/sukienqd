@@ -18,7 +18,7 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = +process.env.PORT || 8787;
 const DATA = process.env.DATA || path.join(__dirname, 'data');
 const BK = path.join(DATA, 'backup');
-const VER = 'qd-vps-27';
+const VER = 'qd-vps-28';
 const SRC_URL = 'https://raw.githubusercontent.com/vantrinhvn/sukienqd/main/vps/server.js';
 fs.mkdirSync(BK, { recursive: true });
 
@@ -1474,6 +1474,15 @@ setInterval(luckyTick, 1000);
    ================================================================================================== */
 const vnMin = t => { const d = new Date((t || Date.now()) + 7 * 3600e3); return d.getUTCHours() * 60 + d.getUTCMinutes(); };
 const hhmm = v => { const p = String(v || '').split(':').map(Number); return (p[0] || 0) * 60 + (p[1] || 0); };
+const HM_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+// Giờ phát mỗi ngày (giờ Việt Nam, lặp lại mỗi ngày): ds / de = 'HH:MM' ('' = từ đầu ngày / tới cuối ngày); de < ds = qua nửa đêm
+function dayWin(ds, de, now) {
+  ds = HM_RE.test(ds || '') ? ds : ''; de = HM_RE.test(de || '') ? de : '';
+  if (!ds && !de) return true;
+  const cur = vnMin(now), a = ds ? hhmm(ds) : 0, b = de ? hhmm(de) : 1440;
+  if (a === b) return true;
+  return a < b ? cur >= a && cur < b : cur >= a || cur < b;
+}
 const cleanIp = ip => String(ip || '').replace(/^::ffff:/, '');
 const ITEM_KEYS = ['points', 'tickets', 'spins', 'conThrows'];
 function incUpd(items) { const u = {}; for (const k of Object.keys(items || {})) if (items[k] > 0) u[k] = actInc(items[k]); return u; }
@@ -1504,10 +1513,12 @@ function actAttend(conn) {
     if (anti && ip && r.ipAddress === ip) throw err('failed-precondition', 'PROXY_IP', { other: r.userName, ip });
   }
   const rw = setting('attendance_reward_items'), rwD = rw || {}, rwIn = (f, t) => { f = Number(f) || 0; t = Number(t) || 0; return !(f && now < f) && !(t && now >= t); };
+  // món có giờ phát mỗi ngày (ds / de) -> lặp lại mỗi ngày; món cấu hình cũ (from / to = ngày giờ cố định) giữ cách cũ tới khi Admin lưu lại
+  const itIn = x => (typeof x.ds === 'string' || typeof x.de === 'string') ? dayWin(x.ds, x.de, now) : rwIn(x.from !== undefined ? x.from : rwD.from, x.to !== undefined ? x.to : rwD.to);
   const items = {};
   if (rw && rwD.isEnabled === true) {
     const it = rwD.items && typeof rwD.items === 'object' ? rwD.items : null;
-    if (it) ITEM_KEYS.forEach(k => { const x = it[k] || {}, n = Math.min(1e6, parseInt(x.n, 10) || 0); if (x.on === true && n > 0 && rwIn(x.from !== undefined ? x.from : rwD.from, x.to !== undefined ? x.to : rwD.to)) items[k] = n; });
+    if (it) ITEM_KEYS.forEach(k => { const x = it[k] || {}, n = Math.min(1e6, parseInt(x.n, 10) || 0); if (x.on === true && n > 0 && itIn(x)) items[k] = n; });
     else if ((parseInt(rwD.tickets, 10) || 0) > 0 && rwIn(rwD.from, rwD.to)) items.tickets = parseInt(rwD.tickets, 10);
   }
   const t = setting('task_config') || {};

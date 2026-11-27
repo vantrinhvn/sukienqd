@@ -2476,7 +2476,7 @@ const QVis = {
                 const AS = window.AttSched; if (!AS) return;
                 const sc = AS.form();
                 if (sc.bad) return Utils.toast("Số lượng thưởng phải là số từ 0 đến 1.000.000!", "warning");
-                if (sc.badTime.length) return Utils.toast("⏰ " + sc.badTime.join(', ') + ": giờ tắt phải sau giờ bật!", "error");
+                if (sc.badTime.length) return Utils.toast("⏰ " + sc.badTime.join(', ') + ": giờ \"Từ\" và \"Đến\" không được trùng nhau!", "error");
                 const btn = document.getElementById('att-reward-save-btn'); if (btn) btn.disabled = true;
                 db.collection("settings").doc("attendance_reward_items").set(AS.payload(sc.items), { merge: true })
                   .then(() => { AS.saved(); const t = AS.text(sc.items); Utils.toast('Đã lưu thiết lập thưởng điểm danh' + (t ? ': ' + t : ' (chưa bật vật phẩm nào)') + '!', t ? "success" : "warning"); })

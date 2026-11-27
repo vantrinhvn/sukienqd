@@ -1555,6 +1555,10 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         .att-it-time .inv-tm-f .t24 input[type="date"] { flex: 1 1 0; width: auto; min-width: 0; }
         .att-it-time .inv-tm-st { justify-self: start; white-space: normal; max-width: 100%; }
         .att-it-time .inv-tm-all { justify-self: end; }
+        .att-it-time .inv-tm-st { grid-column: 1 / -1; }
+        .inv-tm-clr { justify-self: start; border: 1px solid var(--border-strong); background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+        .inv-tm-clr:hover { color: var(--text-main); }
+        .inv-tm-clr:focus-visible, .inv-tm-all:focus-visible { outline: 2px solid var(--brand-primary, #6366f1); outline-offset: 2px; }
         .t24:has(+ .att-when.dirty) { border-color: var(--color-warning); box-shadow: 0 0 0 3px var(--color-warning-bg); }
         .att-it:last-child { border-bottom: none; }
         .att-it-name { display: flex; gap: 10px; align-items: center; min-width: 0; }
@@ -1571,8 +1575,8 @@ button.qdb-s:focus-visible { outline: 2px solid var(--qdb-gold); outline-offset:
         @media (max-width: 640px) {
             .att-it { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name sw" "n n" "time time"; row-gap: 8px; }
             .att-it-n { padding-left: 48px; }
-            .att-it-time { grid-template-columns: minmax(0, 1fr); }
-            .att-it-time .inv-tm-all { justify-self: start; }
+            .att-it-time { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+            .att-it-time .inv-tm-all { justify-self: end; }
             .att-it-time .inv-tm-f .t24 input[type="date"], .att-it-time .inv-tm-f .t24 select { font-size: 13px; }
         }
     

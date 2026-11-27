@@ -36,7 +36,9 @@
             var r = C.attendance_reward_items || {}, it = r.items && typeof r.items === 'object' ? r.items : null, give = [];
             if (r.isEnabled === true) Object.keys(U).forEach(function (k) {
                 var x = it ? (it[k] || {}) : (k === 'tickets' ? { on: num(r.tickets, 0) > 0, n: num(r.tickets, 0) } : {}), n = num(x.n, 0);
-                var to = num(x.to !== undefined ? x.to : r.to, 0); if (x.on === true && n > 0 && !(to && now >= to)) give.push('+' + n + ' ' + U[k]);
+                var daily = typeof x.ds === 'string' || typeof x.de === 'string', hm = function (v) { return /^([01]\d|2[0-3]):[0-5]\d$/.test(v || '') ? v : ''; };
+                var to = daily ? 0 : num(x.to !== undefined ? x.to : r.to, 0), ds = daily ? hm(x.ds) : '', de = daily ? hm(x.de) : '';
+                if (x.on === true && n > 0 && !(to && now >= to)) give.push('+' + n + ' ' + U[k] + (ds || de ? ' (' + (ds && de ? ds + '–' + de : ds ? 'từ ' + ds : 'tới ' + de) + ' mỗi ngày)' : ''));
             });
             o.attOn = give.length > 0; o.attItems = give;
             var l = C.lixi_config || {}, pr = (Array.isArray(l.prizes) ? l.prizes : []).map(function (p) { return { points: Math.floor(Number(p && p.points)), chance: Number(p && p.chance) }; }).filter(function (p) { return p.points >= 1 && p.chance > 0; });
